@@ -26,8 +26,6 @@ class CreateTransactionsTable extends Migration
                   ->nullable();
             $table->string('total_item_price')
                   ->nullable();
-            $table->string('total_promo_price')
-                  ->nullable();
             $table->string('total_discount_price')
                   ->nullable();
             $table->string('total_sum_price')
@@ -38,6 +36,11 @@ class CreateTransactionsTable extends Migration
                   ->nullable();
             $table->string('store')
                   ->comment('online/store location')
+                  ->nullable();
+            $table->string('payment')
+                  ->comment('cash/credit')
+                  ->nullable();
+            $table->string('note')
                   ->nullable();
 
             $table->timestamps();

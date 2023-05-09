@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+use App\Http\Controllers\Base\TransactionControllerBase;
+
+use App\Models\Transaction;
+
+class TransactionController extends Controller
+{
+    use TransactionControllerBase;
+
+    public function __construct()
+    {
+        $this->middleware('admin');
+    }
+
+    public function index($start_date, $end_date, $pagination)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Daftar transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'all';
+
+        $transactions = $this->indexTransactionBase($start_date, $end_date, $pagination);
+
+        return view('admin.layout.page', compact('default', 'transactions', 'start_date', 'end_date', 'pagination'));
+    }
+
+    public function create()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Tambah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'create';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
+    public function store(Request $request)
+    {
+        $transaction = $this->storeTransactionBase('admin', \Auth::user()->id, $request);
+
+        session(['alert' => 'add', 'data' => 'transaksi']);
+
+        return redirect('/admin/transaction/' . $transaction->id . '/print');
+    }
+
+    public function detail($transaction_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Detail transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'detail';
+
+        $transaction = Transaction::find($transaction_id);
+
+        return view('admin.layout.page', compact('default', 'transaction'));
+    }
+
+    public function print($transaction_id)
+    {
+        $role = 'admin';
+
+        $transaction = Transaction::find($transaction_id);
+
+        return view('layout.transaction.print', compact('role', 'transaction'));
+    }
+}

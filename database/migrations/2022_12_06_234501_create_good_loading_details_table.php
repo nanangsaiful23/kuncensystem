@@ -15,14 +15,21 @@ class CreateGoodLoadingDetailsTable extends Migration
     {
         Schema::create('good_loading_details', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('good_id')
+            $table->bigInteger('good_loading_id')
+                  ->unsigned()
+                  ->nullable();
+            $table->bigInteger('good_unit_id')
                   ->unsigned()
                   ->nullable();
             $table->string('last_stock')
                   ->nullable();
-            $table->string('quantity')
+            $table->integer('quantity')
+                  ->nullable();
+            $table->integer('real_quantity')
                   ->nullable();
             $table->string('price')
+                  ->nullable();
+            $table->string('selling_price')
                   ->nullable();
             $table->date('expiry_date')
                   ->nullable();
@@ -30,9 +37,14 @@ class CreateGoodLoadingDetailsTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('good_id')
+            $table->foreign('good_loading_id')
                   ->references('id')
-                  ->on('goods')
+                  ->on('good_loadings')
+                  ->onDelete('cascade');
+
+            $table->foreign('good_unit_id')
+                  ->references('id')
+                  ->on('good_units')
                   ->onDelete('cascade');
         });
     }

@@ -9,7 +9,7 @@
             <h3 class="box-title"> Form Input Loading</h3>
           </div>
 
-          {!! Form::model(old(),array('url' => route($role . '.good-loading.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+          {!! Form::model(old(),array('url' => route($role . '.good-loading.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'loading-form')) !!}
             <div class="box-body">
               @include('layout' . '.good-loading.form', ['SubmitButtonText' => 'Tambah'])
             </div>

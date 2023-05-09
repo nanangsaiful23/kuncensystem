@@ -56,11 +56,11 @@
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ $good_loading->created_at }}</td>
                     @endif
-                    <td>{{ $good_loading->loading_date }}</td>
-                    <td>{{ $good_loading->name }}</td>
-                    <td>{{ showRupiah($good_loading->total_price) }}</td>
+                    <td>{{ displayDate($good_loading->loading_date) }}</td>
+                    <td>{{ $good_loading->distributor->name }}</td>
+                    <td>{{ showRupiah($good_loading->total_item_price) }}</td>
                     <td>{{ $good_loading->note }}</td>
-                    <td>{{ $good_loading->actor["name"] }}</td>
+                    <td>{{ $good_loading->actor()->name }}</td>
                     <td class="center"><a href="{{ url($role . '/good-loading/' . $good_loading->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach

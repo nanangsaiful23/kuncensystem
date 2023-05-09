@@ -1,16 +1,16 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Member extends Model
+class Account extends Model
 {    
     use SoftDeletes;
     
     protected $fillable = [
-        'email', 'name'
+        'code', 'name', 'type', 'group', 'balance'
     ];
 
     protected $hidden = [

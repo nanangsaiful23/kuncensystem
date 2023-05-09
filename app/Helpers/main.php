@@ -1,5 +1,5 @@
 <?php
-    use App\Member;
+    use App\Models\Account;
     use App\Models\Brand;
     use App\Models\Category;
     use App\Models\Color;
@@ -7,6 +7,7 @@
     use App\Models\Good;
     use App\Models\GoodChecking;
     use App\Models\GoodLoading;
+    use App\Models\Member;
     use App\Models\Unit;
 
     use Illuminate\Support\Facades\DB;
@@ -133,8 +134,14 @@
         return number_format(checkNull($number),0,'',',');
     }
 
+    function unformatNumber($number)
+    {
+        return str_replace(",", "", $number);
+    }
+
     function showRupiah($money)
     {
+        is_numeric($money) ? : $money = unformatNumber($money);
         return 'Rp' . number_format(checkNull($money),2,'.',',');
     }
 
@@ -150,7 +157,7 @@
 
     function checkNull($item)
     {
-        return $item == NULL || $item == 'NULL' ? 0 : $item;
+        return $item == NULL || $item == 'NULL' || $item == "" ? 0 : $item;
     }
 
     function calculateProfit($buy_price, $sell_price)
@@ -184,6 +191,11 @@
         return $members;
     }
 
+    function getAccounts()
+    {
+        return Account::orderBy('code', 'asc')->get();
+    }
+
     function getBrands()
     {
         $brands = [null => 'Pilih merek'];
@@ -202,6 +214,15 @@
         return $categories;
     }
 
+    function getColors()
+    {
+        $colors = [null => 'Pilih warna'];
+        foreach (Color::orderBy('name', 'asc')->get() as $data) {
+            $colors = array_add($colors, $data->id, $data->name . ' (' . $data->code . ')');
+        }
+        return $colors;
+    }
+
     function getColorAsObjects()
     {
         return Color::orderBy('name', 'asc')->get();
@@ -211,6 +232,15 @@
     {
         $distributors = Distributor::orderBy('name', 'asc')->get();
 
+        return $distributors;
+    }
+
+    function getDistributorLists()
+    {
+        $distributors = [null => 'Pilih distributor', 'all' => 'Seluruh distributor'];
+        foreach (Distributor::orderBy('name', 'asc')->get() as $data) {
+            $distributors = array_add($distributors, $data->id, $data->name);
+        }
         return $distributors;
     }
 
@@ -233,15 +263,6 @@
     function getUnitAsObjects()
     {
         return Unit::orderBy('name', 'asc')->get();
-    }
-
-    function getColors()
-    {
-        $colors = [null => 'Pilih warna'];
-        foreach (Color::orderBy('name', 'asc')->get() as $data) {
-            $colors = array_add($colors, $data->id, $data->name . ' (' . $data->code . ')');
-        }
-        return $colors;
     }
 
     function getSearchLoading($type, $start_date = null, $end_date = null)
@@ -272,4 +293,13 @@
             }
         }
         return $search;
+    }
+
+    function getOtherPayment()
+    {
+        $payments = [null => 'Pilih biaya'];
+        foreach (Account::where('name', 'like', 'Biaya %')->orderBy('name', 'asc')->get() as $data) {
+            $payments = array_add($payments, $data->id, $data->name . ' (' . $data->code . ')');
+        }
+        return $payments;
     }

@@ -26,10 +26,12 @@ class CreateGoodLoadingsTable extends Migration
             $table->bigInteger('distributor_id')
                   ->unsigned()
                   ->nullable();
-            $table->string('total_price')
+            $table->string('total_item_price')
                   ->nullable();
             $table->string('note')
                   ->nullable();
+            $table->string('payment')
+                  ->nullable('cash/credit');
 
             $table->timestamps();
             $table->softDeletes();

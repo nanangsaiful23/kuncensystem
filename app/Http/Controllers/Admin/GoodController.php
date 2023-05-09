@@ -19,17 +19,26 @@ class GoodController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($pagination)
+    public function index($category_id, $distributor_id, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Daftar Good';
+        $default['page_name'] = 'Daftar Barang';
         $default['page'] = 'Good';
         $default['section'] = 'all';
 
-        $goods = $this->indexGoodBase($pagination);
+        $goods = $this->indexGoodBase($category_id, $distributor_id, $pagination);
 
-        return view('admin.layout.page', compact('default', 'Goods', 'pagination'));
+        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'distributor_id', 'pagination'));
+    }
+
+    public function searchByBarcode($barcode)
+    {
+        $good = $this->searchByBarcodeGoodBase($barcode);
+
+        return response()->json([
+            "good"  => $good
+        ], 200);
     }
 
     public function searchById($good_id)
@@ -38,6 +47,33 @@ class GoodController extends Controller
 
         return response()->json([
             "good"  => $good
+        ], 200);
+    }
+
+    public function searchByKeyword($query)
+    {
+        $goods = $this->searchByKeywordGoodBase($query);
+
+        return response()->json([
+            "goods"  => $goods
+        ], 200);
+    }
+
+    public function checkDiscount($good_id, $quantity, $price)
+    {
+        $discount = $this->checkDiscountGoodBase($good_id, $quantity, $price);
+
+        return response()->json([
+            "discount"  => $discount
+        ], 200);
+    }
+
+    public function getPriceUnit($good_id, $unit_id)
+    {
+        $good_unit = $this->getPriceUnitGoodBase($good_id, $unit_id);
+
+        return response()->json([
+            "good_unit"  => $good_unit
         ], 200);
     }
 
@@ -54,7 +90,7 @@ class GoodController extends Controller
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Detail Good';
+        $default['page_name'] = 'Detail Barang';
         $default['page'] = 'Good';
         $default['section'] = 'detail';
 
@@ -63,11 +99,50 @@ class GoodController extends Controller
         return view('admin.layout.page', compact('default', 'Good'));
     }
 
+    public function loading($good_id, $start_date, $end_date, $pagination)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Riwayat Loading Barang';
+        $default['page'] = 'Good';
+        $default['section'] = 'loading';
+
+        $loadings = $this->loadingGoodBase($good_id, $start_date, $end_date, $pagination);
+
+        return view('admin.layout.page', compact('default', 'loadings', 'good_id', 'start_date', 'end_date', 'pagination'));
+    }
+
+    public function transaction($good_id, $start_date, $end_date, $pagination)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Riwayat Transaksi Barang';
+        $default['page'] = 'Good';
+        $default['section'] = 'transaction';
+
+        $transactions = $this->transactionGoodBase($good_id, $start_date, $end_date, $pagination);
+
+        return view('admin.layout.page', compact('default', 'transactions', 'good_id', 'start_date', 'end_date', 'pagination'));
+    }
+
+    public function price($good_id, $start_date, $end_date, $pagination)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Riwayat Harga Jual Barang';
+        $default['page'] = 'Good';
+        $default['section'] = 'price';
+
+        $prices = $this->priceGoodBase($good_id, $start_date, $end_date, $pagination);
+
+        return view('admin.layout.page', compact('default', 'prices', 'good_id', 'start_date', 'end_date', 'pagination'));
+    }
+
     public function edit($good_id)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Ubah Good';
+        $default['page_name'] = 'Ubah Barang';
         $default['page'] = 'Good';
         $default['section'] = 'edit';
 

@@ -41,4 +41,46 @@ class GoodLoadingController extends Controller
 
         return view('admin.layout.page', compact('default'));
     }
+
+    public function store(Request $request)
+    {
+        $good_loading = $this->storeGoodLoadingBase('admin', \Auth::user()->id, $request);
+
+        session(['alert' => 'add', 'data' => 'loading barang']);
+
+        return redirect('/admin/good-loading/' . $good_loading->id . '/detail');
+    }
+
+    public function detail($good_loading_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Detail Loading';
+        $default['page'] = 'good-loading';
+        $default['section'] = 'detail';
+
+        $good_loading = GoodLoading::find($good_loading_id);
+
+        return view('admin.layout.page', compact('default', 'good_loading'));
+    }
+
+    public function excel()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Import Excel Loading';
+        $default['page'] = 'good-loading';
+        $default['section'] = 'excel';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
+    public function storeExcel(Request $request)
+    {
+        $good_loading = $this->storeExcelGoodLoadingBase('admin', \Auth::user()->id, $request);
+
+        session(['alert' => 'add', 'data' => 'loading barang']);
+
+        return redirect('/admin/good-loading/' . $good_loading->id . '/detail');
+    }
 }

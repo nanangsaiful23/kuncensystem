@@ -1,0 +1,180 @@
+<style type="text/css">
+  .table-striped > tbody > tr:nth-child(2n+1) > td, .table-striped > tbody > tr:nth-child(2n+1) > th {
+   background-color: #E1EEDD;
+}
+</style>
+
+<div class="content-wrapper">
+
+  @include('layout' . '.alert-message', ['type' => $default['type'], 'data' => $default['data'], 'color' => $default['color']])
+
+  <section class="content">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="box">
+          <div class="box-header">
+            <h3 class="box-title">Daftar Barang</h3>
+          </div>
+          <div class="box-body" style="overflow-x:scroll">
+            <div class="form-group col-sm-12" style="margin-top: 10px;">
+
+              @include('layout.search-form')
+
+              {!! Form::label('show', 'Show', array('class' => 'col-sm-1 control-label')) !!}
+              <div class="col-sm-2">
+                {!! Form::select('show', getPaginations(), $pagination, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
+              </div>
+              {!! Form::label('category', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
+              <div class="col-sm-3">
+                {!! Form::select('category', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
+              </div>
+            </div>
+            @if(\Auth::user()->email == 'admin')
+              <div class="form-group col-sm-12" style="margin-top: 10px;">
+                {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-5">
+                  {!! Form::select('distributor', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
+                </div>
+              </div>
+            @endif
+          </div>
+          <div class="box-body" style="overflow-x:scroll">
+              <div class="form-group">
+                @if($pagination != 'all')
+                  {{ $goods->render() }}
+                @endif
+              </div>
+            <table id="example1" class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th style="width: 45%; text-align: center;">Nama</th>
+                  <th style="width: 12%; text-align: center;">Stock</th>
+                  <th style="width: 15%; text-align: center;">Harga Jual</th>
+                  <th style="width: 15%; text-align: center;">Kode</th>
+                  @if(\Auth::user()->email == 'admin')
+                    <th style="width: 10%; text-align: center;">Harga Beli</th>
+                  @endif
+                  <th style="width: 5%; text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($goods as $good)
+                  <tr>
+                    <td>
+                      <h4>{{ $good->name }}</h4>
+                      @if(\Auth::user()->email == 'admin')
+                        @if($good->brand != null) <h5>{{ $good->brand->name }}</h5>@endif
+                        <i class="fa fa-truck green" aria-hidden="true"></i> @if($good->getLastBuy() != null) {{ $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
+                      @endif
+                    </td>
+                    <td>
+                      <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
+                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->good_transactions->sum('quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
+                      <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->good_loadings()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}
+                      <br><a href="{{ url($role . '/good/' . $good->id . '/loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
+                      <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
+                    </td>
+                    <td>
+                      @foreach($good->good_units as $unit)
+                        <b>{{ showRupiah(roundMoney($unit->selling_price)) . ' /' . $unit->unit->name}}</b>
+                        @if(\Auth::user()->email == 'admin')
+                          <br>Untung: {{ showRupiah(roundMoney($unit->selling_price) - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, roundMoney($unit->selling_price)) }}%)
+                        @endif
+                        <br><a href="{{ url($role . '/good/' . $good->id . '/price/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
+                      @endforeach
+                    </td>
+                    <td>{{ $good->code }}</td>
+                    @if(\Auth::user()->email == 'admin')<td>{{ showRupiah($good->getPcsSellingPrice()->buy_price) }}</td>@endif
+                    <td>
+                      <a href="{{ url($role . '/good/' . $good->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a><br>
+                      <a href="{{ url($role . '/good/' . $good->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a><br>
+                      @if($good->getStock() == 0)
+                        <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
+
+                        @include($role . '.layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
+
+                        <form id="delete-form-{{$good->id}}" action="{{ url($role . '/good/' . $good->id . '/delete') }}" method="POST" style="display: none;">
+                          {{ csrf_field() }}
+                          {{ method_field('DELETE') }}
+                        </form>
+                      @endif
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+@section('js-addon')
+  <script type="text/javascript">
+    $(document).ready(function(){
+        $('.select2').select2();
+        $("#search-input").keyup( function(e){
+          if(e.keyCode == 13)
+          {
+            ajaxFunction();
+          }
+        });
+
+        $("#search-btn").click(function(){
+            ajaxFunction();
+        });
+    });
+
+    function ajaxFunction()
+    {
+      $.ajax({
+        url: "{!! url($role . '/good/search/') !!}/" + $("#search-input").val(),
+        success: function(result){
+          var htmlResult = "<thead><tr><th style=\"width: 45%; text-align: center;\">Nama</th><th style=\"width: 12%; text-align: center;\">Stock</th><th style=\"width: 15%; text-align: center;\">Harga Jual</th><th style=\"width: 15%; text-align: center;\">Kode</th>@if(\Auth::user()->email == 'admin')<th style=\"width: 10%; text-align: center;\">Harga Beli</th>@endif<th style=\"width: 5%; text-align: center;\">Action</th></tr></thead><tbody>";
+
+          var r = result.goods;
+          for (var i = 0; i < r.length; i++) {
+            htmlResult += "<tr><td>" + r[i].name + " " + r[i].color_name;
+
+            if(r[i].username == 'admin')
+            {
+              htmlResult += "<br><i class='fa fa-truck green' aria-hidden='true'></i> " + r[i].last_distributor + "</td>";
+            }
+
+            htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + "</td><td><b>" + r[i].selling_price + " /" + r[i].unit + "</b>";
+
+            if(r[i].username == 'admin')
+            {
+              htmlResult += "<br>Untung: " + r[i].untung_eceran + "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/price/create\" class=\"btn btn-success\"><i class=\"fa fa-pencil-dollar\"></i> Ubah harga jual</a></td><td>" + r[i].code + "</td><td>" + r[i].price + "</td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right tosca\" aria-hidden=\"true\"></i></a><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/edit\"><i class=\"fa fa-pencil-square-o orange\"></i></a><br>";
+            }
+            else
+            {
+              htmlResult += "<td>" + r[i].code + "</td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right tosca\" aria-hidden=\"true\"></i></a><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/edit\"><i class=\"fa fa-pencil-square-o orange\"></i></a><br>";
+            }
+
+
+            if(r[i].stock == '0')
+            {
+              htmlResult += "<a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form>";
+            }
+            
+            htmlResult += "</td></tr>";
+          }
+
+          htmlResult += "</tbody>";
+
+          $("#example1").html(htmlResult);
+        },
+        error: function(){
+            console.log('error');
+        }
+      });
+    }
+
+    function advanceSearch()
+    {
+      window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#distributor').val() + '/' + $('#show').val();
+    }
+  </script>
+@endsection

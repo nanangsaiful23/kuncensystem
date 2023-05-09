@@ -26,79 +26,176 @@
   <section class="sidebar">
     <ul class="sidebar-menu" data-widget="tree">
       <li class="header">MENU UTAMA</li>
-      <li class="treeview {{ (Request::segment(2) == 'good-loading' ) ? 'active' : ''  }}">
+      <li class="treeview {{ (Request::segment(2) == 'good' ) ? 'active' : ''  }}">
         <a href="#">
-            <i class="fa fa-truck"></i><span> Loading Barang</span>
+            <i class="fa fa-cubes"></i><span> Barang</span>
           <span class="pull-right-container">
             <i class="fa fa-angle-left pull-right"></i>
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'good-loading'&& Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/good-loading/create') }}"><i class="fa fa-circle-o"></i> Input Loading Barang</a></li>
-            <li class="{{ Request::segment(2) == 'good-loading'&& Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/50') }}"><i class="fa fa-circle-o"></i> List Loading Barang</a></li>
+            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'catalog' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
+            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'catalog' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/create') }}"><i class="fa fa-circle-o"></i> Catalog Barang</a></li>
         </ul>
       </li>
-      <li class="header">MENU LAIN</li>
-      <li class="treeview {{ (Request::segment(2) == 'brand' ) ? 'active' : ''  }}">
+      @if($role == 'admin')
+        <li class="treeview {{ (Request::segment(2) == 'good-loading' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-truck"></i><span> Loading Barang</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(3) != 'create' && Request::segment(3) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/50') }}"><i class="fa fa-circle-o"></i> Daftar Loading Barang</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(3) == 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/excel') }}"><i class="fa fa-circle-o"></i> Import Data Excel</a></li>
+          </ul>
+        </li>
+      @endif
+      <li class="treeview {{ (Request::segment(2) == 'transaction' ) ? 'active' : ''  }}">
         <a href="#">
-            <i class="fa fa-html5"></i><span> Brand</span>
+            <i class="fa fa-money"></i><span> Transaksi Barang</span>
           <span class="pull-right-container">
             <i class="fa fa-angle-left pull-right"></i>
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'brand' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/brand/create') }}"><i class="fa fa-circle-o"></i> Input Brand</a></li>
-            <li class="{{ Request::segment(2) == 'brand' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/brand/15') }}"><i class="fa fa-circle-o"></i> List Brand</a></li>
+            <li class="{{ Request::segment(2) == 'transaction'&& Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi</a></li>
+            <li class="{{ Request::segment(2) == 'transaction'&& Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
         </ul>
       </li>
-      <li class="treeview {{ (Request::segment(2) == 'category' ) ? 'active' : ''  }}">
+      @if($role == 'admin')
+        <li class="header">MENU LAIN</li>
+        <li class="treeview {{ (Request::segment(2) == 'brand' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-html5"></i><span> Brand</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'brand' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/brand/create') }}"><i class="fa fa-circle-o"></i> Tambah Brand</a></li>
+              <li class="{{ Request::segment(2) == 'brand' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/brand/15') }}"><i class="fa fa-circle-o"></i> Daftar Brand</a></li>
+          </ul>
+        </li>
+        <li class="treeview {{ (Request::segment(2) == 'distributor' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-truck"></i><span> Distributor</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/create') }}"><i class="fa fa-circle-o"></i> Tambah Distributor</a></li>
+              <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/15') }}"><i class="fa fa-circle-o"></i> Daftar Distributor</a></li>
+          </ul>
+        </li>
+        <li class="treeview {{ (Request::segment(2) == 'category' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-shopping-cart"></i><span> Kategori</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'category' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/create') }}"><i class="fa fa-circle-o"></i> Tambah Kategori</a></li>
+              <li class="{{ Request::segment(2) == 'category' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/15') }}"><i class="fa fa-circle-o"></i> Daftar Kategori</a></li>
+          </ul>
+        </li>
+        <li class="treeview {{ (Request::segment(2) == 'member' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-users"></i><span> Member</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'member' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/create') }}"><i class="fa fa-circle-o"></i> Tambah Member</a></li>
+              <li class="{{ Request::segment(2) == 'member' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/15') }}"><i class="fa fa-circle-o"></i> Daftar Member</a></li>
+          </ul>
+        </li>
+        <li class="treeview {{ Request::segment(2) == 'unit' ? 'active' : ''  }}">
+          <a href="#">
+            <i class="fa fa-shopping-basket"></i><span> Satuan</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/unit/create') }}"><i class="fa fa-circle-o"></i> Tambah Satuan</a></li>
+              <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/unit/10') }}"><i class="fa fa-circle-o"></i> Daftar Satuan</a></li>
+          </ul>
+        </li>
+        <li class="treeview {{ (Request::segment(2) == 'color' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-paint-brush"></i><span> Warna</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'color' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/color/create') }}"><i class="fa fa-circle-o"></i> Tambah Warna</a></li>
+              <li class="{{ Request::segment(2) == 'color' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/color/15') }}"><i class="fa fa-circle-o"></i> Daftar Warna</a></li>
+          </ul>
+        </li>
+      @endif
+      <li class="header">PEMASUKAN LAIN-LAIN</li>
+      <li class="treeview {{ (Request::segment(2) == 'other-transaction' ) ? 'active' : ''  }}">
         <a href="#">
-            <i class="fa fa-shopping-cart"></i><span> Kategori</span>
+            <i class="fa fa-dollar"></i><span> Transaksi Lain</span>
           <span class="pull-right-container">
             <i class="fa fa-angle-left pull-right"></i>
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'category' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/category/create') }}"><i class="fa fa-circle-o"></i> Input Kategori</a></li>
-            <li class="{{ Request::segment(2) == 'category' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/category/15') }}"><i class="fa fa-circle-o"></i> List Kategori</a></li>
+            <li class="{{ Request::segment(2) == 'other-transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi Lain</a></li>
+            <li class="{{ Request::segment(2) == 'other-transaction' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-transaction/15') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Lain</a></li>
         </ul>
       </li>
-      <li class="treeview {{ (Request::segment(2) == 'color' ) ? 'active' : ''  }}">
+      <li class="header">PENGELUARAN LAIN-LAIN</li>
+      @if(\Auth::user()->email == 'admin')
+        <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-plus"></i><span> Biaya Lain</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Biaya Lain</a></li>
+              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/15') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
+          </ul>
+        </li>
+      @endif
+      <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
         <a href="#">
-            <i class="fa fa-paint-brush"></i><span> Warna</span>
+            <i class="fa fa-building-o"></i><span> Transaksi Internal</span>
           <span class="pull-right-container">
             <i class="fa fa-angle-left pull-right"></i>
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'color' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/color/create') }}"><i class="fa fa-circle-o"></i> Input Warna</a></li>
-            <li class="{{ Request::segment(2) == 'color' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/color/15') }}"><i class="fa fa-circle-o"></i> List Warna</a></li>
+            <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi Internal</a></li>
+            <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/15') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Internal</a></li>
         </ul>
       </li>
-      <li class="treeview {{ (Request::segment(2) == 'distributor' ) ? 'active' : ''  }}">
-        <a href="#">
-            <i class="fa fa-truck"></i><span> Distributor</span>
-          <span class="pull-right-container">
-            <i class="fa fa-angle-left pull-right"></i>
-          </span>
-        </a>
-        <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/distributor/create') }}"><i class="fa fa-circle-o"></i> Input Distributor</a></li>
-            <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/distributor/15') }}"><i class="fa fa-circle-o"></i> List Distributor</a></li>
-        </ul>
-      </li>
-      <li class="treeview {{ Request::segment(2) == 'unit' ? 'active' : ''  }}">
-        <a href="#">
-          <i class="fa fa-shopping-basket"></i><span> Satuan</span>
-          <span class="pull-right-container">
-            <i class="fa fa-angle-left pull-right"></i>
-          </span>
-        </a>
-        <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/unit/create') }}"><i class="fa fa-circle-o"></i> Input Satuan</a></li>
-            <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/admin/unit/10') }}"><i class="fa fa-circle-o"></i> List Satuan</a></li>
-        </ul>
-      </li>
+      @if(\Auth::user()->email == 'admin')
+        <li class="header">LAPORAN KEUANGAN</li>
+        <li class="treeview {{ (Request::segment(2) == 'account' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-book"></i><span> Daftar Akun</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'account' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/account/create') }}"><i class="fa fa-circle-o"></i> Tambah Daftar Akun</a></li>
+              <li class="{{ Request::segment(2) == 'account' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/account/15') }}"><i class="fa fa-circle-o"></i> Daftar Daftar Akun</a></li>
+          </ul>
+        </li>
+        <li class="{{ Request::segment(2) == 'journal' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/journal/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15') }}"><i class="fa fa-calculator"></i> Daftar Jurnal</a></li>
+      @endif
     </ul>
   </section>
 </aside>

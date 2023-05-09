@@ -24,6 +24,8 @@ class CreateUnitsTable extends Migration
                   ->nullable();
             $table->string('quantity')
                   ->nullable();
+            $table->string('base')
+                  ->nullable();
 
             $table->timestamps();
             $table->softDeletes();

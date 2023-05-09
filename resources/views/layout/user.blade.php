@@ -41,7 +41,8 @@
       {
         font-family: inter !important;
         font-weight: 300;
-        color: #7868E6;
+        color: black;
+/*        color: #FF7B54;*/
       }
 
       .box 
@@ -68,25 +69,25 @@
       {
           border: 0;
           background-color: transparent;
-          color: #39CCCC;
+          color: #FF7B54;
       }
 
       .btn
       {
-        border-color: #7868E6; 
+        border-color: #FF7B54; 
         background-color: white; 
         color: black;
       }
 
       .btn:hover
       {
-        background-color: #7868E6; 
+        background-color: #FF7B54; 
         color: white;
       }
 
       td .fa
       {
-        color: #7868E6;
+        color: #FF7B54;
       }
     </style>
 

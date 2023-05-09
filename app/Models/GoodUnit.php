@@ -20,4 +20,14 @@ class GoodUnit extends Model
     protected $dates =[
         'deleted_at',
     ];
+    
+    public function good()
+    {
+        return $this->belongsTo('App\Models\Good');
+    }
+    
+    public function unit()
+    {
+        return $this->belongsTo('App\Models\Unit');
+    }
 }

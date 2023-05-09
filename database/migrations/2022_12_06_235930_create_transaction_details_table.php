@@ -27,8 +27,6 @@ class CreateTransactionDetailsTable extends Migration
                   ->nullable();
             $table->string('selling_price')
                   ->nullable();
-            $table->string('promo_price')
-                  ->nullable();
             $table->string('discount_price')
                   ->nullable();
             $table->string('sum_price')

@@ -10,25 +10,23 @@
     <div class="row">
         <div class="col-sm-5">
             <div class="form-group col-sm-12">
-                {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-4 control-label')) !!}
+                {!! Form::label('distributor_id', 'Distributor', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('distributor', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
-                        {!! Form::text('distributor', null, array('class' => 'form-control', 'readonly' => 'readonly','required'=>'required')) !!}
-                        <select class="form-control select2" style="width: 100%;" name="distributors" id="all_distributor"
-                            onchange="fillDistributorName()">
+                        <input type="text" name="distributor_name" class="form-control" id="distributor_name">
+                        <select class="form-control select2" style="width: 100%;" name="distributor_id" id="all_distributor">
                             <div>
                                 <option value="null">Silahkan pilih distributor</option>
                                 @foreach($distributors as $distributor)
-                                <option value="{{ $distributor->id }}, {{ $distributor->name . ' ' }}">
-                                    {{ $distributor->name . ' ' }}</option>
+                                <option value="{{ $distributor->id }}">
+                                    {{ $distributor->name }}</option>
                                 @endforeach
                             </div>
                         </select>
                     @endif
                 </div>
-
             </div>
             <div class="form-group col-sm-12">
                 {!! Form::label('loading_date', 'Tanggal Pembelian', array('class' => 'col-sm-4 control-label')) !!}
@@ -44,9 +42,19 @@
             <div class="col-sm-12">
                 <input type="text" name="note" class="form-control" id="note">
             </div>
-            {!! Form::label('good_checker', 'PIC Check Barang', array('class' => 'col-sm-12 control-label', 'style' => 'text-align: left')) !!}
+            {!! Form::label('checker', 'PIC Check Barang', array('class' => 'col-sm-12 control-label', 'style' => 'text-align: left')) !!}
             <div class="col-sm-12">
-                <input type="text" name="good_checker" class="form-control" id="good_checker">
+                <input type="text" name="checker" class="form-control" id="checker">
+            </div>
+            {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-12 control-label', 'style' => 'text-align: left')) !!}
+            <div class="col-sm-12">
+                <select class="form-control select2" style="width: 100%;" name="payment">
+                    <div>
+                        @foreach(getAccounts() as $account)
+                            <option value="{{ $account->code }}">{{ $account->code . ' - ' . $account->name }}</option>
+                        @endforeach
+                    </div>
+                </select>
             </div>
        </div>
     </div>
@@ -110,10 +118,9 @@
                     </td>
                     <td>
                         @if($SubmitButtonText == 'View')
-                            {!! Form::text('unit_id', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            {!! Form::text('unit', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                         @else
-                            {!! Form::select('unit_id', getUnits(), null, ['class' => 'form-control select2','required'=>'required', 'style'=>'width:
-                        100%', 'id' => 'unit_id']) !!}
+                            {!! Form::select('units[]', getUnits(), null, ['class' => 'form-control select2','required'=>'required', 'style'=>'width:100%', 'id' => 'unit-' . $i, 'onchange' => 'changePriceByUnit(' . $i . ')']) !!}
                         @endif
                     </td>
                     <td>
@@ -167,7 +174,7 @@
                 </div>
             </div>
             <div class="form-group">
-                {!! Form::label('code', 'Kode Barang', array('class' => 'col-sm-4 control-label')) !!}
+                {!! Form::label('code', 'Barcode Barang', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
                     {!! Form::text('code', null, array('class' => 'form-control', 'id' => 'code')) !!}
                     {{-- <input name="generate" type="checkbox" checked="checked" id="generate"> Generate code --}}
@@ -186,6 +193,28 @@
                 <div class="col-sm-8">
                     {!! Form::select('brand_id', getBrands(), null, ['class' => 'form-control select2',
                     'style'=>'width: 100%', 'id' => 'brand_id']) !!}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {!! Form::label('unit_id', 'Satuan', array('class' => 'col-sm-4 control-label')) !!}
+                <div class="col-sm-8">
+                    {!! Form::select('unit_id', getUnits(), null, ['class' => 'form-control select2',
+                    'style'=>'width: 100%', 'id' => 'unit_id']) !!}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {!! Form::label('price', 'Harga Beli', array('class' => 'col-sm-4 control-label')) !!}
+                <div class="col-sm-8">
+                    {!! Form::text('price', null, array('class' => 'form-control','required'=>'required', 'id' => 'price')) !!}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {!! Form::label('selling_price', 'Harga Jual', array('class' => 'col-sm-4 control-label')) !!}
+                <div class="col-sm-8">
+                    {!! Form::text('selling_price', null, array('class' => 'form-control','required'=>'required', 'id' => 'selling_price')) !!}
                 </div>
             </div>
         </div>
@@ -228,34 +257,29 @@
               {
                 if (index==-1)
                 {
-                  for (var i = 1; i <= total_item; i++)
-                  {
-                      if(document.getElementById("barcode-" + i))
-                      {
-                          if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.code)
-                          {
-                              temp_total = document.getElementById("quantity-" + i).value;
-                              temp_total = parseInt(temp_total) + 1;
-                              document.getElementById("quantity-" + i).value = temp_total;
-                              bool = true;
+                  // for (var i = 1; i <= total_item; i++)
+                  // {
+                  //     if(document.getElementById("barcode-" + i))
+                  //     {
+                  //         if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.code)
+                  //         {
+                  //             temp_total = document.getElementById("quantity-" + i).value;
+                  //             temp_total = parseInt(temp_total) + 1;
+                  //             document.getElementById("quantity-" + i).value = temp_total;
+                  //             bool = true;
 
-                              editPrice(i);
-                              break;
-                          }
-                      }
-                  }
+                  //             editPrice(i);
+                  //             break;
+                  //         }
+                  //     }
+                  // }
 
                   if(bool == false)
                   {
                       document.getElementById("name-" + total_item).value = good.id;
-                      document.getElementById("name_temp-" + total_item).value = good.name + ' ' + good.color_name;
+                      document.getElementById("name_temp-" + total_item).value = good.name;
                       document.getElementById("barcode-" + total_item).value = good.code;
-                      document.getElementById("color-" + total_item).value = good.color_name;
                       document.getElementById("quantity-" + total_item).value = 1;
-                      document.getElementById("unit-" + total_item).value = good.unit;
-                      document.getElementById("price-" + total_item).value = good.price;
-                      document.getElementById("stock-" + total_item).value = good.stock;
-                      document.getElementById("sell_price-" + total_item).value = good.selling_price;
 
                       editPrice(total_item);
                     total_real_item+=1;
@@ -268,15 +292,11 @@
                 {
 
                       document.getElementById("name-" + index).value = good.id;
-                      document.getElementById("name_temp-" + index).value = good.name + ' ' + good.color_name;
+                      document.getElementById("name_temp-" + index).value = good.name;
                       document.getElementById("barcode-" + index).value = good.code;
-                      document.getElementById("color-" + index).value = good.color_name;
                       document.getElementById("quantity-" + index).value = 1;
-                      document.getElementById("unit-" + index).value = good.unit;
                       // document.getElementById("quantity-" + index).focus();
 
-                      document.getElementById("price-" + index).value = good.price;
-                      document.getElementById("total_price-" + index).value = good.selling_price;
 
                       editPrice(index);
                     total_real_item+=1;
@@ -314,10 +334,14 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 data: {
+                    role: '{{ $role }}',
                     category_id: $("#category_id").val(),
                     code: $("#code").val(),
                     name: $("#name").val(),
                     brand_id: $("#brand_id").val(),
+                    unit_id: $("#unit_id").val(),
+                    price: $("#price").val(),
+                    selling_price: $("#selling_price").val(),
                 },
                 success: function(result){
                     console.log(result);
@@ -325,11 +349,14 @@
                     $("#barcode-" + total_item).val(result.good.code);
                     $("#name_temp-" + total_item).val(result.good.name);
                     $("#quantity-" + total_item).val("1");
+                    $("#unit-" + total_item).val(result.good.unit_id).change();
+                    $("#price-" + total_item).val(result.good.price);
+                    $("#sell_price-" + total_item).val(result.good.selling_price);
 
                     total_item += 1;
                     total_real_item+=1;
-                    htmlResult = '<tr id="row-data-' + total_item+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + total_item+ '" onchange="searchName(' + total_item+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + total_item+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + total_item + '" name="names[]" type="text" style="display:none"></textarea></td><td><textarea type="text" name="colors[]" class="form-control" id="color-' + total_item +'" readonly="readonly"></textarea></td><td><input class="form-control" readonly="readonly" id="exp-' + total_item + '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + total_item +'" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="unit-' + total_item + '" name="units[]" type="text"></textarea></td><td><textarea class="form-control" id="price-' + total_item + '" name="prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + total_item +'" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="stock-' + total_item+ '" name="stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + total_item+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + total_item +'" onclick="deleteItem(' + total_item + ')"></i></td></tr>';
-                    htmlResult += "$('#name-" + total_item + "').select2();<\/script>";
+                    htmlResult = '<tr id="row-data-' + total_item+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + total_item+ '" onchange="searchName(' + total_item+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + total_item+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + total_item + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control" id="exp-' + total_item + '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + total_item +'" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><select class="form-control select2" id="unit-' + total_item + '" name="units[]">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" id="price-' + total_item + '" name="prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + total_item +'" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="stock-' + total_item+ '" name="stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + total_item+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + total_item +'" onclick="deleteItem(' + total_item + ')"></i></td></tr>';
+                    htmlResult += "<script>$('#unit-" + total_item + "').select2();<\/script>";
                     $("#table-transaction").append(htmlResult);
 
                     // $("#good_category_id").val("");
@@ -358,6 +385,7 @@
                 success: function(result){
                   var good = result.good;
                   var index=-1;
+                  console.log(result);
                   fillItem(result.good,index)},
                 error: function(){
                 }
@@ -534,9 +562,9 @@
 
               changeTotal();
               temp1=parseInt(index)+1
-              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><textarea class="form-control" readonly="readonly" id="color-' +temp1+ '" name="color[]" type="text"></textarea></td><td><input class="form-control"  id="exp-' +temp1+ '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="unit-' +temp1+ '" name="units[]" type="text"></textarea></td><td><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="stock-' + temp1+ '" name="stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control"  id="exp-' +temp1+ '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="stock-' + temp1+ '" name="stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
               + temp1+ ')"></i></td></tr>';
-              htmlResult += "<script>$('#type-" + temp1 + "').select2();$('#exp-"+temp1+"').datepicker({autoclose: true,format: 'yyyy-mm-dd',todayHighlight: true});<\/script>";
+              htmlResult += "<script>$('#unit-" + temp1 + "').select2();$('#exp-"+temp1+"').datepicker({autoclose: true,format: 'yyyy-mm-dd',todayHighlight: true});<\/script>";
               if(index == total_item)
               {
                   total_item += 1;
@@ -547,10 +575,32 @@
               $("#all_barcode").focus();
 
           }
-          function fillDistributorName()
-          {
-            var distributor = $("#all_distributor").val().split(',');
-            document.getElementById("distributor").value = distributor[1];
-          }
+
+        function changePriceByUnit(index)
+        {
+          $.ajax({
+            url: "{!! url($role . '/good/getPriceUnit/') !!}/" + $("#name-" + index).val() + '/' + $("#unit-" + index).val(),
+            success: function(result){
+              var good_unit = result.good_unit;
+
+              if(good_unit != null)
+              {
+                  document.getElementById("price-" + index).value = good_unit.buy_price;
+                  document.getElementById("sell_price-" + index).value = good_unit.selling_price;
+              }
+              else
+              {
+                  document.getElementById("price-" + index).value = '0';
+                  document.getElementById("sell_price-" + index).value = '0';
+              }
+
+              document.getElementById("total_price-" + index).value = document.getElementById("price-" + index).value * document.getElementById("quantity-" + index).value;
+
+              changeTotal();
+            },
+            error: function(){
+            }
+          });
+        }
 </script>
 @endsection

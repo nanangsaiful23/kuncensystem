@@ -10,7 +10,7 @@ class Unit extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'code', 'name', 'eng_name', 'quantity'
+        'code', 'name', 'eng_name', 'quantity', 'base'
     ];
 
     protected $hidden = [

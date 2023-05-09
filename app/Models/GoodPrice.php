@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Admin;
+use App\Cashier;
+
 class GoodPrice extends Model
 {    
     use SoftDeletes;
@@ -20,4 +23,17 @@ class GoodPrice extends Model
     protected $dates =[
         'deleted_at',
     ];
+
+    public function actor()
+    {
+        if($this->role == 'admin')
+            return Admin::find($this->role_id);
+        else
+            return Cashier::find($this->role_id);
+    }
+    
+    public function good_unit()
+    {
+        return $this->belongsTo('App\Models\GoodUnit');
+    }
 }
