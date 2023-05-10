@@ -1,4 +1,6 @@
 <?php
+    use App\Admin;
+    use App\Cashier;
     use App\Models\Account;
     use App\Models\Brand;
     use App\Models\Category;
@@ -177,20 +179,6 @@
         return $result;
     }
 
-    function getRoles()
-    {
-        $roles = ['admin' => 'admin', 'cashier' => 'cashier', 'member' => 'member'];
-
-        return $roles;
-    }
-
-    function getMembers()
-    {
-        $members = Member::all();
-
-        return $members;
-    }
-
     function getAccounts()
     {
         return Account::orderBy('code', 'asc')->get();
@@ -244,6 +232,18 @@
         return $distributors;
     }
 
+    function getDistributorLoading($distributor_id, $start_date = null, $end_date = null)
+    {
+        $search = ['all' => 'Semua'];
+        if($start_date != null)
+        {
+            foreach (DB::select("SELECT DISTINCT good_loadings.distributor_id as distributor_id, distributors.name FROM good_loadings join distributors on good_loadings.distributor_id = distributors.id WHERE good_loadings.created_at >= '" . $start_date . "' AND good_loadings.created_at <= '" . $end_date . "' ORDER BY distributors.name") as $data) {
+                $search = array_add($search, $data->distributor_id, $data->name);
+            }
+        }
+        return $search;
+    }
+
     function getGoods()
     {
         $goods = Good::all();
@@ -251,18 +251,27 @@
         return $goods;
     }
 
-    function getUnits()
+    function getMembers()
     {
-        $units = [null => 'Pilih satuan'];
-        foreach (Unit::orderBy('name', 'asc')->get() as $data) {
-            $units = array_add($units, $data->id, $data->name . ' (' . $data->code . ')');
-        }
-        return $units;
+        $members = Member::all();
+
+        return $members;
     }
 
-    function getUnitAsObjects()
+    function getOtherPayment()
     {
-        return Unit::orderBy('name', 'asc')->get();
+        $payments = [null => 'Pilih biaya'];
+        foreach (Account::where('name', 'like', 'Biaya %')->orderBy('name', 'asc')->get() as $data) {
+            $payments = array_add($payments, $data->id, $data->name . ' (' . $data->code . ')');
+        }
+        return $payments;
+    }
+
+    function getRoles()
+    {
+        $roles = ['admin' => 'admin', 'cashier' => 'cashier', 'member' => 'member'];
+
+        return $roles;
     }
 
     function getSearchLoading($type, $start_date = null, $end_date = null)
@@ -283,23 +292,29 @@
         return $search;
     }
 
-    function getDistributorLoading($distributor_id, $start_date = null, $end_date = null)
+    function getUnits()
     {
-        $search = ['all' => 'Semua'];
-        if($start_date != null)
-        {
-            foreach (DB::select("SELECT DISTINCT good_loadings.distributor_id as distributor_id, distributors.name FROM good_loadings join distributors on good_loadings.distributor_id = distributors.id WHERE good_loadings.created_at >= '" . $start_date . "' AND good_loadings.created_at <= '" . $end_date . "' ORDER BY distributors.name") as $data) {
-                $search = array_add($search, $data->distributor_id, $data->name);
-            }
+        $units = [null => 'Pilih satuan'];
+        foreach (Unit::orderBy('name', 'asc')->get() as $data) {
+            $units = array_add($units, $data->id, $data->name . ' (' . $data->code . ')');
         }
-        return $search;
+        return $units;
     }
 
-    function getOtherPayment()
+    function getUnitAsObjects()
     {
-        $payments = [null => 'Pilih biaya'];
-        foreach (Account::where('name', 'like', 'Biaya %')->orderBy('name', 'asc')->get() as $data) {
-            $payments = array_add($payments, $data->id, $data->name . ' (' . $data->code . ')');
+        return Unit::orderBy('name', 'asc')->get();
+    }
+
+    function getUsers()
+    {
+        $users = ['all/all' => 'Semua user'];
+        foreach (Admin::where('is_active', 1)->orderBy('name', 'asc')->get() as $data) {
+            $users = array_add($users, 'admin/' . $data->id, $data->name);
         }
-        return $payments;
+        foreach (Cashier::where('is_active', 1)->orderBy('name', 'asc')->get() as $data) {
+            $users = array_add($users, 'cashier/' . $data->id, $data->name);
+        }
+
+        return $users;
     }

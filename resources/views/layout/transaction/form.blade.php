@@ -51,6 +51,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
+                    {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
                     <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
                         <div>
                             @foreach(getMembers() as $member)
@@ -396,7 +397,7 @@
         {
             if($('#money_paid').val() != '' && $('#total_discount_price').val() != '')
             {
-                if($('#money_paid').val() < $('#total_sum_price').val() && $('#all_member').val() == '1')
+                if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#all_member').val() == '1' && $('#member_name').val() == null))
                 {
                     alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member');
                 }

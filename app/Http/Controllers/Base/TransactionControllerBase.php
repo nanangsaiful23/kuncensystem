@@ -6,58 +6,122 @@ use Illuminate\Http\Request;
 
 use App\Models\Account;
 use App\Models\Journal;
+use App\Models\Member;
+use App\Models\PiutangPayment;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 
 trait TransactionControllerBase 
 {
-    public function indexTransactionBase($start_date, $end_date, $pagination)
+    public function indexTransactionBase($role, $role_id, $start_date, $end_date, $pagination)
     {
         $transactions = [];
 
         if($pagination == 'all')
         {
-            $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                ->where('payment', 'cash')
-                                                ->where('money_paid', '>', 0)
-                                                ->orderBy('transactions.created_at','desc')
-                                                ->get();
+            if($role_id == 'all')
+            {
+                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
 
-            $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                ->where('payment', 'cash')
-                                                ->where('money_paid', '<=', 0)
-                                                ->orderBy('transactions.created_at','desc')
-                                                ->get();
+                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
 
-            $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                ->where('payment', 'transfer')
-                                                ->orderBy('transactions.created_at','desc')
-                                                ->get();
+                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+            }
+            else
+            {
+                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+
+                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+
+                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+            }
         }
         else
         {
-            $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                ->whereDate('transactions.created_at', '<=', $end_date)
-                                                ->where('payment', 'cash')
-                                                ->where('money_paid', '>', 0)
-                                                ->orderBy('transactions.created_at','desc')
-                                                ->paginate($pagination);
+            if($role_id == 'all')
+            {
+                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
 
-            $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                ->whereDate('transactions.created_at', '<=', $end_date)
-                                                ->where('payment', 'cash')
-                                                ->where('money_paid', '<=', 0)
-                                                ->orderBy('transactions.created_at','desc')
-                                                ->paginate($pagination);
-                                                
-            $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                ->whereDate('transactions.created_at', '<=', $end_date)
-                                                ->where('payment', 'transfer')
-                                                ->orderBy('transactions.created_at','desc')
-                                                ->paginate($pagination);
+                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+                                                    
+                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->where('payment', 'transfer')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+            }
+            else
+            {
+                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+
+                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->where('payment', 'cash')
+                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+                                                    
+                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->where('payment', 'transfer')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+            }
         }
 
         return $transactions;
@@ -66,11 +130,23 @@ trait TransactionControllerBase
     public function storeTransactionBase($role, $role_id, Request $request)
     {
         $hpp = 0;
+
+        if($request->member_name != null)
+        {
+            $data_member_new['name'] = $request->member_name;
+            $member = Member::create($data_member_new);
+
+            $data_transaction['member_id'] = $member->id;
+        }
+        else
+        {
+            $data_transaction['member_id'] = $request->member_id;
+        }
+
         #tabel transaction
         $data_transaction['type'] = $request->type;
         $data_transaction['role'] = $role;
         $data_transaction['role_id'] = $role_id;
-        $data_transaction['member_id'] = $request->member_id;
         $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
         $data_transaction['total_discount_price'] = unformatNumber($request->total_discount_price);
         $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
@@ -149,9 +225,12 @@ trait TransactionControllerBase
         }
 
         #tabel journal piutang
-        if($data_transaction['money_paid'] <= 0)
+        if($data_transaction['money_paid'] < $data_transaction['total_sum_price'])
         {
-            $piutang = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'piutang')->first();
+            $piutang = Journal::whereDate('journal_date', date('Y-m-d'))
+                              ->where('type', 'piutang')
+                              ->where('name', 'Piutang dagang member ' . $transaction->member->name . ' (ID ' . $transaction->member->id . ')')
+                              ->first();
 
             if($piutang != null)
             {
@@ -171,6 +250,40 @@ trait TransactionControllerBase
                 $data_piutang['credit']             = $data_transaction['total_sum_price'];
 
                 Journal::create($data_piutang);
+            }
+
+            if($data_transaction['money_paid'] > 0)
+            {
+                $data_member['member_id']    = $transaction->member_id;
+                $data_member['payment_date'] = date('Y-m-d');
+                $data_member['money']        = $data_transaction['money_paid'];
+
+                $payment = PiutangPayment::create($data_member);
+
+                $piutang = Journal::whereDate('journal_date', date('Y-m-d'))
+                                  ->where('type', 'piutang_transaction')
+                                  ->where('name', 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')')
+                                  ->first();
+
+                if($piutang != null)
+                {
+                    $data_piutang_member['debit'] = floatval($piutang->debit) + floatval($request->money);
+                    $data_piutang_member['credit'] = floatval($piutang->credit) + floatval($request->money);
+
+                    $piutang->update($data_piutang_member);
+                }
+                else
+                {
+                    $data_piutang_member['type']               = 'piutang_transaction';
+                    $data_piutang_member['journal_date']       = date('Y-m-d');
+                    $data_piutang_member['name']               = 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')';
+                    $data_piutang_member['debit_account_id']   = Account::where('code', '1111')->first()->id;
+                    $data_piutang_member['debit']              = $data_transaction['money_paid'];
+                    $data_piutang_member['credit_account_id']  = Account::where('code', '1131')->first()->id;
+                    $data_piutang_member['credit']             = $data_transaction['money_paid'];
+
+                    Journal::create($data_piutang_member);
+                }
             }
         }
 

@@ -18,7 +18,8 @@
 			wa/telp 0823-2292-2654
 			<hr>
 			{{ displayDateTime($transaction->created_at) }}<br>
-			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}
+			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}<br>
+			Member: {{ $transaction->member->name }}
 		</div>
 		<table style="font-size: 10px; text-align: center;">
 			<?php $i = 1; ?>

@@ -15,6 +15,10 @@
            <div class="col-sm-1">
               {!! Form::select('show', getPaginations(), $pagination, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
             </div>
+            {!! Form::label('user_id', 'PIC', array('class' => 'col-sm-1 control-label')) !!}
+           <div class="col-sm-2">
+              {!! Form::select('user_id', getUsers(), $role_user . '/' . $role_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'user_id', 'onchange' => 'advanceSearch()']) !!}
+            </div>
             {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
             <div class="col-sm-2">
               <div class="input-group date">
@@ -27,6 +31,9 @@
                 <input type="text" class="form-control pull-right" id="datepicker2" name="end_date" value="{{ $end_date }}" onchange="changeDate()">
               </div>
             </div>
+          </div>
+          <div class="box-body" style="overflow-x:scroll;">
+            <h3>Total uang masuk: {{ showRupiah($transactions['cash']->sum('total_sum_price') + ($transactions['credit']->sum('money_paid'))) }}</h4>
           </div>
           <div class="box-body" style="overflow-x:scroll; background-color: #E5F9DB">
             <h3>Transaksi Lunas</h3><br>
@@ -175,6 +182,7 @@
 @section('js-addon')
   <script type="text/javascript">
     $(document).ready(function(){
+      $('.select2').select2();
       $('#datepicker').datepicker({
         autoclose: true,
         format: 'yyyy-mm-dd'
@@ -199,13 +207,14 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/{{ $role }}/transaction/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/transaction/{{ $role_user }}/{{ $role_id }}' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
     }
 
     function advanceSearch()
     {
       var show        = $('#show').val();
-      window.location = window.location.origin + '/{{ $role }}/transaction/{{ $start_date }}/{{ $end_date }}/' + show;
+      var user_id     = $('#user_id').val();
+      window.location = window.location.origin + '/{{ $role }}/transaction/' + user_id + '/{{ $start_date }}/{{ $end_date }}/' + show;
     }
   </script>
 @endsection

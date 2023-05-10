@@ -15,12 +15,14 @@ class DatabaseSeeder extends Seeder
             'name'          => 'Admin NTN',
             'email'         => 'admin',
             'password'      => bcrypt('bismillaah' . '<4d[M!n}'),
+            'is_active'     => 1
         ]);
 
         \App\Cashier::create([
             'name'          => 'Cashier NTN',
             'email'         => 'cashier',
             'password'      => bcrypt('bismillaah' . 'k&4z~1e1R*'),
+            'is_active'     => 1
         ]);
 
         DB::table('members')->insert(array(

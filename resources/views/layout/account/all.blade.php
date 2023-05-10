@@ -24,6 +24,7 @@
                 <th>Nama</th>
                 <th>Debet/Kredit</th>
                 <th>Grup</th>
+                <th>Saldo Awal</th>
                 <th class="center">Detail</th>
                 <th class="center">Ubah</th>
                 @if($role == 'admin')
@@ -38,6 +39,7 @@
                     <td>{{ $account->name }}</td>
                     <td>{{ $account->type }}</td>
                     <td>{{ $account->group }}</td>
+                    <td style="text-align: right;">{{ showRupiah($account->balance) }}</td>
                     <td class="center"><a href="{{ url($role . '/account/' . $account->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/account/' . $account->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')
