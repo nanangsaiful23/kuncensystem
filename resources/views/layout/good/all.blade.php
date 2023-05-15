@@ -84,14 +84,20 @@
                       @endforeach
                     </td>
                     <td>{{ $good->code }}</td>
-                    @if(\Auth::user()->email == 'admin')<td>{{ showRupiah($good->getPcsSellingPrice()->buy_price) }}</td>@endif
+                    @if(\Auth::user()->email == 'admin')
+                      <td>
+                        @foreach($good->good_units as $unit)
+                          {{ showRupiah(roundMoney($unit->buy_price)) . ' /' . $unit->unit->name}}
+                        @endforeach
+                      </td>
+                    @endif
                     <td>
                       <a href="{{ url($role . '/good/' . $good->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a><br>
                       <a href="{{ url($role . '/good/' . $good->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a><br>
                       @if($good->getStock() == 0)
                         <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 
-                        @include($role . '.layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
+                        @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
 
                         <form id="delete-form-{{$good->id}}" action="{{ url($role . '/good/' . $good->id . '/delete') }}" method="POST" style="display: none;">
                           {{ csrf_field() }}

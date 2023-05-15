@@ -18,6 +18,9 @@ class CreateGoodsTable extends Migration
             $table->bigInteger('category_id')
                   ->unsigned()
                   ->nullable();
+            $table->bigInteger('brand_id')
+                  ->unsigned()
+                  ->nullable();
             $table->string('code')
                   ->unique()
                   ->nullable();
@@ -30,6 +33,11 @@ class CreateGoodsTable extends Migration
             $table->foreign('category_id')
                   ->references('id')
                   ->on('categories')
+                  ->onDelete('cascade');
+
+            $table->foreign('brand_id')
+                  ->references('id')
+                  ->on('brands')
                   ->onDelete('cascade');
         });
     }

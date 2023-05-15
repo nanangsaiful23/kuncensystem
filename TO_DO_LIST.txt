@@ -4,10 +4,11 @@
 	3. count item loading
 
 -TRANSACTION
-	1. transaksi internal
-	2. retur barang
+	1. retur barang
 
 -LAPORAN KEUANGAN
 	1. buku besar
 
 - AKUN KASIR MASIH KOSONG
+
+- CARI BARANG

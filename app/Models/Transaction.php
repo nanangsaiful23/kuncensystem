@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Admin;
 use App\Cashier;
+use App\Models\Account;
 
 class Transaction extends Model
 {    
@@ -40,5 +41,10 @@ class Transaction extends Model
     public function member()
     {
         return $this->belongsTo('App\Models\Member');
+    }
+
+    public function type_name()
+    {
+        return Account::where('code', $this->type)->first();
     }
 }

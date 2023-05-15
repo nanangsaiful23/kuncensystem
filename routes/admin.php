@@ -2,6 +2,7 @@
 
 Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
+Route::get('profit', 'MainController@profit');
 Route::get('scale', 'MainController@scale');
 
 Route::group(['prefix' => 'account'], function () {
@@ -74,6 +75,14 @@ Route::group(['prefix' => 'good-loading'], function () {
     Route::post('/storeExcel', 'GoodLoadingController@storeExcel')->name('good-loading.storeExcel');
 	Route::get('/{start_date}/{end_date}/{distributor_id}/{pagination}', 'GoodLoadingController@index');
     Route::get('/{good_loading_id}/detail', 'GoodLoadingController@detail');
+});
+
+Route::group(['prefix' => 'internal-transaction'], function () {
+	Route::get('/create', 'InternalTransactionController@create');
+    Route::post('/store', 'InternalTransactionController@store')->name('internal-transaction.store');
+	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'InternalTransactionController@index');
+    Route::get('/{transaction_id}/detail', 'InternalTransactionController@detail');
+    Route::get('/{transaction_id}/print', 'InternalTransactionController@print');
 });
 
 Route::group(['prefix' => 'journal'], function () {

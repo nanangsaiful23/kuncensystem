@@ -63,6 +63,15 @@
   <script type="text/javascript">
     $(document).ready(function(){
       
+      $('#datepicker').datepicker({
+        autoclose: true,
+        format: 'yyyy-mm-dd'
+      })
+
+      $('#datepicker2').datepicker({
+        autoclose: true,
+        format: 'yyyy-mm-dd'
+      })
         $("#search-input").keyup( function(e){
           if(e.keyCode == 13)
           {

@@ -23,6 +23,8 @@ class CreateAccountsTable extends Migration
                   ->nullable();
             $table->string('group')
                   ->nullable();
+            $table->string('activa')
+                  ->nullable();
             $table->string('balance')
                   ->nullable();
 

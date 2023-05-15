@@ -150,7 +150,7 @@
         </a>
         <ul class="treeview-menu">
             <li class="{{ Request::segment(2) == 'other-transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi Lain</a></li>
-            <li class="{{ Request::segment(2) == 'other-transaction' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-transaction/15') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Lain</a></li>
+            <li class="{{ Request::segment(2) == 'other-transaction' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-transaction/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Lain</a></li>
         </ul>
       </li>
       <li class="header">PENGELUARAN LAIN-LAIN</li>
@@ -164,11 +164,11 @@
           </a>
           <ul class="treeview-menu">
               <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Biaya Lain</a></li>
-              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/15') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
+              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
           </ul>
         </li>
       @endif
-      <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
+      <li class="treeview {{ (Request::segment(2) == 'internal-transaction' ) ? 'active' : ''  }}">
         <a href="#">
             <i class="fa fa-building-o"></i><span> Transaksi Internal</span>
           <span class="pull-right-container">
@@ -176,8 +176,8 @@
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi Internal</a></li>
-            <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/15') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Internal</a></li>
+            <li class="{{ Request::segment(2) == 'internal-transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/internal-transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi Internal</a></li>
+            <li class="{{ Request::segment(2) == 'internal-transaction' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/internal-transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Internal</a></li>
         </ul>
       </li>
       @if(\Auth::user()->email == 'admin')
@@ -195,7 +195,8 @@
           </ul>
         </li>
         <li class="{{ Request::segment(2) == 'journal' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/journal/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
-        <li class="{{ Request::segment(2) == 'scale' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scale') }}"><i class="fa fa-calculator"></i> Neraca</a></li>
+        <li class="{{ Request::segment(2) == 'profit' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/profit') }}"><i class="fa fa-arrow-circle-up"></i> Laba Rugi</a></li>
+        <li class="{{ Request::segment(2) == 'scale' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scale') }}"><i class="fa fa-balance-scale"></i> Neraca</a></li>
       @endif
     </ul>
   </section>

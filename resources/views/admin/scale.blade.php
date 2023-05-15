@@ -20,63 +20,64 @@
               <table id="example1" class="table table-bordered table-striped">
                 <thead>
                 <tr>
-                  <th width="10%">Kode</th>
-                  <th>Nama</th>
-                  <th>Awal</th>
-                  <th>Berjalan</th>
-                  <th>Akhir</th>
+                  <th width="10%">AKTIVA</th>
+                  <th width="30%">Nama</th>
+                  <th width="20%">Awal</th>
+                  <th width="20%">Berjalan</th>
+                  <th width="20%">Akhir</th>
                 </tr>
                 </thead>
                 <tbody id="table-good">
-                  <tr>
-                    <td>4101</td>
-                    <td>Penjualan</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan->sum('credit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance - $penjualan->sum('credit')) }}</td>
-                  </tr>
-                  <tr>
-                    <td>5101</td>
-                    <td>Harga Penjualan Pokok</td>
-                    <td style="text-align: right;">{{ showRupiah($hpp_account->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($hpp->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($hpp_account->balance - $hpp->sum('debit')) }}</td>
-                  </tr>
-                  <tr style="font-weight: bold;">
-                    <td></td>
-                    <td>Laba (rugi) kotor</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance - $hpp_account->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan->sum('credit') - $hpp->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan_account->balance - $penjualan->sum('credit')) - ($hpp_account->balance - $hpp->sum('debit'))) }}</td>
-                  </tr>
-                  <tr>
-                    <td colspan="5"></td>
-                  </tr>
-                  @foreach($payments as $payment)
+                  @for($i = 0; $i < sizeof($activa_debits); $i++)
                     <tr>
-                      <td>{{ $payment->code }}</td>
-                      <td>{{ $payment->name }}</td>
-                      <td style="text-align: right;">{{ showRupiah($payment->balance) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($payment->debit) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($payment->balance - $payment->debit) }}</td>
+                      <td>{{ $activa_debits[$i]->code }}</td>
+                      <td>{{ $activa_debits[$i]->name }}</td>
+                      <td style="text-align: right;">{{ showRupiah($activa_debits[$i]->balance) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($activa_debits[$i]->debit - $activa_credits[$i]->credit) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($activa_debits[$i]->balance + $activa_debits[$i]->debit - $activa_credits[$i]->credit) }}</td>
                     </tr>
-                  @endforeach
+                  @endfor
                   <tr style="font-weight: bold;">
                     <td></td>
-                    <td>Jumlah Biaya Usaha</td>
-                    <td style="text-align: right;">{{ showRupiah($payments->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($payments->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($payments->sum('balance') - $payments->sum('debit')) }}</td>
+                    <td></td>
+                    <td style="text-align: right;">{{ showRupiah($activa_debits->sum('balance')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($activa_debits->sum('debit') - $activa_credits->sum('credit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) }}</td>
                   </tr>
                   <tr>
                     <td colspan="5"></td>
                   </tr>
+                </tbody>
+              </table>
+              <table id="example2" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                  <th width="10%">PASIVA</th>
+                  <th width="30%">Nama</th>
+                  <th width="20%">Awal</th>
+                  <th width="20%">Berjalan</th>
+                  <th width="20%">Akhir</th>
+                </tr>
+                </thead>
+                <tbody id="table-good">
+                  @for($i = 0; $i < sizeof($pasiva_debits); $i++)
+                    <tr>
+                      <td>{{ $pasiva_debits[$i]->code }}</td>
+                      <td>{{ $pasiva_debits[$i]->name }}</td>
+                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance + $pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit) }}</td>
+                    </tr>
+                  @endfor
                   <tr style="font-weight: bold;">
                     <td></td>
-                    <td>Laba Bersih Usaha</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan_account->balance - $hpp_account->balance) - $payments->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan->sum('credit') - $hpp->sum('debit')) - $payments->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah((($penjualan_account->balance - $penjualan->sum('credit')) - ($hpp_account->balance - $hpp->sum('debit'))) - ($payments->sum('balance') - $payments->sum('debit'))) }}</td>
+                    <td></td>
+                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance') + $pasiva_debits->sum('debit') - $pasiva_credits->sum('credit')) }}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="5"></td>
                   </tr>
                 </tbody>
               </table>

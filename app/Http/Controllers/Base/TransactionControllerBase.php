@@ -25,6 +25,7 @@ trait TransactionControllerBase
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'cash')
                                                     ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
 
@@ -32,12 +33,14 @@ trait TransactionControllerBase
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'cash')
                                                     ->where('money_paid', '<', 'total_sum_price')
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
 
                 $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'transfer')
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
             }
@@ -49,6 +52,7 @@ trait TransactionControllerBase
                                                     ->where('money_paid', '>=', 'total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
 
@@ -58,6 +62,7 @@ trait TransactionControllerBase
                                                     ->where('money_paid', '<', 'total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
 
@@ -66,6 +71,7 @@ trait TransactionControllerBase
                                                     ->where('payment', 'transfer')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
             }
@@ -78,6 +84,7 @@ trait TransactionControllerBase
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'cash')
                                                     ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
 
@@ -85,12 +92,14 @@ trait TransactionControllerBase
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'cash')
                                                     ->where('money_paid', '<', 'total_sum_price')
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
                                                     
                 $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'transfer')
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
             }
@@ -102,6 +111,7 @@ trait TransactionControllerBase
                                                     ->where('money_paid', '>=', 'total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
 
@@ -111,6 +121,7 @@ trait TransactionControllerBase
                                                     ->where('money_paid', '<', 'total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
                                                     
@@ -119,6 +130,7 @@ trait TransactionControllerBase
                                                     ->where('payment', 'transfer')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
             }
