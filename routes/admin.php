@@ -19,6 +19,7 @@ Route::group(['prefix' => 'brand'], function () {
 	Route::get('/create', 'BrandController@create');
 	Route::post('/store', 'BrandController@store')->name('brand.store');
 	Route::get('/{brand_id}/detail', 'BrandController@detail');
+	Route::get('/{brand_id}/good', 'BrandController@good');
 	Route::get('/{brand_id}/edit', 'BrandController@edit');
 	Route::put('/{brand_id}/edit', 'BrandController@update')->name('brand.update');
 	Route::delete('/{brand_id}/delete', 'BrandController@delete')->name('brand.delete');
@@ -56,12 +57,14 @@ Route::group(['prefix' => 'distributor'], function () {
 });
 
 Route::group(['prefix' => 'good'], function () {
-    Route::post('/store', 'GoodController@store')->name('good.store');
-    Route::get('/searchByBarcode/{barcode}', 'GoodController@searchByBarcode');
-    Route::get('/searchById/{good_id}', 'GoodController@searchById');
     Route::get('/checkDiscount/{good_id}/{quantity}/{price}', 'GoodController@checkDiscount');
     Route::get('/getPriceUnit/{good_id}/{unit_id}', 'GoodController@getPriceUnit');
+    Route::get('/searchByBarcode/{barcode}', 'GoodController@searchByBarcode');
+    Route::get('/searchById/{good_id}', 'GoodController@searchById');
 	Route::get('/searchByKeyword/{query}', 'GoodController@searchByKeyword');
+	Route::get('/zeroStock/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');
+	Route::post('/zeroStock/export', 'GoodController@stockExport')->name('zeroStock.export');
+    Route::post('/store', 'GoodController@store')->name('good.store');
     Route::get('/{good_id}/loading/{start_date}/{end_date}/{pagination}', 'GoodController@loading');
     Route::get('/{good_id}/transaction/{start_date}/{end_date}/{pagination}', 'GoodController@transaction');
     Route::get('/{good_id}/price/{start_date}/{end_date}/{pagination}', 'GoodController@price');

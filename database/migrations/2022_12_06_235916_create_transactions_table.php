@@ -24,15 +24,15 @@ class CreateTransactionsTable extends Migration
             $table->bigInteger('member_id')
                   ->unsigned()
                   ->nullable();
-            $table->string('total_item_price')
+            $table->decimal('total_item_price')
                   ->nullable();
-            $table->string('total_discount_price')
+            $table->decimal('total_discount_price')
                   ->nullable();
-            $table->string('total_sum_price')
+            $table->decimal('total_sum_price')
                   ->nullable();
-            $table->string('money_paid')
+            $table->decimal('money_paid')
                   ->nullable();
-            $table->string('money_returned')
+            $table->decimal('money_returned')
                   ->nullable();
             $table->string('store')
                   ->comment('online/store location')

@@ -24,6 +24,11 @@ class Good extends Model
         'deleted_at',
     ];
     
+    public function brand()
+    {
+        return $this->belongsTo('App\Models\Brand');
+    }
+    
     public function good_units()
     {
         return $this->hasMany('App\Models\GoodUnit');

@@ -23,9 +23,9 @@ class CreateGoodLoadingDetailsTable extends Migration
                   ->nullable();
             $table->string('last_stock')
                   ->nullable();
-            $table->integer('quantity')
+            $table->decimal('quantity')
                   ->nullable();
-            $table->integer('real_quantity')
+            $table->decimal('real_quantity')
                   ->nullable();
             $table->string('price')
                   ->nullable();

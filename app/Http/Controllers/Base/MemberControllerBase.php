@@ -54,7 +54,7 @@ trait MemberControllerBase
             $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                 ->whereDate('transactions.created_at', '<=', $end_date) 
                                                 ->where('payment', 'cash')
-                                                ->where('money_paid', '>', 0)
+                                                ->whereRaw('money_paid >= total_sum_price')
                                                 ->where('member_id', $member_id)
                                                 ->orderBy('transactions.created_at','desc')
                                                 ->get();
@@ -62,7 +62,7 @@ trait MemberControllerBase
             $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                 ->whereDate('transactions.created_at', '<=', $end_date) 
                                                 ->where('payment', 'cash')
-                                                ->where('money_paid', '<=', 0)
+                                                ->whereRaw('money_paid < total_sum_price')
                                                 ->where('member_id', $member_id)
                                                 ->orderBy('transactions.created_at','desc')
                                                 ->get();
@@ -79,7 +79,7 @@ trait MemberControllerBase
             $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                 ->whereDate('transactions.created_at', '<=', $end_date)
                                                 ->where('payment', 'cash')
-                                                ->where('money_paid', '>', 0)
+                                                ->whereRaw('money_paid >= total_sum_price')
                                                 ->where('member_id', $member_id)
                                                 ->orderBy('transactions.created_at','desc')
                                                 ->paginate($pagination);
@@ -87,7 +87,7 @@ trait MemberControllerBase
             $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                 ->whereDate('transactions.created_at', '<=', $end_date)
                                                 ->where('payment', 'cash')
-                                                ->where('money_paid', '<=', 0)
+                                                ->whereRaw('money_paid < total_sum_price')
                                                 ->where('member_id', $member_id)
                                                 ->orderBy('transactions.created_at','desc')
                                                 ->paginate($pagination);

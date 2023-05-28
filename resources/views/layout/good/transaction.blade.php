@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">{{ $default['page_name'] . ' ' . $transactions[0]->good->name }}</h3>
+            <h3 class="box-title">{{ $default['page_name'] . ' ' . $good->name }}</h3>
             <!-- @include('layout.search-form') -->
           </div>
           <div class="box-body">
@@ -104,14 +104,14 @@
     function changeDate()
     {
         var distributor = $('#distributor').val();
-      window.location = window.location.origin + '/{{ $role }}/good/{{ $good_id }}/transaction/' + $("#datepicker").val() + '/' + $("#datepicker2").val() +'/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/good/{{ $good->id }}/transaction/' + $("#datepicker").val() + '/' + $("#datepicker2").val() +'/{{ $pagination }}';
     }
 
     function advanceSearch()
     {
       var show        = $('#show').val();
       var distributor = $('#distributor').val();
-      window.location = window.location.origin + '/{{ $role }}/good/{{ $good_id }}/transaction/{{ $start_date }}/{{ $end_date }}/' + show;
+      window.location = window.location.origin + '/{{ $role }}/good/{{ $good->id }}/transaction/{{ $start_date }}/{{ $end_date }}/' + show;
     }
   </script>
 @endsection

@@ -27,9 +27,20 @@ trait OtherPaymentControllerBase
 
     public function storeOtherPaymentBase(Request $request)
     {
+        $request->money = unformatNumber($request->money);
+        
+        if($request->payment == 'cash')
+        {
+            $data_payment['credit_account_id']   = Account::where('code', '1111')->first()->id;
+        }
+        elseif($request->payment == 'transfer')
+        {
+            $data_payment['credit_account_id']   = Account::where('code', '1112')->first()->id;
+        }
+
         $account = Account::find($request->debit_account_id);
 
-        $payment = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $request->debit_account_id)->first();
+        $payment = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $request->debit_account_id)->where('credit_account_id', $data_payment['credit_account_id'])->first();
 
         if($payment != null)
         {
@@ -45,7 +56,6 @@ trait OtherPaymentControllerBase
             $data_payment['name']               = $account->name;
             $data_payment['debit_account_id']   = $request->debit_account_id;
             $data_payment['debit']              = $request->money;
-            $data_payment['credit_account_id']  = Account::where('code', '1111')->first()->id;
             $data_payment['credit']             = $request->money;
 
             Journal::create($data_payment);

@@ -36,13 +36,40 @@
             </div>
         </div>
 
+        <div class="form-group" id='payment'>
+            {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    <select class="form-control select2" style="width: 100%;" name="payment">
+                        <div>
+                            <option value="cash">Tunai/Cash</option>
+                            <option value="transfer">Transfer</option>
+                        </div>
+                    </select>
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group" id="buy_price">
+            {!! Form::label('buy_price', 'Harga Beli Pulsa/Token', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('buy_price', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('buy_price', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("buy_price")')) !!}
+                @endif
+            </div>
+        </div>
+
         <div class="form-group">
             {!! Form::label('money', 'Jumlah Uang', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('money', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::text('money', null, array('class' => 'form-control')) !!}
+                    {!! Form::text('money', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("money")')) !!}
                 @endif
             </div>
         </div>
@@ -72,6 +99,8 @@
             $('.select2').select2();
             @if($SubmitButtonText != 'View')
                 $("#member").hide();
+                $("#payment").hide();
+                $("#buy_price").hide();
             @endif
         });
 
@@ -79,11 +108,31 @@
         {
             selectBox = document.getElementById("type");
             if(selectBox.options[selectBox.selectedIndex].value == 'piutang_transaction')
+            {
                 $("#member").show();
+                $("#payment").show();
+                $("#buy_price").hide();
+            }
+            else if(selectBox.options[selectBox.selectedIndex].value == 'pulsa_transaction')
+            {
+                $("#member").hide();
+                $("#payment").show();
+                $("#buy_price").show();
+            }
             else
             {
                 $("#member").hide();
+                $("#payment").hide();
+                $("#buy_price").hide();
             }
+        }
+
+
+        function formatNumber(name)
+        {
+            num = document.getElementById(name).value;
+            num = num.toString().replace(/,/g,'');
+            document.getElementById(name).value = num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
         }
     </script>
 @endsection

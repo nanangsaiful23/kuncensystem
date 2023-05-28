@@ -24,7 +24,7 @@ trait TransactionControllerBase
                 $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->whereRaw('money_paid >= total_sum_price')
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
@@ -32,7 +32,7 @@ trait TransactionControllerBase
                 $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
@@ -40,6 +40,15 @@ trait TransactionControllerBase
                 $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid >= total_sum_price')
+                                                    ->where('type', 'normal')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+
+                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
@@ -49,7 +58,7 @@ trait TransactionControllerBase
                 $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->whereRaw('money_paid >= total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
@@ -59,7 +68,7 @@ trait TransactionControllerBase
                 $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
@@ -69,6 +78,17 @@ trait TransactionControllerBase
                 $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid >= total_sum_price')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+
+                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
@@ -83,7 +103,7 @@ trait TransactionControllerBase
                 $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->whereRaw('money_paid >= total_sum_price')
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
@@ -91,7 +111,7 @@ trait TransactionControllerBase
                 $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
@@ -99,6 +119,22 @@ trait TransactionControllerBase
                 $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'transfer')
+                                                    ->where('type', 'normal')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+
+                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid >= total_sum_price')
+                                                    ->where('type', 'normal')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+
+                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
@@ -108,7 +144,7 @@ trait TransactionControllerBase
                 $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '>=', 'total_sum_price')
+                                                    ->whereRaw('money_paid >= total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
@@ -118,16 +154,27 @@ trait TransactionControllerBase
                 $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                                     ->whereDate('transactions.created_at', '<=', $end_date)
                                                     ->where('payment', 'cash')
-                                                    ->where('money_paid', '<', 'total_sum_price')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
-                                                    
+
                 $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
                                                     ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid >= total_sum_price')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->where('type', 'normal')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
+
+                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('payment', 'transfer')
+                                                    ->whereRaw('money_paid < total_sum_price')
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
@@ -146,7 +193,11 @@ trait TransactionControllerBase
         if($request->member_name != null)
         {
             $data_member_new['name'] = $request->member_name;
-            $member = Member::create($data_member_new);
+
+            $member = Member::where('name', $request->member_name)->first();
+
+            if($member == null)
+                $member = Member::create($data_member_new);
 
             $data_transaction['member_id'] = $member->id;
         }
@@ -191,7 +242,18 @@ trait TransactionControllerBase
         }
 
         #tabel journal transaksi
-        $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'transaction')->first();
+        if($request->payment == 'cash')
+        {
+            $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
+        }
+        elseif($request->payment == 'transfer')
+        {
+            $data_journal['debit_account_id']   = Account::where('code', '1112')->first()->id;
+        }
+        $journal = Journal::whereDate('journal_date', date('Y-m-d'))
+                          ->where('type', 'transaction')
+                          ->where('debit_account_id', $data_journal['debit_account_id'])
+                          ->first();
 
         if($journal != null)
         {
@@ -205,7 +267,6 @@ trait TransactionControllerBase
             $data_journal['type']               = 'transaction';
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
             $data_journal['debit']              = $data_transaction['total_sum_price'];
             $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
             $data_journal['credit']             = $data_transaction['total_sum_price'];
@@ -239,14 +300,24 @@ trait TransactionControllerBase
         #tabel journal piutang
         if($data_transaction['money_paid'] < $data_transaction['total_sum_price'])
         {
+            if($request->payment == 'cash')
+            {
+                $data_piutang['credit_account_id']   = Account::where('code', '1111')->first()->id;
+            }
+            elseif($request->payment == 'transfer')
+            {
+                $data_piutang['credit_account_id']   = Account::where('code', '1112')->first()->id;
+            }
             $piutang = Journal::whereDate('journal_date', date('Y-m-d'))
                               ->where('type', 'piutang')
-                              ->where('name', 'Piutang dagang member ' . $transaction->member->name . ' (ID ' . $transaction->member->id . ')')
+                              ->where('name', 'like', 'Piutang dagang member ' . $transaction->member->name . ' (ID member ' . $transaction->member->id . ') %')
+                              ->where('credit_account_id', $data_piutang['credit_account_id'])
                               ->first();
 
             if($piutang != null)
             {
-                $data_piutang['debit'] = floatval($piutang->debit) + floatval($data_transaction['total_sum_price']);
+                $data_piutang['name']   = $piutang->name . ', ' . $transaction->id;
+                $data_piutang['debit']  = floatval($piutang->debit) + floatval($data_transaction['total_sum_price']);
                 $data_piutang['credit'] = floatval($piutang->credit) + floatval($data_transaction['total_sum_price']);
 
                 $piutang->update($data_piutang);
@@ -255,10 +326,9 @@ trait TransactionControllerBase
             {
                 $data_piutang['type']               = 'piutang';
                 $data_piutang['journal_date']       = date('Y-m-d');
-                $data_piutang['name']               = 'Piutang dagang member ' . $transaction->member->name . ' (ID ' . $transaction->member->id . ')';
+                $data_piutang['name']               = 'Piutang dagang member ' . $transaction->member->name . ' (ID member ' . $transaction->member->id . ') -> ID transaksi ' . $transaction->id;
                 $data_piutang['debit_account_id']   = Account::where('code', '1131')->first()->id;
                 $data_piutang['debit']              = $data_transaction['total_sum_price'];
-                $data_piutang['credit_account_id']  = Account::where('code', '1111')->first()->id;
                 $data_piutang['credit']             = $data_transaction['total_sum_price'];
 
                 Journal::create($data_piutang);
@@ -266,6 +336,14 @@ trait TransactionControllerBase
 
             if($data_transaction['money_paid'] > 0)
             {
+                if($request->payment == 'cash')
+                {
+                    $data_piutang_member['debit_account_id']   = Account::where('code', '1111')->first()->id;
+                }
+                elseif($request->payment == 'transfer')
+                {
+                    $data_piutang_member['debit_account_id']   = Account::where('code', '1112')->first()->id;
+                }
                 $data_member['member_id']    = $transaction->member_id;
                 $data_member['payment_date'] = date('Y-m-d');
                 $data_member['money']        = $data_transaction['money_paid'];
@@ -275,12 +353,13 @@ trait TransactionControllerBase
                 $piutang = Journal::whereDate('journal_date', date('Y-m-d'))
                                   ->where('type', 'piutang_transaction')
                                   ->where('name', 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')')
+                                  ->where('debit_account_id', $data_piutang_member['debit_account_id'])
                                   ->first();
 
                 if($piutang != null)
                 {
-                    $data_piutang_member['debit'] = floatval($piutang->debit) + floatval($request->money);
-                    $data_piutang_member['credit'] = floatval($piutang->credit) + floatval($request->money);
+                    $data_piutang_member['debit'] = floatval($piutang->debit) + floatval($data_transaction['money_paid']);
+                    $data_piutang_member['credit'] = floatval($piutang->credit) + floatval($data_transaction['money_paid']);
 
                     $piutang->update($data_piutang_member);
                 }
@@ -289,7 +368,6 @@ trait TransactionControllerBase
                     $data_piutang_member['type']               = 'piutang_transaction';
                     $data_piutang_member['journal_date']       = date('Y-m-d');
                     $data_piutang_member['name']               = 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')';
-                    $data_piutang_member['debit_account_id']   = Account::where('code', '1111')->first()->id;
                     $data_piutang_member['debit']              = $data_transaction['money_paid'];
                     $data_piutang_member['credit_account_id']  = Account::where('code', '1131')->first()->id;
                     $data_piutang_member['credit']             = $data_transaction['money_paid'];
@@ -300,30 +378,30 @@ trait TransactionControllerBase
         }
 
         #tabel journal transfer
-        if($request->payment == 'transfer')
-        {
-            $transfer = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'transfer')->first();
+        // if($request->payment == 'transfer')
+        // {
+        //     $transfer = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'transfer')->first();
 
-            if($transfer != null)
-            {
-                $data_transfer['debit'] = floatval($transfer->debit) + floatval($data_transaction['total_sum_price']);
-                $data_transfer['credit'] = floatval($transfer->credit) + floatval($data_transaction['total_sum_price']);
+        //     if($transfer != null)
+        //     {
+        //         $data_transfer['debit'] = floatval($transfer->debit) + floatval($data_transaction['total_sum_price']);
+        //         $data_transfer['credit'] = floatval($transfer->credit) + floatval($data_transaction['total_sum_price']);
 
-                $transfer->update($data_transfer);
-            }
-            else
-            {
-                $data_transfer['type']               = 'transfer';
-                $data_transfer['journal_date']       = date('Y-m-d');
-                $data_transfer['name']               = 'Transfer transaksi ID ' . $transaction->id;
-                $data_transfer['debit_account_id']   = Account::where('code', '1112')->first()->id;
-                $data_transfer['debit']              = $data_transaction['total_sum_price'];
-                $data_transfer['credit_account_id']  = Account::where('code', '1111')->first()->id;
-                $data_transfer['credit']             = $data_transaction['total_sum_price'];
+        //         $transfer->update($data_transfer);
+        //     }
+        //     else
+        //     {
+        //         $data_transfer['type']               = 'transfer';
+        //         $data_transfer['journal_date']       = date('Y-m-d');
+        //         $data_transfer['name']               = 'Transfer transaksi ID ' . $transaction->id;
+        //         $data_transfer['debit_account_id']   = Account::where('code', '1112')->first()->id;
+        //         $data_transfer['debit']              = $data_transaction['total_sum_price'];
+        //         $data_transfer['credit_account_id']  = Account::where('code', '1111')->first()->id;
+        //         $data_transfer['credit']             = $data_transaction['total_sum_price'];
 
-                Journal::create($data_transfer);
-            }
-        }
+        //         Journal::create($data_transfer);
+        //     }
+        // }
 
         return $transaction;
     }

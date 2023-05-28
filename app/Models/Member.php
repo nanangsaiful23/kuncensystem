@@ -21,10 +21,9 @@ class Member extends Model
         'deleted_at',
     ];
 
-    public function totalCredit()
+    public function totalTransaction()
     {
-        $transactions = Transaction::where('payment', 'cash')
-                                    ->where('money_paid', '<=', 0)
+        $transactions = Transaction::whereRaw('money_paid < total_sum_price')
                                     ->where('member_id', $this->id)
                                     ->get();
 

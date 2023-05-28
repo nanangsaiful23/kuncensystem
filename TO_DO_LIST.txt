@@ -5,10 +5,17 @@
 
 -TRANSACTION
 	1. retur barang
-
--LAPORAN KEUANGAN
-	1. buku besar
+	2. resume transaksi
 
 - AKUN KASIR MASIH KOSONG
 
-- CARI BARANG
+-GOOD
+	1. catalog barang
+	2. riwayat perubahan harga
+	3. barang exp
+
+- NERACA & LABA RUGI menunya belum aktif
+
+- resume all
+
+- print bracode barang

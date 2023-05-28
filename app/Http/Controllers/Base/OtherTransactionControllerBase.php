@@ -28,6 +28,8 @@ trait OtherTransactionControllerBase
 
     public function storeOtherTransactionBase(Request $request)
     {
+        $request->money = unformatNumber($request->money);
+
         if($request->type == 'box_transaction')
         {
             $box = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'box_transaction')->first();
@@ -61,33 +63,53 @@ trait OtherTransactionControllerBase
 
             $payment = PiutangPayment::create($data_member);
 
-            $piutang = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'piutang_transaction')->first();
+            // $piutang = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'piutang_transaction')->first();
 
-            if($piutang != null)
-            {
-                $data_piutang['debit'] = floatval($piutang->debit) + floatval($request->money);
-                $data_piutang['credit'] = floatval($piutang->credit) + floatval($request->money);
+            // if($piutang != null)
+            // {
+            //     $data_piutang['debit'] = floatval($piutang->debit) + floatval($request->money);
+            //     $data_piutang['credit'] = floatval($piutang->credit) + floatval($request->money);
 
-                $piutang->update($data_piutang);
-            }
-            else
+            //     $piutang->update($data_piutang);
+            // }
+            // else
+            // {
+
+            if($request->payment == 'cash')
             {
-                $data_piutang['type']               = 'piutang_transaction';
-                $data_piutang['journal_date']       = date('Y-m-d');
-                $data_piutang['name']               = 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')';
                 $data_piutang['debit_account_id']   = Account::where('code', '1111')->first()->id;
-                $data_piutang['debit']              = $request->money;
-                $data_piutang['credit_account_id']  = Account::where('code', '1131')->first()->id;
-                $data_piutang['credit']             = $request->money;
-
-                Journal::create($data_piutang);
             }
+            elseif($request->payment == 'transfer')
+            {
+                $data_piutang['debit_account_id']   = Account::where('code', '1112')->first()->id;
+            }
+
+            $data_piutang['type']               = 'piutang_transaction';
+            $data_piutang['journal_date']       = date('Y-m-d');
+            $data_piutang['name']               = 'Pembayaran piutang member ' . $payment->member->name . ' (ID member ' . $payment->member->id . ')';
+            $data_piutang['debit']              = $request->money;
+            $data_piutang['credit_account_id']  = Account::where('code', '1131')->first()->id;
+            $data_piutang['credit']             = $request->money;
+
+            Journal::create($data_piutang);
+            // }
         }
 
         if($request->type == 'pulsa_transaction')
         {
-            $pulsa_transaction = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'pulsa_transaction')->first();
-            $pulsa_hpp = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'pulsa_hpp_transaction')->first();
+            $request->buy_price = unformatNumber($request->buy_price);
+
+            if($request->payment == 'cash')
+            {
+                $data_pulsa_transaction['debit_account_id']   = Account::where('code', '1111')->first()->id;
+            }
+            elseif($request->payment == 'transfer')
+            {
+                $data_pulsa_transaction['debit_account_id']   = Account::where('code', '1112')->first()->id;
+            }
+
+            $pulsa_transaction = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'pulsa_transaction')->where('debit_account_id', $data_pulsa_transaction['debit_account_id'])->first();
+            $pulsa_hpp = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'pulsa_hpp_transaction')->where('debit_account_id', $data_pulsa_transaction['debit_account_id'])->first();
 
             if($pulsa_transaction != null)
             {
@@ -96,8 +118,8 @@ trait OtherTransactionControllerBase
 
                 $pulsa_transaction->update($data_pulsa_transaction);
                 
-                $data_pulsa_hpp['debit'] = floatval($pulsa_hpp->debit) + floatval($request->money);
-                $data_pulsa_hpp['credit'] = floatval($pulsa_hpp->credit) + floatval($request->money);
+                $data_pulsa_hpp['debit'] = floatval($pulsa_hpp->debit) + floatval($request->buy_price);
+                $data_pulsa_hpp['credit'] = floatval($pulsa_hpp->credit) + floatval($request->buy_price);
 
                 $pulsa_hpp->update($data_pulsa_hpp);
             }
@@ -106,7 +128,6 @@ trait OtherTransactionControllerBase
                 $data_pulsa_transaction['type']               = 'pulsa_transaction';
                 $data_pulsa_transaction['journal_date']       = date('Y-m-d');
                 $data_pulsa_transaction['name']               = 'Pembayaran pulsa';
-                $data_pulsa_transaction['debit_account_id']   = Account::where('code', '1111')->first()->id;
                 $data_pulsa_transaction['debit']              = $request->money;
                 $data_pulsa_transaction['credit_account_id']  = Account::where('code', '4101')->first()->id;
                 $data_pulsa_transaction['credit']             = $request->money;
@@ -117,9 +138,9 @@ trait OtherTransactionControllerBase
                 $data_pulsa_hpp['journal_date']       = date('Y-m-d');
                 $data_pulsa_hpp['name']               = 'Pembayaran pulsa hpp';
                 $data_pulsa_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
-                $data_pulsa_hpp['debit']              = $request->money;
+                $data_pulsa_hpp['debit']              = $request->buy_price;
                 $data_pulsa_hpp['credit_account_id']  = Account::where('code', '1112')->first()->id;
-                $data_pulsa_hpp['credit']             = $request->money;
+                $data_pulsa_hpp['credit']             = $request->buy_price;
 
                 Journal::create($data_pulsa_hpp);
             }

@@ -20,4 +20,9 @@ class Brand extends Model
     protected $dates =[
         'deleted_at',
     ];
+    
+    public function goods()
+    {
+        return $this->hasMany('App\Models\Good');
+    }
 }

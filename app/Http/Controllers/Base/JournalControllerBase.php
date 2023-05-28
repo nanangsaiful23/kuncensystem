@@ -11,12 +11,14 @@ trait JournalControllerBase
     public function indexJournalBase($start_date, $end_date, $pagination)
     {
         if($pagination == 'all')
-           $journals = Journal::whereDate('journals.journal_date', '>=', $start_date)
-                               ->whereDate('journals.journal_date', '<=', $end_date)
+           $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
+                               ->whereDate('journals.created_at', '<=', $end_date)
+                               ->orderBy('journals.journal_date', 'asc')
                                ->get();
         else
-           $journals = Journal::whereDate('journals.journal_date', '>=', $start_date)
-                               ->whereDate('journals.journal_date', '<=', $end_date)
+           $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
+                               ->whereDate('journals.created_at', '<=', $end_date)
+                               ->orderBy('journals.journal_date', 'asc')
                                ->paginate($pagination);
 
         return $journals;

@@ -41,7 +41,21 @@ class MainController extends Controller
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->get();
 
-        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan', 'hpp_account', 'hpp', 'payments'));
+        $other_incomes = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
+                        ->where('accounts.code', '6101')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->get();
+
+                        // dd($other_incomes);die;
+
+        $other_outcomes = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
+                        ->where('accounts.code', '6102')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->get();
+
+        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan', 'hpp_account', 'hpp', 'payments', 'other_incomes', 'other_outcomes'));
     }
 
     public function scale()

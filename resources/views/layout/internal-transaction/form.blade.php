@@ -163,7 +163,7 @@
         <div class="form-group">
             {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-3 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
             <div class="col-sm-3">
-                <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid')" style="font-size: 40px; height: 40px;">
+                <input type="text" name="money_paid" class="form-control" id="money_paid" readonly="readonly" required="required" style="font-size: 40px; height: 40px;">
             </div>
         </div>
         <div class="form-group">
@@ -371,6 +371,8 @@
             document.getElementById("total_item_price").value = total_item_price;
             document.getElementById("total_discount_items_price").value = total_discount_items;
             document.getElementById("total_sum_price").value = total_sum_price;
+            document.getElementById("money_paid").value = total_sum_price;
+            document.getElementById("money_returned").value = 0;
 
             formatNumber("total_item_price");
             formatNumber("total_discount_items_price");

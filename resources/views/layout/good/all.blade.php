@@ -62,8 +62,8 @@
                   <tr>
                     <td>
                       <h4>{{ $good->name }}</h4>
+                      @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
                       @if(\Auth::user()->email == 'admin')
-                        @if($good->brand != null) <h5>{{ $good->brand->name }}</h5>@endif
                         <i class="fa fa-truck green" aria-hidden="true"></i> @if($good->getLastBuy() != null) {{ $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
                       @endif
                     </td>

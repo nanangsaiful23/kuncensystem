@@ -244,6 +244,16 @@
         return $search;
     }
 
+    function getDistributorLocations()
+    {
+        $locations = ['all' => 'Semua'];
+        foreach (DB::select("SELECT DISTINCT distributors.location FROM distributors ORDER BY distributors.location ASC") as $data) {
+            $locations = array_add($locations, $data->location, $data->location);
+        }
+
+        return $locations;
+    }
+
     function getGoods()
     {
         $goods = Good::all();

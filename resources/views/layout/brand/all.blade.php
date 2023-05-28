@@ -15,6 +15,7 @@
               <thead>
               <tr>
                 <th>Nama</th>
+                <th>Daftar Barang</th>
                 <th class="center">Detail</th>
                 <th class="center">Ubah</th>
                 @if($role == 'admin')
@@ -26,6 +27,7 @@
                 @foreach($brands as $brand)
                   <tr>
                     <td>{{ $brand->name }}</td>
+                    <td class="center"><a href="{{ url($role . '/brand/' . $brand->id . '/good') }}"><i class="fa fa-cubes tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/brand/' . $brand->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/brand/' . $brand->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')

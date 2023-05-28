@@ -22,7 +22,7 @@ class InternalTransactionController extends Controller
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Daftar transaksi';
+        $default['page_name'] = 'Daftar transaksi internal';
         $default['page'] = 'internal-transaction';
         $default['section'] = 'all';
 
@@ -35,7 +35,7 @@ class InternalTransactionController extends Controller
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Tambah transaksi';
+        $default['page_name'] = 'Tambah transaksi internal';
         $default['page'] = 'internal-transaction';
         $default['section'] = 'create';
 
@@ -55,7 +55,7 @@ class InternalTransactionController extends Controller
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Detail transaksi';
+        $default['page_name'] = 'Detail transaksi internal';
         $default['page'] = 'internal-transaction';
         $default['section'] = 'detail';
 

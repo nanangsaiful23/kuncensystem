@@ -100,6 +100,64 @@ trait GoodLoadingControllerBase
                         GoodPrice::create($data_price);
                     }
 
+                    #journal penambahan barang kalau harga beli naik
+                    if($good_unit->buy_price < $data['prices'][$i])
+                    {
+                        $account_buy = Account::where('code', '1141')->first();
+
+                        $payment_buy = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $account_buy->id)->first();
+
+                        $amount = $good_unit->good->getStock() * ($data['prices'][$i] - $good_unit->buy_price);
+
+                        if($payment_buy != null)
+                        {
+                            $data_payment_buy['debit'] = floatval($payment_buy->debit) + floatval($amount);
+                            $data_payment_buy['credit'] = floatval($payment_buy->credit) + floatval($amount);
+
+                            $payment_buy->update($data_payment_buy);
+                        }
+                        else
+                        {
+                            $data_payment_buy['type']               = 'other_payment';
+                            $data_payment_buy['journal_date']       = date('Y-m-d');
+                            $data_payment_buy['name']               = 'Laba kenaikan harga barang';
+                            $data_payment_buy['debit_account_id']   = $account_buy->id;
+                            $data_payment_buy['debit']              = $amount;
+                            $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
+                            $data_payment_buy['credit']             = $amount;
+
+                            Journal::create($data_payment_buy);
+                        }
+                    }
+                    elseif($good_unit->buy_price > $data['prices'][$i]) #journal penyusutan kalau harga beli turun
+                    {
+                        $account_buy = Account::where('code', '5215')->first();
+
+                        $payment_buy = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $account_buy->id)->first();
+
+                        $amount = $good_unit->good->getStock() * ($good_unit->buy_price - $data['prices'][$i]);
+
+                        if($payment_buy != null)
+                        {
+                            $data_payment_buy['debit'] = floatval($payment_buy->debit) + floatval($amount);
+                            $data_payment_buy['credit'] = floatval($payment_buy->credit) + floatval($amount);
+
+                            $payment_buy->update($data_payment_buy);
+                        }
+                        else
+                        {
+                            $data_payment_buy['type']               = 'other_payment';
+                            $data_payment_buy['journal_date']       = date('Y-m-d');
+                            $data_payment_buy['name']               = $account_buy->name;
+                            $data_payment_buy['debit_account_id']   = $account_buy->id;
+                            $data_payment_buy['debit']              = $amount;
+                            $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                            $data_payment_buy['credit']             = $amount;
+
+                            Journal::create($data_payment_buy);
+                        }
+                    }
+
                     $data_unit['buy_price']     = $data['prices'][$i];
                     $data_unit['selling_price'] = $data['sell_prices'][$i];
 
@@ -139,19 +197,19 @@ trait GoodLoadingControllerBase
 
         #tabel journal 
         $account = Account::where('code', $data['payment'])->first();
-        $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'good_loading')->where('credit_account_id', $account->id)->first();
+        // $journal = Journal::whereDate('journal_date', $data['loading_date'])->where('type', 'good_loading')->where('credit_account_id', $account->id)->first();
 
-        if($journal != null)
-        {
-            $data_journal['debit'] = floatval($journal->debit) + floatval(unformatNumber($request->total_item_price));
-            $data_journal['credit'] = floatval($journal->credit) + floatval(unformatNumber($request->total_item_price));
+        // if($journal != null)
+        // {
+        //     $data_journal['debit'] = floatval($journal->debit) + floatval(unformatNumber($request->total_item_price));
+        //     $data_journal['credit'] = floatval($journal->credit) + floatval(unformatNumber($request->total_item_price));
 
-            $journal->update($data_journal);
-        }
-        else
-        {
+        //     $journal->update($data_journal);
+        // }
+        // else
+        // {
             $data_journal['type']               = 'good_loading';
-            $data_journal['journal_date']       = date('Y-m-d');
+            $data_journal['journal_date']       = $data['loading_date'];
             $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
             $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
             $data_journal['debit']              = unformatNumber($request->total_item_price);
@@ -159,7 +217,7 @@ trait GoodLoadingControllerBase
             $data_journal['credit']             = unformatNumber($request->total_item_price);
 
             Journal::create($data_journal);
-        }
+        // }
 
         return $good_loading;
     }
@@ -192,17 +250,17 @@ trait GoodLoadingControllerBase
 
             #tabel journal 
             $account = Account::where('code', '1111')->first();
-            $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'good_loading')->where('credit_account_id', $account->id)->first();
+            // $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'good_loading')->where('credit_account_id', $account->id)->first();
 
-            if($journal != null)
-            {
-                $data_journal['debit'] = floatval($journal->debit) + floatval(unformatNumber($request->total_item_price));
-                $data_journal['credit'] = floatval($journal->credit) + floatval(unformatNumber($request->total_item_price));
+            // if($journal != null)
+            // {
+            //     $data_journal['debit'] = floatval($journal->debit) + floatval(unformatNumber($request->total_item_price));
+            //     $data_journal['credit'] = floatval($journal->credit) + floatval(unformatNumber($request->total_item_price));
 
-                $journal->update($data_journal);
-            }
-            else
-            {
+            //     $journal->update($data_journal);
+            // }
+            // else
+            // {
                 $data_journal['type']               = 'good_loading';
                 $data_journal['journal_date']       = date('Y-m-d');
                 $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
@@ -212,7 +270,7 @@ trait GoodLoadingControllerBase
                 $data_journal['credit']             = unformatNumber($request->total_item_price);
 
                 Journal::create($data_journal);
-            }
+            // }
 
             return $good_loading;
         }

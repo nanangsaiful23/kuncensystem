@@ -94,4 +94,17 @@ class BrandController extends Controller
 
         return redirect('/admin/brand/all/10');
     }
+
+    public function good($brand_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Daftar Barang Brand';
+        $default['page'] = 'brand';
+        $default['section'] = 'good';
+
+        $brand = Brand::find($brand_id);
+
+        return view('admin.layout.page', compact('default', 'brand'));
+    }
 }

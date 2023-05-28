@@ -279,6 +279,9 @@
                       document.getElementById("name-" + total_item).value = good.id;
                       document.getElementById("name_temp-" + total_item).value = good.name;
                       document.getElementById("barcode-" + total_item).value = good.code;
+                      $("#unit-" + total_item).val(good.getPcsSellingPrice.unit_id).change();
+                      $("#price-" + total_item).val(good.getPcsSellingPrice.buy_price);
+                      $("#sell_price-" + total_item).val(good.getPcsSellingPrice.selling_price);
                       document.getElementById("quantity-" + total_item).value = 1;
 
                       editPrice(total_item);
@@ -294,6 +297,9 @@
                       document.getElementById("name-" + index).value = good.id;
                       document.getElementById("name_temp-" + index).value = good.name;
                       document.getElementById("barcode-" + index).value = good.code;
+                      $("#unit-" + index).val(good.getPcsSellingPrice.unit_id).change();
+                      $("#price-" + index).val(good.getPcsSellingPrice.buy_price);
+                      $("#sell_price-" + index).val(good.getPcsSellingPrice.selling_price);
                       document.getElementById("quantity-" + index).value = 1;
                       // document.getElementById("quantity-" + index).focus();
 

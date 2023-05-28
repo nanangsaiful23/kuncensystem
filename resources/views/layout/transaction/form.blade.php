@@ -214,6 +214,11 @@
 
             if(good.length != 0)
             {
+                // if(good.stock <= 0)
+                // {
+                //     htmlResult = 'Stock ' + good.name + ': ' + good.stock;
+                //     $("#empty-item").append(htmlResult);
+                // }
                 for (var i = 1; i <= total_item; i++)
                 {
                     if(document.getElementById("barcode-" + i))
@@ -281,7 +286,7 @@
                 if(good.stock <= 0)
                 {
                     document.getElementById("message").style.display = "block";
-                    htmlResult2 = "> " + good.name + " " + good.color_name + " stock: " + good.stock + "<br>";
+                    htmlResult2 = "> " + good.name + " stock: " + good.stock + "<br>";
                     $("#empty-item").append(htmlResult2);
                 }
                 fillItem(result.good);
@@ -397,7 +402,7 @@
         {
             if($('#money_paid').val() != '' && $('#total_discount_price').val() != '')
             {
-                if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#all_member').val() == '1' && $('#member_name').val() == null))
+                if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#all_member').val() == '1' && $('#member_name').val() == ''))
                 {
                     alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member');
                 }

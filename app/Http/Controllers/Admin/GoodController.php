@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ZeroStockExport;
 
 use App\Http\Controllers\Base\GoodControllerBase;
 
@@ -107,9 +109,10 @@ class GoodController extends Controller
         $default['page'] = 'Good';
         $default['section'] = 'loading';
 
+        $good = Good::find($good_id);
         $loadings = $this->loadingGoodBase($good_id, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'loadings', 'good_id', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'loadings', 'good', 'start_date', 'end_date', 'pagination'));
     }
 
     public function transaction($good_id, $start_date, $end_date, $pagination)
@@ -120,9 +123,10 @@ class GoodController extends Controller
         $default['page'] = 'Good';
         $default['section'] = 'transaction';
 
+        $good = Good::find($good_id);
         $transactions = $this->transactionGoodBase($good_id, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'transactions', 'good_id', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'transactions', 'good', 'start_date', 'end_date', 'pagination'));
     }
 
     public function price($good_id, $start_date, $end_date, $pagination)
@@ -167,5 +171,31 @@ class GoodController extends Controller
         session(['alert' => 'delete', 'data' => 'Good barang']);
 
         return redirect('/admin/Good/all/10');
+    }
+
+    public function zeroStock($category_id, $location, $distributor_id, $stock)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Stock Habis';
+        $default['page'] = 'good';
+        $default['section'] = 'zero-stock';
+
+        $goods = $this->zeroStockGoodBase($category_id, $location, $distributor_id, $stock);
+
+        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'location', 'distributor_id', 'stock'));
+    }
+
+    public function stockExport(Request $request)
+    {
+        $goods = [];
+        foreach($request->exports as $export)
+        {
+            $good = Good::find($export);
+
+            array_push($goods, [$good->getLastBuy()->good_loading->distributor->name, $good->name, $good->getLastBuy()->price, $good->getStock()]);
+        }
+
+        return Excel::download(new ZeroStockExport($goods), 'Data Kulak ' . date('Y-m-d') . '.xlsx');
     }
 }

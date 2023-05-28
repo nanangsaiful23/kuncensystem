@@ -21,15 +21,15 @@ class CreateTransactionDetailsTable extends Migration
             $table->bigInteger('good_id')
                   ->unsigned()
                   ->nullable();
-            $table->string('quantity')
+            $table->decimal('quantity')
                   ->nullable();
-            $table->string('buy_price')
+            $table->decimal('buy_price')
                   ->nullable();
-            $table->string('selling_price')
+            $table->decimal('selling_price')
                   ->nullable();
-            $table->string('discount_price')
+            $table->decimal('discount_price')
                   ->nullable();
-            $table->string('sum_price')
+            $table->decimal('sum_price')
                   ->nullable();
 
             $table->timestamps();
