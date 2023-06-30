@@ -48,7 +48,7 @@ class TransactionController extends Controller
 
         session(['alert' => 'add', 'data' => 'transaksi']);
 
-        return redirect('/cashier/transaction/' . $transaction->id . '/detail');
+        return redirect('/cashier/transaction/' . $transaction->id . '/print');
     }
 
     public function detail($transaction_id)
