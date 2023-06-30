@@ -75,6 +75,7 @@ Route::group(['prefix' => 'good'], function () {
     Route::get('/{good_id}/detail', 'GoodController@detail');
     Route::get('/{good_id}/edit', 'GoodController@edit');
     Route::put('/{good_id}/edit', 'GoodController@update')->name('good.update');
+    Route::delete('/{good_id}/delete', 'GoodController@delete')->name('good.delete');
 	Route::get('/{category_id}/{distributor_id}/{pagination}', 'GoodController@index');
 });
 

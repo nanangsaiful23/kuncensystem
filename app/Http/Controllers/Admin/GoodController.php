@@ -191,7 +191,7 @@ class GoodController extends Controller
 
         session(['alert' => 'delete', 'data' => 'Good barang']);
 
-        return redirect('/admin/Good/all/10');
+        return redirect('/admin/good/all/all/20');
     }
 
     public function zeroStock($category_id, $location, $distributor_id, $stock)

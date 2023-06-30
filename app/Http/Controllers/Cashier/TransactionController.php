@@ -26,7 +26,7 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'all';
 
-        $transactions = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
+        $transactions = $this->indexTransactionBase('cashier', \Auth::user()->id, $start_date, $end_date, $pagination);
 
         return view('cashier.layout.page', compact('default', 'transactions', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
     }
