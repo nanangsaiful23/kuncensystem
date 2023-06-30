@@ -14,7 +14,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-body" style="overflow-x:scroll;">
-            <h2>Rincian Transaksi {{ displayDate(date('Y-m-d')) }}</h2>
+            <h2>Rincian Transaksi  ini coba {{ displayDate(date('Y-m-d')) }}</h2>
             <div class="col-sm-4">
               <table style="font-size: 25px; padding: 5px;">
                 <tr>
