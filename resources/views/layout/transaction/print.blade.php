@@ -25,18 +25,21 @@
 			<?php $i = 1; ?>
 			@foreach($transaction->details as $detail)
 				<tr>
-					<td>{{ $i }}.<br></td>
+					<td>{{ $i++ }}.<br></td>
 					<td style="text-align: left !important;">
-						{{ $detail->good->name }}
+						@if($detail->type == 'retur') Retur: @endif
+						{{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
 					</td>
 					<td></td>
 				</tr>
 				<tr>
 					<td></td>
 					<td>
-						{{ $detail->quantity . ' ' . $detail->good->getPcsSellingPrice()->unit->base . ' @' . printRupiah(checkNull($detail->selling_price))  . ' = '}}
+						{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name . ' @' . printRupiah(checkNull($detail->selling_price))  . ' = '}}
 					</td>
-					<td>{{ printRupiah(checkNull($detail->selling_price) * $detail->quantity) }}</td>
+					<td style="text-align: right !important;">
+						@if($detail->type == 'retur') - @endif {{ printRupiah(checkNull($detail->selling_price) * $detail->quantity) }}
+					</td>
 				</tr>
 				@if($detail->discount_price != 0) 
 					<tr>

@@ -18,10 +18,24 @@ class DatabaseSeeder extends Seeder
             'is_active'     => 1
         ]);
 
+        \App\Admin::create([
+            'name'          => 'Coba Admin',
+            'email'         => 'coba_admin',
+            'password'      => bcrypt('ntn' . '<4d[M!n}'),
+            'is_active'     => 1
+        ]);
+
         \App\Cashier::create([
             'name'          => 'Cashier NTN',
             'email'         => 'cashier',
             'password'      => bcrypt('bismillaah' . 'k&4z~1e1R*'),
+            'is_active'     => 1
+        ]);
+
+        \App\Cashier::create([
+            'name'          => 'Coba Cashier',
+            'email'         => 'coba_cashier',
+            'password'      => bcrypt('ntn' . 'k&4z~1e1R*'),
             'is_active'     => 1
         ]);
 
@@ -60,7 +74,7 @@ class DatabaseSeeder extends Seeder
             array('code' => '5217', 'name' => 'Biaya Penyusutan Kendaraan', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '5218', 'name' => 'Biaya Perjalanan', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '5219', 'name' => 'Biaya Uang Hilang', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
-            array('code' => '5220', 'name' => 'Biaya Perlengkapan Kantor', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
+            array('code' => '5220', 'name' => 'Biaya Operasional Toko', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '5221', 'name' => 'Biaya Charity', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '5222', 'name' => 'Biaya Zakat', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '6101', 'name' => 'Pendapatan Lain-lain', 'type' => 'Kredit', 'group' => 'Laba Rugi', 'activa' =>''),
@@ -96,12 +110,14 @@ class DatabaseSeeder extends Seeder
 
         DB::table('units')->insert(array(
             array('code' => 'PCS', 'name' => '1 pcs', 'eng_name' => 'Pieces', 'quantity' => 1, 'base' => 'pcs'),
-            array('code' => 'TWO', 'name' => '2 pcs', 'eng_name' => 'Two', 'quantity' => 2, 'base' => 'pcs'),
-            array('code' => 'THREE', 'name' => '3 pcs', 'eng_name' => 'Three', 'quantity' => 3, 'base' => 'pcs'),
-            array('code' => 'FOUR', 'name' => '4 pcs', 'eng_name' => 'Four', 'quantity' => 4, 'base' => 'pcs'),
-            array('code' => 'FIVE', 'name' => '5 pcs', 'eng_name' => 'Five', 'quantity' => 5, 'base' => 'pcs'),
-            array('code' => 'SIX', 'name' => '6 pcs', 'eng_name' => 'Six', 'quantity' => 6, 'base' => 'pcs'),
-            array('code' => 'TEN', 'name' => '10 pcs', 'eng_name' => 'Ten', 'quantity' => 10, 'base' => 'pcs'),
+            array('code' => 'PCS2', 'name' => '2 pcs', 'eng_name' => 'Two', 'quantity' => 2, 'base' => 'pcs'),
+            array('code' => 'PCS3', 'name' => '3 pcs', 'eng_name' => 'Three', 'quantity' => 3, 'base' => 'pcs'),
+            array('code' => 'PCS4', 'name' => '4 pcs', 'eng_name' => 'Four', 'quantity' => 4, 'base' => 'pcs'),
+            array('code' => 'PCS5', 'name' => '5 pcs', 'eng_name' => 'Five', 'quantity' => 5, 'base' => 'pcs'),
+            array('code' => 'PCS6', 'name' => '6 pcs', 'eng_name' => 'Six', 'quantity' => 6, 'base' => 'pcs'),
+            array('code' => 'PCS10', 'name' => '10 pcs', 'eng_name' => 'Ten', 'quantity' => 10, 'base' => 'pcs'),
+            array('code' => 'PCS24', 'name' => '24 pcs', 'eng_name' => '24 pcs', 'quantity' => 24, 'base' => 'pcs'),
+            array('code' => 'PCS25', 'name' => '25 pcs', 'eng_name' => '25 pcs', 'quantity' => 25, 'base' => 'pcs'),
             array('code' => 'DOZ', 'name' => 'Lusin', 'eng_name' => 'Dozen', 'quantity' => 12, 'base' => 'pcs'),
             array('code' => 'CODE', 'name' => 'Kodi', 'eng_name' => 'Code', 'quantity' => 20, 'base' => 'pcs'),
             array('code' => 'HDR1', 'name' => 'Seratus', 'eng_name' => '1 Hundred', 'quantity' => 100, 'base' => 'pcs'),
@@ -136,29 +152,30 @@ class DatabaseSeeder extends Seeder
             array('code' => 'M6', 'name' => '6 Meter', 'eng_name' => '6 Meter', 'quantity' => 6, 'base' => 'meter'),
             array('code' => 'M15', 'name' => '15 Meter', 'eng_name' => '15 Meter', 'quantity' => 15, 'base' => 'meter'),
             array('code' => 'M20', 'name' => '20 Meter', 'eng_name' => '20 Meter', 'quantity' => 20, 'base' => 'meter'),
-            array('code' => 'BOX4', 'name' => '1 box (4 pcs)', 'eng_name' => '1 box (4 pcs)', 'quantity' => 4, 'base' => 'pcs'),
-            array('code' => 'BOX5', 'name' => '1 box (5 pcs)', 'eng_name' => '1 box (5 pcs)', 'quantity' => 5, 'base' => 'pcs'),
-            array('code' => 'BOX6', 'name' => '1 box (6 pcs)', 'eng_name' => '1 box (6 pcs)', 'quantity' => 6, 'base' => 'pcs'),
-            array('code' => 'BOX7', 'name' => '1 box (7 pcs)', 'eng_name' => '1 box (7 pcs)', 'quantity' => 7, 'base' => 'pcs'),
-            array('code' => 'BOX10', 'name' => '1 box (10 pcs)', 'eng_name' => '1 box (10 pcs)', 'quantity' => 10, 'base' => 'pcs'),
-            array('code' => 'BOX12', 'name' => '1 box (12 pcs)', 'eng_name' => '1 box (12 pcs)', 'quantity' => 12, 'base' => 'pcs'),
-            array('code' => 'BOX20', 'name' => '1 box (20 pcs)', 'eng_name' => '1 box (20 pcs)', 'quantity' => 20, 'base' => 'pcs'),
-            array('code' => 'BOX24', 'name' => '1 box (24 pcs)', 'eng_name' => '1 box (24 pcs)', 'quantity' => 24, 'base' => 'pcs'),
-            array('code' => 'BOX28', 'name' => '1 box (28 pcs)', 'eng_name' => '1 box (28 pcs)', 'quantity' => 28, 'base' => 'pcs'),
-            array('code' => 'BOX30', 'name' => '1 box (30 pcs)', 'eng_name' => '1 box (30 pcs)', 'quantity' => 30, 'base' => 'pcs'),
-            array('code' => 'BOX36', 'name' => '1 box (36 pcs)', 'eng_name' => '1 box (36 pcs)', 'quantity' => 36, 'base' => 'pcs'),
-            array('code' => 'BOX40', 'name' => '1 box (40 pcs)', 'eng_name' => '1 box (40 pcs)', 'quantity' => 40, 'base' => 'pcs'),
-            array('code' => 'BOX42', 'name' => '1 box (42 pcs)', 'eng_name' => '1 box (42 pcs)', 'quantity' => 42, 'base' => 'pcs'),
-            array('code' => 'BOX50', 'name' => '1 box (50 pcs)', 'eng_name' => '1 box (50 pcs)', 'quantity' => 50, 'base' => 'pcs'),
-            array('code' => 'BOX72', 'name' => '1 box (72 pcs)', 'eng_name' => '1 box (72 pcs)', 'quantity' => 72, 'base' => 'pcs'),
-            array('code' => 'BOX120', 'name' => '1 box (120 pcs)', 'eng_name' => '1 box (120 pcs)', 'quantity' => 120, 'base' => 'pcs'),
+            array('code' => 'PCS48', 'name' => '48 pcs', 'eng_name' => '48 pcs', 'quantity' => 48, 'base' => 'pcs'),
+            array('code' => 'PCS50', 'name' => '50 pcs', 'eng_name' => '50 pcs', 'quantity' => 50, 'base' => 'pcs'),
+            array('code' => 'PCS40', 'name' => '40 pcs', 'eng_name' => '40 pcs', 'quantity' => 40, 'base' => 'pcs'),
+            array('code' => 'PCS15', 'name' => '15 pcs', 'eng_name' => '15 pcs', 'quantity' => 15, 'base' => 'pcs'),
+            array('code' => 'GR60', 'name' => '60 Gram', 'eng_name' => '60 Gram', 'quantity' => 0.06, 'base' => 'kg'),
+            array('code' => 'GR600', 'name' => '600 Gram', 'eng_name' => '600 Gram', 'quantity' => 0.6, 'base' => 'kg'),
+            array('code' => 'THSD1', 'name' => '1000 pcs', 'eng_name' => '1000 pcs', 'quantity' => 1000, 'base' => 'pcs'),
+            array('code' => 'PCS20', 'name' => '20 pcs', 'eng_name' => '20 pcs', 'quantity' => 20, 'base' => 'pcs'),
+            array('code' => 'PCS17', 'name' => '17 pcs', 'eng_name' => '17 pcs', 'quantity' => 17, 'base' => 'pcs'),
+            array('code' => 'PCS60', 'name' => '60 pcs', 'eng_name' => '60 pcs', 'quantity' => 60, 'base' => 'pcs'),
+            array('code' => 'PCS36', 'name' => '36 pcs', 'eng_name' => '36 pcs', 'quantity' => 36, 'base' => 'pcs'),
+            array('code' => 'PCS30', 'name' => '30 pcs', 'eng_name' => '30 pcs', 'quantity' => 30, 'base' => 'pcs'),
+            array('code' => 'PCS28', 'name' => '28 pcs', 'eng_name' => '28 pcs', 'quantity' => 28, 'base' => 'pcs'),
+            array('code' => 'PCS7', 'name' => '7 pcs', 'eng_name' => '7 pcs', 'quantity' => 7, 'base' => 'pcs'),
+            array('code' => 'PCS42', 'name' => '42 pcs', 'eng_name' => '42 pcs', 'quantity' => 42, 'base' => 'pcs'),
+            array('code' => 'PCS55', 'name' => '55 pcs', 'eng_name' => '55 pcs', 'quantity' => 55, 'base' => 'pcs'),
+            array('code' => 'HDR2.5', 'name' => '250 pcs', 'eng_name' => '250 pcs', 'quantity' => 250, 'base' => 'pcs'),
         ));
 
         DB::table('categories')->insert(array(
             array('code' => 'HOUSEWARE', 'name' => 'Peralatan Rumah Tangga', 'eng_name' => 'Houseware Products', 'unit_id' => 1),
             array('code' => 'FOOD', 'name' => 'Makanan dan Minuman', 'eng_name' => 'Foods and Beverages', 'unit_id' => 1),
-            array('code' => 'KiFOOD', 'name' => 'Makanan dan Minuman Kiloan', 'eng_name' => 'Snacks Kilo', 'unit_id' => 14),
-            array('code' => 'KiRICE', 'name' => 'Beras Kiloan', 'eng_name' => 'Rice Kilo', 'unit_id' => 14),
+            array('code' => 'KiFOOD', 'name' => 'Makanan dan Minuman Kiloan', 'eng_name' => 'Snacks Kilo', 'unit_id' => 16),
+            array('code' => 'KiRICE', 'name' => 'Beras Kiloan', 'eng_name' => 'Rice Kilo', 'unit_id' => 16),
             array('code' => 'MEDICINE', 'name' => 'Kesehatan', 'eng_name' => 'Health and Medical', 'unit_id' => 1),
             array('code' => 'BEDDING', 'name' => 'Bedding', 'eng_name' => 'Bedding', 'unit_id' => 1),
             array('code' => 'STATIONERY', 'name' => 'Buku dan Alat Tulis', 'eng_name' => 'Stationery Products', 'unit_id' => 1),
@@ -173,13 +190,13 @@ class DatabaseSeeder extends Seeder
             array('code' => 'SCHOOL', 'name' => 'Peralatan Sekolah', 'eng_name' => 'School', 'unit_id' => 1),
             array('code' => 'STORAGE', 'name' => 'Lemari', 'eng_name' => 'Storage', 'unit_id' => 1),
             array('code' => 'GARDENING', 'name' => 'Peralatan Berkebun', 'eng_name' => 'Gardening Tools', 'unit_id' => 1),
-            array('code' => 'KiGARDENING', 'name' => 'Peralatan Berkebun Kiloan', 'eng_name' => 'Gardening Tools Kilo', 'unit_id' => 14),
+            array('code' => 'KiGARDENING', 'name' => 'Peralatan Berkebun Kiloan', 'eng_name' => 'Gardening Tools Kilo', 'unit_id' => 16),
             array('code' => 'ELECTRONIC', 'name' => 'Barang Elektronik', 'eng_name' => 'Electronic Products', 'unit_id' => 1),
             array('code' => 'GLASSWARE', 'name' => 'Barang Pecah Belah', 'eng_name' => 'Glassware', 'unit_id' => 1),
             array('code' => 'STOVE', 'name' => 'Kompor', 'eng_name' => 'Stoves', 'unit_id' => 1),
             array('code' => 'PLASTIC', 'name' => 'Plastik', 'eng_name' => 'Plastic', 'unit_id' => 1),
             array('code' => 'FLOORING', 'name' => 'Karpet/Keset', 'eng_name' => 'Flooring Products', 'unit_id' => 1),
-            array('code' => 'MeFLOORING', 'name' => 'Karpet/Keset Meteran', 'eng_name' => 'Flooring Products Meter', 'unit_id' => 36),
+            array('code' => 'MeFLOORING', 'name' => 'Karpet/Keset Meteran', 'eng_name' => 'Flooring Products Meter', 'unit_id' => 38),
         ));
     }
 }

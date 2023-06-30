@@ -24,23 +24,31 @@ trait GoodControllerBase
             }
             elseif($category_id == 'all')
             {
-                $goods = Good::join('good_loadings', 'good_loadings.good_id', 'goods.id')
+                $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
+                             ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
+                             ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->where('good_loadings.distributor_id', $distributor_id)
                              ->orderBy('goods.id', 'desc')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->get();
             }
             elseif($distributor_id == 'all')
             {
                 $goods = Good::where('category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
-                             ->get();         
+                             ->get();      
             }
             else
             {
-                $goods = Good::join('good_loadings', 'good_loadings.good_id', 'goods.id')
+                $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
+                             ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
+                             ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->where('good_loadings.distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->get();
             }
         }
@@ -52,10 +60,15 @@ trait GoodControllerBase
             }
             elseif($category_id == 'all')
             {
-                $goods = Good::join('good_loadings', 'good_loadings.good_id', 'goods.id')
+                $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
+                             ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
+                             ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->where('good_loadings.distributor_id', $distributor_id)
                              ->orderBy('goods.id', 'desc')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->paginate($pagination);
+                             // dd($goods);die;   
             }
             elseif($distributor_id == 'all')
             {
@@ -65,11 +78,16 @@ trait GoodControllerBase
             }
             else
             {
-                $goods = Good::join('good_loadings', 'good_loadings.good_id', 'goods.id')
+                $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
+                             ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
+                             ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->where('good_loadings.distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->paginate($pagination);
+                             // dd($goods);die;   
             }
         }
 
@@ -94,6 +112,18 @@ trait GoodControllerBase
         return $good;
     }
 
+    public function searchByGoodUnitGoodBase($good_unit_id)
+    {
+        $good_unit = GoodUnit::find($good_unit_id);
+        $good_unit->name = $good_unit->unit->name;
+
+        $good = Good::find($good_unit->good_id);
+        $good->getPcsSellingPrice = $good_unit;
+        $good->stock = $good->getStock();
+
+        return $good;
+    }
+
     public function searchByKeywordGoodBase($query)
     {
         $goods = Good::where('code', 'like', '%'. $query . '%')
@@ -103,6 +133,35 @@ trait GoodControllerBase
                      ->get();
 
         return $goods;
+    }
+
+    public function searchByKeywordGoodUnitGoodBase($query)
+    {
+        $goods = Good::where('code', 'like', '%'. $query . '%')
+                     ->orWhere('name', 'like', '%'. $query . '%')
+                     ->where('deleted_at', '=', null)
+                     ->orderBy('name')
+                     ->get();
+
+        $units = [];
+        foreach($goods as $good)
+        {
+            foreach($good->good_units as $unit)
+            {
+                $temp = [];
+                $temp['good_id'] = $good->id;
+                $temp['good_unit_id'] = $unit->id;
+                $temp['unit_id'] = $unit->unit_id;
+                $temp['code'] = $good->code;
+                $temp['name'] = $good->name;
+                $temp['unit'] = $unit->unit->name;
+                $temp['buy_price'] = $unit->buy_price;
+                $temp['selling_price'] = $unit->selling_price;
+                array_push($units, $temp);
+            }
+        }
+
+        return $units;
     }
 
     public function checkDiscountGoodBase($good_id, $quantity, $pcsPrice)
@@ -115,7 +174,9 @@ trait GoodControllerBase
 
         if($good_unit->quantity != 1)
         {
-            $disc_quantity = intdiv($quantity, $good_unit->quantity);
+            if($quantity < 1) $disc_quantity = 0;
+            else $disc_quantity = intdiv($quantity, $good_unit->quantity);
+
             $real_quantity = fmod($quantity, $good_unit->quantity);
             // dd($disc_quantity . ' ' . $real_quantity);die;
 
@@ -292,10 +353,20 @@ trait GoodControllerBase
 
     public function updateGoodBase($good_id, Request $request)
     {
+        $data = $request->input();
+
+        $good = Good::find($good_id);
+        $good->update($data);
+
+        return $good;
     }
 
     public function deleteGoodBase($good_id)
     {
+        $good = Good::find($good_id);
+        $good->delete();
+
+        return true;
     }
 
     public function zeroStockGoodBase($category_id, $location, $distributor_id, $stock)

@@ -52,6 +52,15 @@ class GoodController extends Controller
         ], 200);
     }
 
+    public function searchByGoodUnit($good_id)
+    {
+        $good = $this->searchByGoodUnitGoodBase($good_id);
+
+        return response()->json([
+            "good"  => $good
+        ], 200);
+    }
+
     public function searchByKeyword($query)
     {
         $goods = $this->searchByKeywordGoodBase($query);
@@ -61,12 +70,23 @@ class GoodController extends Controller
         ], 200);
     }
 
+    public function searchByKeywordGoodUnit($query)
+    {
+        $good_units = $this->searchByKeywordGoodUnitGoodBase($query);
+
+        return response()->json([
+            "good_units"  => $good_units
+        ], 200);
+    }
+
     public function checkDiscount($good_id, $quantity, $price)
     {
         $discount = $this->checkDiscountGoodBase($good_id, $quantity, $price);
+        $stock = Good::find($good_id)->getStock();
 
         return response()->json([
-            "discount"  => $discount
+            "discount"  => $discount,
+            "stock"     => $stock
         ], 200);
     }
 
@@ -98,7 +118,7 @@ class GoodController extends Controller
 
         $good = Good::find($good_id);
 
-        return view('admin.layout.page', compact('default', 'Good'));
+        return view('admin.layout.page', compact('default', 'good'));
     }
 
     public function loading($good_id, $start_date, $end_date, $pagination)
@@ -137,9 +157,10 @@ class GoodController extends Controller
         $default['page'] = 'Good';
         $default['section'] = 'price';
 
+        $good = Good::find($good_id);
         $prices = $this->priceGoodBase($good_id, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'prices', 'good_id', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'prices', 'good', 'start_date', 'end_date', 'pagination'));
     }
 
     public function edit($good_id)
@@ -152,7 +173,7 @@ class GoodController extends Controller
 
         $good = Good::find($good_id);
 
-        return view('admin.layout.page', compact('default', 'Good'));
+        return view('admin.layout.page', compact('default', 'good'));
     }
 
     public function update($good_id, Request $request)
@@ -161,7 +182,7 @@ class GoodController extends Controller
 
         session(['alert' => 'edit', 'data' => 'Good barang']);
 
-        return redirect('/admin/Good/' . $good->id . '/detail');
+        return redirect('/admin/good/' . $good->id . '/detail');
     }
 
     public function delete($good_id)

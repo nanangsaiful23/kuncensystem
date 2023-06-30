@@ -50,12 +50,30 @@ class GoodController extends Controller
         ], 200);
     }
 
+    public function searchByGoodUnit($good_id)
+    {
+        $good = $this->searchByGoodUnitGoodBase($good_id);
+
+        return response()->json([
+            "good"  => $good
+        ], 200);
+    }
+
     public function searchByKeyword($query)
     {
         $goods = $this->searchByKeywordGoodBase($query);
 
         return response()->json([
             "goods"  => $goods
+        ], 200);
+    }
+
+    public function searchByKeywordGoodUnit($query)
+    {
+        $good_units = $this->searchByKeywordGoodUnitGoodBase($query);
+
+        return response()->json([
+            "good_units"  => $good_units
         ], 200);
     }
 
@@ -98,9 +116,10 @@ class GoodController extends Controller
         $default['page'] = 'Good';
         $default['section'] = 'transaction';
 
+        $good = Good::find($good_id);
         $transactions = $this->transactionGoodBase($good_id, $start_date, $end_date, $pagination);
 
-        return view('cashier.layout.page', compact('default', 'transactions', 'good_id', 'start_date', 'end_date', 'pagination'));
+        return view('cashier.layout.page', compact('default', 'transactions', 'good', 'start_date', 'end_date', 'pagination'));
     }
 
     public function price($good_id, $start_date, $end_date, $pagination)
@@ -111,9 +130,10 @@ class GoodController extends Controller
         $default['page'] = 'Good';
         $default['section'] = 'price';
 
+        $good = Good::find($good_id);
         $prices = $this->priceGoodBase($good_id, $start_date, $end_date, $pagination);
 
-        return view('cashier.layout.page', compact('default', 'prices', 'good_id', 'start_date', 'end_date', 'pagination'));
+        return view('cashier.layout.page', compact('default', 'prices', 'good', 'start_date', 'end_date', 'pagination'));
     }
 
     public function edit($good_id)

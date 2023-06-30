@@ -24,6 +24,11 @@ class Good extends Model
         'deleted_at',
     ];
     
+    public function category()
+    {
+        return $this->belongsTo('App\Models\Category');
+    }
+    
     public function brand()
     {
         return $this->belongsTo('App\Models\Brand');
@@ -32,6 +37,18 @@ class Good extends Model
     public function good_units()
     {
         return $this->hasMany('App\Models\GoodUnit');
+    }
+    
+    public function good_photos()
+    {
+        return $this->hasMany('App\Models\GoodPhoto');
+    }
+
+    public function profilePicture()
+    {
+        return GoodPhoto::where('good_id', $this->id)
+                        ->where('is_profile_picture', 1)
+                        ->first();
     }
 
     public function good_loadings()
@@ -43,14 +60,18 @@ class Good extends Model
     
     public function good_transactions()
     {
-        return $this->hasMany('App\Models\TransactionDetail');
+        return TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->where('good_units.good_id', $this->id)
+                                ->get();
     }
 
     public function getPcsSellingPrice()
     {
         return GoodUnit::join('units', 'good_units.unit_id', 'units.id')
-                       ->where('units.quantity', '1')
+                       ->select('good_units.*', 'units.*', 'good_units.id as id')
+                       // ->where('units.quantity', '1')
                        ->where('good_units.good_id', $this->id)
+                       ->orderBy('units.quantity', 'asc')
                        ->first();
     }
 
@@ -66,7 +87,7 @@ class Good extends Model
     {
         $loadings = $this->good_loadings()->sum('real_quantity');
 
-        $transactions = $this->good_transactions->sum('quantity');
+        $transactions = $this->good_transactions()->sum('real_quantity');
 
         return $loadings - $transactions;
     }

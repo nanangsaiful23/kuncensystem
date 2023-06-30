@@ -31,7 +31,7 @@
                   <tr>
                     <td>{{ $member->name }}</td>
                     <td>{{ $member->address }}</td>
-                    <td class="center">Total Hutang: {{ showRupiah($member->totalTransaction()->sum('total_sum_price')) }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
+                    <td class="center">Total Transaksi: {{ showRupiah($member->totalTransaction()->sum('total_sum_price')) }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
                     <td class="center">Total pembayaran: {{ showRupiah($member->totalPayment()->sum('money')) }}<br><a href="{{ url($role . '/member/' . $member->id . '/payment/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right green" aria-hidden="true"></i> detail</a></td>
                     <td>{{ showRupiah($member->totalTransaction()->sum('total_sum_price') - $member->totalPayment()->sum('money')) }}</td>
                     <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>

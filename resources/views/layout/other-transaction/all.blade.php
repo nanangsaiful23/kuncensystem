@@ -29,6 +29,7 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
+            <h3>Total transaksi hari ini: {{ showRupiah($other_transactions->sum('debit')) }}</h3>
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>

@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <div class="form-group" id="buy_price">
+        <div class="form-group" id="buy_price_div">
             {!! Form::label('buy_price', 'Harga Beli Pulsa/Token', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
@@ -64,12 +64,23 @@
         </div>
 
         <div class="form-group">
-            {!! Form::label('money', 'Jumlah Uang', array('class' => 'col-sm-12')) !!}
+            {!! Form::label('money', 'Harga Jual/Nominal', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('money', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     {!! Form::text('money', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("money")')) !!}
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group" id="no_token">
+            {!! Form::label('no_token', 'No Token Listrik/Nomor HP', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('no_token', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('no_token', null, array('class' => 'form-control')) !!}
                 @endif
             </div>
         </div>
@@ -100,7 +111,8 @@
             @if($SubmitButtonText != 'View')
                 $("#member").hide();
                 $("#payment").hide();
-                $("#buy_price").hide();
+                $("#buy_price_div").hide();
+                $("#no_token").hide();
             @endif
         });
 
@@ -111,19 +123,22 @@
             {
                 $("#member").show();
                 $("#payment").show();
-                $("#buy_price").hide();
+                $("#buy_price_div").hide();
+                $("#no_token").hide();
             }
             else if(selectBox.options[selectBox.selectedIndex].value == 'pulsa_transaction')
             {
                 $("#member").hide();
                 $("#payment").show();
-                $("#buy_price").show();
+                $("#buy_price_div").show();
+                $("#no_token").show();
             }
             else
             {
                 $("#member").hide();
                 $("#payment").hide();
-                $("#buy_price").hide();
+                $("#buy_price_div").hide();
+                $("#no_token").hide();
             }
         }
 

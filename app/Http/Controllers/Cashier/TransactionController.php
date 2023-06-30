@@ -18,7 +18,7 @@ class TransactionController extends Controller
         $this->middleware('cashier');
     }
 
-    public function index($start_date, $end_date, $pagination)
+    public function index($role_user, $role_id, $start_date, $end_date, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,9 +26,9 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'all';
 
-        $transactions = $this->indexTransactionBase($start_date, $end_date, $pagination);
+        $transactions = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
 
-        return view('cashier.layout.page', compact('default', 'transactions', 'start_date', 'end_date', 'pagination'));
+        return view('cashier.layout.page', compact('default', 'transactions', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()

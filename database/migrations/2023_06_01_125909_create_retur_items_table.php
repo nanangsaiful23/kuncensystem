@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateGoodPricesTable extends Migration
+class CreateReturItemsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,31 +13,30 @@ class CreateGoodPricesTable extends Migration
      */
     public function up()
     {
-        Schema::create('good_prices', function (Blueprint $table) {
+        Schema::create('retur_items', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('role')
-                  ->nullable();
-            $table->bigInteger('role_id')
-                  ->nullable();
-            $table->bigInteger('good_unit_id')
+            $table->bigInteger('good_id')
                   ->unsigned()
                   ->nullable();
-            $table->string('old_price')
+            $table->bigInteger('last_distributor_id')
+                  ->unsigned()
                   ->nullable();
-            $table->string('recent_price')
+            $table->date('returned_date')
                   ->nullable();
-            $table->string('reason')
-                  ->nullable();
-            $table->boolean('is_checked')
-                  ->default(0)
+            $table->string('returned_type')
                   ->nullable();
 
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('good_unit_id')
+            $table->foreign('good_id')
                   ->references('id')
-                  ->on('good_units')
+                  ->on('goods')
+                  ->onDelete('cascade');
+
+            $table->foreign('last_distributor_id')
+                  ->references('id')
+                  ->on('distributors')
                   ->onDelete('cascade');
         });
     }
@@ -49,6 +48,6 @@ class CreateGoodPricesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('good_prices');
+        Schema::dropIfExists('retur_items');
     }
 }

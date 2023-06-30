@@ -58,26 +58,19 @@
                         </div>
                       </div>
                       <div class="col-sm-12"> 
-                        <table id="example1" class="table table-bordered table-striped" style="margin-top: 50px; font-size: 30px;">
-                          <thead>
-                          <tr>
-                            <th width="60%" style="text-align: center;">Nama</th>
-                            <th width="30%" style="text-align: center;">Harga</th>
-                            <th width="10%" style="text-align: center;">Stock</th>
-                          </tr>
-                          </thead>
-                          <tbody id="table-good">
-                            <?php $i = 0; ?>
-                            @foreach($goods as $good)
-                              <tr style="background-color: @if($i % 2 == 0) #C88EA7 @else #C1D0B5 @endif">
-                                <td>{{ $good->name }}</td>
-                                <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->selling_price) . '/' . $good->getPcsSellingPrice()->unit->code}}</td>
-                                <td style="text-align: center;">{{ $good->getStock() }}</td>
-                              </tr>
-                              <?php $i++ ?>
+                        @foreach($goods as $good)
+                          <div class="col-sm-4" style="text-align: center; border: black solid 2px;"> 
+                            @foreach($good->good_photos as $photo)
+                              <img src="{{ URL::to('image/' . $photo->location) }}" style="width: 200px; display: block; margin: auto;">
                             @endforeach
-                          </tbody>
-                        </table>
+                            <h3>{{ $good->code }}</h3>
+                            <h3>{{ $good->name }}</h3>
+                            @foreach($good->good_units as $unit)
+                              <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
+                            @endforeach
+                            <h3>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                          </div>
+                        @endforeach
                       </div>
                     </div>
                   </div>

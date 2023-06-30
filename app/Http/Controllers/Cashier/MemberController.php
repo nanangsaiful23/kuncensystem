@@ -64,7 +64,7 @@ class MemberController extends Controller
         return view('cashier.layout.page', compact('default', 'member'));
     }
 
-    public function transaction($member_id, $type, $pagination)
+    public function transaction($member_id, $start_date, $end_date, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -72,9 +72,10 @@ class MemberController extends Controller
         $default['page'] = 'member';
         $default['section'] = 'transaction';
 
+        $member = Member::find($member_id);
         $transactions = $this->transactionMemberBase($member_id, $type, $pagination);
 
-        return view('cashier.layout.page', compact('default', 'transactions', 'type', 'pagination'));
+        return view('cashier.layout.page', compact('default', 'member', 'transactions', 'start_date', 'end_date', 'pagination'));
     }
 
     public function edit($member_id)

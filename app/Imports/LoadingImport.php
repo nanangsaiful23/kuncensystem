@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use App\Models\Brand;
 use App\Models\Good;
 use App\Models\GoodLoadingDetail;
+use App\Models\GoodPhoto;
 use App\Models\GoodPrice;
 use App\Models\GoodUnit;
 use App\Models\Unit;
@@ -95,6 +96,7 @@ class LoadingImport implements ToCollection
                 $data_price['old_price']    = $good_unit->selling_price;
                 $data_price['recent_price'] = $row[6];
                 $data_price['reason']       = 'Harga pertama';
+                $data_price['is_checked']   = 1;
 
                 GoodPrice::create($data_price);
             }
@@ -109,6 +111,13 @@ class LoadingImport implements ToCollection
             $data_detail['expiry_date']     = null;
 
             GoodLoadingDetail::create($data_detail);
+
+            $data_photo['good_id'] = $good->id;
+            $data_photo['serve']   = 'web';
+            $data_photo['location'] = $row[12];
+            $data_photo['is_profile_picture'] = 1;
+
+            GoodPhoto::create($data_photo);
         }
     }
 }

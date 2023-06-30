@@ -14,7 +14,9 @@ class MainController extends Controller
     {
         $default['page_name'] = 'CARI BARANG';
 
-        $goods = Good::where('name', 'like', '%' . $query . '%')->get();
+        $goods = Good::where('name', 'like', '%' . $query . '%')
+                     ->orWhere('code', 'like', '%' . $query . '%')
+                     ->get();
 
         return view('layout.good-search', compact('default', 'goods', 'query'));
     }

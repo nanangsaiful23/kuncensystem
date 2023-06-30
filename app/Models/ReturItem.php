@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TransactionDetail extends Model
+class ReturItem extends Model
 {    
     use SoftDeletes;
     
     protected $fillable = [
-        'transaction_id', 'good_unit_id', 'type', 'quantity', 'real_quantity', 'buy_price', 'selling_price', 'discount_price', 'sum_price'
+        'good_id', 'last_distributor_id', 'returned_date', 'returned_type'
     ];
 
     protected $hidden = [
@@ -21,8 +21,13 @@ class TransactionDetail extends Model
         'deleted_at',
     ];
     
-    public function good_unit()
+    public function good()
     {
-        return $this->belongsTo('App\Models\GoodUnit');
+        return $this->belongsTo('App\Models\Good');
+    }
+    
+    public function last_distributor()
+    {
+        return $this->belongsTo('App\Models\Distributor');
     }
 }

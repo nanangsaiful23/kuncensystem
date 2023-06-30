@@ -15,13 +15,17 @@ class CreateTransactionDetailsTable extends Migration
     {
         Schema::create('transaction_details', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('type')
+                  ->nullable();
             $table->bigInteger('transaction_id')
                   ->unsigned()
                   ->nullable();
-            $table->bigInteger('good_id')
+            $table->bigInteger('good_unit_id')
                   ->unsigned()
                   ->nullable();
             $table->decimal('quantity')
+                  ->nullable();
+            $table->decimal('real_quantity')
                   ->nullable();
             $table->decimal('buy_price')
                   ->nullable();
@@ -40,9 +44,9 @@ class CreateTransactionDetailsTable extends Migration
                   ->on('transactions')
                   ->onDelete('cascade');
 
-            $table->foreign('good_id')
+            $table->foreign('good_unit_id')
                   ->references('id')
-                  ->on('goods')
+                  ->on('good_units')
                   ->onDelete('cascade');
         });
     }

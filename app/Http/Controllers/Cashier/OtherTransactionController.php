@@ -50,4 +50,13 @@ class OtherTransactionController extends Controller
 
         return redirect('/cashier/other-transaction/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15');
     }
+
+    public function print($journal_id)
+    {
+        $role = 'cashier';
+
+        $journal = Journal::find($journal_id);
+
+        return view('layout.other-transaction.print', compact('role', 'journal'));
+    }
 }

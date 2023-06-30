@@ -70,12 +70,12 @@
                             </thead>
                             <tbody>
                                 @foreach($transaction->details as $detail)
-                                    <tr>
+                                    <tr @if($detail->type == 'retur') style="background-color: yellow" @endif>
                                         <td>
-                                            {{ $detail->good->code }}
+                                            {{ $detail->good_unit->good->code }}
                                         </td>
                                         <td>
-                                            {{ $detail->good->name }}
+                                            {{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
                                         </td>
                                         <td>
                                             {{ $detail->quantity }}
@@ -90,7 +90,7 @@
                                             {{ showRupiah($detail->discount_price) }}
                                         </td>
                                         <td style="text-align: right;">
-                                            {{ showRupiah($detail->sum_price) }}
+                                            @if($detail->type == 'retur') - @endif {{ showRupiah($detail->sum_price) }}
                                         </td>
                                     </tr>
                                 @endforeach

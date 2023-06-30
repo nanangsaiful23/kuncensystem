@@ -47,6 +47,7 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
                 <tr>
+                  <th style="width: 5%; text-align: center;">Kategori</th>
                   <th style="width: 45%; text-align: center;">Nama</th>
                   <th style="width: 12%; text-align: center;">Stock</th>
                   <th style="width: 15%; text-align: center;">Harga Jual</th>
@@ -60,6 +61,7 @@
               <tbody>
                 @foreach($goods as $good)
                   <tr>
+                    <td>{{ $good->category->name }}</td>
                     <td>
                       <h4>{{ $good->name }}</h4>
                       @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
@@ -69,10 +71,10 @@
                     </td>
                     <td>
                       <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
-                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->good_transactions->sum('quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
+                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->good_transactions()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
                       <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->good_loadings()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}
-                      <br><a href="{{ url($role . '/good/' . $good->id . '/loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
-                      <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
+                      <br><a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
+                      <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
                     </td>
                     <td>
                       @foreach($good->good_units as $unit)
@@ -80,7 +82,7 @@
                         @if(\Auth::user()->email == 'admin')
                           <br>Untung: {{ showRupiah(roundMoney($unit->selling_price) - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, roundMoney($unit->selling_price)) }}%)
                         @endif
-                        <br><a href="{{ url($role . '/good/' . $good->id . '/price/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
+                        <br><a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
                       @endforeach
                     </td>
                     <td>{{ $good->code }}</td>

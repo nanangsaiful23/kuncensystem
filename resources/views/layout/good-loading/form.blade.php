@@ -101,7 +101,7 @@
                 <?php $i = 1; ?>
                 <tr id="row-data-{{ $i }}">
                     <td>
-                        <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" onchange="fillByBarcode('{{ $i }}')" style="height: 70px"></textarea>
+                        <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" style="height: 70px"></textarea>
                     </td>
                     <td width="20%">
                         {!! Form::textarea('name_temps[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'name_temp-'.$i, 'style' => 'height: 70px')) !!}
@@ -250,30 +250,12 @@
 
           function fillItem(good,index)
           {
-            console.log(good);
               var bool = false;
 
               if(good.length != 0)
               {
                 if (index==-1)
                 {
-                  // for (var i = 1; i <= total_item; i++)
-                  // {
-                  //     if(document.getElementById("barcode-" + i))
-                  //     {
-                  //         if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.code)
-                  //         {
-                  //             temp_total = document.getElementById("quantity-" + i).value;
-                  //             temp_total = parseInt(temp_total) + 1;
-                  //             document.getElementById("quantity-" + i).value = temp_total;
-                  //             bool = true;
-
-                  //             editPrice(i);
-                  //             break;
-                  //         }
-                  //     }
-                  // }
-
                   if(bool == false)
                   {
                       document.getElementById("name-" + total_item).value = good.id;
@@ -293,7 +275,6 @@
                 }
                 else
                 {
-
                       document.getElementById("name-" + index).value = good.id;
                       document.getElementById("name_temp-" + index).value = good.name;
                       document.getElementById("barcode-" + index).value = good.code;
@@ -301,11 +282,9 @@
                       $("#price-" + index).val(good.getPcsSellingPrice.buy_price);
                       $("#sell_price-" + index).val(good.getPcsSellingPrice.selling_price);
                       document.getElementById("quantity-" + index).value = 1;
-                      // document.getElementById("quantity-" + index).focus();
-
 
                       editPrice(index);
-                    total_real_item+=1;
+                      total_real_item+=1;
                       document.getElementById("all_barcode").value = '';
                       $("#all_barcode").focus();
                 }
@@ -391,7 +370,7 @@
                 success: function(result){
                   var good = result.good;
                   var index=-1;
-                  console.log(result);
+
                   fillItem(result.good,index)},
                 error: function(){
                 }
@@ -403,37 +382,17 @@
           {
 
               $.ajax({
-                url: "{!! url($role . '/good/searchById/') !!}/" + $("#all_name").val(),
+                url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + $("#all_name").val(),
                 success: function(result){
                     var index=-1;
-                  fillItem(result.good,index);
-                },
-                error: function(){
-                }
-              });
-          }
+                    var r = result.good_units;
 
-          function fillByBarcode(index)
-          {
-              $.ajax({
-                url: "{!! url($role . '/good/searchByBarcode/') !!}/" + $("#barcode-" + index).val(),
-                success: function(result){
-                    var index=-1;
-                    fillItem(result.good,index);
-                },
-                error: function(){
-                }
-              });
-          }
-
-          function fillByName(index)
-          {
-
-              $.ajax({
-                url: "{!! url($role . '/good/searchById/') !!}/" + $("#name-" + index).val(),
-                success: function(result){
-
-                  fillItem(result.good,index);
+                    for (var i = 0; i < r.length; i++) {
+                        const getPcsSellingPrice = {unit_id: r[i].unit_id, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
+                        const good = {id: r[i].good_id, name: r[i].name, code: r[i].code, getPcsSellingPrice: getPcsSellingPrice};
+                        
+                        fillItem(good,index);
+                    }
                 },
                 error: function(){
                 }
@@ -454,16 +413,12 @@
                   else
                   {
                       alert('Barang tidak mencukupi');
-                      // document.getElementById("quantity-" + index).focus();
-                      // document.getElementById("quantity-" + index).value = '';
-                      // changePrice(index);
                   }
                 },
                 error: function(){
                 }
               });
           }
-
 
           function changeFocus(index)
           {

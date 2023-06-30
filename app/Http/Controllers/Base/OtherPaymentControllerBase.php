@@ -53,7 +53,7 @@ trait OtherPaymentControllerBase
         {
             $data_payment['type']               = 'other_payment';
             $data_payment['journal_date']       = date('Y-m-d');
-            $data_payment['name']               = $account->name;
+            $data_payment['name']               = $account->name . ' (' . $request->payment . ')';
             $data_payment['debit_account_id']   = $request->debit_account_id;
             $data_payment['debit']              = $request->money;
             $data_payment['credit']             = $request->money;

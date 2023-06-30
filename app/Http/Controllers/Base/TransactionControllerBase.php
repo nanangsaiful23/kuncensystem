@@ -5,9 +5,14 @@ namespace App\Http\Controllers\Base;
 use Illuminate\Http\Request;
 
 use App\Models\Account;
+use App\Models\Good;
+use App\Models\GoodLoading;
+use App\Models\GoodLoadingDetail;
+use App\Models\GoodUnit;
 use App\Models\Journal;
 use App\Models\Member;
 use App\Models\PiutangPayment;
+use App\Models\ReturItem;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 
@@ -52,6 +57,12 @@ trait TransactionControllerBase
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
+
+                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('type', 'retur')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
             }
             else
             {
@@ -92,6 +103,14 @@ trait TransactionControllerBase
                                                     ->where('role', $role)
                                                     ->where('role_id', $role_id)
                                                     ->where('type', 'normal')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->get();
+
+                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('type', 'retur')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->get();
             }
@@ -138,6 +157,12 @@ trait TransactionControllerBase
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
+
+                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('type', 'retur')
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
             }
             else
             {
@@ -180,6 +205,14 @@ trait TransactionControllerBase
                                                     ->where('type', 'normal')
                                                     ->orderBy('transactions.created_at','desc')
                                                     ->paginate($pagination);
+
+                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('type', 'retur')
+                                                    ->where('role', $role)
+                                                    ->where('role_id', $role_id)
+                                                    ->orderBy('transactions.created_at','desc')
+                                                    ->paginate($pagination);
             }
         }
 
@@ -188,7 +221,9 @@ trait TransactionControllerBase
 
     public function storeTransactionBase($role, $role_id, Request $request)
     {
+        // dd($request);die;
         $hpp = 0;
+        $sum = 0;
 
         if($request->member_name != null)
         {
@@ -207,7 +242,14 @@ trait TransactionControllerBase
         }
 
         #tabel transaction
-        $data_transaction['type'] = $request->type;
+        if(sizeof($request->barcodesretur_s) > 1)
+        {
+            $data_transaction['type'] = 'retur'; 
+        }
+        else
+        {
+            $data_transaction['type'] = $request->type;
+        }
         $data_transaction['role'] = $role;
         $data_transaction['role_id'] = $role_id;
         $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
@@ -224,19 +266,23 @@ trait TransactionControllerBase
         #tabel transaction detail
         $data_detail['transaction_id'] = $transaction->id;
 
-        for ($i = 0; $i < sizeof($request->names); $i++) 
+        for ($i = 0; $i < sizeof($request->barcodes); $i++) 
         { 
-            if($request->names[$i] != null)
+            if($request->barcodes[$i] != null)
             {
-                $data_detail['good_id'] = $request->names[$i];
-                $data_detail['quantity'] = $request->quantities[$i];
-                $data_detail['buy_price'] = unformatNumber($request->buy_prices[$i]);
-                $data_detail['selling_price'] = unformatNumber($request->prices[$i]);
+                $good_unit = GoodUnit::find($request->barcodes[$i]);
+                $data_detail['good_unit_id']   = $good_unit->id;
+                $data_detail['type']           = $request->type;
+                $data_detail['quantity']       = $request->quantities[$i];
+                $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
+                $data_detail['buy_price']      = unformatNumber($request->buy_prices[$i]);
+                $data_detail['selling_price']  = unformatNumber($request->prices[$i]);
                 $data_detail['discount_price'] = unformatNumber($request->discounts[$i]);
-                $data_detail['sum_price'] = unformatNumber($request->sums[$i]);
+                $data_detail['sum_price']      = unformatNumber($request->sums[$i]);
 
                 TransactionDetail::create($data_detail);
 
+                $sum += $data_detail['sum_price'];
                 $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
             }
         }
@@ -257,8 +303,8 @@ trait TransactionControllerBase
 
         if($journal != null)
         {
-            $data_journal['debit'] = floatval($journal->debit) + floatval($data_transaction['total_sum_price']);
-            $data_journal['credit'] = floatval($journal->credit) + floatval($data_transaction['total_sum_price']);
+            $data_journal['debit'] = floatval($journal->debit) + floatval($sum);
+            $data_journal['credit'] = floatval($journal->credit) + floatval($sum);
 
             $journal->update($data_journal);
         }
@@ -267,9 +313,9 @@ trait TransactionControllerBase
             $data_journal['type']               = 'transaction';
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal['debit']              = $data_transaction['total_sum_price'];
+            $data_journal['debit']              = $sum;
             $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
-            $data_journal['credit']             = $data_transaction['total_sum_price'];
+            $data_journal['credit']             = $sum;
 
             Journal::create($data_journal);
         }
@@ -402,6 +448,110 @@ trait TransactionControllerBase
         //         Journal::create($data_transfer);
         //     }
         // }
+
+        #tabel transaction detail retur
+        $is_retur = false;
+        $data_detail_retur['transaction_id'] = $transaction->id;
+        $sum_retur = 0;
+        $hpp_retur = 0;
+
+        for ($i = 0; $i < sizeof($request->barcodesretur_s); $i++) 
+        { 
+            if($request->barcodesretur_s[$i] != null)
+            {
+                $good_unit_retur = GoodUnit::find($request->barcodesretur_s[$i]);
+                $data_detail_retur['good_unit_id']   = $request->barcodesretur_s[$i];
+                $data_detail_retur['type']           = $data_transaction['type'];
+                $data_detail_retur['quantity']       = $request->quantitiesretur_s[$i];
+                $data_detail_retur['real_quantity']  = $request->quantitiesretur_s[$i] * $good_unit_retur->unit->quantity;
+                $data_detail_retur['buy_price']      = unformatNumber($request->buy_pricesretur_s[$i]);
+                $data_detail_retur['selling_price']  = unformatNumber($request->pricesretur_s[$i]);
+                $data_detail_retur['discount_price'] = unformatNumber($request->discountsretur_s[$i]);
+                $data_detail_retur['sum_price']      = unformatNumber($request->sumsretur_s[$i]);
+
+                TransactionDetail::create($data_detail_retur);
+
+                $sum_retur += $data_detail_retur['sum_price'];
+                $hpp_retur += $data_detail_retur['buy_price'] * $data_detail_retur['quantity'];
+
+                $is_retur = true;
+
+                $good = Good::find($request->namesretur_s[$i]);
+
+                if($request->conditionsretur_s[$i] == 'rusak') #barang rusak
+                {
+                    $data_retur['good_id'] = $request->namesretur_s[$i];
+                    $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
+
+                    ReturItem::create($data_retur);
+                }
+                else #barang gak rusak
+                {
+                    $data_loading['role']         = $role;
+                    $data_loading['role_id']      = $role_id;
+                    $data_loading['checker']      = 'Load by sistem';
+                    $data_loading['loading_date'] = date('Y-m-d');
+                    $data_loading['distributor_id']   = $good->getLastBuy()->good_loading->distributor->id;
+                    $data_loading['total_item_price'] = unformatNumber($request->buy_pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
+                    $data_loading['note']             = 'Loading barang retur';
+                    $data_loading['payment']          = $request->payment;
+
+                    $good_loading = GoodLoading::create($data_loading);
+
+                    $data_detail['good_loading_id'] = $good_loading->id;
+                    $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->gui;
+                    $data_detail['last_stock']      = $good->getStock();
+                    $data_detail['quantity']        = $request->quantitiesretur_s[$i];
+                    $data_detail['real_quantity']   = $request->quantitiesretur_s[$i];
+                    $data_detail['price']           = unformatNumber($request->buy_pricesretur_s[$i]);
+                    $data_detail['selling_price']   = unformatNumber($request->pricesretur_s[$i]);
+                    $data_detail['expiry_date']     = null;
+
+                    GoodLoadingDetail::create($data_detail);
+
+                    if($request->payment == 'cash')
+                    {
+                        $account = Account::where('code', '1111')->first();
+                    }
+                    elseif($request->payment == 'transfer')
+                    {
+                        $account = Account::where('code', '1112')->first();
+                    }
+
+                    $data_journal_loading_retur['type']               = 'good_loading';
+                    $data_journal_loading_retur['journal_date']       = date('Y-m-d');
+                    $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+                    $data_journal_loading_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
+                    $data_journal_loading_retur['debit']              = unformatNumber($data_loading['total_item_price']);
+                    $data_journal_loading_retur['credit_account_id']  = $account->id;
+                    $data_journal_loading_retur['credit']             = unformatNumber($data_loading['total_item_price']);
+
+                    Journal::create($data_journal_loading_retur);
+                }
+            }
+        }
+
+        if($is_retur)
+        {
+            #tabel journal transaksi retur
+            if($request->payment == 'cash')
+            {
+                $data_journal_retur['credit_account_id']   = Account::where('code', '1111')->first()->id;
+            }
+            elseif($request->payment == 'transfer')
+            {
+                $data_journal_retur['credit_account_id']   = Account::where('code', '1112')->first()->id;
+            }
+
+            $data_journal_retur['type']               = 'retur';
+            $data_journal_retur['journal_date']       = date('Y-m-d');
+            $data_journal_retur['name']               = 'Retur barang ID transaksi ' . $transaction->id . ' tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            $data_journal_retur['debit']              = unformatNumber($sum_retur);
+            $data_journal_retur['credit']             = unformatNumber($sum_retur);
+
+            Journal::create($data_journal_retur);
+        }
 
         return $transaction;
     }
