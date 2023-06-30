@@ -208,20 +208,27 @@ trait GoodControllerBase
                              ->orderBy('units.quantity', 'desc')
                              ->first();
 
-        if($good_unit->quantity != 1)
+        if($good_unit == null)
         {
-            if($quantity < 1) $disc_quantity = 0;
-            else $disc_quantity = intdiv($quantity, $good_unit->quantity);
-
-            $real_quantity = fmod($quantity, $good_unit->quantity);
-            // dd($disc_quantity . ' ' . $real_quantity);die;
-
-            // return ($disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price)) + ($real_quantity * $pcsPrice);
-            return $disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price);
+            return 0;
         }
         else
         {
-            return '0';
+            if($good_unit->quantity != 1)
+            {
+                if($quantity < 1) $disc_quantity = 0;
+                else $disc_quantity = intdiv($quantity, $good_unit->quantity);
+
+                $real_quantity = fmod($quantity, $good_unit->quantity);
+                // dd($disc_quantity . ' ' . $real_quantity);die;
+
+                // return ($disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price)) + ($real_quantity * $pcsPrice);
+                return $disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price);
+            }
+            else
+            {
+                return '0';
+            }
         }
     }
 
