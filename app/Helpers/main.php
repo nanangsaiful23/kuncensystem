@@ -149,7 +149,9 @@
 
     function roundMoney($money)
     {
+        if(is_numeric($money))
         return round($money / 100) * 100;
+        else dd($money);die;
     }
 
     function printRupiah($money)

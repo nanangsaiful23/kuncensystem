@@ -269,7 +269,7 @@
                       editPrice(total_item);
                     total_real_item+=1;
                       document.getElementById("all_barcode").value = '';
-                      $("#all_barcode").focus();
+                      // $("#all_barcode").focus();
 
                   }
                 }
@@ -286,10 +286,10 @@
                       editPrice(index);
                       total_real_item+=1;
                       document.getElementById("all_barcode").value = '';
-                      $("#all_barcode").focus();
+                      // $("#all_barcode").focus();
                 }
                   document.getElementById("all_barcode").value = '';
-                  $("#all_barcode").focus();
+                  // $("#all_barcode").focus();
               }
               else
               {
@@ -380,12 +380,12 @@
 
           function searchItemByName()
           {
-
+            console.log("{!! url($role . '/good/searchById/') !!}/" + $("#all_name").val());
               $.ajax({
-                url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + $("#all_name").val(),
+                url: "{!! url($role . '/good/searchById/') !!}/" + $("#all_name").val(),
                 success: function(result){
                     var index=-1;
-                    var r = result.good_units;
+                    var r = result.units;
 
                     for (var i = 0; i < r.length; i++) {
                         const getPcsSellingPrice = {unit_id: r[i].unit_id, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
@@ -533,7 +533,7 @@
                   // $("#table-transaction").append(s);
               }
               document.getElementById("all_barcode").value = '';
-              $("#all_barcode").focus();
+              // $("#all_barcode").focus();
 
           }
 

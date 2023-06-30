@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Account;
 use App\Models\Distributor;
+use App\Models\GoodUnit;
 use App\Models\Journal;
 use App\Models\Member;
 use App\Models\PiutangPayment;
@@ -85,12 +86,15 @@ trait InternalTransactionControllerBase
         #tabel transaction detail
         $data_detail['transaction_id'] = $transaction->id;
 
-        for ($i = 0; $i < sizeof($request->names); $i++) 
+        for ($i = 0; $i < sizeof($request->barcodes); $i++) 
         { 
-            if($request->names[$i] != null)
+            if($request->barcodes[$i] != null)
             {
-                $data_detail['good_id'] = $request->names[$i];
-                $data_detail['quantity'] = $request->quantities[$i];
+                $good_unit = GoodUnit::find($request->barcodes[$i]);
+                $data_detail['good_unit_id']   = $good_unit->id;
+                $data_detail['type']           = $request->type;
+                $data_detail['quantity']       = $request->quantities[$i];
+                $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
                 $data_detail['buy_price'] = unformatNumber($request->buy_prices[$i]);
                 $data_detail['selling_price'] = unformatNumber($request->prices[$i]);
                 $data_detail['discount_price'] = unformatNumber($request->discounts[$i]);

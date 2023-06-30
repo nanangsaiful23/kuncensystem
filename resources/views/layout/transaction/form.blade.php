@@ -396,10 +396,10 @@
             });
         }
 
-        function checkDiscount(name, index)
+        function checkDiscount(name_div, index)
         {
             type = '';
-            if(name == 'all_barcode_retur')
+            if(name_div == 'all_barcode_retur')
             {
                 type = 'retur_s';
             }
@@ -427,7 +427,7 @@
                     $("#empty-item").append(htmlResult2);
                 }
 
-                editPrice(name, index);
+                editPrice(name_div, index);
               },
               error: function(){
               }
@@ -567,7 +567,7 @@
                 items = total_item_retur;
                 td_rusak = '<td><select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '"><div><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></div></select></td>';
             }
-            console.log("price-" + type + index);
+            console.log(name);
 
             document.getElementById("total_price-" + type + index).value = (unFormatNumber(document.getElementById("price-" + type + index).value) * unFormatNumber(document.getElementById("quantity-" + type + index).value));
 

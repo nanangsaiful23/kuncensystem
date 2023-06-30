@@ -94,8 +94,8 @@
                       </td>
                     @endif
                     <td>
-                      <a href="{{ url($role . '/good/' . $good->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a><br>
-                      <a href="{{ url($role . '/good/' . $good->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a><br>
+                      <a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a><br>
+                      <a href="{{ url($role . '/good/' . $good->id . '/edit') }}" target="_blank()"><i class="fa fa-file orange" aria-hidden="true"></i></a><br>
                       @if($good->getStock() == 0)
                         <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 
@@ -137,29 +137,43 @@
     function ajaxFunction()
     {
       $.ajax({
-        url: "{!! url($role . '/good/search/') !!}/" + $("#search-input").val(),
+        url: "{!! url($role . '/good/searchByKeyword/') !!}/" + $("#search-input").val(),
         success: function(result){
-          var htmlResult = "<thead><tr><th style=\"width: 45%; text-align: center;\">Nama</th><th style=\"width: 12%; text-align: center;\">Stock</th><th style=\"width: 15%; text-align: center;\">Harga Jual</th><th style=\"width: 15%; text-align: center;\">Kode</th>@if(\Auth::user()->email == 'admin')<th style=\"width: 10%; text-align: center;\">Harga Beli</th>@endif<th style=\"width: 5%; text-align: center;\">Action</th></tr></thead><tbody>";
+          console.log(result);
+          var htmlResult = "<thead><tr><th style=\"width: 5%; text-align: center;\">Kategori</th><th style=\"width: 45%; text-align: center;\">Nama</th><th style=\"width: 12%; text-align: center;\">Stock</th><th style=\"width: 15%; text-align: center;\">Harga Jual</th><th style=\"width: 15%; text-align: center;\">Kode</th>@if(\Auth::user()->email == 'admin')<th style=\"width: 10%; text-align: center;\">Harga Beli</th>@endif<th style=\"width: 5%; text-align: center;\">Action</th></tr></thead><tbody>";
 
           var r = result.goods;
           for (var i = 0; i < r.length; i++) {
-            htmlResult += "<tr><td>" + r[i].name + " " + r[i].color_name;
+            htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>" + r[i].name + "</h4><h5>Brand:" + r[i].brand.name + "</h5>";
 
-            if(r[i].username == 'admin')
+            var username = "{{ \Auth::user()->email }}";
+            if(username == 'admin')
             {
-              htmlResult += "<br><i class='fa fa-truck green' aria-hidden='true'></i> " + r[i].last_distributor + "</td>";
+              htmlResult += "<br><i class='fa fa-truck green' aria-hidden='true'></i> " + r[i].last_loading + "</td>";
             }
 
-            htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + "</td><td><b>" + r[i].selling_price + " /" + r[i].unit + "</b>";
+            htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + " " + r[i].unit + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + " " + r[i].unit + "<br><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat loading</a><br><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat penjualan</a></td><td>";
 
-            if(r[i].username == 'admin')
-            {
-              htmlResult += "<br>Untung: " + r[i].untung_eceran + "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/price/create\" class=\"btn btn-success\"><i class=\"fa fa-pencil-dollar\"></i> Ubah harga jual</a></td><td>" + r[i].code + "</td><td>" + r[i].price + "</td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right tosca\" aria-hidden=\"true\"></i></a><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/edit\"><i class=\"fa fa-pencil-square-o orange\"></i></a><br>";
+            for (var j = 0; j < r[i].good_units.length; j++) {
+              htmlResult += "<b>" + r[i].good_units[j].price + " /" + r[i].good_units[j].unit_name + "<br></b>";
+
+              if(username == 'admin')
+              { 
+                htmlResult += "Untung: " + r[i].good_units[j].profit + " (" + r[i].good_units[j].percentage + "%)";
+              }
+              htmlResult += "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/price/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat harga jual</a></td>";
             }
-            else
-            {
-              htmlResult += "<td>" + r[i].code + "</td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right tosca\" aria-hidden=\"true\"></i></a><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/edit\"><i class=\"fa fa-pencil-square-o orange\"></i></a><br>";
+
+            htmlResult += "<td>" + r[i].code + "</td>";
+
+            if(username == 'admin')
+            { 
+              for (var j = 0; j < r[i].good_units.length; j++) {
+                htmlResult += "<td>" + r[i].good_units[j].buy_price + " /" + r[i].good_units[j].unit_name + "<br></td>";
+              }
             }
+
+            htmlResult += "<td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/detail\" target=\"_blank()\"><i class=\"fa fa-hand-o-right tosca\" aria-hidden=\"true\"></i></a><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/edit\" target=\"_blank()\"><i class=\"fa fa-pencil-square-o orange\"></i></a><br>";
 
 
             if(r[i].stock == '0')

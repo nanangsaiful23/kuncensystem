@@ -45,7 +45,11 @@
                       <h1 class="box-title" style="font-size: 30px !important;">CARI BARANG</h1>
                     </div>
                     <div class="box-body" style="overflow-x:scroll; color: black !important">
-                      <div class="col-sm-12"> 
+                      <div class="col-sm-12">
+                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px;" onclick="changeView('photo')">Tampilan foto</div>
+                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px;" onclick="changeView('list')">Tampilan list</div>
+                      </div>
+                      <div class="col-sm-12" style="margin-top: 20px"> 
                         <div class="input-group">
                           <input type="text" name="q" class="form-control" placeholder="Search..." id="search-input" value="{{ $query }}" style="height: 50px; font-size: 30px; border: solid black 2px;">
                           <span class="input-group-btn">
@@ -57,7 +61,7 @@
                           </span>
                         </div>
                       </div>
-                      <div class="col-sm-12"> 
+                      <div class="col-sm-12" id="photo-div"> 
                         @foreach($goods as $good)
                           <div class="col-sm-4" style="text-align: center; border: black solid 2px;"> 
                             @foreach($good->good_photos as $photo)
@@ -71,6 +75,34 @@
                             <h3>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
                           </div>
                         @endforeach
+                      </div>
+                      <?php $i = 0 ?>
+                      <div class="col-sm-12" id="table-div" style="margin-top: 20px">
+                        <table class="table table-bordered table-striped" style="font-size: 28px;">
+                          <thead>
+                            <tr>
+                              <th>Kode</th>
+                              <th>Nama</th>
+                              <th>Harga Jual</th>
+                              <th>Stock</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @foreach($goods as $good)
+                              <tr @if($i % 2 == 0) style="background-color: #FFD0D0" @endif>
+                                <td>{{ $good->code }}</td>
+                                <td>{{ $good->name }}</td>
+                                <td>
+                                  @foreach($good->good_units as $unit)
+                                    {{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}<br>
+                                  @endforeach
+                                </td>
+                                <td>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</td>
+                              </tr>
+                              <?php $i++ ?>
+                            @endforeach
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
@@ -94,6 +126,7 @@
 
     <script type="text/javascript">
       $(document).ready(function(){
+          $('#photo-div').hide();
           $('.select2').select2();
           $("#search-input").keyup( function(e){
             if(e.keyCode == 13)
@@ -109,6 +142,20 @@
       function search()
       {
         window.location = window.location.origin + '/search/' + $('#search-input').val();
+      }
+
+      function changeView(view)
+      {
+        if(view == 'photo')
+        {
+          $('#photo-div').show();
+          $('#table-div').hide();
+        }
+        else
+        {
+          $('#photo-div').hide();
+          $('#table-div').show();
+        }
       }
     </script>
 </html>

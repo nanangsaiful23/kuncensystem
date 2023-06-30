@@ -72,10 +72,10 @@
                                 @foreach($transaction->details as $detail)
                                     <tr>
                                         <td>
-                                            {{ $detail->good->code }}
+                                            {{ $detail->good_unit->good->code }}
                                         </td>
                                         <td>
-                                            {{ $detail->good->name }}
+                                            {{ $detail->good_unit->good->name }}
                                         </td>
                                         <td>
                                             {{ $detail->quantity }}

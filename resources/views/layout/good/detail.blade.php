@@ -24,7 +24,7 @@
                             </div>
                             <div class="col-sm-4">
                                 <h4>Total Terjual</h4>
-                                <h3>{{ $good->good_transactions->sum('quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                                <h3>{{ $good->good_transactions()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
                             </div>
                             <div class="col-sm-4">
                                 <h4>Sisa Barang</h4>

@@ -72,7 +72,7 @@ trait GoodLoadingControllerBase
         $data_loading['checker']      = $data['checker'];
         $data_loading['loading_date'] = $data['loading_date'];
         $data_loading['distributor_id']   = $data['distributor_id'];
-        $data_loading['total_item_price'] = $request->total_item_price;
+        $data_loading['total_item_price'] = unformatNumber($request->total_item_price);
         $data_loading['note']             = $data['note'];
         $data_loading['payment']          = $data['payment'];
 

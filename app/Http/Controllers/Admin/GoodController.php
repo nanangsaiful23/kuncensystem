@@ -45,10 +45,10 @@ class GoodController extends Controller
 
     public function searchById($good_id)
     {
-        $good = $this->searchByIdGoodBase($good_id);
+        $units = $this->searchByIdGoodBase($good_id);
 
         return response()->json([
-            "good"  => $good
+            "units"  => $units
         ], 200);
     }
 

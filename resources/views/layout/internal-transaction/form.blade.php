@@ -217,7 +217,7 @@
                 {
                     if(document.getElementById("barcode-" + i))
                     {
-                        if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.code)
+                        if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.getPcsSellingPrice.id && document.getElementById("price-" + i).value == good.getPcsSellingPrice.selling_price)
                         {
                             temp_total = document.getElementById("quantity-" + i).value;
                             temp_total = parseInt(temp_total) + 1;
@@ -237,8 +237,8 @@
                     //     document.getElementById("row-data-" + total_item).style.background = 'green';
                     // }
                     document.getElementById("name-" + total_item).value = good.id;
-                    document.getElementById("name_temp-" + total_item).value = good.name;
-                    document.getElementById("barcode-" + total_item).value = good.code;
+                    document.getElementById("name_temp-" + total_item).value = good.name + " " + good.getPcsSellingPrice.name;
+                    document.getElementById("barcode-" + total_item).value = good.getPcsSellingPrice.id;
                     document.getElementById("quantity-" + total_item).value = 1;
                     // document.getElementById("quantity-" + index).focus();
 
@@ -271,16 +271,16 @@
             }
         }
 
-        function searchByBarcodeKeyword(barcode)
+        function searchByKeyword(good_unit_id)
         {
             $.ajax({
-              url: "{!! url($role . '/good/searchByBarcode/') !!}/" + barcode,
+              url: "{!! url($role . '/good/searchByGoodUnit/') !!}/" + good_unit_id,
               success: function(result){
                 var good = result.good;
                 if(good.stock <= 0)
                 {
                     document.getElementById("message").style.display = "block";
-                    htmlResult2 = "> " + good.name + " " + good.color_name + " stock: " + good.stock + "<br>";
+                    htmlResult2 = "> " + good.name + " stock: " + good.stock + "<br>";
                     $("#empty-item").append(htmlResult2);
                 }
                 fillItem(result.good);
@@ -307,26 +307,7 @@
 
         function checkDiscount(index)
         {
-            // good_id = document.getElementById("name-" + index).value;
-            // quantity = document.getElementById("quantity-" + index).value;
-            // price = document.getElementById("price-" + index).value;
-            // $.ajax({
-            //   url: "{!! url($role . '/good/checkDiscount/') !!}/" + good_id + '/' + quantity + '/' + price,
-            //   success: function(result){
-            //     var discount = result.discount;
-
-            //     document.getElementById("discount-" + index).value = discount;
-
-            //     if(discount != '0')
-            //     {
-            //         document.getElementById("row-data-" + index).style.background = 'green';
-            //     }
-
-                editPrice(index);
-            //   },
-            //   error: function(){
-            //   }
-            // });
+            editPrice(index);
         }
 
         function changeFocus(index)
@@ -472,20 +453,19 @@
         {
             $('#modal-search').modal('show');
           $.ajax({
-            url: "{!! url($role . '/good/searchByKeyword/') !!}/" + $("#search_good").val(),
+            url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + $("#search_good").val(),
             success: function(result){
-                console.log(result.goods.length);
                 htmlResult = '';
 
                 htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
-              var r = result.goods;
+              var r = result.good_units;
               for (var i = 0; i < r.length; i++) {
                 if((i%2) == 0) 
                 {
                     color = '#FFF1CE';
                 }
                 else color = "#FDEFF4";
-                htmlResult += "<a class='col-sm-12 modal-div' onclick='searchByBarcodeKeyword(\"" + r[i].code + "\")' style='color:black; cursor: pointer; height:40px; background-color:" + color + "; padding: 5px;'>" + r[i].name + "</a>";
+                htmlResult += "<a class='col-sm-12 modal-div' onclick='searchByKeyword(\"" + r[i].good_unit_id + "\")' style='color:black; cursor: pointer; height:40px; background-color:" + color + "; padding: 5px;'>" + r[i].name + " " + r[i].unit + "</a>";
               }
               $("#result-good").html(htmlResult);
               $('.modal-body').css('height',$( window ).height()*0.5);

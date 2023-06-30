@@ -109,7 +109,22 @@ trait GoodControllerBase
         $good->getPcsSellingPrice = $good->getPcsSellingPrice();
         $good->stock = $good->getStock();
 
-        return $good;
+        $units = [];
+        foreach($good->good_units as $unit)
+        {
+            $temp = [];
+            $temp['good_id'] = $good->id;
+            $temp['good_unit_id'] = $unit->id;
+            $temp['unit_id'] = $unit->unit_id;
+            $temp['code'] = $good->code;
+            $temp['name'] = $good->name;
+            $temp['unit'] = $unit->unit->name;
+            $temp['buy_price'] = $unit->buy_price;
+            $temp['selling_price'] = $unit->selling_price;
+            array_push($units, $temp);
+        }
+
+        return $units;
     }
 
     public function searchByGoodUnitGoodBase($good_unit_id)
@@ -130,7 +145,28 @@ trait GoodControllerBase
                      ->orWhere('name', 'like', '%'. $query . '%')
                      ->where('deleted_at', '=', null)
                      ->orderBy('name')
+                     ->with('category')
+                     ->with('brand')
                      ->get();
+
+        foreach($goods as $good)
+        {
+            $good->last_loading = $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
+            $good->stock = $good->getStock();
+            $good->transaction = $good->good_transactions()->sum('real_quantity');
+            $good->loading = $good->good_loadings()->sum('real_quantity');
+            $good->unit = $good->getPcsSellingPrice()->unit->code;
+            $good->good_units = $good->good_units;
+
+            foreach($good->good_units as $unit)
+            {
+                $unit->price = showRupiah(roundMoney($unit->selling_price));
+                $unit->profit = showRupiah(roundMoney($unit->selling_price) - $unit->buy_price);
+                $unit->percentage = calculateProfit($unit->buy_price, roundMoney($unit->selling_price));
+                $unit->unit_name = $unit->unit->name;
+                $unit->buy_price = showRupiah(roundMoney($unit->buy_price));
+            }
+        }
 
         return $goods;
     }
@@ -313,16 +349,20 @@ trait GoodControllerBase
     {
         if($pagination == 'all')
         {
-            $transactions = TransactionDetail::where('good_id', $good_id)
-                                             ->whereDate('created_at', '>=', $start_date)
-                                             ->whereDate('created_at', '<=', $end_date)
+            $transactions = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                             ->join('goods', 'goods.id', 'good_units.good_id')
+                                             ->where('goods.id', $good_id)
+                                             ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                             ->whereDate('transaction_details.created_at', '<=', $end_date)
                                              ->get();
         }
         else
         {
-            $transactions = TransactionDetail::where('good_id', $good_id)
-                                             ->whereDate('created_at', '>=', $start_date)
-                                             ->whereDate('created_at', '<=', $end_date)
+            $transactions = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                             ->join('goods', 'goods.id', 'good_units.good_id')
+                                             ->where('goods.id', $good_id)
+                                             ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                             ->whereDate('transaction_details.created_at', '<=', $end_date)
                                              ->paginate($pagination);
         }
 

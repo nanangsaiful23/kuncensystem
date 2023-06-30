@@ -67,12 +67,24 @@ class Good extends Model
 
     public function getPcsSellingPrice()
     {
-        return GoodUnit::join('units', 'good_units.unit_id', 'units.id')
+        $good_unit = GoodUnit::join('units', 'good_units.unit_id', 'units.id')
+                       ->select('good_units.*', 'units.*', 'good_units.id as id')
+                       ->where('units.quantity', '1')
+                       ->where('good_units.good_id', $this->id)
+                       // ->orderBy('units.quantity', 'asc')
+                       ->first();
+
+        if($good_unit == null)
+        {
+            $good_unit = GoodUnit::join('units', 'good_units.unit_id', 'units.id')
                        ->select('good_units.*', 'units.*', 'good_units.id as id')
                        // ->where('units.quantity', '1')
                        ->where('good_units.good_id', $this->id)
                        ->orderBy('units.quantity', 'asc')
                        ->first();
+        }
+
+        return $good_unit;
     }
 
     public function getLastBuy()
