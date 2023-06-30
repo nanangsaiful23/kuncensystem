@@ -155,16 +155,16 @@ trait GoodControllerBase
             $good->stock = $good->getStock();
             $good->transaction = $good->good_transactions()->sum('real_quantity');
             $good->loading = $good->good_loadings()->sum('real_quantity');
-            $good->unit = $good->getPcsSellingPrice()->unit->code;
-            $good->good_units = $good->good_units;
+            $good->unit = $good->getPcsSellingPrice()->unit->base;
+            // $good->good_units = $good->good_units;
 
             foreach($good->good_units as $unit)
             {
                 $unit->price = showRupiah(roundMoney($unit->selling_price));
-                $unit->profit = showRupiah(roundMoney($unit->selling_price) - $unit->buy_price);
-                $unit->percentage = calculateProfit($unit->buy_price, roundMoney($unit->selling_price));
+                $unit->profit = showRupiah(roundMoney($unit->selling_price) - checkNull($unit->buy_price));
+                $unit->percentage = calculateProfit(checkNull($unit->buy_price), roundMoney($unit->selling_price));
                 $unit->unit_name = $unit->unit->name;
-                $unit->buy_price = showRupiah(roundMoney($unit->buy_price));
+                $unit->buy_price = showRupiah(roundMoney(checkNull($unit->buy_price)));
             }
         }
 

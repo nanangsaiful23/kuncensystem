@@ -166,7 +166,7 @@
 
     function calculateProfit($buy_price, $sell_price)
     {
-        if($buy_price != null)
+        if($buy_price != null && $buy_price != 0)
             return round((floatval($sell_price) - floatval($buy_price)) / $buy_price * 100, 2);
         else return 0;
     }

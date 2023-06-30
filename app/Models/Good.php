@@ -83,6 +83,7 @@ class Good extends Model
                        ->orderBy('units.quantity', 'asc')
                        ->first();
         }
+        // dd($good_unit);die;
 
         return $good_unit;
     }

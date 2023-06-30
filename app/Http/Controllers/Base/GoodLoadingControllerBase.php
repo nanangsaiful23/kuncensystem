@@ -231,9 +231,16 @@ trait GoodLoadingControllerBase
 
             if($distributor == null)
             {
-                $data_distributor['name'] = $request->distributor_name;
+                if($request->distributor_id == null)
+                {
+                    $data_distributor['name'] = $request->distributor_name;
 
-                $distributor = Distributor::create($data_distributor);
+                    $distributor = Distributor::create($data_distributor);
+                }
+                else
+                {
+                    $distributor = Distributor::find($request->distributor_id);
+                }
             }
 
             $data_loading['role']             = $role;
