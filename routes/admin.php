@@ -143,6 +143,7 @@ Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'TransactionController@index');
     Route::get('/{transaction_id}/detail', 'TransactionController@detail');
     Route::get('/{transaction_id}/print', 'TransactionController@print');
+    Route::put('/{transaction_id}/reverse', 'TransactionController@reverse')->name('transaction.reverse');
 });
 
 Route::group(['prefix' => 'unit'], function () {

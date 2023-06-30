@@ -72,4 +72,13 @@ class TransactionController extends Controller
 
         return view('layout.transaction.print', compact('role', 'transaction'));
     }
+
+    public function reverse($transaction_id)
+    {
+        $this->reverseTransactionBase('admin', \Auth::user()->id, $transaction_id);
+
+        session(['alert' => 'add', 'data' => 'transaksi']);
+
+        return redirect('/admin/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
+    }
 }
