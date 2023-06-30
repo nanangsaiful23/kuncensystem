@@ -63,4 +63,13 @@ class TransactionController extends Controller
 
         return view('cashier.layout.page', compact('default', 'transaction'));
     }
+
+    public function print($transaction_id)
+    {
+        $role = 'cashier';
+
+        $transaction = Transaction::find($transaction_id);
+
+        return view('layout.transaction.print', compact('role', 'transaction'));
+    }
 }

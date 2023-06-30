@@ -32,5 +32,6 @@ Route::group(['prefix' => 'transaction'], function () {
     Route::post('/store', 'TransactionController@store')->name('transaction.store');
 	Route::get('/{start_date}/{end_date}/{pagination}', 'TransactionController@index');
     Route::get('/{transaction_id}/detail', 'TransactionController@detail');
+    Route::get('/{transaction_id}/print', 'TransactionController@print');
 });
 
