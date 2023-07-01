@@ -11,9 +11,9 @@ trait UnitControllerBase
     public function indexUnitBase($pagination)
     {
         if($pagination == 'all')
-           $units = Unit::orderBy('name', 'asc')->get();
+           $units = Unit::orderBy('base', 'asc')->get();
         else
-           $units = Unit::orderBy('name', 'asc')->paginate($pagination);
+           $units = Unit::orderBy('base', 'asc')->paginate($pagination);
 
         return $units;
     }

@@ -120,7 +120,7 @@ trait GoodLoadingControllerBase
                         {
                             $data_payment_buy['type']               = 'other_payment';
                             $data_payment_buy['journal_date']       = date('Y-m-d');
-                            $data_payment_buy['name']               = 'Laba kenaikan harga barang (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                            $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
                             $data_payment_buy['debit_account_id']   = $account_buy->id;
                             $data_payment_buy['debit']              = $amount;
                             $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
@@ -148,7 +148,7 @@ trait GoodLoadingControllerBase
                         {
                             $data_payment_buy['type']               = 'other_payment';
                             $data_payment_buy['journal_date']       = date('Y-m-d');
-                            $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                            $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
                             $data_payment_buy['debit_account_id']   = $account_buy->id;
                             $data_payment_buy['debit']              = $amount;
                             $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;

@@ -43,6 +43,17 @@
                 @endif
             </div>
         </div>
+
+        <div class="form-group">
+            {!! Form::label('base', 'Satuan/Unit', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('base', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('base', null, array('class' => 'form-control')) !!}
+                @endif
+            </div>
+        </div>
         
         <div class="form-group">
             {{ csrf_field() }}

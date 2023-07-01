@@ -168,19 +168,7 @@
           </a>
           <ul class="treeview-menu">
               <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/unit/create') }}"><i class="fa fa-circle-o"></i> Tambah Satuan</a></li>
-              <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/unit/10') }}"><i class="fa fa-circle-o"></i> Daftar Satuan</a></li>
-          </ul>
-        </li>
-        <li class="treeview {{ (Request::segment(2) == 'color' ) ? 'active' : ''  }}">
-          <a href="#">
-              <i class="fa fa-paint-brush"></i><span> Warna</span>
-            <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-          </a>
-          <ul class="treeview-menu">
-              <li class="{{ Request::segment(2) == 'color' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/color/create') }}"><i class="fa fa-circle-o"></i> Tambah Warna</a></li>
-              <li class="{{ Request::segment(2) == 'color' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/color/15') }}"><i class="fa fa-circle-o"></i> Daftar Warna</a></li>
+              <li class="{{ Request::segment(2) == 'unit' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/unit/all') }}"><i class="fa fa-circle-o"></i> Daftar Satuan</a></li>
           </ul>
         </li>
       @endif

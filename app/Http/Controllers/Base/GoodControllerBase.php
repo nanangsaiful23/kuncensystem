@@ -430,19 +430,22 @@ trait GoodControllerBase
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
                                       FROM goods 
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id 
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
                                       FROM (SELECT goods.id 
                                             FROM goods 
                                             JOIN good_units ON good_units.good_id = goods.id
@@ -455,8 +458,11 @@ trait GoodControllerBase
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
             }
@@ -464,7 +470,7 @@ trait GoodControllerBase
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
                                       FROM (SELECT goods.id 
                                             FROM goods 
                                             JOIN good_units ON good_units.good_id = goods.id
@@ -477,13 +483,16 @@ trait GoodControllerBase
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id 
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
                                       FROM (SELECT goods.id
                                             FROM goods 
                                             JOIN good_units ON good_units.good_id = goods.id
@@ -497,8 +506,11 @@ trait GoodControllerBase
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
             }
@@ -509,20 +521,23 @@ trait GoodControllerBase
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
                                       FROM goods 
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
                                       WHERE goods.category_id = " . $category_id . "
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id 
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
                                       FROM (SELECT goods.id 
                                             FROM goods 
                                             JOIN good_units ON good_units.good_id = goods.id
@@ -536,8 +551,11 @@ trait GoodControllerBase
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
             }
@@ -545,7 +563,7 @@ trait GoodControllerBase
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
                                       FROM (SELECT goods.id 
                                             FROM goods 
                                             JOIN good_units ON good_units.good_id = goods.id
@@ -559,13 +577,16 @@ trait GoodControllerBase
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction_details.quantity), 0) as transaction, goods.id 
+                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
                                       FROM (SELECT goods.id
                                             FROM goods 
                                             JOIN good_units ON good_units.good_id = goods.id
@@ -580,8 +601,11 @@ trait GoodControllerBase
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN transaction_details ON transaction_details.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction_details.quantity
+                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
+                                                FROM transaction_details
+                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
             }

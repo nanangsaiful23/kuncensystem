@@ -529,7 +529,7 @@
               if(index == total_item)
               {
                   total_item += 1;
-                  $("#table-transaction").append(htmlResult);
+                  $("#table-transaction").prepend(htmlResult);
                   // $("#table-transaction").append(s);
               }
               document.getElementById("all_barcode").value = '';

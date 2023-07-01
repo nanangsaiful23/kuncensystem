@@ -17,6 +17,7 @@
                 <th>Kode</th>
                 <th>Nama</th>
                 <th>Eng Name</th>
+                <th>Kuantitas</th>
                 <th>Unit</th>
                 <th class="center">Detail</th>
                 <th class="center">Ubah</th>
@@ -31,7 +32,8 @@
                     <td>{{ $unit->code }}</td>
                     <td>{{ $unit->name }}</td>
                     <td>{{ $unit->eng_name }}</td>
-                    <td>{{ $unit->unit }}</td>
+                    <td>{{ $unit->quantity }}</td>
+                    <td>{{ $unit->base }}</td>
                     <td class="center"><a href="{{ url($role . '/unit/' . $unit->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/unit/' . $unit->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')
