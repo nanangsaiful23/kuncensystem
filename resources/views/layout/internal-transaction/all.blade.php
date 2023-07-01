@@ -121,7 +121,7 @@
     {
       var show        = $('#show').val();
       var user_id     = $('#user_id').val();
-      window.location = window.location.origin + '/{{ $role }}/transaction/' + user_id + '/{{ $start_date }}/{{ $end_date }}/' + show;
+      window.location = window.location.origin + '/{{ $role }}/internal-transaction/' + user_id + '/{{ $start_date }}/{{ $end_date }}/' + show;
     }
   </script>
 @endsection

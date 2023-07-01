@@ -95,6 +95,10 @@
     {
       var show        = $('#show').val();
       var user_id     = $('#user_id').val();
+
+      @if($role == 'cashier')
+        user_id = 'all/all';
+      @endif
       window.location = window.location.origin + '/{{ $role }}/transaction/' + user_id + '/{{ $start_date }}/{{ $end_date }}/' + show;
     }
   </script>
