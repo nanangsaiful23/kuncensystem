@@ -164,6 +164,11 @@
         return $item == NULL || $item == 'NULL' || $item == "" ? 0 : $item;
     }
 
+    function checkNullString($item)
+    {
+        return $item == NULL || $item == 'NULL' || $item == "" ? "" : $item;
+    }
+
     function calculateProfit($buy_price, $sell_price)
     {
         if($buy_price != null && $buy_price != 0)

@@ -146,11 +146,12 @@ trait GoodControllerBase
                      ->where('deleted_at', '=', null)
                      ->orderBy('name')
                      ->with('category')
-                     ->with('brand')
+                     // ->with('brand')
                      ->get();
 
         foreach($goods as $good)
         {
+            $good->brand_name = $good->brand == null ? "" : $good->brand->name;
             $good->last_loading = $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
             $good->stock = $good->getStock();
             $good->transaction = $good->good_transactions()->sum('real_quantity');
@@ -243,89 +244,94 @@ trait GoodControllerBase
     {
         $data = $request->input();
 
-        $good = Good::create($data);
+        $good = Good::where('name', $data['name'])->first();
 
-        if($request->code == null)
+        if($good == null)
         {
-            $data_good['code'] = $good->id;
-            $good->update($data_good);
-        } 
+            $good = Good::create($data);
 
-        $good_unit = GoodUnit::where('good_id', $good->id)
-                             ->where('unit_id', $data['unit_id'])
-                             ->first();
-
-        if($good_unit)
-        {
-            if($good_unit->selling_price != $data['selling_price'])
+            if($request->code == null)
             {
+                $data_good['code'] = $good->id;
+                $good->update($data_good);
+            } 
+
+            $good_unit = GoodUnit::where('good_id', $good->id)
+                                 ->where('unit_id', $data['unit_id'])
+                                 ->first();
+
+            if($good_unit)
+            {
+                if($good_unit->selling_price != $data['selling_price'])
+                {
+                    $data_price['role']         = $data['role'];
+                    $data_price['role_id']      = \Auth::user()->id;
+                    $data_price['good_unit_id'] = $good_unit->id;
+                    $data_price['old_price']    = $good_unit->selling_price;
+                    $data_price['recent_price'] = $data['selling_price'];
+                    $data_price['reason']       = 'Diubah saat loading';
+
+                    GoodPrice::create($data_price);
+                }
+
+                $data_unit['buy_price']     = $data['price'];
+                $data_unit['selling_price'] = $data['selling_price'];
+
+                $good_unit->update($data_unit);
+            }
+            else
+            {
+                $data_unit['good_id']       = $good->id;
+                $data_unit['unit_id']       = $data['unit_id'];
+                $data_unit['buy_price']     = $data['price'];
+                $data_unit['selling_price'] = $data['selling_price'];
+
+                $good_unit = GoodUnit::create($data_unit);
+
                 $data_price['role']         = $data['role'];
                 $data_price['role_id']      = \Auth::user()->id;
                 $data_price['good_unit_id'] = $good_unit->id;
                 $data_price['old_price']    = $good_unit->selling_price;
                 $data_price['recent_price'] = $data['selling_price'];
-                $data_price['reason']       = 'Diubah saat loading';
+                $data_price['reason']       = 'Harga pertama';
 
                 GoodPrice::create($data_price);
             }
 
-            $data_unit['buy_price']     = $data['price'];
-            $data_unit['selling_price'] = $data['selling_price'];
+            $good->unit_id = $good_unit->unit_id;
+            $good->unit    = $good_unit->unit->name . '(' . $good_unit->unit->code . ')';
+            $good->price   = $data['price'];
+            $good->selling_price   = $data['selling_price'];
 
-            $good_unit->update($data_unit);
+            // /*create good unit with base unit */
+            // $unit_base = Unit::where('quantity', 1)
+            //                  ->where('base', $good_unit->unit->base)
+            //                  ->first();
+
+            // $good_unit_base = GoodUnit::where('good_id', $good->id)
+            //                           ->where('unit_id', $unit_base->id)
+            //                           ->first();
+
+            // if($good_unit_base == null)
+            // {
+            //     $data_unit_base['good_id']       = $good->id;
+            //     $data_unit_base['unit_id']       = $unit_base->id;
+            //     $data_unit_base['buy_price']     = '0';
+            //     $data_unit_base['selling_price'] = '0';
+
+            //     $good_unit_base = GoodUnit::create($data_unit_base);
+
+            //     $data_price_base['role']         = $data['role'];
+            //     $data_price_base['role_id']      = \Auth::user()->id;
+            //     $data_price_base['good_unit_id'] = $good_unit_base->id;
+            //     $data_price_base['old_price']    = $good_unit_base->selling_price;
+            //     $data_price_base['recent_price'] = '0';
+            //     $data_price_base['reason']       = 'Default 0 saat membuat barang baru bukan base unit';
+
+            //     GoodPrice::create($data_price_base);
+            // }
+            // /*end*/
         }
-        else
-        {
-            $data_unit['good_id']       = $good->id;
-            $data_unit['unit_id']       = $data['unit_id'];
-            $data_unit['buy_price']     = $data['price'];
-            $data_unit['selling_price'] = $data['selling_price'];
-
-            $good_unit = GoodUnit::create($data_unit);
-
-            $data_price['role']         = $data['role'];
-            $data_price['role_id']      = \Auth::user()->id;
-            $data_price['good_unit_id'] = $good_unit->id;
-            $data_price['old_price']    = $good_unit->selling_price;
-            $data_price['recent_price'] = $data['selling_price'];
-            $data_price['reason']       = 'Harga pertama';
-
-            GoodPrice::create($data_price);
-        }
-
-        $good->unit_id = $good_unit->unit_id;
-        $good->unit    = $good_unit->unit->name . '(' . $good_unit->unit->code . ')';
-        $good->price   = $data['price'];
-        $good->selling_price   = $data['selling_price'];
-
-        /*create good unit with base unit */
-        $unit_base = Unit::where('quantity', 1)
-                         ->where('base', $good_unit->unit->base)
-                         ->first();
-
-        $good_unit_base = GoodUnit::where('good_id', $good->id)
-                                  ->where('unit_id', $unit_base->id)
-                                  ->first();
-
-        if($good_unit_base == null)
-        {
-            $data_unit_base['good_id']       = $good->id;
-            $data_unit_base['unit_id']       = $unit_base->id;
-            $data_unit_base['buy_price']     = '0';
-            $data_unit_base['selling_price'] = '0';
-
-            $good_unit_base = GoodUnit::create($data_unit_base);
-
-            $data_price_base['role']         = $data['role'];
-            $data_price_base['role_id']      = \Auth::user()->id;
-            $data_price_base['good_unit_id'] = $good_unit_base->id;
-            $data_price_base['old_price']    = $good_unit_base->selling_price;
-            $data_price_base['recent_price'] = '0';
-            $data_price_base['reason']       = 'Default 0 saat membuat barang baru bukan base unit';
-
-            GoodPrice::create($data_price_base);
-        }
-        /*end*/
 
         return $good;
     }
