@@ -165,6 +165,7 @@ trait GoodControllerBase
                 $unit->profit = showRupiah(roundMoney($unit->selling_price) - checkNull($unit->buy_price));
                 $unit->percentage = calculateProfit(checkNull($unit->buy_price), roundMoney($unit->selling_price));
                 $unit->unit_name = $unit->unit->name;
+                $unit->unit_id = $unit->unit->id;
                 $unit->buy_price = showRupiah(roundMoney(checkNull($unit->buy_price)));
             }
         }
@@ -617,5 +618,38 @@ trait GoodControllerBase
         }
         
         return $goods;
+    }
+
+    public function updatePriceGoodBase($role, $role_id, $good_id, Request $request)
+    {
+        $good = Good::find($good_id);
+
+        for($i = 0; $i < sizeof($request->good_unit_ids); $i++)
+        {
+            $good_unit = GoodUnit::find($request->good_unit_ids[$i]);
+
+            $data_price['role'] = $role;
+            $data_price['role_id'] = $role_id;
+            $data_price['good_unit_id'] = $good_unit->id;
+            $data_price['old_price'] = $good_unit->selling_price;
+            $data_price['recent_price'] = $request->selling_prices[$i];
+            $data_price['reason'] = $request->reason;
+
+            GoodPrice::create($data_price);
+
+            $data_good_unit['selling_price'] = $request->selling_prices[$i];
+
+            $good_unit->update($data_good_unit);
+        }
+
+        return $good;
+    }
+
+    public function deletePriceGoodBase($good_unit_id)
+    {
+        $good_unit = GoodUnit::find($good_unit_id);
+        $good_unit->delete();
+
+        return true;
     }
 }

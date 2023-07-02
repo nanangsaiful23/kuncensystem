@@ -29,6 +29,7 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll">
+            <a href="{{ url($role . '/good/' . $good->id . '/editPrice') }}" class="btn btn-warning" target="_blank()">Ubah Harga Jual</a>
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>

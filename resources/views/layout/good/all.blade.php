@@ -80,10 +80,20 @@
                       @foreach($good->good_units as $unit)
                         <b>{{ showRupiah(roundMoney($unit->selling_price)) . ' /' . $unit->unit->name}}</b>
                         @if(\Auth::user()->email == 'admin')
-                          <br>Untung: {{ showRupiah(roundMoney($unit->selling_price) - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, roundMoney($unit->selling_price)) }}%)
+                          <br>Untung: {{ showRupiah(roundMoney($unit->selling_price) - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, roundMoney($unit->selling_price)) }}%)<br>
                         @endif
-                        <br><a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
+                        @if($role == 'admin')
+                          <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{ 'unit-' . $unit->id }}"><i class="fa fa-times red" aria-hidden="true"></i> Hapus harga</button>
+
+                          @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->name . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
+
+                          <form id="delete-unit-{{$unit->id}}" action="{{ url($role . '/good/' . $good->id . '/deletePrice/' . $unit->id) }}" method="POST" style="display: none;">
+                            {{ csrf_field() }}
+                            {{ method_field('DELETE') }}
+                          </form><br>
+                        @endif
                       @endforeach
+                      <br><a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
                     </td>
                     <td>{{ $good->code }}</td>
                     @if(\Auth::user()->email == 'admin')
@@ -162,6 +172,8 @@
                 if(username == 'admin')
                 { 
                   htmlResult += "Untung: " + r[i].good_units[j].profit + " (" + r[i].good_units[j].percentage + "%)<br>";
+
+                  htmlResult += "<a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" onclick=\"event.preventDefault(); document.getElementById('delete-form-unit" + r[i].unit_id + "').submit();\"><i class=\"fa fa-times red\"></i> Hapus harga</a><form id='delete-form-unit" + r[i].unit_id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form>";
                 }
               }
               htmlResult += "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/price/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat harga jual</a></td>";

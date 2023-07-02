@@ -180,7 +180,7 @@ class GoodController extends Controller
     {
         $good = $this->updateGoodBase($good_id, $request);
 
-        session(['alert' => 'edit', 'data' => 'Good barang']);
+        session(['alert' => 'edit', 'data' => 'Data barang']);
 
         return redirect('/admin/good/' . $good->id . '/detail');
     }
@@ -189,7 +189,7 @@ class GoodController extends Controller
     {
         $this->deleteGoodBase($good_id);
 
-        session(['alert' => 'delete', 'data' => 'Good barang']);
+        session(['alert' => 'delete', 'data' => 'Barang']);
 
         return redirect('/admin/good/all/all/20');
     }
@@ -218,5 +218,37 @@ class GoodController extends Controller
         }
 
         return Excel::download(new ZeroStockExport($goods), 'Data Kulak ' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function editPrice($good_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Ubah Harga Barang';
+        $default['page'] = 'Good';
+        $default['section'] = 'good-price';
+
+        $good = Good::find($good_id);
+
+        return view('admin.layout.page', compact('default', 'good'));
+    }
+
+    public function updatePrice($good_id, Request $request)
+    {
+        // dd($request);die;
+        $good = $this->updatePriceGoodBase('admin', \Auth::user()->id, $good_id, $request);
+
+        session(['alert' => 'edit', 'data' => 'Harga barang']);
+
+        return redirect('/admin/good/' . $good->id . '/detail');
+    }
+
+    public function deletePrice($good_id, $good_unit_id)
+    {
+        $this->deletePriceGoodBase($good_unit_id);
+
+        session(['alert' => 'delete', 'data' => 'Harga barang']);
+
+        return redirect('/admin/good/' . $good_id . '/detail');
     }
 }
