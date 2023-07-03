@@ -152,12 +152,11 @@ trait GoodControllerBase
         foreach($goods as $good)
         {
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;
-            $good->last_loading = $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
+            $good->last_loading = $good->getLastBuy() == null ? "" : $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
             $good->stock = $good->getStock();
             $good->transaction = $good->good_transactions()->sum('real_quantity');
             $good->loading = $good->good_loadings()->sum('real_quantity');
-            $good->unit = $good->getPcsSellingPrice()->unit->base;
-            // $good->good_units = $good->good_units;
+            $good->unit = $good->getPcsSellingPrice() == null ? "" : $good->getPcsSellingPrice()->unit->base;
 
             foreach($good->good_units as $unit)
             {
@@ -436,11 +435,14 @@ trait GoodControllerBase
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -453,16 +455,19 @@ trait GoodControllerBase
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                                             JOIN distributors ON distributors.id = good_loadings.distributor_id
-                                            WHERE distributors.id = " . $distributor_id . "
+                                            WHERE distributors.id = " . $distributor_id . " AND good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -478,16 +483,19 @@ trait GoodControllerBase
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                                             JOIN distributors ON distributors.id = good_loadings.distributor_id
-                                            WHERE distributors.location = '" . $location . "'
+                                            WHERE distributors.location = '" . $location . "' AND good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -501,16 +509,19 @@ trait GoodControllerBase
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                                             JOIN distributors ON distributors.id = good_loadings.distributor_id
                                             WHERE distributors.location = '" . $location . "' AND 
-                                            distributors.id = " . $distributor_id . "
+                                            distributors.id = " . $distributor_id . " AND good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -527,12 +538,14 @@ trait GoodControllerBase
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      WHERE goods.category_id = " . $category_id . "
+                                      WHERE goods.category_id = " . $category_id . " AND goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -546,16 +559,19 @@ trait GoodControllerBase
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                                             JOIN distributors ON distributors.id = good_loadings.distributor_id
                                             WHERE distributors.id = " . $distributor_id . " 
-                                            AND goods.category_id = " . $category_id . "
+                                            AND goods.category_id = " . $category_id . " AND goods.deleted_at IS NULL and good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -572,16 +588,19 @@ trait GoodControllerBase
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                                             JOIN distributors ON distributors.id = good_loadings.distributor_id
                                             WHERE distributors.location = '" . $location . "'
-                                            AND goods.category_id = " . $category_id . "
+                                            AND goods.category_id = " . $category_id . " AND goods.deleted_at IS NULL and good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }
@@ -597,15 +616,20 @@ trait GoodControllerBase
                                             WHERE distributors.location = '" . $location . "' 
                                             AND distributors.id = " . $distributor_id . "
                                             AND goods.category_id = " . $category_id . "
+                                            AND goods.deleted_at IS NULL
+                                            AND good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
                                       LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM good_loading_details
                                                 LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
                                       LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
                                                 FROM transaction_details
                                                 LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                WHERE good_units.deleted_at IS NULL
                                                 GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
+                                      WHERE goods.deleted_at IS NULL
                                       GROUP BY goods.id, loading.quantity, transaction.quantity
                                       HAVING (loading - transaction) <= " . $stock));
                 }

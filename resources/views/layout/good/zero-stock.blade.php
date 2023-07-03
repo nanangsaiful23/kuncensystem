@@ -56,10 +56,10 @@
               <tbody id="table-good">
                 @foreach($goods as $good)
                   <tr>
-                    <td>{{ $good->obj->getLastBuy()->good_loading->distributor->name }}</td>
+                    <td>{{ $good->obj->getLastBuy() == null ? "" : $good->obj->getLastBuy()->good_loading->distributor->name }}</td>
                     <td>{{ $good->obj->name }}</td>
-                    <td style="text-align: center;">{{ displayDate($good->obj->getLastBuy()->good_loading->loading_date) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($good->obj->getLastBuy()->price) }}</td>
+                    <td style="text-align: center;">{{ $good->obj->getLastBuy() == null ? "" : displayDate($good->obj->getLastBuy()->good_loading->loading_date) }}</td>
+                    <td style="text-align: right;">{{ $good->obj->getLastBuy() == null ? "" : showRupiah($good->obj->getLastBuy()->price) }}</td>
                     <td style="text-align: center;">{{ $good->obj->getStock() }}</td>
                     <td style="text-align: center;">
                       <input type="checkbox" name="exports[]" value="{{ $good->obj->id }}" checked="checked">

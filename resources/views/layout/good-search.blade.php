@@ -72,7 +72,11 @@
                             @foreach($good->good_units as $unit)
                               <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
                             @endforeach
-                            <h3>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                            @if($good->getPcsSellingPrice() == null)
+                              <h3>0</h3>
+                            @else
+                              <h3>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                            @endif
                           </div>
                         @endforeach
                       </div>
@@ -97,7 +101,11 @@
                                     {{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}<br>
                                   @endforeach
                                 </td>
-                                <td>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</td>
+                                @if($good->getPcsSellingPrice() == null)
+                                  <td>0</td>
+                                @else
+                                  <td>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</td>
+                                @endif
                               </tr>
                               <?php $i++ ?>
                             @endforeach

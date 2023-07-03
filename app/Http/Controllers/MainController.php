@@ -16,8 +16,9 @@ class MainController extends Controller
 
         $goods = Good::where('name', 'like', '%' . $query . '%')
                      ->orWhere('code', 'like', '%' . $query . '%')
+                     ->orderBy('name', 'asc')
                      ->get();
-
+        
         return view('layout.good-search', compact('default', 'goods', 'query'));
     }
 }
