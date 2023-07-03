@@ -204,34 +204,35 @@ trait GoodControllerBase
 
     public function checkDiscountGoodBase($good_id, $quantity, $pcsPrice)
     {
-        $good_unit = GoodUnit::join('units', 'good_units.unit_id', 'units.id')
-                             ->where('units.quantity', '<=', $quantity)
-                             ->where('good_units.good_id', $good_id)
-                             ->orderBy('units.quantity', 'desc')
-                             ->first();
+        // $good_unit = GoodUnit::join('units', 'good_units.unit_id', 'units.id')
+        //                      ->where('units.quantity', '<=', $quantity)
+        //                      ->where('good_units.good_id', $good_id)
+        //                      ->orderBy('units.quantity', 'desc')
+        //                      ->first();
 
-        if($good_unit == null)
-        {
-            return 0;
-        }
-        else
-        {
-            if($good_unit->quantity != 1)
-            {
-                if($quantity < 1) $disc_quantity = 0;
-                else $disc_quantity = intdiv($quantity, $good_unit->quantity);
+        // if($good_unit == null)
+        // {
+        //     return 0;
+        // }
+        // else
+        // {
+        //     if($good_unit->quantity != 1)
+        //     {
+        //         if($quantity < 1) $disc_quantity = 0;
+        //         else $disc_quantity = intdiv($quantity, $good_unit->quantity);
 
-                $real_quantity = fmod($quantity, $good_unit->quantity);
-                // dd($disc_quantity . ' ' . $real_quantity);die;
+        //         $real_quantity = fmod($quantity, $good_unit->quantity);
+        //         // dd($disc_quantity . ' ' . $real_quantity);die;
 
-                // return ($disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price)) + ($real_quantity * $pcsPrice);
-                return $disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price);
-            }
-            else
-            {
-                return '0';
-            }
-        }
+        //         // return ($disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price)) + ($real_quantity * $pcsPrice);
+        //         return $disc_quantity * (($pcsPrice * $good_unit->quantity) - $good_unit->selling_price);
+        //     }
+        //     else
+        //     {
+        //         return '0';
+        //     }
+        // }
+        return '0';
     }
 
     public function getPriceUnitGoodBase($good_id, $unit_id)
