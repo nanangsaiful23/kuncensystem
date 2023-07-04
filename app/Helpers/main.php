@@ -327,10 +327,10 @@
     {
         $users = ['all/all' => 'Semua user'];
         foreach (Admin::where('is_active', 1)->orderBy('name', 'asc')->get() as $data) {
-            $users = array_add($users, 'admin/' . $data->id, $data->name);
+            $users = array_add($users, 'admin/' . $data->id, $data->name . ' (admin)');
         }
         foreach (Cashier::where('is_active', 1)->orderBy('name', 'asc')->get() as $data) {
-            $users = array_add($users, 'cashier/' . $data->id, $data->name);
+            $users = array_add($users, 'cashier/' . $data->id, $data->name . ' (kasir)');
         }
 
         return $users;
