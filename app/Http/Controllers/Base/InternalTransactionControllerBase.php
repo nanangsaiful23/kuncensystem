@@ -24,6 +24,7 @@ trait InternalTransactionControllerBase
                 $transactions = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
+                                            ->where('type', '!=', 'retur')
                                             ->orderBy('transactions.created_at','desc')
                                             ->get();
             }
@@ -32,6 +33,7 @@ trait InternalTransactionControllerBase
                 $transactions = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
+                                            ->where('type', '!=', 'retur')
                                             ->where('role', $role)
                                             ->where('role_id', $role_id)
                                             ->orderBy('transactions.created_at','desc')
@@ -45,6 +47,7 @@ trait InternalTransactionControllerBase
                 $transactions = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date)
                                             ->where('type', '!=', 'normal')
+                                            ->where('type', '!=', 'retur')
                                             ->orderBy('transactions.created_at','desc')
                                             ->paginate($pagination);
             }
@@ -54,7 +57,8 @@ trait InternalTransactionControllerBase
                                             ->whereDate('transactions.created_at', '<=', $end_date)
                                             ->where('role', $role)
                                             ->where('role_id', $role_id)
-                                            ->where('type', '!=', 'normal')
+                                            ->where('type', '!=', 'normal')  
+                                            ->where('type', '!=', 'retur') 
                                             ->orderBy('transactions.created_at','desc')
                                             ->paginate($pagination);
             }

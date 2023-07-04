@@ -1,6 +1,7 @@
 <?php
 
 Route::get('/search/{query}', 'MainController@search');
+Route::get('image/{directory}/{url}', 'MainController@getImage');
 
 Route::group(['prefix' => 'admin'], function () {
   Route::get('/login', 'Admin\Auth\LoginController@showLoginForm')->name('login');
