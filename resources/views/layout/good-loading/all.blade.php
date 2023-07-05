@@ -29,7 +29,7 @@
             </div>
             {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
             <div class="col-sm-3">
-              {!! Form::select('distributor', getDistributorLoading($distributor_id, $start_date, $end_date), $distributor_id, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
+              {!! Form::select('distributor', getDistributorLoading($distributor_id, $start_date, $end_date), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll">
@@ -81,6 +81,7 @@
 @section('js-addon')
   <script type="text/javascript">
     $(document).ready(function(){
+        $('.select2').select2();
       $('#datepicker').datepicker({
         autoclose: true,
         format: 'yyyy-mm-dd'

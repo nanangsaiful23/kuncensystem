@@ -91,9 +91,10 @@
                 <th>Expired</th>
                 <th>Jumlah</th>
                 <th>Satuan</th>
+                <th>Stock Lama</th>
+                <th>Stock Baru</th>
                 <th>Harga Beli</th>
                 <th>Total Harga</th>
-                <th>Stock</th>
                 <th>Harga Jual</th>
                 <th>Hapus</th>
             </thead>
@@ -124,16 +125,20 @@
                         @endif
                     </td>
                     <td>
+                        {!! Form::textarea('old_stocks[]', null, array('class' => 'form-control', 'readonly' =>
+                        'readonly', 'id' => 'old_stock-'.$i, 'style' => 'height: 70px')) !!}
+                    </td>
+                    <td>
+                        {!! Form::textarea('new_stocks[]', null, array('class' => 'form-control', 'readonly' =>
+                        'readonly', 'id' => 'new_stock-'.$i, 'style' => 'height: 70px')) !!}
+                    </td>
+                    <td>
                          <textarea type="text" name="prices[]" class="form-control" id="price-{{ $i }}"
                             onchange="editPrice('{{ $i }}')" onkeypress="editPrice('{{ $i }}')"></textarea>
                     </td>
                     <td>
                         {!! Form::textarea('total_prices[]', null, array('class' => 'form-control', 'readonly' =>
                         'readonly', 'id' => 'total_price-'.$i, 'style' => 'height: 70px')) !!}
-                    </td>
-                    <td>
-                        {!! Form::textarea('stocks[]', null, array('class' => 'form-control', 'readonly' =>
-                        'readonly', 'id' => 'stock-'.$i, 'style' => 'height: 70px')) !!}
                     </td>
                     <td>
                         {!! Form::textarea('sell_prices[]', null, array('class' => 'form-control', 'id' => 'sell_price-'.$i, 'style' => 'height: 70px')) !!}
@@ -254,42 +259,19 @@
 
               if(good.length != 0)
               {
-                if (index==-1)
-                {
-                  if(bool == false)
-                  {
-                      document.getElementById("name-" + total_item).value = good.id;
-                      document.getElementById("name_temp-" + total_item).value = good.name;
-                      document.getElementById("barcode-" + total_item).value = good.code;
-                      $("#unit-" + total_item).val(good.getPcsSellingPrice.unit_id).change();
-                      $("#price-" + total_item).val(good.getPcsSellingPrice.buy_price);
-                      $("#sell_price-" + total_item).val(good.getPcsSellingPrice.selling_price);
-                      document.getElementById("quantity-" + total_item).value = 1;
+                  document.getElementById("name-" + total_item).value = good.id;
+                  document.getElementById("name_temp-" + total_item).value = good.name;
+                  document.getElementById("barcode-" + total_item).value = good.code;
+                  $("#unit-" + total_item).val(good.getPcsSellingPrice.unit_id).change();
+                  $("#price-" + total_item).val(good.getPcsSellingPrice.buy_price);
+                  $("#sell_price-" + total_item).val(good.getPcsSellingPrice.selling_price);
+                  document.getElementById("quantity-" + total_item).value = 1;
+                  document.getElementById("old_stock-" + total_item).value = good.old_stock;
+                  document.getElementById("new_stock-" + total_item).value = parseInt(good.old_stock) + 1;
 
-                      editPrice(total_item);
-                    total_real_item+=1;
-                      document.getElementById("all_barcode").value = '';
-                      // $("#all_barcode").focus();
-
-                  }
-                }
-                else
-                {
-                      document.getElementById("name-" + index).value = good.id;
-                      document.getElementById("name_temp-" + index).value = good.name;
-                      document.getElementById("barcode-" + index).value = good.code;
-                      $("#unit-" + index).val(good.getPcsSellingPrice.unit_id).change();
-                      $("#price-" + index).val(good.getPcsSellingPrice.buy_price);
-                      $("#sell_price-" + index).val(good.getPcsSellingPrice.selling_price);
-                      document.getElementById("quantity-" + index).value = 1;
-
-                      editPrice(index);
-                      total_real_item+=1;
-                      document.getElementById("all_barcode").value = '';
-                      // $("#all_barcode").focus();
-                }
+                  editPrice(total_item);
+                  total_real_item += 1;
                   document.getElementById("all_barcode").value = '';
-                  // $("#all_barcode").focus();
               }
               else
               {
@@ -389,7 +371,7 @@
 
                     for (var i = 0; i < r.length; i++) {
                         const getPcsSellingPrice = {unit_id: r[i].unit_id, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
-                        const good = {id: r[i].good_id, name: r[i].name, code: r[i].code, getPcsSellingPrice: getPcsSellingPrice};
+                        const good = {id: r[i].good_id, name: r[i].name, code: r[i].code, getPcsSellingPrice: getPcsSellingPrice, old_stock: r[i].stock};
                         
                         fillItem(good,index);
                     }
@@ -437,7 +419,6 @@
                       {
                           money = document.getElementById("total_price-" + i).value;
                           money = money.replace(/,/g,'');
-                          console.log('money: ' + money);
                           total_item_price += parseInt(money);
 
                       }
@@ -517,13 +498,14 @@
           }
           function editPrice(index)
           {
-              document.getElementById("total_price-" + index).value = unFormatNumber( document.getElementById("price-" + index).value) * unFormatNumber( document.getElementById("quantity-" + index).value);
+              document.getElementById("total_price-" + index).value = unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value);
+              document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) + parseInt(document.getElementById("quantity-" + index).value);
 
               formatNumber("total_price-" + index);
 
               changeTotal();
               temp1=parseInt(index)+1
-              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control"  id="exp-' +temp1+ '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]" onchange="changePriceByUnit(' + temp1 + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="stock-' + temp1+ '" name="stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control"  id="exp-' +temp1+ '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]" onchange="changePriceByUnit(' + temp1 + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + temp1+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="new_stock-' + temp1+ '" name="new_stocks[]" type="text"></textarea></td><td><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
               + temp1+ ')"></i></td></tr>';
               htmlResult += "<script>$('#unit-" + temp1 + "').select2();$('#exp-"+temp1+"').datepicker({autoclose: true,format: 'yyyy-mm-dd',todayHighlight: true});<\/script>";
               if(index == total_item)
