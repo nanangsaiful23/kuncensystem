@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Account;
+use App\Models\GoodLoading;
+use App\Models\GoodLoadingDetail;
 use App\Models\GoodPrice;
 use App\Models\Journal;
 use App\Models\ReturItem;
@@ -191,6 +193,42 @@ class MainController extends Controller
             $data_journal['credit']             = $item->good->getPcsSellingPrice()->buy_price;
 
             Journal::create($data_journal);
+        }
+        else
+        {
+            $data_loading['role']         = 'admin';
+            $data_loading['role_id']      = \Auth::user()->id;
+            $data_loading['checker']      = 'Load by sistem';
+            $data_loading['loading_date'] = date('Y-m-d');
+            $data_loading['distributor_id']   = $item->good->getLastBuy()->good_loading->distributor->id;
+            $data_loading['total_item_price'] = unformatNumber($item->good->getPcsSellingPrice()->buy_price);
+            $data_loading['note']             = 'Loading barang retur (berupa barang)';
+            $data_loading['payment']          = 'cash';
+
+            $good_loading = GoodLoading::create($data_loading);
+
+            $data_detail['good_loading_id'] = $good_loading->id;
+            $data_detail['good_unit_id']    = $item->good->getPcsSellingPrice()->id;
+            $data_detail['last_stock']      = $item->good->getStock();
+            $data_detail['quantity']        = 1;
+            $data_detail['real_quantity']   = 1;
+            $data_detail['price']           = unformatNumber($item->good->getPcsSellingPrice()->buy_price);
+            $data_detail['selling_price']   = unformatNumber($item->good->getPcsSellingPrice()->selling_price);
+            $data_detail['expiry_date']     = null;
+
+            GoodLoadingDetail::create($data_detail);
+
+            $account = Account::where('code', '1111')->first();
+
+            $data_journal_loading_retur['type']               = 'good_loading';
+            $data_journal_loading_retur['journal_date']       = date('Y-m-d');
+            $data_journal_loading_retur['name']               = 'Loading barang retur (dari distributor berupa barang) tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_loading_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            $data_journal_loading_retur['debit']              = unformatNumber($data_loading['total_item_price']);
+            $data_journal_loading_retur['credit_account_id']  = $account->id;
+            $data_journal_loading_retur['credit']             = unformatNumber($data_loading['total_item_price']);
+
+            Journal::create($data_journal_loading_retur);
         }
 
         session(['alert' => 'add', 'data' => 'retur']);

@@ -473,7 +473,7 @@ trait TransactionControllerBase
                     $good_loading = GoodLoading::create($data_loading);
 
                     $data_detail['good_loading_id'] = $good_loading->id;
-                    $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->gui;
+                    $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->id;
                     $data_detail['last_stock']      = $good->getStock();
                     $data_detail['quantity']        = $request->quantitiesretur_s[$i];
                     $data_detail['real_quantity']   = $request->quantitiesretur_s[$i];

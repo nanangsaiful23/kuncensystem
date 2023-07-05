@@ -62,6 +62,7 @@ class Good extends Model
     {
         return TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                 ->where('good_units.good_id', $this->id)
+                                ->where('type', '!=', 'retur')
                                 ->get();
     }
 
