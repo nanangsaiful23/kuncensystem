@@ -346,6 +346,7 @@ trait GoodControllerBase
                                          ->where('good_units.good_id', $good_id)
                                          ->whereDate('good_loading_details.loading_date', '>=', $start_date)
                                          ->whereDate('good_loading_details.loading_date', '<=', $end_date)
+                                         ->where('good_units.deleted_at', null)
                                          ->get();
         }
         else
@@ -354,6 +355,7 @@ trait GoodControllerBase
                                          ->where('good_units.good_id', $good_id)
                                          ->whereDate('good_loading_details.created_at', '>=', $start_date)
                                          ->whereDate('good_loading_details.created_at', '<=', $end_date)
+                                         ->where('good_units.deleted_at', null)
                                          ->paginate($pagination);
         }
 
@@ -369,6 +371,7 @@ trait GoodControllerBase
                                              ->where('goods.id', $good_id)
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
+                                            ->where('good_units.deleted_at', null)
                                              ->get();
         }
         else
@@ -378,6 +381,7 @@ trait GoodControllerBase
                                              ->where('goods.id', $good_id)
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
+                                            ->where('good_units.deleted_at', null)
                                              ->paginate($pagination);
         }
 
