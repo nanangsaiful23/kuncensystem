@@ -68,7 +68,6 @@ trait GoodControllerBase
                              ->orderBy('goods.id', 'desc')
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->paginate($pagination);
-                             // dd($goods);die;   
             }
             elseif($distributor_id == 'all')
             {
@@ -87,7 +86,6 @@ trait GoodControllerBase
                              ->orderBy('goods.id', 'desc')
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->paginate($pagination);
-                             // dd($goods);die;   
             }
         }
 

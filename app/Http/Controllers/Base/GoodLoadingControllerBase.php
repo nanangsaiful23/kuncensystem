@@ -53,6 +53,7 @@ trait GoodLoadingControllerBase
     public function storeGoodLoadingBase($role, $role_id, Request $request)
     {
         $data = $request->input();
+        // dd($data);die;
 
         if($data['distributor_name'] != null)
         {
@@ -158,6 +159,8 @@ trait GoodLoadingControllerBase
                         }
                     }
 
+                    $data_unit['good_id']       = $data['names'][$i];
+                    $data_unit['unit_id']       = $data['units'][$i];
                     $data_unit['buy_price']     = $data['prices'][$i];
                     $data_unit['selling_price'] = $data['sell_prices'][$i];
 
@@ -184,7 +187,7 @@ trait GoodLoadingControllerBase
 
                 $data_detail['good_loading_id'] = $good_loading->id;
                 $data_detail['good_unit_id']    = $good_unit->id;
-                $data_detail['last_stock']      = $data['stocks'][$i];
+                $data_detail['last_stock']      = $data['old_stocks'][$i];
                 $data_detail['quantity']        = $data['quantities'][$i];
                 $data_detail['real_quantity']   = $data['quantities'][$i] * $good_unit->unit->quantity;
                 $data_detail['price']           = $data['prices'][$i];

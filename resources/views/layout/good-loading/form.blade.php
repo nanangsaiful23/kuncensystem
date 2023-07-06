@@ -319,12 +319,13 @@
                     $("#unit-" + total_item).val(result.good.unit_id).change();
                     $("#price-" + total_item).val(result.good.price);
                     $("#sell_price-" + total_item).val(result.good.selling_price);
+                    $("#old_stock-" + total_item).val(0);
 
                     total_item += 1;
                     total_real_item+=1;
-                    htmlResult = '<tr id="row-data-' + total_item+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + total_item+ '" onchange="searchName(' + total_item+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + total_item+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + total_item + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control" id="exp-' + total_item + '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + total_item +'" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><select class="form-control select2" id="unit-' + total_item + '" name="units[]" onchange="changePriceByUnit(' + total_item + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" id="price-' + total_item + '" name="prices[]" type="text" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + total_item +'" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="stock-' + total_item+ '" name="stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + total_item+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + total_item +'" onclick="deleteItem(' + total_item + ')"></i></td></tr>';
+                    htmlResult = '<tr id="row-data-' + total_item+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + total_item+ '" onchange="searchName(' + total_item+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + total_item+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + total_item + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control" id="exp-' + total_item + '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + total_item +'" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><select class="form-control select2" id="unit-' + total_item + '" name="units[]" onchange="changePriceByUnit(' + total_item + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + total_item+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="new_stock-' + total_item+ '" name="new_stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="price-' + total_item + '" name="prices[]" type="text" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + total_item +'" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + total_item+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + total_item +'" onclick="deleteItem(' + total_item + ')"></i></td></tr>';
                     htmlResult += "<script>$('#unit-" + total_item + "').select2();<\/script>";
-                    $("#table-transaction").append(htmlResult);
+                    $("#table-transaction").prepend(htmlResult);
 
                     // $("#good_category_id").val("");
                     $("#code").val("");
@@ -372,7 +373,7 @@
                     for (var i = 0; i < r.length; i++) {
                         const getPcsSellingPrice = {unit_id: r[i].unit_id, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
                         const good = {id: r[i].good_id, name: r[i].name, code: r[i].code, getPcsSellingPrice: getPcsSellingPrice, old_stock: r[i].stock};
-                        
+                        console.log(good);
                         fillItem(good,index);
                     }
                 },

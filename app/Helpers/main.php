@@ -151,7 +151,7 @@
     {
         if(is_numeric($money))
         return round($money / 100) * 100;
-        else dd($money);die;
+        else 0;
     }
 
     function printRupiah($money)
