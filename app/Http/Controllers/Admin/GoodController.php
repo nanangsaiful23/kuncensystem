@@ -235,7 +235,6 @@ class GoodController extends Controller
 
     public function updatePrice($good_id, Request $request)
     {
-        // dd($request);die;
         $good = $this->updatePriceGoodBase('admin', \Auth::user()->id, $good_id, $request);
 
         session(['alert' => 'edit', 'data' => 'Harga barang']);
@@ -250,5 +249,28 @@ class GoodController extends Controller
         session(['alert' => 'delete', 'data' => 'Harga barang']);
 
         return redirect('/admin/good/' . $good_id . '/detail');
+    }
+
+    public function choosePrintDisplay()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Print Harga Display Barang';
+        $default['page'] = 'Good';
+        $default['section'] = 'choose-print-display';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
+    public function printDisplay(Request $request)
+    {
+        $role = 'admin';
+
+        $goods = $this->printDisplayGoodBase($request);
+        
+        if($request->type == 'rack')
+            return view('layout.good.print-display-rack', compact('role', 'goods'));
+        else
+            return view('layout.good.print-display-list', compact('role', 'goods'));
     }
 }

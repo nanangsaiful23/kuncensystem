@@ -366,6 +366,7 @@ trait GoodControllerBase
         {
             $transactions = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                              ->join('goods', 'goods.id', 'good_units.good_id')
+                                             ->select('transaction_details.*')
                                              ->where('goods.id', $good_id)
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
@@ -376,6 +377,7 @@ trait GoodControllerBase
         {
             $transactions = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                              ->join('goods', 'goods.id', 'good_units.good_id')
+                                             ->select('transaction_details.*')
                                              ->where('goods.id', $good_id)
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
@@ -684,5 +686,28 @@ trait GoodControllerBase
         $good_unit->delete();
 
         return true;
+    }
+
+    public function printDisplayGoodBase(Request $request)
+    {
+        $goods = [];
+        for($i = 0; $i < sizeof($request->ids); $i++)
+        {
+            if($request->ids[$i] != null)
+            {
+                $good = Good::find($request->ids[$i]);
+
+                foreach($good->good_units as $unit)
+                {
+                    $data['name'] = $good->name;
+                    $data['unit'] = $unit->unit->name;
+                    $data['price'] = $unit->selling_price;
+
+                    array_push($goods, $data);
+                }
+            }
+        }
+        
+        return $goods;
     }
 }
