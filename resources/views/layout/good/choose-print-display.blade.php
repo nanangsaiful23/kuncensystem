@@ -85,7 +85,6 @@
       htmlResult = '<div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-7"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index + '"></div>';
 
       $("#row-data").append(htmlResult);
-      changeTotal(index);
     }
   </script>
 @endsection
