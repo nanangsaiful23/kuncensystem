@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Base;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Account;
 use App\Models\Good;
@@ -221,7 +222,6 @@ trait TransactionControllerBase
 
     public function storeTransactionBase($role, $role_id, Request $request)
     {
-        // dd($request);die;
         $hpp = 0;
         $sum = 0;
 
@@ -584,5 +584,60 @@ trait TransactionControllerBase
         $transaction->update($data_transaction);
 
         return true;
+    }
+
+    public function resumeTransactionBase($category_id, $distributor_id, $start_date, $end_date)
+    {
+        if($category_id == 'all' && $distributor_id == 'all')
+        {
+            $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                                    ->join('goods', 'goods.id', 'good_units.good_id')
+                                                    ->join('units', 'units.id', 'good_units.unit_id')
+                                                    ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                                    ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->groupBy('goods.code')
+                                                    ->groupBy('goods.name')
+                                                    ->groupBy('units.name')
+                                                    ->groupBy('transaction_details.buy_price')
+                                                    ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('real_quantity', 'desc')
+                                                    ->get();
+        }
+        else if($category_id == 'all')
+        {
+            $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                                    ->join('goods', 'goods.id', 'good_units.good_id')
+                                                    ->join('units', 'units.id', 'good_units.unit_id')
+                                                    ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                                    ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->groupBy('goods.code')
+                                                    ->groupBy('goods.name')
+                                                    ->groupBy('units.name')
+                                                    ->groupBy('transaction_details.buy_price')
+                                                    ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('real_quantity', 'desc')
+                                                    ->get();
+        }
+        else
+        {   
+            $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                                    ->join('goods', 'goods.id', 'good_units.good_id')
+                                                    ->join('units', 'units.id', 'good_units.unit_id')
+                                                    ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->where('goods.category_id', $category_id)
+                                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                                    ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->groupBy('goods.code')
+                                                    ->groupBy('goods.name')
+                                                    ->groupBy('units.name')
+                                                    ->groupBy('transaction_details.buy_price')
+                                                    ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('real_quantity', 'desc')
+                                                    ->get();
+        }
+
+        return $transaction_details;
     }
 }

@@ -114,7 +114,7 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/{{ $role }}/transaction/{{ $role_user }}/{{ $role_id }}' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/internal-transaction/{{ $role_user }}/{{ $role_id }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
     }
 
     function advanceSearch()

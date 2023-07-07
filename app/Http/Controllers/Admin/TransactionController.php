@@ -81,4 +81,17 @@ class TransactionController extends Controller
 
         return redirect('/admin/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
     }
+
+    public function resume($category_id, $distributor_id, $start_date, $end_date)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Resume transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'resume';
+
+        $transaction_details = $this->resumeTransactionBase($category_id, $distributor_id, $start_date, $end_date);
+
+        return view('admin.layout.page', compact('default', 'transaction_details', 'category_id', 'distributor_id', 'start_date', 'end_date'));
+    }
 }
