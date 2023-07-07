@@ -38,6 +38,7 @@
                 @if(\Auth::user()->email == 'admin')
                   <th>Created at</th>
                 @endif
+                <th>Tipe</th>
                 <th>Jumlah</th>
                 <th>Harga Beli Satuan</th>
                 <th>Harga Jual Satuan</th>
@@ -53,6 +54,7 @@
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ $transaction->created_at }}</td>
                     @endif
+                    <td>{{ $transaction->type }}</td>
                     <td>{{ $transaction->quantity }}</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->buy_price) }}</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->selling_price) }}</td>

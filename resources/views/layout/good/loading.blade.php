@@ -39,6 +39,7 @@
                   <th>Created at</th>
                 @endif
                 <th>Tanggal loading</th>
+                <th>Note</th>
                 <th>Nama Distributor</th>
                 <th>Expired</th>
                 <th>Jumlah Input</th>
@@ -56,6 +57,7 @@
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ $good_loading->created_at }}</td>
                     @endif
+                    <td>{{ $good_loading->good_loading->note }}</td>
                     <td>{{ displayDate($good_loading->good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->good_loading->distributor->name }}</td>
                     <td>{{ $good_loading->expiry_date }}</td>
