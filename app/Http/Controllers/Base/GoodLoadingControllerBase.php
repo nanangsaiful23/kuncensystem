@@ -248,28 +248,15 @@ trait GoodLoadingControllerBase
             Excel::import(new LoadingImport($role, $role_id, $good_loading->id), $request->file('file'));
 
             #tabel journal 
-            $account = Account::where('code', '1111')->first();
-            // $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'good_loading')->where('credit_account_id', $account->id)->first();
+            $data_journal['type']               = 'good_loading';
+            $data_journal['journal_date']       = date('Y-m-d');
+            $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
+            $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            $data_journal['debit']              = unformatNumber($request->total_item_price);
+            $data_journal['credit_account_id']  = Account::where('code', '3001')->first(); #modal awal pas pertama upload barang
+            $data_journal['credit']             = unformatNumber($request->total_item_price);
 
-            // if($journal != null)
-            // {
-            //     $data_journal['debit'] = floatval($journal->debit) + floatval(unformatNumber($request->total_item_price));
-            //     $data_journal['credit'] = floatval($journal->credit) + floatval(unformatNumber($request->total_item_price));
-
-            //     $journal->update($data_journal);
-            // }
-            // else
-            // {
-                $data_journal['type']               = 'good_loading';
-                $data_journal['journal_date']       = date('Y-m-d');
-                $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
-                $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
-                $data_journal['debit']              = unformatNumber($request->total_item_price);
-                $data_journal['credit_account_id']  = $account->id;
-                $data_journal['credit']             = unformatNumber($request->total_item_price);
-
-                Journal::create($data_journal);
-            // }
+            Journal::create($data_journal);
 
             return $good_loading;
         }

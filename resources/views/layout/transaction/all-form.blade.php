@@ -29,7 +29,7 @@
         <tr>
           <td>{{ $transaction->id }}</td>
           <td>{{ $transaction->created_at }}</td>
-          @if(\Auth::user()->email == 'admin')
+          @if($role == 'admin')
             <td>{{ $transaction->actor()->name }}</td>
           @endif
           <td>{{ showRupiah($transaction->total_item_price) }}</td>

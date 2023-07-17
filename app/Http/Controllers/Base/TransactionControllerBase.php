@@ -454,10 +454,13 @@ trait TransactionControllerBase
 
                 if($request->conditionsretur_s[$i] == 'rusak') #barang rusak
                 {
-                    $data_retur['good_id'] = $request->namesretur_s[$i];
-                    $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
+                    for($j = 0; $j < $data_detail_retur['real_quantity']; $j++)
+                    {
+                        $data_retur['good_id'] = $request->namesretur_s[$i];
+                        $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
 
-                    ReturItem::create($data_retur);
+                        ReturItem::create($data_retur);
+                    }
                 }
                 else #barang gak rusak
                 {
@@ -476,7 +479,7 @@ trait TransactionControllerBase
                     $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->id;
                     $data_detail['last_stock']      = $good->getStock();
                     $data_detail['quantity']        = $request->quantitiesretur_s[$i];
-                    $data_detail['real_quantity']   = $request->quantitiesretur_s[$i];
+                    $data_detail['real_quantity']   = $data_detail_retur['real_quantity'];
                     $data_detail['price']           = unformatNumber($request->buy_pricesretur_s[$i]);
                     $data_detail['selling_price']   = unformatNumber($request->pricesretur_s[$i]);
                     $data_detail['expiry_date']     = null;

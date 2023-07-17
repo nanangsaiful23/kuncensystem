@@ -38,13 +38,19 @@
                 @if(\Auth::user()->email == 'admin')
                   <th>Created at</th>
                 @endif
+                <th>ID</th>
                 <th>Tipe</th>
+                <th>PIC</th>
                 <th>Jumlah</th>
-                <th>Harga Beli Satuan</th>
-                <th>Harga Jual Satuan</th>
+                <th>Unit</th>
+                <th>Jumlah Real</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>Harga Beli</th>
+                @endif
+                <th>Harga Jual</th>
                 <th>Harga Jual Total</th>
                 <th>Total Diskon</th>
-                <th>Harga Jual Satuan Setelah Diskon</th>
+                <th>Harga Jual Setelah Diskon</th>
                 <th>Total Akhir</th>
               </tr>
               </thead>
@@ -54,9 +60,15 @@
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ $transaction->created_at }}</td>
                     @endif
+                    <td><a href="{{ url($role . '/transaction/' . $transaction->transaction->id . '/detail') }}" class="btn">{{ $transaction->transaction->id }}</a></td>
                     <td>{{ $transaction->type }}</td>
+                    <td>{{ $transaction->transaction->actor()->name }}</td>
                     <td>{{ $transaction->quantity }}</td>
-                    <td style="text-align: right;">{{ showRupiah($transaction->buy_price) }}</td>
+                    <td>{{ $transaction->good_unit->unit->name }}</td>
+                    <td>{{ $transaction->real_quantity }}</td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td style="text-align: right;">{{ showRupiah($transaction->buy_price) }}</td>
+                    @endif
                     <td style="text-align: right;">{{ showRupiah($transaction->selling_price) }}</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->quantity * $transaction->selling_price) }}</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->discount_price) }}</td>

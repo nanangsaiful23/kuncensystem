@@ -25,4 +25,9 @@ class TransactionDetail extends Model
     {
         return $this->belongsTo('App\Models\GoodUnit');
     }
+
+    public function transaction()
+    {
+        return $this->belongsTo('App\Models\Transaction');
+    }
 }
