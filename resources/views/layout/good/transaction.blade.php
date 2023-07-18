@@ -35,9 +35,7 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                @if(\Auth::user()->email == 'admin')
-                  <th>Created at</th>
-                @endif
+                <th>Created at</th>
                 <th>ID</th>
                 <th>Tipe</th>
                 <th>PIC</th>
@@ -57,9 +55,7 @@
               <tbody id="table-good">
                 @foreach($transactions as $transaction)
                   <tr>
-                    @if(\Auth::user()->email == 'admin')
-                      <td>{{ $transaction->created_at }}</td>
-                    @endif
+                    <td>{{ $transaction->created_at }}</td>
                     <td><a href="{{ url($role . '/transaction/' . $transaction->transaction->id . '/detail') }}" class="btn">{{ $transaction->transaction->id }}</a></td>
                     <td>{{ $transaction->type }}</td>
                     <td>{{ $transaction->transaction->actor()->name }}</td>

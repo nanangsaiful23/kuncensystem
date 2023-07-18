@@ -70,7 +70,11 @@
                             <h3>{{ $good->code }}</h3>
                             <h3>{{ $good->name }}</h3>
                             @foreach($good->good_units as $unit)
-                              <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
+                              @if($unit->unit != null)
+                                <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
+                              @else
+                                {{ $unit }}
+                              @endif
                             @endforeach
                             @if($good->getPcsSellingPrice() == null)
                               <h3>0</h3>
@@ -98,7 +102,11 @@
                                 <td>{{ $good->name }}</td>
                                 <td>
                                   @foreach($good->good_units as $unit)
-                                    {{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}<br>
+                              @if($unit->unit != null)
+                                <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
+                              @else
+                                {{ $unit }}
+                              @endif
                                   @endforeach
                                 </td>
                                 @if($good->getPcsSellingPrice() == null)

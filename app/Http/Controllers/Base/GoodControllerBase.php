@@ -371,6 +371,7 @@ trait GoodControllerBase
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
                                             ->where('good_units.deleted_at', null)
+                                             ->orderBy('transaction_details.created_at', 'desc')
                                              ->get();
         }
         else
@@ -382,6 +383,7 @@ trait GoodControllerBase
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
                                             ->where('good_units.deleted_at', null)
+                                             ->orderBy('transaction_details.created_at', 'desc')
                                              ->paginate($pagination);
         }
 
