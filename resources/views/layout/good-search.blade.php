@@ -131,7 +131,10 @@
                                 @if($good->getPcsSellingPrice() == null)
                                   <td>0</td>
                                 @else
-                                  <td>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</td>
+                                  <td>
+                                    {{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
+                                    ({{ ($good->getStock() * $good->getPcsSellingPrice()->unit->quantity) . ' ' . $good->getPcsSellingPrice()->unit->base }})
+                                  </td>
                                 @endif
                               </tr>
                               <?php $i++ ?>
