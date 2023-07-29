@@ -72,19 +72,16 @@ class Good extends Model
                        ->select('good_units.*', 'units.*', 'good_units.id as id')
                        ->where('units.quantity', '1')
                        ->where('good_units.good_id', $this->id)
-                       // ->orderBy('units.quantity', 'asc')
                        ->first();
 
         if($good_unit == null)
         {
             $good_unit = GoodUnit::join('units', 'good_units.unit_id', 'units.id')
                        ->select('good_units.*', 'units.*', 'good_units.id as id')
-                       // ->where('units.quantity', '1')
                        ->where('good_units.good_id', $this->id)
-                       ->orderBy('units.quantity', 'asc')
+                       ->orderByRaw('CONVERT(units.quantity, INT) asc')
                        ->first();
         }
-        // dd($good_unit);die;
 
         return $good_unit;
     }

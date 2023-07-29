@@ -89,7 +89,9 @@
             <thead>
                 <th>Barcode</th>
                 <th>Nama</th>
+                <th>Stock Lama</th>
                 <th>Jumlah</th>
+                <th>Stock Baru</th>
                 <th>Harga</th>
                 <th>Potongan</th>
                 <th>Total Harga</th>
@@ -107,7 +109,13 @@
                         {!! Form::text('names[]', null, array('id'=>'name-' . $i, 'style' => 'display:none')) !!}
                     </td>
                     <td>
+                        {!! Form::text('old_stocks[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'old_stock-'.$i)) !!}
+                    </td>
+                    <td>
                         <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('{{ $i }}')" onkeypress="checkDiscount('{{ $i }}')">
+                    </td>
+                    <td>
+                        {!! Form::text('new_stocks[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'new_stock-'.$i)) !!}
                     </td>
                     <td>
                         {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
@@ -209,6 +217,7 @@
 
         function fillItem(good)
         {
+            console.log(good);
             var bool = false;
 
             if(good.length != 0)
@@ -232,16 +241,12 @@
 
                 if(bool == false)
                 {
-                    // if(good.unit != 'PCS')
-                    // {
-                    //     document.getElementById("row-data-" + total_item).style.background = 'green';
-                    // }
                     document.getElementById("name-" + total_item).value = good.id;
                     document.getElementById("name_temp-" + total_item).value = good.name + " " + good.getPcsSellingPrice.name;
                     document.getElementById("barcode-" + total_item).value = good.getPcsSellingPrice.id;
                     document.getElementById("quantity-" + total_item).value = 1;
-                    // document.getElementById("quantity-" + index).focus();
-
+                    document.getElementById("old_stock-" + total_item).value = good.stock;
+                    document.getElementById("new_stock-" + total_item).value = good.stock + 1;
                     document.getElementById("price-" + total_item).value = good.getPcsSellingPrice.buy_price;
                     document.getElementById("discount-" + total_item).value = '0';
                     document.getElementById("buy_price-" + total_item).value = good.getPcsSellingPrice.buy_price;
@@ -418,6 +423,8 @@
 
         function editPrice(index)
         {
+            document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) + parseInt(document.getElementById("quantity-" + index).value);
+
             document.getElementById("total_price-" + index).value = (unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value));
 
             document.getElementById("sum-" + index).value = document.getElementById("total_price-" + index).value  - unFormatNumber(document.getElementById("discount-" + index).value);
@@ -430,10 +437,10 @@
             temp1=parseInt(index)+1
 
             @if(\Auth::user()->email == 'admin')
-                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
                 + temp1+ ')"></i></td></tr>';
             @else
-                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
                 + temp1+ ')"></i></td></tr>';
             @endif
             htmlResult += "<script>$('#type-" + temp1 + "').select2();<\/script>";

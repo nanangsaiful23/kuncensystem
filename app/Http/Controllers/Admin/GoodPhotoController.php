@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
+use App\Http\Controllers\Base\GoodPhotoControllerBase;
+
 use App\Models\Good;
 use App\Models\GoodPhoto;
 
 class GoodPhotoController extends Controller
 {
+    use GoodPhotoControllerBase;
+
     public function __construct()
     {
         $this->middleware('auth');

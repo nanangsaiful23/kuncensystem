@@ -61,11 +61,11 @@ Route::group(['prefix' => 'distributor'], function () {
 Route::group(['prefix' => 'good'], function () {
 
 	Route::group(['prefix' => '{good_id}/photo'], function () {
-		Route::get('/create', 'Admin\GoodPhotoController@create');
-		Route::post('/store', 'Admin\GoodPhotoController@store')->name('good-photo.store');
-		Route::get('/{pagination}', 'Admin\GoodPhotoController@index');
-		Route::get('/{photo_id}/makeProfilePicture', 'Admin\GoodPhotoController@makeProfilePicture');
-		Route::delete('/{photo_id}/delete', 'Admin\GoodPhotoController@delete')->name('good-photo.delete');
+		Route::get('/create', 'GoodPhotoController@create');
+		Route::post('/store', 'GoodPhotoController@store')->name('good-photo.store');
+		Route::get('/{pagination}', 'GoodPhotoController@index');
+		Route::get('/{photo_id}/makeProfilePicture', 'GoodPhotoController@makeProfilePicture');
+		Route::delete('/{photo_id}/delete', 'GoodPhotoController@delete')->name('good-photo.delete');
 	});
 
     Route::get('/checkDiscount/{good_id}/{quantity}/{price}', 'GoodController@checkDiscount');
