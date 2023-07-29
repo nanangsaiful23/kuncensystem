@@ -29,13 +29,14 @@
                 <select class="form-control select2" data-placeholder="Silahkan pilih barang" style="width: 100%;" onchange="changeDiv()" id="good-list">
                   <div>
                     <option value="">Silahkan pilih barang</option>
-                    @foreach(getGoods() as $good)
-                      <option value="{{ $good->id . ';;;' . $good->name }}">{{ $good->name }}</option>
+                    @foreach(getGoodUnits() as $good)
+                      <option value="{{ $good->good_unit_id . ';;;' . $good->good_name . ' ' . $good->unit->name }}">{{ $good->good_name . ' ' . $good->unit->name }}</option>
                     @endforeach
                   </div>
                 </select>
               </div>
               <?php $i = 1; ?>
+              <div id="div-result"></div>
               <div id="row-data-{{ $i }}">
                 <div class="form-group col-sm-3">
                   <input type="text" id="id-{{ $i }}" name="ids[]" class="form-control" placeholder="id">
@@ -50,7 +51,6 @@
                   <i class="fa fa-times" onclick="deleteItem('{{ $i }}')" style="color: red"></i>
                 </div>
               </div>
-              <div id="div-result"></div>
               {!! Form::submit('Print', ['class' => 'btn btn-primary btn-flat btn-block form-control'])  !!}
             {!! Form::close() !!}
           </div> 
@@ -85,7 +85,7 @@
       index = index.toString();
       htmlResult = '<div id="row-data-' + index + '"><div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-6"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index+ '"></div><div class="form-group col-sm-1"><i class="fa fa-times" onclick="deleteItem(\'' + index + '\')" style="color: red"></i></div></div>';
 
-      $("#div-result").append(htmlResult);
+      $("#div-result").prepend(htmlResult);
 
       total_quantity = 0;
       for (var i = 1; i < total_item; i++) 

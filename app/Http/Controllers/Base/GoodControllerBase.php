@@ -698,18 +698,18 @@ trait GoodControllerBase
         {
             if($request->ids[$i] != null)
             {
-                $good = Good::find($request->ids[$i]);
+                $good_unit = GoodUnit::find($request->ids[$i]);
 
                 for($j = 0; $j < $request->quantities[$i]; $j++)
                 {
-                    foreach($good->good_units as $unit)
-                    {
-                        $data['name'] = $good->name;
-                        $data['unit'] = $unit->unit->name;
-                        $data['price'] = $unit->selling_price;
+                //     foreach($good->good_units as $unit)
+                //     {
+                    $data['name'] = $good_unit->good->name;
+                    $data['unit'] = $good_unit->unit->name;
+                    $data['price'] = $good_unit->selling_price;
 
-                        array_push($goods, $data);
-                    } 
+                    array_push($goods, $data);
+                //     } 
                 }
             }
         }

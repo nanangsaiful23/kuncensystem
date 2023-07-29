@@ -9,6 +9,7 @@
     use App\Models\Good;
     use App\Models\GoodChecking;
     use App\Models\GoodLoading;
+    use App\Models\GoodUnit;
     use App\Models\Member;
     use App\Models\Unit;
 
@@ -266,6 +267,15 @@
         $goods = Good::all();
 
         return $goods;
+    }
+
+    function getGoodUnits()
+    {
+        $good_units = GoodUnit::join('goods', 'goods.id', 'good_units.good_id')
+                              ->select('good_units.*', 'goods.*', 'good_units.id as good_unit_id', 'goods.name as good_name')
+                              ->orderBy('goods.name', 'asc')->get();
+
+        return $good_units;
     }
 
     function getMembers()

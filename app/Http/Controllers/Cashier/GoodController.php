@@ -105,7 +105,7 @@ class GoodController extends Controller
 
         $good = Good::find($good_id);
 
-        return view('cashier.layout.page', compact('default', 'Good'));
+        return view('cashier.layout.page', compact('default', 'good'));
     }
 
     public function transaction($good_id, $start_date, $end_date, $pagination)
@@ -146,7 +146,7 @@ class GoodController extends Controller
 
         $good = Good::find($good_id);
 
-        return view('cashier.layout.page', compact('default', 'Good'));
+        return view('cashier.layout.page', compact('default', 'good'));
     }
 
     public function update($good_id, Request $request)
@@ -155,6 +155,6 @@ class GoodController extends Controller
 
         session(['alert' => 'edit', 'data' => 'Good barang']);
 
-        return redirect('/cashier/Good/' . $good->id . '/detail');
+        return redirect('/cashier/good/' . $good->id . '/detail');
     }
 }

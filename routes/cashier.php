@@ -4,6 +4,15 @@ Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 
 Route::group(['prefix' => 'good'], function () {
+
+	Route::group(['prefix' => '{good_id}/photo'], function () {
+		Route::get('/create', 'GoodPhotoController@create');
+		Route::post('/store', 'GoodPhotoController@store')->name('good-photo.store');
+		Route::get('/{pagination}', 'GoodPhotoController@index');
+		Route::get('/{photo_id}/makeProfilePicture', 'GoodPhotoController@makeProfilePicture');
+		Route::delete('/{photo_id}/delete', 'GoodPhotoController@delete')->name('good-photo.delete');
+	});
+	
     Route::post('/store', 'GoodController@store')->name('good.store');
     Route::get('/searchByBarcode/{barcode}', 'GoodController@searchByBarcode');
     Route::get('/searchById/{good_id}', 'GoodController@searchById');
@@ -13,6 +22,9 @@ Route::group(['prefix' => 'good'], function () {
 	Route::get('/searchByKeywordGoodUnit/{query}', 'GoodController@searchByKeywordGoodUnit');
     Route::get('/{good_id}/transaction/{start_date}/{end_date}/{pagination}', 'GoodController@transaction');
     Route::get('/{good_id}/price/{start_date}/{end_date}/{pagination}', 'GoodController@price');
+    Route::get('/{good_id}/detail', 'GoodController@detail');
+    Route::get('/{good_id}/edit', 'GoodController@edit');
+    Route::put('/{good_id}/edit', 'GoodController@update')->name('good.update');
 	Route::get('/{category_id}/{distributor_id}/{pagination}', 'GoodController@index');
 });
 
