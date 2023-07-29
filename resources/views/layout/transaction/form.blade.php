@@ -7,6 +7,11 @@
   .modal-body {
     overflow-y: auto;
     }
+
+    .modal-content {
+        /*width: 1500px;
+        margin-left: -500px;*/
+    }
 </style>
 
 <div class="panel-body">
@@ -45,21 +50,43 @@
               </div>
             </div>
         </div>
+        <div class="col-sm-12">
+            <div class="form-group col-sm-5">
+                {!! Form::label('member_id', 'Member', array('class' => 'col-sm-4 control-label')) !!}
+                <div class="col-sm-8">
+                    @if($SubmitButtonText == 'View')
+                        {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    @else
+                        {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
+                        <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
+                            <div>
+                                @foreach(getMembers() as $member)
+                                <option value="{{ $member->id }}">
+                                    {{ $member->name . ' (' . $member->address . ')'}}</option>
+                                @endforeach
+                            </div>
+                        </select>
+                    @endif
+                </div>
+            </div>
+            <div class="form-group col-sm-7">
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('beras')">Beras</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('ember')">Ember</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('gelas')">Gelas</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('gula')">Gula</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('kompor')">Kompor</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('piring')">Piring</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('sprei')">Sprei</div>
+                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('tikar')">Tikar</div>
+            </div>
+        </div>
         <div class="form-group col-sm-5">
-            {!! Form::label('member_id', 'Member', array('class' => 'col-sm-4 control-label')) !!}
+            {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-4 control-label')) !!}
             <div class="col-sm-8">
                 @if($SubmitButtonText == 'View')
-                    {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
-                    <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
-                        <div>
-                            @foreach(getMembers() as $member)
-                            <option value="{{ $member->id }}">
-                                {{ $member->name . ' (' . $member->address . ')'}}</option>
-                            @endforeach
-                        </div>
-                    </select>
+                    {!! Form::text('note', null, array('class' => 'form-control', 'style' => 'height: 70px')) !!}
                 @endif
             </div>
         </div>
@@ -73,16 +100,6 @@
                         <option value="transfer">Transfer</option>
                     </div>
                 </select>
-            </div>
-        </div>
-        <div class="form-group col-sm-5">
-            {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-4 control-label')) !!}
-            <div class="col-sm-8">
-                @if($SubmitButtonText == 'View')
-                    {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                @else
-                    {!! Form::text('note', null, array('class' => 'form-control', 'style' => 'height: 70px')) !!}
-                @endif
             </div>
         </div>
         <table class="table table-bordered table-striped" style="overflow-x: auto;">
@@ -629,9 +646,37 @@
                         color = '#FFF1CE';
                     }
                     else color = "#FDEFF4";
-                    htmlResult += "<a class='col-sm-12 modal-div' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")' style='color:black; cursor: pointer; height:40px; background-color:" + color + "; padding: 5px;'>" + r[i].name + " " + r[i].unit + "</a>";
+                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
                   }
                   $("#result_good" + type).html(htmlResult);
+                  $('.modal-body').css('height',$( window ).height()*0.5);
+                },
+                error: function(){
+                    console.log('error');
+                }
+              });
+        }
+
+        function ajaxButton(keyword)
+        {
+            $('#modal_search').modal('show');   
+              $.ajax({
+                url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + keyword,
+                success: function(result){
+                    htmlResult = '';
+
+                    htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
+                  var r = result.good_units;
+
+                  for (var i = 0; i < r.length; i++) {
+                    if((i%2) == 0) 
+                    {
+                        color = '#FFF1CE';
+                    }
+                    else color = "#FDEFF4";
+                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
+                  }
+                  $("#result_good").html(htmlResult);
                   $('.modal-body').css('height',$( window ).height()*0.5);
                 },
                 error: function(){

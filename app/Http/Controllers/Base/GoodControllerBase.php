@@ -153,9 +153,9 @@ trait GoodControllerBase
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;
             $good->last_loading = $good->getLastBuy() == null ? "" : $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
             $good->stock = $good->getStock();
-            $good->transaction = $good->good_transactions()->sum('real_quantity');
-            $good->loading = $good->good_loadings()->sum('real_quantity');
-            $good->unit = $good->getPcsSellingPrice() == null ? "" : $good->getPcsSellingPrice()->unit->base;
+            $good->transaction = $good->good_transactions()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
+            $good->loading = $good->good_loadings()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
+            $good->unit = $good->getPcsSellingPrice() == null ? "" : $good->getPcsSellingPrice()->unit->code;
 
             foreach($good->good_units as $unit)
             {
@@ -692,6 +692,7 @@ trait GoodControllerBase
 
     public function printDisplayGoodBase(Request $request)
     {
+        // dd($request);die;
         $goods = [];
         for($i = 0; $i < sizeof($request->ids); $i++)
         {
@@ -699,13 +700,16 @@ trait GoodControllerBase
             {
                 $good = Good::find($request->ids[$i]);
 
-                foreach($good->good_units as $unit)
+                for($j = 0; $j < $request->quantities[$i]; $j++)
                 {
-                    $data['name'] = $good->name;
-                    $data['unit'] = $unit->unit->name;
-                    $data['price'] = $unit->selling_price;
+                    foreach($good->good_units as $unit)
+                    {
+                        $data['name'] = $good->name;
+                        $data['unit'] = $unit->unit->name;
+                        $data['price'] = $unit->selling_price;
 
-                    array_push($goods, $data);
+                        array_push($goods, $data);
+                    } 
                 }
             }
         }

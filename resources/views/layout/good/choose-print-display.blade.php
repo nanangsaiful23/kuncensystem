@@ -20,9 +20,9 @@
           <div class="box-body" style="overflow-x:scroll">
             {!! Form::model(old(),array('url' => route($role . '.print-display'), 'method' => 'POST')) !!}
               <div class="form-group col-sm-12">
-                <input type="radio" name="type" value="rack">
+                <input type="radio" name="type" value="rack" required="required">
                 <label for="html">Display Rak</label><br>
-                <input type="radio" name="type" value="list">
+                <input type="radio" name="type" value="list" required="required">
                 <label for="css">Display List</label><br>
               </div>
               <div class="form-group">
@@ -36,15 +36,18 @@
                 </select>
               </div>
               <?php $i = 1; ?>
-              <div id="row-data">
+              <div id="row-data-{{ $i }}">
                 <div class="form-group col-sm-3">
                   <input type="text" id="id-{{ $i }}" name="ids[]" class="form-control" placeholder="id">
                 </div>
-                <div class="form-group col-sm-7">
+                <div class="form-group col-sm-6">
                   <input type="text" id="name-{{ $i }}" name="names[]" class="form-control" placeholder="nama">
                 </div>
                 <div class="form-group col-sm-2">
                   <input type="text" id="quantity-{{ $i }}" name="quantities[]" class="form-control" onchange="addElement('{{ $i }}')" placeholder="jumlah">
+                </div>
+                <div class="form-group col-sm-1">
+                  <i class="fa fa-times" onclick="deleteItem('{{ $i }}')" style="color: red"></i>
                 </div>
               </div>
               <div id="div-result"></div>
@@ -66,25 +69,45 @@
 
     });
 
-    $('#search-select').on('change', function() {
-      $('#total').text($("#good-list :selected").length + ' dari 24');
-    });
-
     function changeDiv()
     {
       var good = $("#good-list").val().split(";;;");
       $("#id-" + total_item).val(good[0]);
       $("#name-" + total_item).val(good[1]);
-      total_item += 1;
+      
+      if($("#quantity-" + total_item).val() != null)
+        total_item += 1;
     }
 
     function addElement(index)
     {
       index = parseInt(index) + 1;
       index = index.toString();
-      htmlResult = '<div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-7"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index + '"></div>';
+      htmlResult = '<div id="row-data-' + index + '"><div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-6"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index+ '"></div><div class="form-group col-sm-1"><i class="fa fa-times" onclick="deleteItem(\'' + index + '\')" style="color: red"></i></div></div>';
 
-      $("#row-data").append(htmlResult);
+      $("#div-result").append(htmlResult);
+
+      total_quantity = 0;
+      for (var i = 1; i < total_item; i++) 
+      {
+        if($("#quantity-" + i).val() != null)
+          total_quantity += parseInt($("#quantity-" + i).val());
+      }
+      $("#total").html("Jumlah barang " + total_quantity + " dari 24 (untuk print rak)");
+    }
+
+    function deleteItem(index)
+    {
+      console.log('masuk hapus');
+      $("#row-data-" + index).remove();
+
+      total_quantity = 0;
+      for (var i = 1; i < total_item; i++) 
+      {
+        if($("#quantity-" + i).val() != null)
+          total_quantity += parseInt($("#quantity-" + i).val());
+      }
+      $("#total").html("Jumlah barang " + total_quantity + " dari 24 (untuk print rak)");
     }
   </script>
 @endsection

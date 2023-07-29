@@ -34,6 +34,24 @@ class GoodLoading extends Model
         return $this->hasMany('App\Models\GoodLoadingDetail');
     }
 
+    public function detailsWithDeleted()
+    {
+        $details = $this->details;
+
+        foreach($details as $detail)
+        {
+            // dd($detail->good_unit_id);die;
+            $detail->good_unit = GoodUnit::withTrashed()->where('id', $detail->good_unit_id)->get();
+            $detail->good = Good::withTrashed()->where('id', $detail->good_unit[0]->good_id)->get();
+        // dd($details);die;
+            $detail->good_unit = $detail->good_unit[0];
+            $detail->good = $detail->good[0];
+        }
+        // dd($details);die;
+
+        return $details;
+    }
+
     public function actor()
     {
         if($this->role == 'admin')

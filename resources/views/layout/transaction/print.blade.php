@@ -97,6 +97,7 @@
 			<hr>
 			Terima kasih<br>
 			Anda telah hemat sejumlah {{ showRupiah(checkNull($transaction->details->sum('discount_price')) + checkNull($transaction->total_discount_price)) }}<br>
+			Barang yang telah dibeli tidak dapat ditukar/dikembalikan<br>
 			Keberkahan di setiap transaksi
 		</div>
 	</body>

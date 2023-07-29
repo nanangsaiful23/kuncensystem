@@ -70,9 +70,9 @@
                       @endif
                     </td>
                     <td>
-                      <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->base }}<br>
-                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->good_transactions()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->base }}<br>
-                      <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->good_loadings()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->base }}
+                      <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
+                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->good_transactions()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}<br>
+                      <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->good_loadings()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->unit->code }}
                       <br><a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
                       <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
                     </td>

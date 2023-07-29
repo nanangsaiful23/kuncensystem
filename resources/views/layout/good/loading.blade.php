@@ -46,7 +46,7 @@
                 <th>Jumlah Real</th>
                 <th>Harga Beli</th>
                 <th>Total Harga</th>
-                <th>Stock</th>
+                <th>Stock Sebelumnya</th>
                 <th>Harga Jual</th>
                 <th>Laba</th>
               </tr>

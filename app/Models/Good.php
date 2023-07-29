@@ -103,6 +103,8 @@ class Good extends Model
 
         $transactions = $this->good_transactions()->sum('real_quantity');
 
-        return $loadings - $transactions;
+        $total = $loadings - $transactions;
+
+        return $total / $this->getPcsSellingPrice()->unit->quantity;
     }
 }

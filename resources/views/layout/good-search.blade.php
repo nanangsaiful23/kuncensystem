@@ -33,6 +33,13 @@
       {
         border: solid black 2px !important;
       }
+
+      .btn-input
+      {
+        height: 60px !important;
+        margin: 5px;
+        font-size: 20px;
+      }
     </style>
 
     <body class="hold-transition sidebar-mini" style="background-color: white !important">
@@ -60,6 +67,18 @@
                             <div class="loader" style="display: none;"></div>
                           </span>
                         </div>
+                      </div>
+                      <div class="col-sm-12">
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('bed cover')">Bed Cover</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('beras')">Beras</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('ember')">Ember</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('gelas')">Gelas</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('gula')">Gula</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('kompor')">Kompor</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('magic com')">Magic Com</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('piring')">Piring</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('sprei')">Sprei</div>
+                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('tikar')">Tikar</div>
                       </div>
                       <div class="col-sm-12" id="photo-div"> 
                         @foreach($goods as $good)
@@ -158,6 +177,11 @@
       function search()
       {
         window.location = window.location.origin + '/search/' + $('#search-input').val();
+      }
+
+      function changeInput(keyword)
+      {
+        window.location = window.location.origin + '/search/' + keyword;
       }
 
       function changeView(view)

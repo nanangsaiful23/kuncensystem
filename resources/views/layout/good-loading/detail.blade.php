@@ -56,17 +56,17 @@
                                 <th>Jumlah Real</th>
                                 <th>Harga Beli</th>
                                 <th>Total Harga</th>
-                                <th>Stock</th>
+                                <th>Stock Sebelumnya</th>
                                 <th>Harga Jual</th>
                             </thead>
                             <tbody>
-                                @foreach($good_loading->details as $detail)
-                                    <tr>
+                                @foreach($good_loading->detailsWithDeleted() as $detail)
+                                    <tr @if($detail->good->deleted_at != null) style="background-color: red" @endif>
                                         <td>
-                                            {{ $detail->good_unit->good->code }}
+                                            {{ $detail->good->code }}
                                         </td>
                                         <td>
-                                            {{ $detail->good_unit->good->name }}
+                                            {{ $detail->good->name }}
                                         </td>
                                         <td>
                                             {{ $detail->expiry_date }}

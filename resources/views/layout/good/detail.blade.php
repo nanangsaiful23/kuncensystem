@@ -13,6 +13,7 @@
               </div>
             <div class="box-body">
                 @if($good->profilePicture() != null)<img src="{{ URL::to($role . '/image/' . $good->profilePicture()->location) }}" style="height: 200px;"><br>@endif
+                <a href="{{ url($role . '/good/' . $good->id . '/photo/create') }}"><i class="fa fa-camera"></i><br>Tambah Foto</a><br>
                 <hr>
                 <div class="panel-body">
                     <div class="row" style="text-align: center; background-color: #FFFAD7;">
