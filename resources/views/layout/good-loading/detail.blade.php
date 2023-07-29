@@ -63,7 +63,8 @@
                                 @foreach($good_loading->detailsWithDeleted() as $detail)
                                     <tr @if($detail->good->deleted_at != null) style="background-color: red" @endif>
                                         <td>
-                                            {{ $detail->good->code }}
+                                            <a href="{{ url($role . '/good/' . $detail->good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn" target="_blank()">
+                                            {{ $detail->good->code }}</a>
                                         </td>
                                         <td>
                                             {{ $detail->good->name }}
@@ -72,7 +73,7 @@
                                             {{ $detail->expiry_date }}
                                         </td>
                                         <td>
-                                            {{ $detail->quantity. ' @' . $detail->good_unit->unit->name . ' (' . $detail->good_unit->unit->code . ')' }}
+                                            {{ $detail->quantity . ' @' . $detail->good_unit->unit->name . ' (' . $detail->good_unit->unit->code . ')' }}
                                         </td>
                                         <td>
                                             {{ $detail->real_quantity . ' ' . $detail->good_unit->unit->base }}
@@ -84,10 +85,13 @@
                                             {{ showRupiah($detail->quantity * $detail->price) }}
                                         </td>
                                         <td>
-                                            {{ $detail->last_stock }}
+                                            {{ checkNull($detail->last_stock) }}
                                         </td>
                                         <td style="text-align: right;">
                                             {{ showRupiah($detail->selling_price) }}
+                                            @if(\Auth::user()->email == 'admin')
+                                              <br>Untung: {{ showRupiah(roundMoney($detail->selling_price) - $detail->price) . ' (' . calculateProfit($detail->price, roundMoney($detail->selling_price)) }}%)<br>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

@@ -246,7 +246,7 @@
                     document.getElementById("barcode-" + total_item).value = good.getPcsSellingPrice.id;
                     document.getElementById("quantity-" + total_item).value = 1;
                     document.getElementById("old_stock-" + total_item).value = good.stock;
-                    document.getElementById("new_stock-" + total_item).value = good.stock + 1;
+                    document.getElementById("new_stock-" + total_item).value = good.stock - 1;
                     document.getElementById("price-" + total_item).value = good.getPcsSellingPrice.buy_price;
                     document.getElementById("discount-" + total_item).value = '0';
                     document.getElementById("buy_price-" + total_item).value = good.getPcsSellingPrice.buy_price;
@@ -423,7 +423,7 @@
 
         function editPrice(index)
         {
-            document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) + parseInt(document.getElementById("quantity-" + index).value);
+            document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) - parseInt(document.getElementById("quantity-" + index).value);
 
             document.getElementById("total_price-" + index).value = (unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value));
 

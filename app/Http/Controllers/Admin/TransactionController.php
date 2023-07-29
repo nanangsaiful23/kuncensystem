@@ -90,8 +90,8 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'resume';
 
-        $transaction_details = $this->resumeTransactionBase($category_id, $distributor_id, $start_date, $end_date);
+        [$transaction_details, $total] = $this->resumeTransactionBase($category_id, $distributor_id, $start_date, $end_date);
 
-        return view('admin.layout.page', compact('default', 'transaction_details', 'category_id', 'distributor_id', 'start_date', 'end_date'));
+        return view('admin.layout.page', compact('default', 'transaction_details', 'total', 'category_id', 'distributor_id', 'start_date', 'end_date'));
     }
 }

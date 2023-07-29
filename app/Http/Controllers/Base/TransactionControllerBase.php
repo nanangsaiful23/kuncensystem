@@ -593,6 +593,10 @@ trait TransactionControllerBase
     {
         if($category_id == 'all' && $distributor_id == 'all')
         {
+            $total = TransactionDetail::whereDate('transaction_details.created_at', '>=', $start_date)
+                                      ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      ->get();
+
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
@@ -609,6 +613,10 @@ trait TransactionControllerBase
         }
         else if($category_id == 'all')
         {
+            $total = TransactionDetail::whereDate('transaction_details.created_at', '>=', $start_date)
+                                      ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      ->get();
+
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
@@ -625,6 +633,13 @@ trait TransactionControllerBase
         }
         else
         {   
+            $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                      ->join('goods', 'goods.id', 'good_units.good_id')
+                                      ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                      ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      ->where('goods.category_id', $category_id)
+                                      ->get();
+
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
@@ -641,6 +656,6 @@ trait TransactionControllerBase
                                                     ->get();
         }
 
-        return $transaction_details;
+        return [$transaction_details, $total];
     }
 }

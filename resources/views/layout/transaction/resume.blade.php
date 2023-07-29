@@ -9,7 +9,26 @@
           <div class="box-header">
             <h3 class="box-title">{{ $default['page_name'] }}</h3>
           </div>
+          <div class="box-body">
+            {!! Form::label('category', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
+            <div class="col-sm-3">
+              {!! Form::select('category', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
+            </div>
+            {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
+            <div class="col-sm-2">
+              <div class="input-group date">
+                <input type="text" class="form-control pull-right" id="datepicker" name="start_date" value="{{ $start_date }}" onchange="changeDate()">
+              </div>
+            </div>
+            {!! Form::label('end_date', 'Tanggal Akhir', array('class' => 'col-sm-1 control-label')) !!}
+            <div class="col-sm-2">
+              <div class="input-group date">
+                <input type="text" class="form-control pull-right" id="datepicker2" name="end_date" value="{{ $end_date }}" onchange="changeDate()">
+              </div>
+            </div>
+          </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
+            <h3>Total transaksi: {{ showRupiah($total->sum('sum_price')) }}</h3>
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
@@ -47,7 +66,16 @@
 @section('js-addon')
   <script type="text/javascript">
     $(document).ready(function(){
-      
+        $('.select2').select2();
+      $('#datepicker').datepicker({
+        autoclose: true,
+        format: 'yyyy-mm-dd'
+      })
+
+      $('#datepicker2').datepicker({
+        autoclose: true,
+        format: 'yyyy-mm-dd'
+      })
         $("#search-input").keyup( function(e){
           if(e.keyCode == 13)
           {
@@ -58,7 +86,17 @@
         $("#search-btn").click(function(){
             ajaxFunction();
         });
-
     });
+
+    function changeDate()
+    {
+      window.location = window.location.origin + '/{{ $role }}/transaction/resume/{{ $category_id }}/{{ $distributor_id }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val();
+    }
+
+    function advanceSearch()
+    {
+
+      window.location = window.location.origin + '/{{ $role }}/transaction/resume/' + $('#category').val() + '/' + $('#distributor').val() + '/{{ $start_date}}/{{ $end_date }}';
+    }
   </script>
 @endsection
