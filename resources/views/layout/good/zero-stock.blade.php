@@ -39,49 +39,65 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
-            {!! Form::model(old(),array('url' => route($role . '.zeroStock.export'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
-              {!! Form::submit('EXPORT', ['class' => 'btn form-control'])  !!}
+            @if(\Auth::user()->email == 'admin')
+              {!! Form::model(old(),array('url' => route($role . '.zeroStock.export'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+                {!! Form::submit('EXPORT', ['class' => 'btn form-control'])  !!}
+            @endif
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                <th>Distributor Terakhir</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>Distributor Terakhir</th>
+                @endif
                 <th>Nama</th>
-                <th>Loading Terakhir</th>
-                <th>Harga Beli Terakhir</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>Loading Terakhir</th>
+                  <th>Harga Beli Terakhir</th>
+                @endif
                 <th>Stock</th>
-                <th>Export</th>
-                <th>Hapus Barang</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>Export</th>
+                  <th>Hapus Barang</th>
+                @endif
               </tr>
               </thead>
               <tbody id="table-good">
                 @foreach($goods as $good)
                   <tr>
-                    <td>{{ $good->obj->getLastBuy() == null ? "" : $good->obj->getLastBuy()->good_loading->distributor->name }}</td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td>{{ $good->obj->getLastBuy() == null ? "" : $good->obj->getLastBuy()->good_loading->distributor->name }}</td>
+                    @endif
                     <td>{{ $good->obj->name }}</td>
-                    <td style="text-align: center;">{{ $good->obj->getLastBuy() == null ? "" : displayDate($good->obj->getLastBuy()->good_loading->loading_date) }}</td>
-                    <td style="text-align: right;">{{ $good->obj->getLastBuy() == null ? "" : showRupiah($good->obj->getLastBuy()->price) }}</td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td style="text-align: center;">{{ $good->obj->getLastBuy() == null ? "" : displayDate($good->obj->getLastBuy()->good_loading->loading_date) }}</td>
+                      <td style="text-align: right;">{{ $good->obj->getLastBuy() == null ? "" : showRupiah($good->obj->getLastBuy()->price) }}</td>
+                    @endif
                     <td style="text-align: center;">{{ $good->obj->getStock() }}</td>
-                    <td style="text-align: center;">
-                      <input type="checkbox" name="exports[]" value="{{ $good->obj->id }}" checked="checked">
-                    </td>
-                  </form>
-                    <td style="text-align: center;">
-                      @if($good->obj->getStock() == 0)
-                        <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
+                    @if(\Auth::user()->email == 'admin')
+                      <td style="text-align: center;">
+                        <input type="checkbox" name="exports[]" value="{{ $good->obj->id }}" checked="checked">
+                      </td>
+                      </form>
+                      <td style="text-align: center;">
+                        @if($good->obj->getStock() == 0)
+                          <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 
-                        @include('layout' . '.delete-modal', ['id' => $good->obj->id, 'data' => $good->obj->name, 'formName' => 'delete-form-' . $good->obj->id])
+                          @include('layout' . '.delete-modal', ['id' => $good->obj->id, 'data' => $good->obj->name, 'formName' => 'delete-form-' . $good->obj->id])
 
-                        <form id="delete-form-{{$good->obj->id}}" action="{{ url($role . '/good/' . $good->obj->id . '/delete') }}" method="POST" style="display: none;">
-                          {{ csrf_field() }}
-                          {{ method_field('DELETE') }}
-                        </form>
-                      @endif
-                    </td>
+                          <form id="delete-form-{{$good->obj->id}}" action="{{ url($role . '/good/' . $good->obj->id . '/delete') }}" method="POST" style="display: none;">
+                            {{ csrf_field() }}
+                            {{ method_field('DELETE') }}
+                          </form>
+                        @endif
+                      </td>
+                    @endif
                   </tr>
                 @endforeach
               </tbody>
             </table>
-            {!! Form::close() !!}
+            @if(\Auth::user()->email == 'admin')  
+              {!! Form::close() !!}
+            @endif
           </div>
         </div>
       </div>

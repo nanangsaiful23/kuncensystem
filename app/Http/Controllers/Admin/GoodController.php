@@ -194,17 +194,17 @@ class GoodController extends Controller
         return redirect('/admin/good/all/all/20');
     }
 
-    public function zeroStock($category_id, $location, $distributor_id, $stock)
+    public function exp()
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Stock Habis';
+        $default['page_name'] = 'Barang expired';
         $default['page'] = 'good';
-        $default['section'] = 'zero-stock';
+        $default['section'] = 'exp';
 
-        $goods = $this->zeroStockGoodBase($category_id, $location, $distributor_id, $stock);
+        $loadings = $this->expGoodBase();
 
-        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'location', 'distributor_id', 'stock'));
+        return view('admin.layout.page', compact('default', 'loadings'));
     }
 
     public function stockExport(Request $request)
@@ -272,5 +272,18 @@ class GoodController extends Controller
             return view('layout.good.print-display-rack', compact('role', 'goods'));
         else
             return view('layout.good.print-display-list', compact('role', 'goods'));
+    }
+
+    public function zeroStock($category_id, $location, $distributor_id, $stock)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Stock Habis';
+        $default['page'] = 'good';
+        $default['section'] = 'zero-stock';
+
+        $goods = $this->zeroStockGoodBase($category_id, $location, $distributor_id, $stock);
+
+        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'location', 'distributor_id', 'stock'));
     }
 }

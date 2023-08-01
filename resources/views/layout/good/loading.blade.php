@@ -8,7 +8,6 @@
         <div class="box">
           <div class="box-header">
             <h3 class="box-title">{{ $default['page_name'] . ' ' . $good->name }}</h3>
-            <!-- @include('layout.search-form') -->
           </div>
           <div class="box-body">
             {!! Form::label('show', 'Show', array('class' => 'col-sm-1 control-label')) !!}
@@ -35,9 +34,7 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                @if(\Auth::user()->email == 'admin')
-                  <th>Created at</th>
-                @endif
+                <th>Created at</th>
                 <th>Tanggal loading</th>
                 <th>Note</th>
                 <th>Nama Distributor</th>
@@ -48,17 +45,17 @@
                 <th>Total Harga</th>
                 <th>Stock Sebelumnya</th>
                 <th>Harga Jual</th>
-                <th>Laba</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>Laba</th>
+                @endif
               </tr>
               </thead>
               <tbody id="table-good">
                 @foreach($loadings as $good_loading)
                   <tr>
-                    @if(\Auth::user()->email == 'admin')
-                      <td>{{ $good_loading->created_at }}</td>
-                    @endif
-                    <td>{{ $good_loading->good_loading->note }}</td>
+                    <td>{{ $good_loading->created_at }}</td>
                     <td>{{ displayDate($good_loading->good_loading->loading_date) }}</td>
+                    <td>{{ $good_loading->good_loading->note }}</td>
                     <td>{{ $good_loading->good_loading->distributor->name }}</td>
                     <td>{{ $good_loading->expiry_date }}</td>
                     <td>{{ $good_loading->quantity. ' ' . $good_loading->good_unit->unit->code }}</td>
@@ -67,9 +64,11 @@
                     <td style="text-align: right;">{{ showRupiah($good_loading->quantity * $good_loading->price) }}</td>
                     <td>{{ $good_loading->last_stock }}</td>
                     <td style="text-align: right;">{{ showRupiah($good_loading->selling_price) }}</td>
-                    <td>{{ showRupiah(roundMoney($good_loading->selling_price) - $good_loading->price) }}
-                      <br>{{ calculateProfit($good_loading->price, $good_loading->selling_price) }}%
-                    </td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td>{{ showRupiah(roundMoney($good_loading->selling_price) - $good_loading->price) }}
+                        <br>{{ calculateProfit($good_loading->price, $good_loading->selling_price) }}%
+                      </td>
+                    @endif
                   </tr>
                 @endforeach
               </tbody>
