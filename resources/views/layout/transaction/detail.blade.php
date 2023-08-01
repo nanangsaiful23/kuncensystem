@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Form Detail Transaksi</h3>
+            <h3 class="box-title"> Form Detail Transaksi {{ $transaction->created_at }}</h3>
           </div>
 
           {!! Form::model($transaction, array('class' => 'form-horizontal')) !!}
@@ -63,7 +63,9 @@
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
-                                <th>Harga Beli</th>
+                                @if(\Auth::user()->email == 'admin')
+                                    <th>Harga Beli</th> 
+                                @endif
                                 <th>Harga Jual</th>
                                 <th>Total Diskon</th>
                                 <th>Total Akhir</th>
@@ -80,9 +82,11 @@
                                         <td>
                                             {{ $detail->quantity }}
                                         </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->buy_price) }}
-                                        </td>
+                                        @if(\Auth::user()->email == 'admin')
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->buy_price) }}
+                                            </td>
+                                        @endif
                                         <td style="text-align: right;">
                                             {{ showRupiah($detail->selling_price) }}
                                         </td>
