@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Base;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 use App\Models\Good;
 use App\Models\GoodLoadingDetail;
@@ -715,5 +716,18 @@ trait GoodControllerBase
         }
         
         return $goods;
+    }
+
+    public function expGoodBase()
+    {
+        $today = Carbon::now();
+        $later = $today->addDays(15);
+
+        $loadings = GoodLoadingDetail::whereDate('good_loading_details.expiry_date', '>=', date('Y-m-d'))
+                                  ->whereDate('good_loading_details.expiry_date', '<=', $later)
+                                  ->orderBy('good_loading_details.expiry_date', 'asc')
+                                  ->get();
+
+        return $loadings;
     }
 }
