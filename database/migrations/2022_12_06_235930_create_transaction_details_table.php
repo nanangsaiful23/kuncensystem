@@ -27,6 +27,8 @@ class CreateTransactionDetailsTable extends Migration
                   ->nullable();
             $table->decimal('real_quantity')
                   ->nullable();
+            $table->decimal('last_stock')
+                  ->nullable();
             $table->decimal('buy_price')
                   ->nullable();
             $table->decimal('selling_price')

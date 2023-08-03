@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 
 use App\Models\Brand;
+use App\Models\Distributor;
 use App\Models\Good;
 use App\Models\GoodLoadingDetail;
 use App\Models\GoodPhoto;
@@ -39,6 +40,16 @@ class LoadingImport implements ToCollection
                     $brand = Brand::create($data_brand);
                 }
 
+                #cek distributor
+                $distributor = Distributor::where('name', $row[7])->first();
+
+                if($distributor == null)
+                {
+                    $data_distributor['name'] = $row[7];
+
+                    $distributor = Distributor::create($data_distributor);
+                }
+
                 $good = Good::where('name', $row[2])->first();
 
                 if($good == null)
@@ -49,6 +60,7 @@ class LoadingImport implements ToCollection
                         'code'        => $row[1],
                         'name'        => $row[2],
                         'brand_id'    => $brand->id,
+                        'last_distributor_id' => $distributor->id
                     ]);
 
                     if($row[1] == null)
@@ -114,12 +126,18 @@ class LoadingImport implements ToCollection
 
                 GoodLoadingDetail::create($data_detail);
 
-                $data_photo['good_id'] = $good->id;
-                $data_photo['serve']   = 'web';
-                $data_photo['location'] = $row[12];
-                $data_photo['is_profile_picture'] = 1;
+                if(isset($row[11]))
+                {
+                    if($row[11] != null)
+                    {
+                        $data_photo['good_id'] = $good->id;
+                        $data_photo['serve']   = 'web';
+                        $data_photo['location'] = $row[11];
+                        $data_photo['is_profile_picture'] = 1;
 
-                GoodPhoto::create($data_photo);
+                        GoodPhoto::create($data_photo);
+                    }
+                }
             }
         }
     }

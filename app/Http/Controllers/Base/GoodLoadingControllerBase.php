@@ -223,7 +223,7 @@ trait GoodLoadingControllerBase
 
             if($distributor == null)
             {
-                if($request->distributor_id == null)
+                if($request->distributor_id == null || $request->distributor_id == 'null')
                 {
                     $data_distributor['name'] = $request->distributor_name;
 
@@ -253,7 +253,7 @@ trait GoodLoadingControllerBase
             $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
             $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
             $data_journal['debit']              = unformatNumber($request->total_item_price);
-            $data_journal['credit_account_id']  = Account::where('code', '3001')->first(); #modal awal pas pertama upload barang
+            $data_journal['credit_account_id']  = Account::where('code', '3001')->first()->id; #modal awal pas pertama upload barang
             $data_journal['credit']             = unformatNumber($request->total_item_price);
 
             Journal::create($data_journal);
