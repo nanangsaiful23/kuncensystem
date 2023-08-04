@@ -40,6 +40,11 @@ trait OtherPaymentControllerBase
 
         $account = Account::find($request->debit_account_id);
 
+        if($account == null)
+        {
+            $account = Account::where('code', $request->debit_account_id)->first();
+        }
+
         // $payment = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $request->debit_account_id)->where('credit_account_id', $data_payment['credit_account_id'])->first();
 
         // if($payment != null)
@@ -54,7 +59,7 @@ trait OtherPaymentControllerBase
             $data_payment['type']               = 'other_payment';
             $data_payment['journal_date']       = date('Y-m-d');
             $data_payment['name']               = $account->name . ' ' . $request->notes . ' (' . $request->payment . ')';
-            $data_payment['debit_account_id']   = $request->debit_account_id;
+            $data_payment['debit_account_id']   = $account->id;
             $data_payment['debit']              = $request->money;
             $data_payment['credit']             = $request->money;
 

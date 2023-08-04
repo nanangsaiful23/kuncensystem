@@ -115,50 +115,50 @@ trait InternalTransactionControllerBase
         }
 
         #tabel journal transaksi
-        $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'transaction')->first();
+        // $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'transaction')->first();
 
-        if($journal != null)
-        {
-            $data_journal['debit'] = floatval($journal->debit) + floatval($data_transaction['total_sum_price']);
-            $data_journal['credit'] = floatval($journal->credit) + floatval($data_transaction['total_sum_price']);
+        // if($journal != null)
+        // {
+        //     $data_journal['debit'] = floatval($journal->debit) + floatval($data_transaction['total_sum_price']);
+        //     $data_journal['credit'] = floatval($journal->credit) + floatval($data_transaction['total_sum_price']);
 
-            $journal->update($data_journal);
-        }
-        else
-        {
-            $data_journal['type']               = 'transaction';
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
-            $data_journal['debit']              = $data_transaction['total_sum_price'];
-            $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
-            $data_journal['credit']             = $data_transaction['total_sum_price'];
+        //     $journal->update($data_journal);
+        // }
+        // else
+        // {
+        //     $data_journal['type']               = 'transaction';
+        //     $data_journal['journal_date']       = date('Y-m-d');
+        //     $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
+        //     $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
+        //     $data_journal['debit']              = $data_transaction['total_sum_price'];
+        //     $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
+        //     $data_journal['credit']             = $data_transaction['total_sum_price'];
 
-            Journal::create($data_journal);
-        }
+        //     Journal::create($data_journal);
+        // }
 
         #tabel journal hpp
-        $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'hpp')->first();
+        // $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'hpp')->first();
 
-        if($hpp_journal != null)
-        {
-            $data_hpp['debit'] = floatval($hpp_journal->debit) + floatval($hpp);
-            $data_hpp['credit'] = floatval($hpp_journal->credit) + floatval($hpp);
+        // if($hpp_journal != null)
+        // {
+        //     $data_hpp['debit'] = floatval($hpp_journal->debit) + floatval($hpp);
+        //     $data_hpp['credit'] = floatval($hpp_journal->credit) + floatval($hpp);
 
-            $hpp_journal->update($data_hpp);
-        }
-        else
-        {
-            $data_hpp['type']               = 'hpp';
-            $data_hpp['journal_date']       = date('Y-m-d');
-            $data_hpp['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-            $data_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
-            $data_hpp['debit']              = $hpp;
-            $data_hpp['credit_account_id']  = Account::where('code', '1141')->first()->id;
-            $data_hpp['credit']             = $hpp;
+        //     $hpp_journal->update($data_hpp);
+        // }
+        // else
+        // {
+        //     $data_hpp['type']               = 'hpp';
+        //     $data_hpp['journal_date']       = date('Y-m-d');
+        //     $data_hpp['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
+        //     $data_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
+        //     $data_hpp['debit']              = $hpp;
+        //     $data_hpp['credit_account_id']  = Account::where('code', '1141')->first()->id;
+        //     $data_hpp['credit']             = $hpp;
 
-            Journal::create($data_hpp);
-        }
+        //     Journal::create($data_hpp);
+        // }
 
         #journal penyusutan barang
         if($request->type == '5215')
@@ -168,7 +168,7 @@ trait InternalTransactionControllerBase
             $data_pb['name']               = 'Barang hilang (ID transaksi ' . $transaction->id . ')';
             $data_pb['debit_account_id']   = Account::where('code', '5215')->first()->id;
             $data_pb['debit']              = $data_transaction['total_sum_price'];
-            $data_pb['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            $data_pb['credit_account_id']  = Account::where('code', '1141')->first()->id;
             $data_pb['credit']             = $data_transaction['total_sum_price'];
 
             Journal::create($data_pb);
@@ -182,7 +182,7 @@ trait InternalTransactionControllerBase
             $data_op['name']               = 'Biaya operasional toko (ID transaksi' . $transaction->id . ')';
             $data_op['debit_account_id']   = Account::where('code', '5220')->first()->id;
             $data_op['debit']              = $data_transaction['total_sum_price'];
-            $data_op['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
             $data_op['credit']             = $data_transaction['total_sum_price'];
 
             Journal::create($data_op);
@@ -198,7 +198,7 @@ trait InternalTransactionControllerBase
             $data_ud['name']               = 'Hutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
             $data_ud['debit_account_id']   = Account::where('code', '2101')->first()->id;
             $data_ud['debit']              = $data_transaction['total_sum_price'];
-            $data_ud['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
             $data_ud['credit']             = $data_transaction['total_sum_price'];
 
             Journal::create($data_ud);

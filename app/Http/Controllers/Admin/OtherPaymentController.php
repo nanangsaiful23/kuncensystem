@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Controllers\Base\OtherPaymentControllerBase;
 
+use App\Models\Account;
 use App\Models\OtherPayment;
 
 class OtherPaymentController extends Controller
@@ -27,8 +28,9 @@ class OtherPaymentController extends Controller
         $default['section'] = 'all';
 
         $other_payments = $this->indexOtherPaymentBase($start_date, $end_date, $pagination);
+        $account_admin_show = Account::where('code', '5220')->first();
 
-        return view('admin.layout.page', compact('default', 'other_payments', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'other_payments', 'account_admin_show', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()
