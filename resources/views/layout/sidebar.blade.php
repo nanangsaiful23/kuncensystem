@@ -68,8 +68,9 @@
         <ul class="treeview-menu">
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'resume'? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
+            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'resume'? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>
             @if(\Auth::user()->email == 'admin')
-              <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resume' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resume/all/all/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi</a></li>
+              <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resume' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resume/all/all/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Per Barang</a></li>
             @endif
         </ul>
       </li>
@@ -89,20 +90,18 @@
       </li>
       @if($role == 'admin')
         <li class="header">PENGELUARAN LAIN-LAIN</li>
-        @if(\Auth::user()->email == 'admin')
-          <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
-            <a href="#">
-                <i class="fa fa-plus"></i><span> Biaya Lain</span>
-              <span class="pull-right-container">
-                <i class="fa fa-angle-left pull-right"></i>
-              </span>
-            </a>
-            <ul class="treeview-menu">
-                <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Biaya Lain</a></li>
-                <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
-            </ul>
-          </li>
-        @endif
+        <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-plus"></i><span> Biaya Lain</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Biaya Lain</a></li>
+              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
+          </ul>
+        </li>
         <li class="treeview {{ (Request::segment(2) == 'internal-transaction' ) ? 'active' : ''  }}">
           <a href="#">
               <i class="fa fa-building-o"></i><span> Transaksi Internal</span>

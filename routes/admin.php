@@ -156,6 +156,7 @@ Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/create', 'TransactionController@create');
     Route::post('/store', 'TransactionController@store')->name('transaction.store');
     Route::get('/resume/{category_id}/{distributor_id}/{start_date}/{end_date}', 'TransactionController@resume');
+    Route::get('/resumeTotal/{start_date}/{end_date}', 'TransactionController@resumeTotal');
 	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'TransactionController@index');
     Route::get('/{transaction_id}/detail', 'TransactionController@detail');
     Route::get('/{transaction_id}/print', 'TransactionController@print');

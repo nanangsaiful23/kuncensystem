@@ -658,4 +658,41 @@ trait TransactionControllerBase
 
         return [$transaction_details, $total];
     }
+
+    public function resumeTotalTransactionBase($start_date, $end_date)
+    {
+        $transactions['normal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', 'normal')
+                                            ->get();
+
+        $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', 'retur')
+                                            ->get();
+
+        $transactions['not_valid'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', 'not valid')
+                                            ->get();
+
+        $transactions['internal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', '!=', 'normal')
+                                            ->where('type', '!=', 'retur')
+                                            ->where('type', '!=', 'not valid')
+                                            ->get();
+
+        $transactions['other_payment'] = Journal::where('type', 'like', '%_payment%')
+                                        ->whereDate('journals.journal_date', '>=', $start_date)
+                                        ->whereDate('journals.journal_date', '<=', $end_date) 
+                                        ->get();
+
+        $transactions['other_transaction'] = Journal::where('type', 'like', '%_transaction')
+                                        ->whereDate('journals.journal_date', '>=', $start_date)
+                                        ->whereDate('journals.journal_date', '<=', $end_date) 
+                                        ->get();   
+
+        return $transactions;                             
+    }
 }

@@ -94,4 +94,17 @@ class TransactionController extends Controller
 
         return view('admin.layout.page', compact('default', 'transaction_details', 'total', 'category_id', 'distributor_id', 'start_date', 'end_date'));
     }
+
+    public function resumeTotal($start_date, $end_date)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Resume transaksi total';
+        $default['page'] = 'transaction';
+        $default['section'] = 'resume-total';
+
+        $transactions = $this->resumeTotalTransactionBase($start_date, $end_date);
+
+        return view('admin.layout.page', compact('default', 'transactions', 'start_date', 'end_date'));
+    }
 }

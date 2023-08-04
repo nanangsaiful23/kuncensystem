@@ -6,8 +6,15 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('debit_account_id', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::select('debit_account_id', getOtherPayment(), null, ['class' => 'form-control select2',
-                    'style'=>'width: 100%']) !!}
+                    @if(\Auth::user()->email == 'admin')
+                        {!! Form::select('debit_account_id', getOtherPayment(), null, ['class' => 'form-control select2', 'style'=>'width: 100%']) !!}
+                    @else
+                        <select class="form-control select2" style="width: 100%;" name="debit_account_id">
+                            <div>
+                                <option value="5220">Biaya Operasional Toko</option>
+                            </div>
+                        </select>
+                    @endif
                 @endif
             </div>
         </div>
@@ -24,6 +31,17 @@
                             <option value="transfer">Transfer</option>
                         </div>
                     </select>
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group">
+            {!! Form::label('notes', 'Keterangan', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('notes', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('notes', null, array('class' => 'form-control')) !!}
                 @endif
             </div>
         </div>

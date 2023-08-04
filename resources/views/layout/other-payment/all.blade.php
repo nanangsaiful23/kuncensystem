@@ -39,11 +39,13 @@
               </thead>
               <tbody id="table-good">
                 @foreach($other_payments as $payment)
-                  <tr>
-                    <td>{{ displayDate($payment->journal_date) }}</td>
-                    <td>{{ $payment->name }}</td>
-                    <td>{{ showRupiah($payment->debit) }}</td>
-                  </tr>
+                  @if((\Auth::user()->email != 'admin' && $payment->debit_account_id == '5220') || \Auth::user()->email == 'admin')
+                    <tr>
+                      <td>{{ displayDate($payment->journal_date) }}</td>
+                      <td>{{ $payment->name }}</td>
+                      <td>{{ showRupiah($payment->debit) }}</td>
+                    </tr>
+                  @endif
                 @endforeach
               </tbody>
               <div id="renderField">
