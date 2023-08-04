@@ -67,8 +67,8 @@
         </a>
         <ul class="treeview-menu">
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi</a></li>
-            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'resume'? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
-            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'resume'? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>
+            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'resume' && Request::segment(3) != 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
+            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>
             @if(\Auth::user()->email == 'admin')
               <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resume' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resume/all/all/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Per Barang</a></li>
             @endif
