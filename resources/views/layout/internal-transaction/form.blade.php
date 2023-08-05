@@ -50,6 +50,7 @@
             <div class="col-sm-8">
                 <select class="form-control select2" style="width: 100%;" name="type" id="type">
                     <div>
+                        <option value="0000">0000 - Sistem Error</option>
                         <option value="5215">5215 - Biaya Penyusutan Barang</option>
                         <option value="5220">5220 - Biaya Perlengkapan Kantor</option>
                         <option value="2101">2101 - Utang Dagang</option>

@@ -43,6 +43,8 @@
                 <th>Harga Beli</th>
                 <th>Harga Jual</th>
                 <th>Untung</th>
+                <th>Total Penjualan</th>
+                <th>Total Untung</th>
               </tr>
               </thead>
               <tbody id="table-good">
@@ -56,6 +58,8 @@
                     <td>{{ showRupiah($detail->buy_price) }}</td>
                     <td>{{ showRupiah($detail->selling_price) }}</td>
                     <td>{{ showRupiah($detail->selling_price - $detail->buy_price) }}<br>{{ $profit }}%</td>
+                    <td>{{ showRupiah($detail->selling_price * $detail->quantity) }}</td>
+                    <td>{{ showRupiah(($detail->selling_price - $detail->buy_price) * $detail->quantity) }}</td>
                   </tr>
                 @endforeach
               </tbody>

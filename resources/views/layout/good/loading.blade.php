@@ -53,7 +53,7 @@
               <tbody id="table-good">
                 @foreach($loadings as $good_loading)
                   <tr>
-                    <td>{{ $good_loading->created_at }}</td>
+                    <td><a href="{{ url($role . '/good-loading/' . $good_loading->good_loading->id . '/detail') }}" class="btn" target="_blank">{{ $good_loading->created_at }}</a></td>
                     <td>{{ displayDate($good_loading->good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->good_loading->note }}</td>
                     <td>{{ $good_loading->good_loading->distributor->name }}</td>

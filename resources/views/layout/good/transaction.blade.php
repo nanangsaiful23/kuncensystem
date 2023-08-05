@@ -42,6 +42,7 @@
                 <th>Jumlah</th>
                 <th>Unit</th>
                 <th>Jumlah Real</th>
+                <th>Stock Terakhir</th>
                 @if(\Auth::user()->email == 'admin')
                   <th>Harga Beli</th>
                 @endif
@@ -56,12 +57,13 @@
                 @foreach($transactions as $transaction)
                   <tr>
                     <td>{{ $transaction->created_at }}</td>
-                    <td><a href="{{ url($role . '/transaction/' . $transaction->transaction->id . '/detail') }}" class="btn">{{ $transaction->transaction->id }}</a></td>
+                    <td><a href="{{ url($role . '/transaction/' . $transaction->transaction->id . '/detail') }}" class="btn" target="_blank">{{ $transaction->transaction->id }}</a></td>
                     <td>{{ $transaction->type }}</td>
                     <td>{{ $transaction->transaction->actor()->name }}</td>
                     <td>{{ $transaction->quantity }}</td>
                     <td>{{ $transaction->good_unit->unit->name }}</td>
                     <td>{{ $transaction->real_quantity }}</td>
+                    <td>{{ $transaction->last_stock }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td style="text-align: right;">{{ showRupiah($transaction->buy_price) }}</td>
                     @endif

@@ -275,6 +275,7 @@ trait TransactionControllerBase
                 $data_detail['type']           = $request->type;
                 $data_detail['quantity']       = $request->quantities[$i];
                 $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
+                $data_detail['last_stock']     = $good_unit->good->getStock();
                 $data_detail['buy_price']      = unformatNumber($request->buy_prices[$i]);
                 $data_detail['selling_price']  = unformatNumber($request->prices[$i]);
                 $data_detail['discount_price'] = unformatNumber($request->discounts[$i]);
@@ -608,13 +609,16 @@ trait TransactionControllerBase
                                                     ->groupBy('units.name')
                                                     ->groupBy('transaction_details.buy_price')
                                                     ->groupBy('transaction_details.selling_price')
-                                                    ->orderBy('real_quantity', 'desc')
+                                                    ->orderBy('quantity', 'desc')
                                                     ->get();
         }
         else if($category_id == 'all')
         {
-            $total = TransactionDetail::whereDate('transaction_details.created_at', '>=', $start_date)
+            $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                      ->join('goods', 'goods.id', 'good_units.good_id')
+                                      ->whereDate('transaction_details.created_at', '>=', $start_date)
                                       ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      ->where('goods.last_distributor_id', $distributor_id)
                                       ->get();
 
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
@@ -623,12 +627,13 @@ trait TransactionControllerBase
                                                     ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->where('goods.last_distributor_id', $distributor_id)
                                                     ->groupBy('goods.code')
                                                     ->groupBy('goods.name')
                                                     ->groupBy('units.name')
                                                     ->groupBy('transaction_details.buy_price')
                                                     ->groupBy('transaction_details.selling_price')
-                                                    ->orderBy('real_quantity', 'desc')
+                                                    ->orderBy('quantity', 'desc')
                                                     ->get();
         }
         else
@@ -637,6 +642,7 @@ trait TransactionControllerBase
                                       ->join('goods', 'goods.id', 'good_units.good_id')
                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
                                       ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      ->where('goods.last_distributor_id', $distributor_id)
                                       ->where('goods.category_id', $category_id)
                                       ->get();
 
@@ -645,6 +651,7 @@ trait TransactionControllerBase
                                                     ->join('units', 'units.id', 'good_units.unit_id')
                                                     ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
                                                     ->where('goods.category_id', $category_id)
+                                                    ->where('goods.last_distributor_id', $distributor_id)
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                                     ->groupBy('goods.code')
@@ -652,7 +659,7 @@ trait TransactionControllerBase
                                                     ->groupBy('units.name')
                                                     ->groupBy('transaction_details.buy_price')
                                                     ->groupBy('transaction_details.selling_price')
-                                                    ->orderBy('real_quantity', 'desc')
+                                                    ->orderBy('quantity', 'desc')
                                                     ->get();
         }
 

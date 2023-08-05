@@ -41,7 +41,7 @@
                         <div class="form-group">
                             {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-2 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('total_item_price', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                {!! Form::text('total_item_price', showRupiah($good_loading->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                             </div>
                         </div>
                     </div>
