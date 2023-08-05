@@ -79,6 +79,8 @@ class DatabaseSeeder extends Seeder
             array('code' => '5222', 'name' => 'Biaya Zakat', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '6101', 'name' => 'Pendapatan Lain-lain', 'type' => 'Kredit', 'group' => 'Laba Rugi', 'activa' =>''),
             array('code' => '6102', 'name' => 'Biaya Lain-lain', 'type' => 'Debet', 'group' => 'Laba Rugi', 'activa' =>''),
+            array('code' => '1113', 'name' => 'Kas di Nanang', 'type' => 'Debet', 'group' => 'Neraca', 'activa' => 'aktiva'),
+            array('code' => '1114', 'name' => 'Kas Uang Tukar', 'type' => 'Debet', 'group' => 'Neraca', 'activa' => 'aktiva'),
         ));
 
         DB::table('colors')->insert(array(

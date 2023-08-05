@@ -31,6 +31,18 @@
             <h3>Total transaksi lain: {{ showRupiah($transactions['other_transaction']->sum('debit')) }}</h3>
             <h3>Total biaya lain: {{ showRupiah($transactions['other_payment']->sum('debit')) }}</h3>
           </div>
+          <div class="box-body" style="overflow-x:scroll;">
+            <div class="form-group">
+                {!! Form::label('money', 'Pengambilan Uang', array('class' => 'col-sm-12')) !!}
+                <div class="col-sm-5">
+                  {!! Form::text('money', null, array('class' => 'form-control', 'onchange' => 'changeBalance()', 'id' => 'money')) !!}
+                </div>
+            </div>
+            <br>
+            <div class="form-group">
+              <h3 id="balance"></h3>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -66,6 +78,13 @@
     function changeDate()
     {
       window.location = window.location.origin + '/admin/transaction/resumeTotal/' + $("#datepicker").val() + '/' + $("#datepicker2").val();
+    }
+
+    function changeBalance()
+    {
+      saldo = $("#money").val();
+      total_money = '{{ $transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price') }}';
+      $("#balance").html("Sisa uang kasir: " + (total_money - saldo));
     }
   </script>
 @endsection
