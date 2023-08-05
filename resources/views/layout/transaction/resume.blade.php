@@ -11,8 +11,12 @@
           </div>
           <div class="box-body">
             {!! Form::label('category', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
-            <div class="col-sm-3">
+            <div class="col-sm-2">
               {!! Form::select('category', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
+            </div>
+            {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
+            <div class="col-sm-2">
+              {!! Form::select('distributor', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
             </div>
             {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
             <div class="col-sm-2">
