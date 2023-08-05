@@ -155,6 +155,7 @@ Route::group(['prefix' => 'other-transaction'], function () {
 Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/create', 'TransactionController@create');
     Route::post('/store', 'TransactionController@store')->name('transaction.store');
+    Route::post('/storeMoney', 'TransactionController@storeMoney')->name('transaction.storeMoney');
     Route::get('/resume/{category_id}/{distributor_id}/{start_date}/{end_date}', 'TransactionController@resume');
     Route::get('/resumeTotal/{start_date}/{end_date}', 'TransactionController@resumeTotal');
 	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'TransactionController@index');

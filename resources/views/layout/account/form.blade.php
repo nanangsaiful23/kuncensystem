@@ -28,7 +28,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    <select class="form-control select2" style="width: 100%;" name="payment">
+                    <select class="form-control select2" style="width: 100%;" name="type">
                         <div>
                             <option value="Debet">Debet</option>
                             <option value="Kredit">Kredit</option>
@@ -44,7 +44,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('group', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    <select class="form-control select2" style="width: 100%;" name="payment">
+                    <select class="form-control select2" style="width: 100%;" name="group">
                         <div>
                             <option value="Neraca">Neraca</option>
                             <option value="Laba Rugi">Laba Rugi</option>
@@ -54,15 +54,15 @@
             </div>
         </div>
 
-        <div class="form-activa">
+        <div class="form-group">
             {!! Form::label('activa', 'Tipe Akun', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('activa', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    <select class="form-control select2" style="width: 100%;" name="payment">
+                    <select class="form-control select2" style="width: 100%;" name="activa">
                         <div>
-                            <option value="Activa">Aktiva</option>
+                            <option value="Aktiva">Aktiva</option>
                             <option value="Pasiva">Pasiva</option>
                         </div>
                     </select>

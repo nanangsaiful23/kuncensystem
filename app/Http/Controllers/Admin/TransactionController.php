@@ -107,4 +107,13 @@ class TransactionController extends Controller
 
         return view('admin.layout.page', compact('default', 'transactions', 'start_date', 'end_date'));
     }
+
+    public function storeMoney(Request $request)
+    {
+        $this->storeMoneyTransactionBase($request);
+
+        session(['alert' => 'add', 'data' => 'pengambilan uang']);
+
+        return redirect('/admin/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d'));
+    }
 }

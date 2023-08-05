@@ -563,7 +563,6 @@
         function unFormatNumber(num)
         {
             return num.replace(/,/g,'');
-
         }
 
         function deleteItem(index)

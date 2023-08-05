@@ -695,4 +695,19 @@ trait TransactionControllerBase
 
         return $transactions;                             
     }
+
+    public function storeMoneyTransactionBase(Request $request)
+    {
+        $data_journal['type']               = 'cash_draw';
+        $data_journal['journal_date']       = date('Y-m-d');
+        $data_journal['name']               = 'Pengambilan uang tanggal ' . date('Y-m-d');
+        $data_journal['debit_account_id']   = Account::where('code', '1113')->first()->id;
+        $data_journal['debit']              = unformatNumber($request->money);
+        $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+        $data_journal['credit']             = unformatNumber($request->money);
+
+        Journal::create($data_journal);
+
+        return true;
+    }
 }
