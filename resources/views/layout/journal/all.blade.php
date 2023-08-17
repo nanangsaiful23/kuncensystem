@@ -39,6 +39,7 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
+                <th width="10%">ID</th>
                 <th width="10%">Tanggal</th>
                 <th>Nama</th>
                 <th style="background-color: #E5F9DB">No Akun</th>
@@ -52,6 +53,7 @@
               <tbody id="table-good">
                 @foreach($journals as $journal)
                   <tr>
+                    <td>{{ $journal->id }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
                     <td>{{ $journal->name }}</td>
                     <td style="background-color: #E5F9DB">{{ $journal->debit_account()->code }}</td>

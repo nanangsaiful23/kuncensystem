@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-use App\Http\Controllers\Base\journalControllerBase;
+use App\Http\Controllers\Base\JournalControllerBase;
 
 use App\Models\Journal;
 
 class JournalController extends Controller
 {
-    use journalControllerBase;
+    use JournalControllerBase;
 
     public function __construct()
     {

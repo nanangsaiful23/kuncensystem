@@ -41,6 +41,8 @@
               <tr>
                 @if(\Auth::user()->email == 'admin')
                   <th>Created at</th>
+                  <th>Payment</th>
+                  <th>ID</th>
                 @endif
                 <th>Tanggal</th>
                 <th>Nama distributor</th>
@@ -55,6 +57,8 @@
                   <tr>
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ $good_loading->created_at }}</td>
+                      <td>{{ $good_loading->payment }}</td>
+                      <td>{{ $good_loading->id }}</td>
                     @endif
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->distributor->name }}</td>

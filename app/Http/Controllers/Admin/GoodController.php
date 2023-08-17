@@ -26,17 +26,17 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Daftar Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'all';
 
-        $goods = $this->indexGoodBase($category_id, $distributor_id, $pagination);
+        $goods = $this->indexgoodBase($category_id, $distributor_id, $pagination);
 
         return view('admin.layout.page', compact('default', 'goods', 'category_id', 'distributor_id', 'pagination'));
     }
 
     public function searchByBarcode($barcode)
     {
-        $good = $this->searchByBarcodeGoodBase($barcode);
+        $good = $this->searchByBarcodegoodBase($barcode);
 
         return response()->json([
             "good"  => $good
@@ -45,16 +45,16 @@ class GoodController extends Controller
 
     public function searchById($good_id)
     {
-        $units = $this->searchByIdGoodBase($good_id);
+        $units = $this->searchByIdgoodBase($good_id);
 
         return response()->json([
             "units"  => $units
         ], 200);
     }
 
-    public function searchByGoodUnit($good_id)
+    public function searchBygoodUnit($good_id)
     {
-        $good = $this->searchByGoodUnitGoodBase($good_id);
+        $good = $this->searchBygoodUnitgoodBase($good_id);
 
         return response()->json([
             "good"  => $good
@@ -63,16 +63,16 @@ class GoodController extends Controller
 
     public function searchByKeyword($query)
     {
-        $goods = $this->searchByKeywordGoodBase($query);
+        $goods = $this->searchByKeywordgoodBase($query);
 
         return response()->json([
             "goods"  => $goods
         ], 200);
     }
 
-    public function searchByKeywordGoodUnit($query)
+    public function searchByKeywordgoodUnit($query)
     {
-        $good_units = $this->searchByKeywordGoodUnitGoodBase($query);
+        $good_units = $this->searchByKeywordgoodUnitgoodBase($query);
 
         return response()->json([
             "good_units"  => $good_units
@@ -81,7 +81,7 @@ class GoodController extends Controller
 
     public function checkDiscount($good_id, $quantity, $price)
     {
-        $discount = $this->checkDiscountGoodBase($good_id, $quantity, $price);
+        $discount = $this->checkDiscountgoodBase($good_id, $quantity, $price);
         $stock = Good::find($good_id)->getStock();
 
         return response()->json([
@@ -92,7 +92,7 @@ class GoodController extends Controller
 
     public function getPriceUnit($good_id, $unit_id)
     {
-        $good_unit = $this->getPriceUnitGoodBase($good_id, $unit_id);
+        $good_unit = $this->getPriceUnitgoodBase($good_id, $unit_id);
 
         return response()->json([
             "good_unit"  => $good_unit
@@ -101,7 +101,7 @@ class GoodController extends Controller
 
     public function store(Request $request)
     {
-        $good = $this->storeGoodBase($request);
+        $good = $this->storegoodBase($request);
 
         return response()->json([
             "good"  => $good
@@ -113,7 +113,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Detail Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'detail';
 
         $good = Good::find($good_id);
@@ -126,11 +126,11 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Riwayat Loading Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'loading';
 
         $good = Good::find($good_id);
-        $loadings = $this->loadingGoodBase($good_id, $start_date, $end_date, $pagination);
+        $loadings = $this->loadinggoodBase($good_id, $start_date, $end_date, $pagination);
 
         return view('admin.layout.page', compact('default', 'loadings', 'good', 'start_date', 'end_date', 'pagination'));
     }
@@ -140,11 +140,11 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Riwayat Transaksi Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'transaction';
 
         $good = Good::find($good_id);
-        $transactions = $this->transactionGoodBase($good_id, $start_date, $end_date, $pagination);
+        $transactions = $this->transactiongoodBase($good_id, $start_date, $end_date, $pagination);
 
         return view('admin.layout.page', compact('default', 'transactions', 'good', 'start_date', 'end_date', 'pagination'));
     }
@@ -154,11 +154,11 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Riwayat Harga Jual Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'price';
 
         $good = Good::find($good_id);
-        $prices = $this->priceGoodBase($good_id, $start_date, $end_date, $pagination);
+        $prices = $this->pricegoodBase($good_id, $start_date, $end_date, $pagination);
 
         return view('admin.layout.page', compact('default', 'prices', 'good', 'start_date', 'end_date', 'pagination'));
     }
@@ -168,7 +168,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Ubah Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'edit';
 
         $good = Good::find($good_id);
@@ -178,7 +178,7 @@ class GoodController extends Controller
 
     public function update($good_id, Request $request)
     {
-        $good = $this->updateGoodBase($good_id, $request);
+        $good = $this->updategoodBase($good_id, $request);
 
         session(['alert' => 'edit', 'data' => 'Data barang']);
 
@@ -187,7 +187,7 @@ class GoodController extends Controller
 
     public function delete($good_id)
     {
-        $this->deleteGoodBase($good_id);
+        $this->deletegoodBase($good_id);
 
         session(['alert' => 'delete', 'data' => 'Barang']);
 
@@ -202,7 +202,7 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'exp';
 
-        $loadings = $this->expGoodBase();
+        $loadings = $this->expgoodBase();
 
         return view('admin.layout.page', compact('default', 'loadings'));
     }
@@ -225,7 +225,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Ubah Harga Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'good-price';
 
         $good = Good::find($good_id);
@@ -235,7 +235,7 @@ class GoodController extends Controller
 
     public function updatePrice($good_id, Request $request)
     {
-        $good = $this->updatePriceGoodBase('admin', \Auth::user()->id, $good_id, $request);
+        $good = $this->updatePricegoodBase('admin', \Auth::user()->id, $good_id, $request);
 
         session(['alert' => 'edit', 'data' => 'Harga barang']);
 
@@ -244,7 +244,7 @@ class GoodController extends Controller
 
     public function deletePrice($good_id, $good_unit_id)
     {
-        $this->deletePriceGoodBase($good_unit_id);
+        $this->deletePricegoodBase($good_unit_id);
 
         session(['alert' => 'delete', 'data' => 'Harga barang']);
 
@@ -256,7 +256,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Print Harga Display Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'choose-print-display';
 
         return view('admin.layout.page', compact('default'));
@@ -266,7 +266,7 @@ class GoodController extends Controller
     {
         $role = 'admin';
 
-        $goods = $this->printDisplayGoodBase($request);
+        $goods = $this->printDisplaygoodBase($request);
         
         if($request->type == 'rack')
             return view('layout.good.print-display-rack', compact('role', 'goods'));
@@ -282,7 +282,7 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'zero-stock';
 
-        $goods = $this->zeroStockGoodBase($category_id, $location, $distributor_id, $stock);
+        $goods = $this->zeroStockgoodBase($category_id, $location, $distributor_id, $stock);
 
         return view('admin.layout.page', compact('default', 'goods', 'category_id', 'location', 'distributor_id', 'stock'));
     }
