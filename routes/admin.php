@@ -116,7 +116,7 @@ Route::group(['prefix' => 'internal-transaction'], function () {
 });
 
 Route::group(['prefix' => 'journal'], function () {
-	Route::get('/{start_date}/{end_date}/{pagination}', 'JournalController@index');
+	Route::get('/{code}/{start_date}/{end_date}/{pagination}', 'JournalController@index');
 });
 
 Route::group(['prefix' => 'member'], function () {

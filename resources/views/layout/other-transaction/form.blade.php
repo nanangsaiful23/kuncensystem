@@ -8,9 +8,10 @@
                 @else
                     <select class="form-control select2" style="width: 100%;" name="type" onchange="showother_payment()" id="type">
                         <div>
-                            <option value="box_transaction">Penjualan Kardus</option>
+                            <option value="box_transaction">Penjualan Lainnya (Kardus/Ongkir/Jasa Kado/dll)</option>
                             <option value="piutang_transaction">Pembayaran Piutang</option>
                             <option value="pulsa_transaction">Penjualan Pulsa/Token Listrik</option>
+                            <option value="cash_transaction">Titipan Uang Pembayaran Bu Maryati</option>
                         </div>
                     </select>
                 @endif
@@ -81,6 +82,17 @@
                     {!! Form::text('no_token', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     {!! Form::text('no_token', null, array('class' => 'form-control')) !!}
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group">
+            {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('note', null, array('class' => 'form-control')) !!}
                 @endif
             </div>
         </div>

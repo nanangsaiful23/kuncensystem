@@ -24,10 +24,11 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll;">
-            <h2>Total transaksi akhir: {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price') + $transactions['not_valid']->sum('total_sum_price') + $transactions['internal']->sum('total_sum_price') + $transactions['other_transaction']->sum('debit') + $transactions['other_payment']->sum('debit')) }}</h2>
+            <h2>Total transaksi akhir: {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price') + $transactions['not_valid']->sum('total_sum_price') + $transactions['internal']->sum('total_sum_price') + $transactions['credit']->sum('total_sum_price') + $transactions['other_transaction']->sum('debit')) }}</h2>
             <h3>Total transaksi (normal + retur): {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi double/tidak valid: {{ showRupiah($transactions['not_valid']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi internal: {{ showRupiah($transactions['internal']->sum('total_sum_price')) }}</h3>
+            <h3>Total transaksi internal (utang dagang): {{ showRupiah($transactions['credit']->sum('total_sum_price')) }}</h3>
+            <h3>Total transaksi internal lainnya: {{ showRupiah($transactions['internal']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi lain: {{ showRupiah($transactions['other_transaction']->sum('debit')) }}</h3>
             <h3>Total biaya lain: {{ showRupiah($transactions['other_payment']->sum('debit')) }}</h3>
           </div>

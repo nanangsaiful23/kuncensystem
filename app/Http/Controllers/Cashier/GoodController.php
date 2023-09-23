@@ -24,7 +24,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Daftar Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'all';
 
         $goods = $this->indexGoodBase($category_id, $distributor_id, $pagination);
@@ -100,7 +100,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Detail Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'detail';
 
         $good = Good::find($good_id);
@@ -113,7 +113,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Riwayat Transaksi Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'transaction';
 
         $good = Good::find($good_id);
@@ -127,7 +127,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Riwayat Harga Jual Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'price';
 
         $good = Good::find($good_id);
@@ -141,7 +141,7 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Ubah Barang';
-        $default['page'] = 'Good';
+        $default['page'] = 'good';
         $default['section'] = 'edit';
 
         $good = Good::find($good_id);

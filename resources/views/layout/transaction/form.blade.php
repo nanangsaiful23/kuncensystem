@@ -658,6 +658,7 @@
 
         function ajaxButton(keyword)
         {
+            name = "all_barcode";
             $('#modal_search').modal('show');   
               $.ajax({
                 url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + keyword,

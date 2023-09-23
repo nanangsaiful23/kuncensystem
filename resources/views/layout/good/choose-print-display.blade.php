@@ -81,11 +81,15 @@
 
     function addElement(index)
     {
-      index = parseInt(index) + 1;
-      index = index.toString();
-      htmlResult = '<div id="row-data-' + index + '"><div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-6"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index+ '"></div><div class="form-group col-sm-1"><i class="fa fa-times" onclick="deleteItem(\'' + index + '\')" style="color: red"></i></div></div>';
+      console.log($("#quantity-" + total_item).val());
+      if($("#quantity-" + total_item).val() == null)
+      {
+        index = parseInt(index) + 1;
+        index = index.toString();
+        htmlResult = '<div id="row-data-' + index + '"><div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-6"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index+ '"></div><div class="form-group col-sm-1"><i class="fa fa-times" onclick="deleteItem(\'' + index + '\')" style="color: red"></i></div></div>';
 
-      $("#div-result").prepend(htmlResult);
+        $("#div-result").prepend(htmlResult);
+      }
 
       total_quantity = 0;
       for (var i = 1; i < total_item; i++) 
@@ -93,7 +97,7 @@
         if($("#quantity-" + i).val() != null)
           total_quantity += parseInt($("#quantity-" + i).val());
       }
-      $("#total").html("Jumlah barang " + total_quantity + " dari 24 (untuk print rak)");
+      $("#total").html("Jumlah barang yang akan diprint " + total_quantity + " <br>(max 24 untuk print rak & max 17 untuk print list dalam satu halaman)");
     }
 
     function deleteItem(index)

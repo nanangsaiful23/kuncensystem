@@ -34,7 +34,7 @@ trait OtherTransactionControllerBase
         {
             $data_box['type']               = 'box_transaction';
             $data_box['journal_date']       = date('Y-m-d');
-            $data_box['name']               = 'Penjualan kardus';
+            $data_box['name']               = 'Penjualan lainnya (note = ' . $request->note . ')';
             $data_box['debit_account_id']   = Account::where('code', '1111')->first()->id;
             $data_box['debit']              = $request->money;
             $data_box['credit_account_id']  = Account::where('code', '6101')->first()->id;
@@ -62,7 +62,7 @@ trait OtherTransactionControllerBase
 
             $data_piutang['type']               = 'piutang_transaction';
             $data_piutang['journal_date']       = date('Y-m-d');
-            $data_piutang['name']               = 'Pembayaran ' . $request->payment . ' piutang member ' . $payment->member->name . ' (ID member ' . $payment->member->id . ')';
+            $data_piutang['name']               = 'Pembayaran ' . $request->payment . ' piutang member ' . $payment->member->name . ' (ID member ' . $payment->member->id . ') (note = ' . $request->note . ')';
             $data_piutang['debit']              = $request->money;
             $data_piutang['credit_account_id']  = Account::where('code', '1131')->first()->id;
             $data_piutang['credit']             = $request->money;
@@ -85,7 +85,7 @@ trait OtherTransactionControllerBase
 
             $data_pulsa_transaction['type']               = 'pulsa_transaction';
             $data_pulsa_transaction['journal_date']       = date('Y-m-d');
-            $data_pulsa_transaction['name']               = 'Pembayaran ' . $request->payment . ' pulsa ('. $request->no_token . ')';
+            $data_pulsa_transaction['name']               = 'Pembayaran ' . $request->payment . ' pulsa ('. $request->no_token . ') (note = ' . $request->note . ')';
             $data_pulsa_transaction['debit']              = $request->money;
             $data_pulsa_transaction['credit_account_id']  = Account::where('code', '4101')->first()->id;
             $data_pulsa_transaction['credit']             = $request->money;
@@ -94,13 +94,26 @@ trait OtherTransactionControllerBase
             
             $data_pulsa_hpp['type']               = 'pulsa_transaction_hpp';
             $data_pulsa_hpp['journal_date']       = date('Y-m-d');
-            $data_pulsa_hpp['name']               = 'Pembayaran ' . $request->payment . ' pulsa hpp ('. $request->no_token . ')';
+            $data_pulsa_hpp['name']               = 'Pembayaran ' . $request->payment . ' pulsa hpp ('. $request->no_token . ') (note = ' . $request->note . ')';
             $data_pulsa_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
             $data_pulsa_hpp['debit']              = $request->buy_price;
             $data_pulsa_hpp['credit_account_id']  = Account::where('code', '1112')->first()->id;
             $data_pulsa_hpp['credit']             = $request->buy_price;
 
             Journal::create($data_pulsa_hpp);
+        }
+
+        if($request->type == 'cash_transaction')
+        {
+            $data_cash['type']               = 'cash_transaction';
+            $data_cash['journal_date']       = date('Y-m-d');
+            $data_cash['name']               = 'Titipan Uang Pembayaran Bu Maryati (note = ' . $request->note . ')';
+            $data_cash['debit_account_id']   = Account::where('code', '1111')->first()->id;
+            $data_cash['debit']              = $request->money;
+            $data_cash['credit_account_id']  = Account::where('code', '2101')->first()->id;
+            $data_cash['credit']             = $request->money;
+
+            $journal = Journal::create($data_cash);
         }
 
         return $journal;

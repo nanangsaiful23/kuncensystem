@@ -18,7 +18,7 @@ class RedirectIfCashier
 	public function handle($request, Closure $next, $guard = 'cashier')
 	{
 	    if (Auth::guard($guard)->check()) {
-	        return redirect('cashier/home');
+	        return redirect('cashier/');
 	    }
 
 	    return $next($request);

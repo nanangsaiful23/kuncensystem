@@ -50,9 +50,12 @@
             <div class="col-sm-12">
                 <select class="form-control select2" style="width: 100%;" name="payment">
                     <div>
-                        @foreach(getAccounts() as $account)
-                            <option value="{{ $account->code }}">{{ $account->code . ' - ' . $account->name }}</option>
-                        @endforeach
+                        <option value="0000">0000 - Sistem Error</option>
+                        <option value="1111">1111 - Kas di Tangan</option>
+                        <option value="1112">1112 - Kas di Bank</option>
+                        <option value="1113">1113 - Kas di Nanang</option>
+                        <option value="2101">2101 - Utang Dagang</option>
+                        <option value="3001">3001 - Modal Pemilik</option>
                     </div>
                 </select>
             </div>
@@ -291,6 +294,21 @@
               if($("#name").val()==""){
                 isi=false;
                 alert("silahkan isi nama");
+                console.log("ini sampai");
+              }
+              if($("#unit_id").val()==""){
+                isi=false;
+                alert("silahkan pilih satuan");
+                console.log("ini sampai");
+              }
+              if($("#price").val()==""){
+                isi=false;
+                alert("silahkan isi harga beli");
+                console.log("ini sampai");
+              }
+              if($("#selling_price").val()==""){
+                isi=false;
+                alert("silahkan isi harga jual");
                 console.log("ini sampai");
               }
               if(isi){

@@ -683,22 +683,31 @@ trait TransactionControllerBase
                                             ->where('type', 'not valid')
                                             ->get();
 
+        $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', '2101')
+                                            ->get();
+
         $transactions['internal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
                                             ->where('type', '!=', 'retur')
                                             ->where('type', '!=', 'not valid')
+                                            ->where('type', '!=', '2101')
                                             ->get();
 
-        $transactions['other_payment'] = Journal::where('type', 'like', '%_payment%')
-                                        ->whereDate('journals.journal_date', '>=', $start_date)
-                                        ->whereDate('journals.journal_date', '<=', $end_date) 
-                                        ->get();
+        $account = Account::where('code', '5220')->first();
+
+        $transactions['other_payment'] = Journal::where('debit_account_id', $account->id)
+                                                ->where('type', 'like', '%_payment%')
+                                                ->whereDate('journals.journal_date', '>=', $start_date)
+                                                ->whereDate('journals.journal_date', '<=', $end_date) 
+                                                ->get();
 
         $transactions['other_transaction'] = Journal::where('type', 'like', '%_transaction')
-                                        ->whereDate('journals.journal_date', '>=', $start_date)
-                                        ->whereDate('journals.journal_date', '<=', $end_date) 
-                                        ->get();   
+                                                    ->whereDate('journals.journal_date', '>=', $start_date)
+                                                    ->whereDate('journals.journal_date', '<=', $end_date) 
+                                                    ->get();   
 
         return $transactions;                             
     }

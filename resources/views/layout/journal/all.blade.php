@@ -22,6 +22,10 @@
            <div class="col-sm-1">
               {!! Form::select('show', getPaginations(), $pagination, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
             </div>
+            {!! Form::label('code', 'Akun', array('class' => 'col-sm-1 control-label')) !!}
+           <div class="col-sm-2">
+              {!! Form::select('code', getAccountLists(), $code, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'code', 'onchange' => 'advanceSearch()']) !!}
+            </div>
             {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
             <div class="col-sm-2">
               <div class="input-group date">
@@ -106,13 +110,14 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/{{ $role }}/journal/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/journal/{{ $code }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
     }
 
     function advanceSearch()
     {
       var show        = $('#show').val();
-      window.location = window.location.origin + '/{{ $role }}/journal/{{ $start_date }}/{{ $end_date }}/' + show;
+      var code        = $('#code').val();
+      window.location = window.location.origin + '/{{ $role }}/journal/' + code + '/{{ $start_date }}/{{ $end_date }}/' + show;
     }
   </script>
 @endsection

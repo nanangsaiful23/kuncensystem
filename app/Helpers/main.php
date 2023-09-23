@@ -97,6 +97,10 @@
 
     function getActor($model, $model_id)
     {
+        if($model == 'cashier')
+            $model = 'Cashier';
+        else
+            $model = 'Admin';
         $model = "App\\" . $model;
         $data  = $model::find($model_id);
 
@@ -190,6 +194,15 @@
     function getAccounts()
     {
         return Account::orderBy('code', 'asc')->get();
+    }
+
+    function getAccountLists()
+    {
+        $accounts = ['all' => 'Seluruh akun'];
+        foreach (Account::orderBy('code', 'asc')->get() as $data) {
+            $accounts = array_add($accounts, $data->code, $data->code . ' - ' . $data->name);
+        }
+        return $accounts;
     }
 
     function getBrands()

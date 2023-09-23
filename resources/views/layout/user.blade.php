@@ -91,13 +91,13 @@
       }
     </style>
 
-    <body class="hold-transition sidebar-mini" style="background-color: white !important">
+    <body class="hold-transition sidebar-mini" style="background-color: {{ config('app.app_color') }} !important">
         <div class="wrapper">
 
             <header class="main-header" style="background-color: white !important;border-bottom: 0.5px; border: solid #DDDDDD;">
                 <a href="{{ url('/admin/' ) }}" class="logo">
                 <span class="logo-mini"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 80%"></span>
-                <span class="logo-lg" style="font-family: dosis !important;"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 15%;"> Jadi Kelolah</span>
+                <span class="logo-lg" style="font-family: dosis !important;"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 15%;"> {{ config('app.name') }}</span>
               </a>
               
               <nav class="navbar navbar-static-top" style="background-color: #FFFFFF !important">

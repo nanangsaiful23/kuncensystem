@@ -12,10 +12,10 @@
 	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 	<body style="font-size: 10px;">
 		<div style="text-align: center;">
-			NTN Mart<br>
-			Getasan, Semarang<br>
+			{{ config('app.name') }}<br>
+			{{ config('app.offline_address') }}<br>
 			Menerima pesanan<br>
-			wa/telp 0823-2292-2654
+			wa/telp {{ config('app.phone_number') }}
 			<hr>
 			{{ displayDateTime($transaction->created_at) }}<br>
 			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}<br>
