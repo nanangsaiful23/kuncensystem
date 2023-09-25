@@ -100,25 +100,26 @@ trait GoodLoadingControllerBase
 
                         GoodPrice::create($data_price);
                     }
+                    // dd($good_unit->buy_price > $data['prices'][$i]);die;
 
                     #journal penambahan barang kalau harga beli naik
-                    if($good_unit->buy_price < $data['prices'][$i])
+                    if(floatval($good_unit->buy_price) < floatval($data['prices'][$i]))
                     {
                         $account_buy = Account::where('code', '1141')->first();
 
-                        $payment_buy = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $account_buy->id)->first();
+                        // $payment_buy = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $account_buy->id)->first();
 
-                        $amount = $good_unit->good->getStock() * ($data['prices'][$i] - $good_unit->buy_price);
+                        $amount = $good_unit->good->getStock() * (($data['prices'][$i] - $good_unit->buy_price) / $good_unit->unit->quantity);
 
-                        if($payment_buy != null)
-                        {
-                            $data_payment_buy['debit'] = floatval($payment_buy->debit) + floatval($amount);
-                            $data_payment_buy['credit'] = floatval($payment_buy->credit) + floatval($amount);
+                        // if($payment_buy != null)
+                        // {
+                        //     $data_payment_buy['debit'] = floatval($payment_buy->debit) + floatval($amount);
+                        //     $data_payment_buy['credit'] = floatval($payment_buy->credit) + floatval($amount);
 
-                            $payment_buy->update($data_payment_buy);
-                        }
-                        else
-                        {
+                        //     $payment_buy->update($data_payment_buy);
+                        // }
+                        // else
+                        // {
                             $data_payment_buy['type']               = 'other_payment';
                             $data_payment_buy['journal_date']       = date('Y-m-d');
                             $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
@@ -128,25 +129,25 @@ trait GoodLoadingControllerBase
                             $data_payment_buy['credit']             = $amount;
 
                             Journal::create($data_payment_buy);
-                        }
+                        // }
                     }
-                    elseif($good_unit->buy_price > $data['prices'][$i]) #journal penyusutan kalau harga beli turun
+                    elseif(floatval($good_unit->buy_price) > floatval($data['prices'][$i])) #journal penyusutan kalau harga beli turun
                     {
                         $account_buy = Account::where('code', '5215')->first();
 
-                        $payment_buy = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $account_buy->id)->first();
+                        // $payment_buy = Journal::whereDate('journal_date', date('Y-m-d'))->where('debit_account_id', $account_buy->id)->first();
 
-                        $amount = $good_unit->good->getStock() * ($good_unit->buy_price - $data['prices'][$i]);
+                        $amount = $good_unit->good->getStock() * (($good_unit->buy_price - $data['prices'][$i]) / $good_unit->unit->quantity);
 
-                        if($payment_buy != null)
-                        {
-                            $data_payment_buy['debit'] = floatval($payment_buy->debit) + floatval($amount);
-                            $data_payment_buy['credit'] = floatval($payment_buy->credit) + floatval($amount);
+                        // if($payment_buy != null)
+                        // {
+                        //     $data_payment_buy['debit'] = floatval($payment_buy->debit) + floatval($amount);
+                        //     $data_payment_buy['credit'] = floatval($payment_buy->credit) + floatval($amount);
 
-                            $payment_buy->update($data_payment_buy);
-                        }
-                        else
-                        {
+                        //     $payment_buy->update($data_payment_buy);
+                        // }
+                        // else
+                        // {
                             $data_payment_buy['type']               = 'other_payment';
                             $data_payment_buy['journal_date']       = date('Y-m-d');
                             $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
@@ -156,7 +157,7 @@ trait GoodLoadingControllerBase
                             $data_payment_buy['credit']             = $amount;
 
                             Journal::create($data_payment_buy);
-                        }
+                        // }
                     }
 
                     $data_unit['good_id']       = $data['names'][$i];

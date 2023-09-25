@@ -537,6 +537,7 @@ trait TransactionControllerBase
     public function reverseTransactionBase($role, $role_id, $transaction_id)
     {
         $transaction = Transaction::find($transaction_id);
+        $total = 0;
 
         foreach($transaction->details as $detail)
         {
@@ -563,26 +564,28 @@ trait TransactionControllerBase
 
             GoodLoadingDetail::create($data_detail);
 
-            $data_journal['type']               = 'good_loading';
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Loading reverse transaction (id ' . $transaction->id . ') ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
-            $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
-            $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-            $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
-
-            Journal::create($data_journal);
-
-            $data_hpp['type']               = 'hpp';
-            $data_hpp['journal_date']       = date('Y-m-d');
-            $data_hpp['name']               = 'Penjualan reverse transaction (id ' . $transaction->id . ') ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
-            $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_hpp['debit']              = unformatNumber($good_loading->total_item_price);
-            $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-            $data_hpp['credit']             = unformatNumber($good_loading->total_item_price);
-
-            Journal::create($data_hpp);
+            $total += $data_loading['total_item_price'];
         }
+
+        $data_journal['type']               = 'good_loading';
+        $data_journal['journal_date']       = date('Y-m-d');
+        $data_journal['name']               = 'Loading reverse transaction (id ' . $transaction->id . ')';
+        $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
+        $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
+        $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+        $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+
+        Journal::create($data_journal);
+
+        $data_hpp['type']               = 'hpp';
+        $data_hpp['journal_date']       = date('Y-m-d');
+        $data_hpp['name']               = 'Penjualan reverse transaction (id ' . $transaction->id . ')';
+        $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
+        $data_hpp['debit']              = unformatNumber($total);
+        $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
+        $data_hpp['credit']             = unformatNumber($total);
+
+        Journal::create($data_hpp);
 
         $data_transaction['type'] = 'not valid';
         $transaction->update($data_transaction);
