@@ -304,8 +304,8 @@ trait TransactionControllerBase
 
         if($journal != null)
         {
-            $data_journal['debit'] = floatval($journal->debit) + floatval($sum);
-            $data_journal['credit'] = floatval($journal->credit) + floatval($sum);
+            $data_journal['debit'] = floatval($journal->debit) + floatval($data_transaction['total_sum_price']);
+            $data_journal['credit'] = floatval($journal->credit) + floatval($data_transaction['total_sum_price']);
 
             $journal->update($data_journal);
         }
@@ -314,9 +314,9 @@ trait TransactionControllerBase
             $data_journal['type']               = 'transaction';
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal['debit']              = $sum;
+            $data_journal['debit']              = $data_transaction['total_sum_price'];
             $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
-            $data_journal['credit']             = $sum;
+            $data_journal['credit']             = $data_transaction['total_sum_price'];
 
             Journal::create($data_journal);
         }

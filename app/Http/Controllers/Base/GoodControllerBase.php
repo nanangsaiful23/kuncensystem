@@ -342,19 +342,23 @@ trait GoodControllerBase
         if($pagination == 'all')
         {
             $loadings = GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                         ->select('good_loading_details.*')
                                          ->where('good_units.good_id', $good_id)
                                          ->whereDate('good_loading_details.loading_date', '>=', $start_date)
                                          ->whereDate('good_loading_details.loading_date', '<=', $end_date)
                                          ->where('good_units.deleted_at', null)
+                                         ->orderBy('good_loading_details.created_at', 'desc')
                                          ->get();
         }
         else
         {
             $loadings = GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                         ->select('good_loading_details.*')
                                          ->where('good_units.good_id', $good_id)
                                          ->whereDate('good_loading_details.created_at', '>=', $start_date)
                                          ->whereDate('good_loading_details.created_at', '<=', $end_date)
                                          ->where('good_units.deleted_at', null)
+                                         ->orderBy('good_loading_details.created_at', 'desc')
                                          ->paginate($pagination);
         }
 
