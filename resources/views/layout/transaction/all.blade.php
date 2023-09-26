@@ -35,7 +35,7 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll;">
-            <h3>Total transaksi hari ini: {{ showRupiah($transactions['cash']->sum('total_sum_price') + $transactions['credit']->sum('total_sum_price') + $transactions['transfer']->sum('total_sum_price') + $transactions['credit_transfer']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price')) }}</h3>
+            <h3>Total transaksi hari ini: {{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price')) }}</h3>
             <h3>Total uang masuk cash: {{ showRupiah($transactions['cash']->sum('total_sum_price') + $transactions['credit']->sum('money_paid') + $transactions['retur']->sum('total_sum_price')) }}</h4>
             <h3>Total uang masuk transfer: {{ showRupiah($transactions['transfer']->sum('total_sum_price') + ($transactions['credit_transfer']->sum('money_paid'))) }}</h4>
           </div>

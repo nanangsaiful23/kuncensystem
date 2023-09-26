@@ -22,6 +22,17 @@ trait TransactionControllerBase
     public function indexTransactionBase($role, $role_id, $start_date, $end_date, $pagination)
     {
         $transactions = [];
+        $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                    ->where('type', 'normal')
+                                    ->orderBy('transactions.created_at','desc')
+                                    ->get();
+
+        $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                    ->where('type', 'retur')
+                                    ->orderBy('transactions.created_at','desc')
+                                    ->get();
 
         if($pagination == 'all')
         {
@@ -217,7 +228,7 @@ trait TransactionControllerBase
             }
         }
 
-        return $transactions;
+        return [$transactions, $all_normal, $all_retur];
     }
 
     public function storeTransactionBase($role, $role_id, Request $request)
