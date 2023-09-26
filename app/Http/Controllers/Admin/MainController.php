@@ -85,8 +85,14 @@ class MainController extends Controller
         $hpp = Journal::where('debit_account_id', $hpp_account->id)
                       ->get();
 
-        $payments = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $payment_ins = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
+                        ->where('accounts.code', 'like', '52%')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->get();
+
+        $payment_outs = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.code', 'like', '52%')
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->get();
@@ -105,7 +111,7 @@ class MainController extends Controller
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->get();
 
-        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan', 'hpp_account', 'hpp', 'payments', 'other_incomes', 'other_outcomes'));
+        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan', 'hpp_account', 'hpp', 'payment_ins', 'payment_outs', 'other_incomes', 'other_outcomes'));
     }
 
     public function scale()
