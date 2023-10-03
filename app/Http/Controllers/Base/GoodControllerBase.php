@@ -29,7 +29,7 @@ trait GoodControllerBase
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
-                             ->where('good_loadings.distributor_id', $distributor_id)
+                             ->where('goods.last_distributor_id', $distributor_id)
                              ->orderBy('goods.id', 'desc')
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->get();
@@ -46,7 +46,7 @@ trait GoodControllerBase
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
-                             ->where('good_loadings.distributor_id', $distributor_id)
+                             ->where('goods.last_distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
@@ -65,7 +65,7 @@ trait GoodControllerBase
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
-                             ->where('good_loadings.distributor_id', $distributor_id)
+                             ->where('goods.last_distributor_id', $distributor_id)
                              ->orderBy('goods.id', 'desc')
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
                              ->paginate($pagination);
@@ -82,7 +82,7 @@ trait GoodControllerBase
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
-                             ->where('good_loadings.distributor_id', $distributor_id)
+                             ->where('goods.last_distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
@@ -152,7 +152,7 @@ trait GoodControllerBase
         foreach($goods as $good)
         {
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;
-            $good->last_loading = $good->getLastBuy() == null ? "" : $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
+            $good->last_loading = $good->getLastBuy() == null ? $good->getDistributor()->name : $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
             $good->stock = $good->getStock();
             $good->transaction = $good->good_transactions()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
             $good->loading = $good->good_loadings()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
@@ -467,8 +467,8 @@ trait GoodControllerBase
                                             JOIN good_units ON good_units.good_id = goods.id
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = good_loadings.distributor_id
-                                            WHERE distributors.id = " . $distributor_id . " 
+                                            -- JOIN distributors ON distributors.id = good_loadings.distributor_id
+                                            WHERE goods.last_distributor_id = " . $distributor_id . " 
                                             AND goods.deleted_at IS NULL
                                             AND good_units.deleted_at IS NULL
                                             GROUP BY goods.id) as goods
@@ -496,7 +496,7 @@ trait GoodControllerBase
                                             JOIN good_units ON good_units.good_id = goods.id
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = good_loadings.distributor_id
+                                            JOIN distributors ON distributors.id = goods.last_distributor_id
                                             WHERE distributors.location = '" . $location . "' 
                                             AND good_units.deleted_at IS NULL
                                             AND goods.deleted_at IS NULL
@@ -522,7 +522,7 @@ trait GoodControllerBase
                                             JOIN good_units ON good_units.good_id = goods.id
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = good_loadings.distributor_id
+                                            JOIN distributors ON distributors.id = goods.last_distributor_id
                                             WHERE distributors.location = '" . $location . "' AND 
                                             distributors.id = " . $distributor_id . " 
                                             AND good_units.deleted_at IS NULL
@@ -574,7 +574,7 @@ trait GoodControllerBase
                                             JOIN good_units ON good_units.good_id = goods.id
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = good_loadings.distributor_id
+                                            JOIN distributors ON distributors.id = goods.last_distributor_id
                                             WHERE distributors.id = " . $distributor_id . " 
                                             AND goods.category_id = " . $category_id . " 
                                             AND goods.deleted_at IS NULL 
@@ -604,7 +604,7 @@ trait GoodControllerBase
                                             JOIN good_units ON good_units.good_id = goods.id
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = good_loadings.distributor_id
+                                            JOIN distributors ON distributors.id = goods.last_distributor_id
                                             WHERE distributors.location = '" . $location . "'
                                             AND goods.category_id = " . $category_id . " 
                                             AND goods.deleted_at IS NULL 
@@ -631,7 +631,7 @@ trait GoodControllerBase
                                             JOIN good_units ON good_units.good_id = goods.id
                                             JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
                                             JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = good_loadings.distributor_id
+                                            JOIN distributors ON distributors.id = goods.last_distributor_id
                                             WHERE distributors.location = '" . $location . "' 
                                             AND distributors.id = " . $distributor_id . "
                                             AND goods.category_id = " . $category_id . "
@@ -679,6 +679,7 @@ trait GoodControllerBase
 
             GoodPrice::create($data_price);
 
+            $data_good_unit['buy_price'] = $request->buy_prices[$i];
             $data_good_unit['selling_price'] = $request->selling_prices[$i];
 
             $good_unit->update($data_good_unit);

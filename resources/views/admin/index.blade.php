@@ -13,7 +13,7 @@
     <div class="row">
       <div class="col-xs-12">
         <div class="box">
-          <div class="box-body" style="overflow-x:scroll;">
+          <div class="box-body">
             <h2>Rincian Transaksi {{ displayDate(date('Y-m-d')) }}</h2>
             <div class="col-sm-4">
               <table style="font-size: 25px; padding: 5px;">
@@ -47,6 +47,9 @@
                   <td style="text-align: right;">{{ showRupiah($transactions['transfer']->sum('total_sum_price') + ($transactions['credit_transfer']->sum('money_paid'))) }}</td>
                 </tr>
               </table>
+            </div>
+            <div class="box-body col-sm-12">
+              <h2>Kas di tangan: {{ showRupiah($cash_account->balance + $cash_in->sum('debit') - $cash_out->sum('credit')) }}</h2>
             </div>
           </div>
         </div>

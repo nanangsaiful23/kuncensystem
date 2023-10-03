@@ -10,6 +10,7 @@
                 <h1>{{ $good->name }}</h1>
                 <h4>{{ $good->code }}</h4>
                 <h5>@if($good->brand != null){{ $good->brand->name }}@endif</h5>
+                @if($role == 'admin)<h4>Distributor terakhir: {{ $good->getDistributor()->name }}</h4>@endif
               </div>
             <div class="box-body">
                 <div style="text-align: center;">

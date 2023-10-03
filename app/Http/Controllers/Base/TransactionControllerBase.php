@@ -22,17 +22,52 @@ trait TransactionControllerBase
     public function indexTransactionBase($role, $role_id, $start_date, $end_date, $pagination)
     {
         $transactions = [];
-        $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                    ->where('type', 'normal')
-                                    ->orderBy('transactions.created_at','desc')
-                                    ->get();
+        if($role != 'all')
+        {
+            $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                        ->whereDate('transactions.created_at', '<=', $end_date) 
+                                        ->where('type', 'normal')
+                                        ->where('role', $role)
+                                        ->where('role_id', $role_id)
+                                        ->orderBy('transactions.created_at','desc')
+                                        ->get();
 
-        $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                    ->where('type', 'retur')
-                                    ->orderBy('transactions.created_at','desc')
-                                    ->get();
+            $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                        ->whereDate('transactions.created_at', '<=', $end_date) 
+                                        ->where('type', 'retur')
+                                        ->where('role', $role)
+                                        ->where('role_id', $role_id)
+                                        ->orderBy('transactions.created_at','desc')
+                                        ->get();
+        }
+        else
+        {
+            $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                        ->whereDate('transactions.created_at', '<=', $end_date) 
+                                        ->where('type', 'normal')
+                                        ->orderBy('transactions.created_at','desc')
+                                        ->get();
+
+            $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                        ->whereDate('transactions.created_at', '<=', $end_date) 
+                                        ->where('type', 'retur')
+                                        ->orderBy('transactions.created_at','desc')
+                                        ->get();
+        }
+
+        $hpp_normal = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
+                                        ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                        ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                        ->where('transactions.type', 'normal')
+                                        ->get();
+
+        $hpp_retur = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
+                                        ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                        ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                        ->where('transactions.type', 'retur')
+                                        ->get();
 
         if($pagination == 'all')
         {
@@ -228,7 +263,7 @@ trait TransactionControllerBase
             }
         }
 
-        return [$transactions, $all_normal, $all_retur];
+        return [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur];
     }
 
     public function storeTransactionBase($role, $role_id, Request $request)
@@ -623,6 +658,7 @@ trait TransactionControllerBase
                                                     ->groupBy('units.name')
                                                     ->groupBy('transaction_details.buy_price')
                                                     ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
                                                     ->get();
         }
@@ -647,6 +683,7 @@ trait TransactionControllerBase
                                                     ->groupBy('units.name')
                                                     ->groupBy('transaction_details.buy_price')
                                                     ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
                                                     ->get();
         }
@@ -673,6 +710,7 @@ trait TransactionControllerBase
                                                     ->groupBy('units.name')
                                                     ->groupBy('transaction_details.buy_price')
                                                     ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
                                                     ->get();
         }

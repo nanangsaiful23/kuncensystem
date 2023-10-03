@@ -25,7 +25,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    <select class="form-control select2" style="width: 100%;" name="payment">
+                    <select class="form-control select2" style="width: 100%;" name="payment" required="required">
                         <div>
                             <option value="cash">Tunai/Cash</option>
                             <option value="transfer">Transfer</option>
@@ -52,7 +52,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('money', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::text('money', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("money")')) !!}
+                    {!! Form::text('money', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("money")', 'required' => 'required')) !!}
                 @endif
             </div>
         </div>

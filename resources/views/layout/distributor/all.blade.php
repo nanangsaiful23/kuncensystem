@@ -14,8 +14,11 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
+                <th>ID</th>
                 <th>Nama</th>
                 <th>Lokasi</th>
+                <th>Total Hutang Dagang</th>
+                <th>Total Piutang Dagang</th>
                 <th class="center">Detail</th>
                 <th class="center">Ubah</th>
                 @if($role == 'admin')
@@ -26,8 +29,11 @@
               <tbody id="table-good">
                 @foreach($distributors as $distributor)
                   <tr>
+                    <td>{{ $distributor->id }}</td>
                     <td>{{ $distributor->name }}</td>
                     <td>{{ $distributor->location }}</td>
+                    <td>{{ showRupiah($distributor->totalHutangDagang()->sum('debit')) }}</td>
+                    <td>{{ showRupiah($distributor->totalPiutangDagang()->sum('debit')) }}</td>
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')
@@ -74,5 +80,30 @@
         });
 
     });
+
+    function ajaxFunction()
+    {
+      $.ajax({
+        url: "{!! url($role . '/distributor/search/') !!}/" + $("#search-input").val(),
+        success: function(result){
+          console.log(result);
+          var htmlResult = "<thead><tr><th>ID</th><th>Nama</th><th>Lokasi</th><th>Total Hutang Dagang</th><th>Total Piutang Dagang</th><th class='center'>Detail</th><th class='center'>Ubah</th>@if($role == 'admin')<th class='center'>Hapus</th>@endif</tr></thead><tbody>";
+          if(result != null)
+          {
+            var r = result.distributors;
+            for (var i = 0; i < r.length; i++) {
+              htmlResult += "<tr><td>" + r[i].id + "</td><td>" + r[i].name + "</td><td>" + r[i].location + "</td><td>" + r[i].hutang + "</td><td>" + r[i].piutang + "<td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right brown\" aria-hidden=\"true\"></i></a></td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/edit\"><i class=\"fa fa-file brown\" aria-hidden=\"true\"></i></a></td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td></tr>";
+            }
+          }
+
+          htmlResult += "</tbody>";
+
+          $("#example1").html(htmlResult);
+        },
+        error: function(){
+            console.log('error');
+        }
+      });
+    }
   </script>
 @endsection

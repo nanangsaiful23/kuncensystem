@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Account;
 use App\Models\Distributor;
+use App\Models\Good;
 use App\Models\GoodLoading;
 use App\Models\GoodLoadingDetail;
 use App\Models\GoodPrice;
@@ -50,10 +51,13 @@ trait GoodLoadingControllerBase
         return $good_loadings;
     }
 
-    public function storeGoodLoadingBase($role, $role_id, Request $request)
+    public function storeGoodLoadingBase($role, $role_id, $type, Request $request)
     {
+        // dd(intval(456789 / 1000));die;
         $data = $request->input();
-        // dd($data);die;
+
+        if($type == 'internal')
+            $data['distributor_name'] = 'Loading internal';
 
         if($data['distributor_name'] != null)
         {
@@ -68,13 +72,29 @@ trait GoodLoadingControllerBase
             $data['distributor_id'] = $distributor->id;
         }
 
+        $request->total_item_price = unformatNumber($request->total_item_price);
+        $data_loading['note']      = $data['note'];
+        if($request->total_item_price % 1000 > 0 && $request->total_item_price % 1000 <= 500 && $request->total_item_price > 1000)
+        {
+            $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 500;
+            $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+        }
+        elseif($request->total_item_price % 1000 > 500 && $request->total_item_price > 1000)
+        {
+            $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 1000;
+            $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+        }
+        else
+        {
+            $data_loading['total_item_price'] = $request->total_item_price;
+        }
+
         $data_loading['role']         = $role;
         $data_loading['role_id']      = $role_id;
         $data_loading['checker']      = $data['checker'];
         $data_loading['loading_date'] = $data['loading_date'];
         $data_loading['distributor_id']   = $data['distributor_id'];
-        $data_loading['total_item_price'] = unformatNumber($request->total_item_price);
-        $data_loading['note']             = $data['note'];
+        // $data_loading['total_item_price'] = unformatNumber($request->total_item_price);
         $data_loading['payment']          = $data['payment'];
 
         $good_loading = GoodLoading::create($data_loading);
@@ -83,6 +103,13 @@ trait GoodLoadingControllerBase
         { 
             if($data['names'][$i] != null)
             {
+                if($type != 'internal')
+                {
+                    $data_good['last_distributor_id'] = $data['distributor_id'];
+                    $good = Good::find($data['names'][$i]);
+                    $good->update($data_good); 
+                }
+
                 $good_unit = GoodUnit::where('good_id', $data['names'][$i])
                                      ->where('unit_id', $data['units'][$i])
                                      ->first();
@@ -103,7 +130,7 @@ trait GoodLoadingControllerBase
                     // dd($good_unit->buy_price > $data['prices'][$i]);die;
 
                     #journal penambahan barang kalau harga beli naik
-                    if(floatval($good_unit->buy_price) < floatval($data['prices'][$i]))
+                    if((floatval($good_unit->buy_price) < floatval($data['prices'][$i])) && $good_unit->good->getStock() > 0)
                     {
                         $account_buy = Account::where('code', '1141')->first();
 
@@ -131,7 +158,7 @@ trait GoodLoadingControllerBase
                             Journal::create($data_payment_buy);
                         // }
                     }
-                    elseif(floatval($good_unit->buy_price) > floatval($data['prices'][$i])) #journal penyusutan kalau harga beli turun
+                    elseif((floatval($good_unit->buy_price) > floatval($data['prices'][$i])) && $good_unit->good->getStock() > 0) #journal penyusutan kalau harga beli turun
                     {
                         $account_buy = Account::where('code', '5215')->first();
 

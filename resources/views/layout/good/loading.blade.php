@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">{{ $default['page_name'] . ' ' . $good->name }}</h3>
+            <h3 class="box-title"><a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank" style="color: blue">{{ $default['page_name'] . ' ' . $good->name }}</a></h3>
           </div>
           <div class="box-body">
             {!! Form::label('show', 'Show', array('class' => 'col-sm-1 control-label')) !!}

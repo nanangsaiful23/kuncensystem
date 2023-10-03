@@ -36,8 +36,11 @@
           </div>
           <div class="box-body" style="overflow-x:scroll;">
             <h3>Total transaksi hari ini: {{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price')) }}</h3>
-            <h3>Total uang masuk cash: {{ showRupiah($transactions['cash']->sum('total_sum_price') + $transactions['credit']->sum('money_paid') + $transactions['retur']->sum('total_sum_price')) }}</h4>
-            <h3>Total uang masuk transfer: {{ showRupiah($transactions['transfer']->sum('total_sum_price') + ($transactions['credit_transfer']->sum('money_paid'))) }}</h4>
+            <!-- <h3>Total uang masuk cash: {{ showRupiah($transactions['cash']->sum('total_sum_price') + $transactions['credit']->sum('money_paid') + $transactions['retur']->sum('total_sum_price')) }}</h3> -->
+            <!-- <h3>Total uang masuk transfer: {{ showRupiah($transactions['transfer']->sum('total_sum_price') + ($transactions['credit_transfer']->sum('money_paid'))) }}</h3> -->
+            @if(\Auth::user()->email == 'admin')
+            <h3>HPP: {{ showRupiah($hpp_normal->sum('total') + $hpp_retur->sum('total')) }}</h3>
+            @endif
           </div>
 
           @include('layout.transaction.all-form', ['name' => 'Lunas', 'transactions' => $transactions['cash'], 'color' => '#E5F9DB', 'total_sum_price' => $transactions['cash']->sum('total_sum_price'), 'total_discount_price' => $transactions['cash']->sum('total_discount_price'), 'discount_price' => $transactions['cash']->sum('discount_price')])

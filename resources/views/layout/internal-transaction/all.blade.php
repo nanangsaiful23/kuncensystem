@@ -43,6 +43,7 @@
               <tr>
                 <th>Tipe</th>
                 <th>Waktu</th>
+                <th>Note</th>
                 @if(\Auth::user()->email == 'admin')
                   <th>Kasir</th>
                 @endif
@@ -60,6 +61,7 @@
                   <tr>
                     <td>{{ $transaction->type_name()->code . ' - ' . $transaction->type_name()->name }}</td>
                     <td>{{ $transaction->created_at }}</td>
+                    <td>{{ $transaction->note }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ $transaction->actor()->name }}</td>
                     @endif

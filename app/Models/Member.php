@@ -11,7 +11,7 @@ class Member extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'name', 'address'
+        'name', 'address', 'phone_number'
     ];
 
     protected $hidden = [

@@ -18,6 +18,20 @@ trait DistributorControllerBase
         return $distributors;
     }
 
+    public function searchDistributorBase($keyword)
+    {
+        $distributors = Distributor::where('name', 'like', '%' . $keyword . '%')
+                                   ->get();
+
+        foreach($distributors as $distributor)
+        {
+            $distributor->hutang = $distributor->totalHutangDagang()->sum('debit');
+            $distributor->piutang = $distributor->totalPiutangDagang()->sum('debit');
+        }
+
+        return $distributors;
+    }
+
     public function storeDistributorBase(Request $request)
     {
         $data = $request->input();

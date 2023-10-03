@@ -9,25 +9,27 @@
     <?php $distributors = getDistributors() ?>
     <div class="row">
         <div class="col-sm-5">
-            <div class="form-group col-sm-12">
-                {!! Form::label('distributor_id', 'Distributor', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
-                    @if($SubmitButtonText == 'View')
-                        {!! Form::text('distributor', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                    @else
-                        <input type="text" name="distributor_name" class="form-control" id="distributor_name">
-                        <select class="form-control select2" style="width: 100%;" name="distributor_id" id="all_distributor">
-                            <div>
-                                <option value="null">Silahkan pilih distributor</option>
-                                @foreach($distributors as $distributor)
-                                <option value="{{ $distributor->id }}">
-                                    {{ $distributor->name }}</option>
-                                @endforeach
-                            </div>
-                        </select>
-                    @endif
+            @if($type != 'internal')
+                <div class="form-group col-sm-12">
+                    {!! Form::label('distributor_id', 'Distributor', array('class' => 'col-sm-4 control-label')) !!}
+                    <div class="col-sm-8">
+                        @if($SubmitButtonText == 'View')
+                            {!! Form::text('distributor', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        @else
+                            <input type="text" name="distributor_name" class="form-control" id="distributor_name">
+                            <select class="form-control select2" style="width: 100%;" name="distributor_id" id="all_distributor">
+                                <div>
+                                    <option value="null">Silahkan pilih distributor</option>
+                                    @foreach($distributors as $distributor)
+                                    <option value="{{ $distributor->id }}">
+                                        {{ $distributor->name }}</option>
+                                    @endforeach
+                                </div>
+                            </select>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            @endif
             <div class="form-group col-sm-12">
                 {!! Form::label('loading_date', 'Tanggal Pembelian', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
@@ -275,6 +277,10 @@
                   editPrice(total_item);
                   total_real_item += 1;
                   document.getElementById("all_barcode").value = '';
+                  if(good.old_stock < 0)
+                  {
+                    alert('Silahkan lakukan stock opname karena stock barang minus');
+                  }
               }
               else
               {
@@ -477,7 +483,7 @@
           function submitForm()
           {
               var isi=true;
-              if ( $("#distributor").val()==""){
+              if ($("#distributor_name").val() == "" && $("#all_distributor").val() == "null"){
                 isi=false;
                 alert("silahkan isi distributor");
               }
@@ -490,12 +496,19 @@
                   alert('Silahkan pilih barang');
                   isi=false;
               }
+              // for(i = 1; i <= total_real_item; i++)
+              // {
+              //   if($("#old_stock-" + i).val() < 0)
+              //   {
+              //       alert('Silahkan lakukan stock opname, ada barang yang minus');
+              //       isi=false;
+              //   }
+              // }
               if(isi)
               {
                   document.getElementById('loading-form').submit();
                   // alert('hay');
               }
-
           }
 
           function formatNumber(name)

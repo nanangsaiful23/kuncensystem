@@ -21,6 +21,17 @@
                 @endif
             </div>
         </div>
+
+        <div class="form-group">
+            {!! Form::label('phone_number', 'No Telephone', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('phone_number', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('phone_number', null, array('class' => 'form-control')) !!}
+                @endif
+            </div>
+        </div>
         
         <div class="form-group">
             {{ csrf_field() }}

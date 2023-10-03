@@ -204,6 +204,36 @@ trait InternalTransactionControllerBase
             Journal::create($data_ud);
         }
 
+        #journal piutang dagang
+        if($request->type == '1131')
+        {
+            $distributor = Distributor::find($request->distributor_id);
+
+            $data_ud['type']               = 'piutang dagang ' . $distributor->id;
+            $data_ud['journal_date']       = date('Y-m-d');
+            $data_ud['name']               = 'Piutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
+            $data_ud['debit_account_id']   = Account::where('code', '1131')->first()->id;
+            $data_ud['debit']              = $data_transaction['total_sum_price'];
+            $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
+            $data_ud['credit']             = $data_transaction['total_sum_price'];
+
+            Journal::create($data_ud);
+        }
+
+        #journal modal pemilik
+        if($request->type == '3001')
+        {
+            $data_ud['type']               = 'modal pemilik';
+            $data_ud['journal_date']       = date('Y-m-d');
+            $data_ud['name']               = 'Modal pemilik transaksi internal (ID transaksi ' . $transaction->id . ')';
+            $data_ud['debit_account_id']   = Account::where('code', '3001')->first()->id;
+            $data_ud['debit']              = $data_transaction['total_sum_price'];
+            $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
+            $data_ud['credit']             = $data_transaction['total_sum_price'];
+
+            Journal::create($data_ud);
+        }
+
         return $transaction;
     }
 

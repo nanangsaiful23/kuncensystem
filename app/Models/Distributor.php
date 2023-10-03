@@ -20,4 +20,20 @@ class Distributor extends Model
     protected $dates =[
         'deleted_at',
     ];
+
+    public function totalHutangDagang()
+    {
+        $journals = Journal::where('type', 'hutang dagang ' . $this->id)
+                           ->get();
+
+        return $journals;
+    }
+
+    public function totalPiutangDagang()
+    {
+        $journals = Journal::where('type', 'piutang dagang ' . $this->id)
+                           ->get();
+
+        return $journals;
+    }
 }

@@ -209,6 +209,8 @@ class GoodController extends Controller
 
     public function stockExport(Request $request)
     {
+        // dd($request);die;
+        if($request->type == 'delete') return $this->deleteExport($request);
         $goods = [];
         foreach($request->exports as $export)
         {
@@ -218,6 +220,20 @@ class GoodController extends Controller
         }
 
         return Excel::download(new ZeroStockExport($goods), 'Data Kulak ' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function deleteExport(Request $request)
+    {
+        // dd($request);die;
+        foreach($request->deletes as $delete)
+        {
+            $good = Good::find($delete);
+            $good->delete();
+        }
+
+        session(['alert' => 'delete', 'data' => 'Barang']);
+
+        return redirect('/admin/good/zeroStock/all/all/1/10');
     }
 
     public function editPrice($good_id)

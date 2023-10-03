@@ -51,6 +51,7 @@ Route::group(['prefix' => 'color'], function () {
 Route::group(['prefix' => 'distributor'], function () {
 	Route::get('/create', 'DistributorController@create');
 	Route::post('/store', 'DistributorController@store')->name('distributor.store');
+	Route::get('/search/{keyword}', 'DistributorController@search');
 	Route::get('/{distributor_id}/detail', 'DistributorController@detail');
 	Route::get('/{distributor_id}/edit', 'DistributorController@edit');
 	Route::put('/{distributor_id}/edit', 'DistributorController@update')->name('distributor.update');
@@ -79,6 +80,7 @@ Route::group(['prefix' => 'good'], function () {
 	Route::post('/printDisplay', 'GoodController@printDisplay')->name('print-display');
 	Route::get('/zeroStock/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');
 	Route::post('/zeroStock/export', 'GoodController@stockExport')->name('zeroStock.export');
+	Route::delete('/zeroStock/delete', 'GoodController@deleteExport')->name('zeroStock.delete');
 	Route::get('/exp', 'GoodController@exp');
     Route::post('/store', 'GoodController@store')->name('good.store');
     Route::get('/{good_id}/loading/{start_date}/{end_date}/{pagination}', 'GoodController@loading');
@@ -95,8 +97,8 @@ Route::group(['prefix' => 'good'], function () {
 });
 
 Route::group(['prefix' => 'good-loading'], function () {
-	Route::get('/create', 'GoodLoadingController@create');
-    Route::post('/store', 'GoodLoadingController@store')->name('good-loading.store');
+	Route::get('/{type}/create', 'GoodLoadingController@create');
+    Route::post('/{type}/store', 'GoodLoadingController@store')->name('good-loading.store');
 	Route::get('/excel', 'GoodLoadingController@excel');
     Route::post('/storeExcel', 'GoodLoadingController@storeExcel')->name('good-loading.storeExcel');
 	Route::get('/{start_date}/{end_date}/{distributor_id}/{pagination}', 'GoodLoadingController@index');

@@ -44,6 +44,7 @@
               <thead>
               <tr>
                 <th width="10%">ID</th>
+                <th width="10%">Created_at</th>
                 <th width="10%">Tanggal</th>
                 <th>Nama</th>
                 <th style="background-color: #E5F9DB">No Akun</th>
@@ -58,6 +59,7 @@
                 @foreach($journals as $journal)
                   <tr>
                     <td>{{ $journal->id }}</td>
+                    <td>{{ displayDate($journal->created_at) }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
                     <td>{{ $journal->name }}</td>
                     <td style="background-color: #E5F9DB">{{ $journal->debit_account()->code }}</td>

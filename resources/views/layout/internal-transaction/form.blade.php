@@ -54,6 +54,8 @@
                         <option value="5215">5215 - Biaya Penyusutan Barang</option>
                         <option value="5220">5220 - Biaya Perlengkapan Kantor</option>
                         <option value="2101">2101 - Utang Dagang</option>
+                        <option value="3001">3001 - Modal Pemilik</option>
+                        <option value="1131">1131 - Piutang Dagang</option>
                     </div>
                 </select>
             </div>

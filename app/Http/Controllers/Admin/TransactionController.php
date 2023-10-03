@@ -26,9 +26,9 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'all';
 
-        [$transactions, $all_normal, $all_retur] = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
+        [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur] = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'transactions', 'all_normal', 'all_retur', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'transactions', 'all_normal', 'all_retur', 'hpp_normal', 'hpp_retur', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()

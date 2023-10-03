@@ -104,4 +104,16 @@ class Good extends Model
 
         return $total / $this->getPcsSellingPrice()->unit->quantity;
     }
+
+    public function getDistributor()
+    {
+        if($this->last_distributor_id == null)
+        {
+            if($this->getLastBuy() == null)
+                return Distributor::where('name', 'Lainnya')->first();
+            else
+                return $this->getLastBuy()->good_loading->distributor;
+        }
+        return Distributor::find($this->last_distributor_id);
+    }
 }

@@ -80,6 +80,7 @@ class LoginController extends Controller
     {
         $data = $request->only('email', 'password');
         $data['password'] = $data['password'] . '<4d[M!n}';
+        
         return $data;
     }
 }

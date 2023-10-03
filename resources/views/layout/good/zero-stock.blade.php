@@ -40,8 +40,12 @@
           </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
             @if(\Auth::user()->email == 'admin')
-              {!! Form::model(old(),array('url' => route($role . '.zeroStock.export'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
-                {!! Form::submit('EXPORT', ['class' => 'btn form-control'])  !!}
+              {!! Form::model(old(),array('url' => route($role . '.zeroStock.export'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'export-form')) !!}
+              <input type="hidden" name="type" value="delete" id="type">
+              <button type="button" class="btn form-control" onclick="changeType()"> EXPORT BARANG</button>
+              <button type="button" class="btn form-control" data-toggle="modal" data-target="#modal-danger-zero" style="background-color:red !important"> HAPUS BARANG</button>
+
+              @include('layout.delete-modal', ['id' => 'zero', 'data' => 'barang', 'formName' => 'export-form'])
             @endif
             <table id="example1" class="table table-bordered table-striped">
               <thead>
@@ -77,17 +81,9 @@
                       <td style="text-align: center;">
                         <input type="checkbox" name="exports[]" value="{{ $good->obj->id }}" checked="checked">
                       </td>
-                      </form>
                       <td style="text-align: center;">
                         @if($good->obj->getStock() == 0)
-                          <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
-
-                          @include('layout' . '.delete-modal', ['id' => $good->obj->id, 'data' => $good->obj->name, 'formName' => 'delete-form-' . $good->obj->id])
-
-                          <form id="delete-form-{{$good->obj->id}}" action="{{ url($role . '/good/' . $good->obj->id . '/delete') }}" method="POST" style="display: none;">
-                            {{ csrf_field() }}
-                            {{ method_field('DELETE') }}
-                          </form>
+                          <input type="checkbox" name="deletes[]" value="{{ $good->obj->id }}">
                         @endif
                       </td>
                     @endif
@@ -95,6 +91,7 @@
                 @endforeach
               </tbody>
             </table>
+          </form>
             @if(\Auth::user()->email == 'admin')  
               {!! Form::close() !!}
             @endif
@@ -125,6 +122,17 @@
     function advanceSearch()
     {
       window.location = window.location.origin + '/{{ $role }}/good/zeroStock/' + $('#category_id').val() + '/' + $('#location').val() + '/' + $('#distributor_id').val() + '/' + $('#stock').val();
+    }
+
+    function changeType()
+    {
+      $('#type').val('export');
+      submitForm();
+    }
+
+    function submitForm()
+    {     
+      $('#export-form').submit();
     }
   </script>
 @endsection

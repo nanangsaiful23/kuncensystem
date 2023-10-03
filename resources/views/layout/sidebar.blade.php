@@ -52,9 +52,10 @@
             </span>
           </a>
           <ul class="treeview-menu">
-              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang</a></li>
-              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(3) != 'create' && Request::segment(3) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/50') }}"><i class="fa fa-circle-o"></i> Daftar Loading Barang</a></li>
-              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(3) == 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/excel') }}"><i class="fa fa-circle-o"></i> Import Data Excel</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'create' && Request::segment(3) != 'internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/normal/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'create' && Request::segment(3) == 'internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/internal/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang Internal</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) != 'create' && Request::segment(4) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/50') }}"><i class="fa fa-circle-o"></i> Daftar Loading Barang</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/excel') }}"><i class="fa fa-circle-o"></i> Import Data Excel</a></li>
           </ul>
         </li>
       @endif

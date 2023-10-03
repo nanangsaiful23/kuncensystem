@@ -32,22 +32,22 @@
                     <td>4101</td>
                     <td>Penjualan</td>
                     <td style="text-align: right;">{{ showRupiah($penjualan_account->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan->sum('credit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance + $penjualan->sum('credit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance + $penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) }}</td>
                   </tr>
                   <tr>
                     <td>5101</td>
                     <td>Harga Penjualan Pokok</td>
                     <td style="text-align: right;">{{ showRupiah($hpp_account->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($hpp->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($hpp_account->balance + $hpp->sum('debit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($hpp_account->balance + $hpp_debit->sum('debit') - $hpp_credit->sum('credit')) }}</td>
                   </tr>
                   <tr style="font-weight: bold;">
                     <td></td>
                     <td>Laba (rugi) kotor</td>
                     <td style="text-align: right;">{{ showRupiah($penjualan_account->balance - $hpp_account->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan->sum('credit') - $hpp->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan_account->balance + $penjualan->sum('credit')) - ($hpp_account->balance + $hpp->sum('debit'))) }}</td>
+                    <td style="text-align: right;">{{ showRupiah(($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit'))) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit'))) }}</td>
                   </tr>
                   <tr>
                     <td colspan="5"></td>
@@ -75,8 +75,8 @@
                     <td></td>
                     <td>Laba Bersih Usaha</td>
                     <td style="text-align: right;">{{ showRupiah(($penjualan_account->balance - $hpp_account->balance) - $payment_ins->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan->sum('credit') - $hpp->sum('debit')) - ($payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
-                    <td style="text-align: right;">{{ showRupiah((($penjualan_account->balance + $penjualan->sum('credit')) - ($hpp_account->balance + $hpp->sum('debit'))) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
+                    <td style="text-align: right;">{{ showRupiah(($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
                   </tr>
                   <tr>
                     <td colspan="5"></td>
@@ -84,16 +84,16 @@
                   <tr style="font-weight: bold;">
                     <td>6101</td>
                     <td>Pendapatan lain-lain</td>
-                    <td style="text-align: right;">{{ showRupiah($other_incomes[0]->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_incomes[0]->credit) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_incomes[0]->balance + $other_incomes[0]->credit) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($other_income_debits[0]->balance) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($other_income_credits->sum('credit') - $other_income_debits->sum('debit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($other_income_debits[0]->balance + $other_income_credits->sum('credit') - $other_income_debits->sum('debit')) }}</td>
                   </tr>
                   <tr style="font-weight: bold;">
                     <td>6102</td>
                     <td>Biaya lain-lain</td>
-                    <td style="text-align: right;">{{ showRupiah($other_outcomes[0]->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_outcomes[0]->debit) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_outcomes[0]->balance + $other_outcomes[0]->debit) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($other_outcome_debits[0]->balance) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($other_outcome_debits->sum('debit') - $other_outcome_credits->sum('credit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($other_outcome_debits[0]->balance + $other_outcome_debits->sum('debit') - $other_outcome_credits->sum('credit')) }}</td>
                   </tr>
                 </tbody>
               </table>

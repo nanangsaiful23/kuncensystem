@@ -31,20 +31,23 @@ class GoodLoadingController extends Controller
         return view('admin.layout.page', compact('default', 'good_loadings', 'start_date', 'end_date', 'distributor_id', 'pagination'));
     }
 
-    public function create()
+    public function create($type)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
-        $default['page_name'] = 'Tambah Loading';
+        if($type == 'internal')
+            $default['page_name'] = 'Tambah Loading Internal';
+        else
+            $default['page_name'] = 'Tambah Loading';
         $default['page'] = 'good-loading';
         $default['section'] = 'create';
 
-        return view('admin.layout.page', compact('default'));
+        return view('admin.layout.page', compact('default', 'type'));
     }
 
-    public function store(Request $request)
+    public function store($type, Request $request)
     {
-        $good_loading = $this->storeGoodLoadingBase('admin', \Auth::user()->id, $request);
+        $good_loading = $this->storeGoodLoadingBase('admin', \Auth::user()->id, $type, $request);
 
         session(['alert' => 'add', 'data' => 'loading barang']);
 
