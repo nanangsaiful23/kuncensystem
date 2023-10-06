@@ -50,7 +50,7 @@
             </div>
             {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-12 control-label', 'style' => 'text-align: left')) !!}
             <div class="col-sm-12">
-                <select class="form-control select2" style="width: 100%;" name="payment">
+                <select class="form-control select2" style="width: 100%;" name="payment" id="payment">
                     <div>
                         <option value="0000">0000 - Sistem Error</option>
                         <option value="1111">1111 - Kas di Tangan</option>
@@ -106,6 +106,7 @@
             <tbody id="table-transaction">
                 <?php $i = 1; ?>
                 <tr id="row-data-{{ $i }}">
+                    <input type="hidden" name="base_qtys[]" id="base_qty-{{ $i}}">
                     <td>
                         <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" style="height: 70px"></textarea>
                     </td>
@@ -139,7 +140,7 @@
                     </td>
                     <td>
                          <textarea type="text" name="prices[]" class="form-control" id="price-{{ $i }}"
-                            onchange="editPrice('{{ $i }}')" onkeypress="editPrice('{{ $i }}')"></textarea>
+                            onchange="editBuyPrice('{{ $i }}')"></textarea>
                     </td>
                     <td>
                         {!! Form::textarea('total_prices[]', null, array('class' => 'form-control', 'readonly' =>
@@ -268,12 +269,17 @@
                   document.getElementById("name_temp-" + total_item).value = good.name;
                   document.getElementById("barcode-" + total_item).value = good.code;
                   $("#unit-" + total_item).val(good.getPcsSellingPrice.unit_id).change();
-                  $("#price-" + total_item).val(good.getPcsSellingPrice.buy_price);
+                  $("#price-" + total_item).val(good.getPcsSellingPrice.base_buy_price * good.getPcsSellingPrice.unit_qty);
                   $("#sell_price-" + total_item).val(good.getPcsSellingPrice.selling_price);
+                  document.getElementById("base_qty-" + total_item).value = good.getPcsSellingPrice.unit_qty;
                   document.getElementById("quantity-" + total_item).value = 1;
                   document.getElementById("old_stock-" + total_item).value = good.old_stock;
                   document.getElementById("new_stock-" + total_item).value = parseInt(good.old_stock) + 1;
 
+                  if(good.getPcsSellingPrice.unit_qty != good.getPcsSellingPrice.base_qty)
+                  {
+                    document.getElementById('price-' + total_item).readOnly = true;
+                  }
                   editPrice(total_item);
                   total_real_item += 1;
                   document.getElementById("all_barcode").value = '';
@@ -347,7 +353,7 @@
 
                     total_item += 1;
                     total_real_item+=1;
-                    htmlResult = '<tr id="row-data-' + total_item+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + total_item+ '" onchange="searchName(' + total_item+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + total_item+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + total_item + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control" id="exp-' + total_item + '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + total_item +'" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><select class="form-control select2" id="unit-' + total_item + '" name="units[]" onchange="changePriceByUnit(' + total_item + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + total_item+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="new_stock-' + total_item+ '" name="new_stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="price-' + total_item + '" name="prices[]" type="text" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + total_item +'" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + total_item+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + total_item +'" onclick="deleteItem(' + total_item + ')"></i></td></tr>';
+                    htmlResult = '<tr id="row-data-' + total_item+ '"><input type="hidden" name="base_qtys[]" id="base_qty-' + total_item + '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + total_item+ '" onchange="searchName(' + total_item+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + total_item+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + total_item + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control" id="exp-' + total_item + '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + total_item +'" onkeypress="editPrice(' + total_item +')" onchange="editPrice(' + total_item + ')"></textarea></td><td><select class="form-control select2" id="unit-' + total_item + '" name="units[]" onchange="changePriceByUnit(' + total_item + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + total_item+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="new_stock-' + total_item+ '" name="new_stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="price-' + total_item + '" name="prices[]" type="text" onchange="editBuyPrice(' + total_item + ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + total_item +'" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + total_item+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + total_item +'" onclick="deleteItem(' + total_item + ')"></i></td></tr>';
                     htmlResult += "<script>$('#unit-" + total_item + "').select2();<\/script>";
                     $("#table-transaction").prepend(htmlResult);
 
@@ -395,7 +401,7 @@
                     var r = result.units;
 
                     for (var i = 0; i < r.length; i++) {
-                        const getPcsSellingPrice = {unit_id: r[i].unit_id, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
+                        const getPcsSellingPrice = {unit_id: r[i].unit_id, unit_qty: r[i].unit_qty, base_qty: r[i].good_base_qty, base_buy_price: r[i].good_base_buy_price, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
                         const good = {id: r[i].good_id, name: r[i].name, code: r[i].code, getPcsSellingPrice: getPcsSellingPrice, old_stock: r[i].stock};
                         console.log(good);
                         fillItem(good,index);
@@ -496,6 +502,10 @@
                   alert('Silahkan pilih barang');
                   isi=false;
               }
+              if($("#payment").val() == "0000")
+              {
+                alert('Silahkan cek kembali jenis pembayaran')
+              }
               // for(i = 1; i <= total_real_item; i++)
               // {
               //   if($("#old_stock-" + i).val() < 0)
@@ -528,6 +538,23 @@
               total_real_item-=1;
               changeTotal();
           }
+
+          function editBuyPrice(index)
+          {
+            //change all buy price
+            good_id = document.getElementById("barcode-" + index).value;
+            base_buy_price = document.getElementById("price-" + index).value;
+            for(i = 1; i <= total_item; i++)
+            {
+                if(document.getElementById("barcode-" + i).value == good_id && i != index)
+                {
+                    document.getElementById("price-" + i).value = document.getElementById("base_qty-" + i).value * base_buy_price;
+                }
+            }
+
+            editPrice(index);
+          }
+
           function editPrice(index)
           {
               document.getElementById("total_price-" + index).value = unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value);
@@ -537,7 +564,7 @@
 
               changeTotal();
               temp1=parseInt(index)+1
-              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control"  id="exp-' +temp1+ '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]" onchange="changePriceByUnit(' + temp1 + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + temp1+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="new_stock-' + temp1+ '" name="new_stocks[]" type="text"></textarea></td><td><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+              htmlResult = '<tr id="row-data-' + temp1+ '"><input type="hidden" name="base_qtys[]" id="base_qty-' + temp1 + '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><input class="form-control"  id="exp-' +temp1+ '" name="exp_dates[]" type="text"></td><td><textarea type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]" onchange="changePriceByUnit(' + temp1 + ')">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + temp1+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" readonly="readonly" id="new_stock-' + temp1+ '" name="new_stocks[]" type="text"></textarea></td><td><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'" onchange="editBuyPrice(' + temp1+ ')"></textarea></td><td><textarea class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></textarea></td><td><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
               + temp1+ ')"></i></td></tr>';
               htmlResult += "<script>$('#unit-" + temp1 + "').select2();$('#exp-"+temp1+"').datepicker({autoclose: true,format: 'yyyy-mm-dd',todayHighlight: true});<\/script>";
               if(index == total_item)

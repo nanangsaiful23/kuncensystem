@@ -77,59 +77,46 @@ class MainController extends Controller
         return view('admin.index', compact('default', 'transactions', 'other_transactions', 'good_prices', 'cash_account', 'cash_in', 'cash_out'));
     }
 
+    public function getPenjualanHpp($code)
+    {
+        $account = Account::where('code', $code)->first();
+        $debit = Journal::where('debit_account_id', $account->id)
+                                  ->get();
+        $credit = Journal::where('credit_account_id', $account->id)
+                                   ->get();
+
+        return [$account, $debit, $credit];
+    }
+
+    public function getPayment($code)
+    {
+        $debit = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
+                        ->where('accounts.code', 'like', $code)
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->orderBy('accounts.code')
+                        ->get();
+
+        $credit = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
+                        ->where('accounts.code', 'like', $code)
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->orderBy('accounts.code')
+                        ->get();
+
+        return [$debit, $credit];
+    }
+
     public function profit()
     {
         $default['page_name'] = 'Laba Rugi';
 
-        $penjualan_account = Account::where('code', '4101')->first();
-        $penjualan_credit = Journal::where('credit_account_id', $penjualan_account->id)
-                                   ->get();
-        $penjualan_debit = Journal::where('debit_account_id', $penjualan_account->id)
-                                  ->get();
+        [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
+        [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
+        [$payment_ins, $payment_outs] = $this->getPayment('52%');
+        [$other_income_debits, $other_income_credits] = $this->getPayment('6101');
+        [$other_outcome_debits, $other_outcome_credits] = $this->getPayment('6102');
 
-        $hpp_account = Account::where('code', '5101')->first();
-        $hpp_debit = Journal::where('debit_account_id', $hpp_account->id)
-                            ->get();
-        $hpp_credit = Journal::where('credit_account_id', $hpp_account->id)
-                             ->get();
-
-        $payment_ins = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
-                        ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
-                        ->where('accounts.code', 'like', '52%')
-                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
-                        ->get();
-
-        $payment_outs = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
-                        ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
-                        ->where('accounts.code', 'like', '52%')
-                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
-                        ->get();
-
-        $other_income_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
-                                        ->where('accounts.code', '6101')
-                                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->get();
-
-        $other_income_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
-                                        ->where('accounts.code', '6101')
-                                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->get();
-
-        $other_outcome_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
-                                        ->where('accounts.code', '6102')
-                                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->get();
-
-        $other_outcome_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
-                                        ->where('accounts.code', '6102')
-                                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
-                                        ->get();
-
-                                        // dd($other_income_debits[0]->balance);die;
         return view('admin.profit', compact('default', 'penjualan_account', 'penjualan_debit', 'penjualan_credit', 'hpp_account', 'hpp_debit', 'hpp_credit', 'payment_ins', 'payment_outs', 'other_income_debits', 'other_income_credits', 'other_outcome_debits', 'other_outcome_credits'));
     }
 
@@ -141,27 +128,43 @@ class MainController extends Controller
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->orderBy('accounts.code')
                         ->get();
 
         $activa_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->orderBy('accounts.code')
                         ->get();
 
         $pasiva_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->orderBy('accounts.code')
                         ->get();
 
         $pasiva_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->orderBy('accounts.code')
                         ->get();
 
-        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits'));
+        #count total neraca dari laba rugi
+        [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
+        [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
+        [$payment_ins, $payment_outs] = $this->getPayment('52%');
+        [$utang_dagang, $utang_dagang_debit, $utang_dagang_credit] = $this->getPenjualanHpp('4101');
+        [$modal_pemilik, $modal_pemilik_debit, $modal_pemilik_credit] = $this->getPenjualanHpp('3001');
+        [$kas_ditangan, $kas_ditangan_debit, $kas_ditangan_credit] = $this->getPenjualanHpp('1111');
+
+        $total = $penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'));
+
+        $total += ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) - ($utang_dagang->sum('balance') + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) + $modal_pemilik->sum('balance') + $kas_ditangan->sum('balance');
+
+        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total'));
     }
 
     public function retur($distributor_id, $status, $pagination)

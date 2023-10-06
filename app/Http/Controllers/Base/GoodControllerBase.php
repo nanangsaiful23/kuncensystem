@@ -105,8 +105,8 @@ trait GoodControllerBase
     public function searchByIdGoodBase($good_id)
     {
         $good = Good::find($good_id);
-        $good->getPcsSellingPrice = $good->getPcsSellingPrice();
-        $good->stock = $good->getStock();
+        // $good->getPcsSellingPrice = $good->getPcsSellingPrice();
+        // $good->stock = $good->getStock();
 
         $units = [];
         foreach($good->good_units as $unit)
@@ -115,12 +115,15 @@ trait GoodControllerBase
             $temp['good_id'] = $good->id;
             $temp['good_unit_id'] = $unit->id;
             $temp['unit_id'] = $unit->unit_id;
+            $temp['unit_qty'] = $unit->unit->quantity;
+            $temp['good_base_qty'] = $good->getPcsSellingPrice()->unit->quantity;
+            $temp['good_base_buy_price'] = $good->getPcsSellingPrice()->buy_price;
             $temp['code'] = $good->code;
             $temp['name'] = $good->name;
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;
             $temp['selling_price'] = $unit->selling_price;
-            $temp['stock'] = $good->stock;
+            $temp['stock'] = $good->getStock();
             array_push($units, $temp);
         }
 
