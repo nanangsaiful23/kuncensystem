@@ -9,9 +9,9 @@
             <h3 class="box-title"> {{ $default['page_name'] }}</h3>
           </div>
 
-          {!! Form::model(old(),array('url' => route($role . '.category.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+          {!! Form::model(old(),array('url' => route($role . '.retur.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
             <div class="box-body">
-              @include('layout' . '.category.form', ['SubmitButtonText' => 'Tambah'])
+              @include('layout' . '.retur.form', ['SubmitButtonText' => 'Tambah'])
             </div>
           {!! Form::close() !!}
 

@@ -215,7 +215,12 @@
 
     function advanceSearch()
     {
-      window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#distributor').val() + '/' + $('#show').val();
+      var username = "{{ \Auth::user()->email }}";
+
+      if(username == 'admin')
+        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#distributor').val() + '/' + $('#show').val();
+      else
+        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/all/' + $('#show').val();
     }
   </script>
 @endsection

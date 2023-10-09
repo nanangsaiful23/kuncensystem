@@ -39,11 +39,9 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                @if(\Auth::user()->email == 'admin')
-                  <th>Created at</th>
-                  <th>Payment</th>
-                  <th>ID</th>
-                @endif
+                <th>Created at</th>
+                <th>Payment</th>
+                <th>ID</th>
                 <th>Tanggal</th>
                 <th>Nama distributor</th>
                 <th>Total Loading</th>
@@ -55,11 +53,9 @@
               <tbody id="table-good">
                 @foreach($good_loadings as $good_loading)
                   <tr>
-                    @if(\Auth::user()->email == 'admin')
-                      <td>{{ $good_loading->created_at }}</td>
-                      <td>{{ $good_loading->payment }}</td>
-                      <td>{{ $good_loading->id }}</td>
-                    @endif
+                    <td>{{ $good_loading->created_at }}</td>
+                    <td>{{ $good_loading->payment }}</td>
+                    <td>{{ $good_loading->id }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->distributor->name }}</td>
                     <td>{{ showRupiah($good_loading->total_item_price) }}</td>

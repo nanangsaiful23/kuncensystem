@@ -156,111 +156,41 @@ class MainController extends Controller
         [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
         [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
         [$payment_ins, $payment_outs] = $this->getPayment('52%');
-        [$utang_dagang, $utang_dagang_debit, $utang_dagang_credit] = $this->getPenjualanHpp('4101');
+        [$utang_dagang, $utang_dagang_debit, $utang_dagang_credit] = $this->getPenjualanHpp('2101');
         [$modal_pemilik, $modal_pemilik_debit, $modal_pemilik_credit] = $this->getPenjualanHpp('3001');
         [$kas_ditangan, $kas_ditangan_debit, $kas_ditangan_credit] = $this->getPenjualanHpp('1111');
+        [$pendapatan_lain, $pendapatan_lain_debit, $pendapatan_lain_credit] = $this->getPenjualanHpp('6101');
+        [$biaya_lain, $biaya_lain_debit, $biaya_lain_credit] = $this->getPenjualanHpp('6102');
 
-        $total = $penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'));
+        $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($pendapatan_lain->balance + $pendapatan_lain_debit->sum('debit') - $pendapatan_lain_credit->sum('credit')) - ($biaya_lain->balance + $biaya_lain_debit->sum('debit') - $biaya_lain_credit->sum('credit'));
 
-        $total += ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) - ($utang_dagang->sum('balance') + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) + $modal_pemilik->sum('balance') + $kas_ditangan->sum('balance');
+        $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_ditangan->balance;
 
-        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total'));
-    }
+        $real_stock = DB::select(DB::raw("SELECT SUM(final.stock) as stock
+                                        FROM (SELECT goods.id, SUM(total.total_real * total.real_price) as stock
+                                                FROM goods 
+                                                JOIN (SELECT goods.id, SUM(loading.total_loading - transaction.total_transaction) as total_real, SUM(price.buy_price/price.quantity) as real_price
+                                                    FROM goods
+                                                    LEFT JOIN (SELECT goods.id, SUM(good_loading_details.real_quantity) AS total_loading
+                                                        FROM good_loading_details
+                                                        JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                                                        JOIN goods ON goods.id = good_units.good_id
+                                                        WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+                                                        GROUP BY goods.id) as loading ON loading.id = goods.id
+                                                    LEFT JOIN (SELECT goods.id, SUM(transaction_details.real_quantity) AS total_transaction
+                                                        FROM transaction_details
+                                                        JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                                        RIGHT JOIN goods ON goods.id = good_units.good_id
+                                                        WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+                                                        GROUP BY goods.id) as transaction ON transaction.id = goods.id
+                                                    LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity
+                                                        FROM good_units
+                                                        RIGHT JOIN goods ON goods.id = good_units.good_id
+                                                        JOIN units ON units.id = good_units.unit_id
+                                                        GROUP BY goods.id) as price ON price.id = goods.id
+                                                GROUP BY goods.id) as total ON total.id = goods.id
+                                        GROUP BY goods.id) as final"));
 
-    public function retur($distributor_id, $status, $pagination)
-    {
-        $default['page_name'] = 'Barang retur';
-        if($status == 'null') $status = null;
-
-        if($distributor_id == 'all')
-        {
-            if($pagination == 'all')
-            {
-                $items = ReturItem::where('returned_type', $status)->get();
-            }
-            else
-            {
-                $items = ReturItem::where('returned_type', $status)->paginate($pagination);
-            }
-        }
-        else
-        {
-            if($pagination == 'all')
-            {
-                $items = ReturItem::where('last_distributor_id', $distributor_id)
-                                  ->where('returned_type', $status)
-                                  ->get();
-            }
-            else
-            {
-                $items = ReturItem::where('last_distributor_id', $distributor_id)
-                                  ->where('returned_type', $status)
-                                  ->paginate($pagination);
-            }
-        }
-
-        return view('admin.retur', compact('default', 'items', 'distributor_id', 'status', 'pagination'));
-    }
-
-    public function returItem($item_id, Request $request)
-    {
-        $data_item['returned_date'] = date('Y-m-d');
-        $data_item['returned_type'] = $request->type;
-
-        $item = ReturItem::find($item_id);
-        $item->update($data_item);
-
-        if($request->type == 'uang')
-        {
-            $data_journal['type']               = 'retur';
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Retur barang ' . $item->good->name . ' dengan uang tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
-            $data_journal['debit']              = $item->good->getPcsSellingPrice()->buy_price;
-            $data_journal['credit_account_id']  = Account::where('code', '1141')->first()->id;
-            $data_journal['credit']             = $item->good->getPcsSellingPrice()->buy_price;
-
-            Journal::create($data_journal);
-        }
-        else
-        {
-            $data_loading['role']         = 'admin';
-            $data_loading['role_id']      = \Auth::user()->id;
-            $data_loading['checker']      = 'Load by sistem';
-            $data_loading['loading_date'] = date('Y-m-d');
-            $data_loading['distributor_id']   = $item->good->getLastBuy()->good_loading->distributor->id;
-            $data_loading['total_item_price'] = unformatNumber($item->good->getPcsSellingPrice()->buy_price);
-            $data_loading['note']             = 'Loading barang retur (berupa barang)';
-            $data_loading['payment']          = 'cash';
-
-            $good_loading = GoodLoading::create($data_loading);
-
-            $data_detail['good_loading_id'] = $good_loading->id;
-            $data_detail['good_unit_id']    = $item->good->getPcsSellingPrice()->id;
-            $data_detail['last_stock']      = $item->good->getStock();
-            $data_detail['quantity']        = 1;
-            $data_detail['real_quantity']   = 1;
-            $data_detail['price']           = unformatNumber($item->good->getPcsSellingPrice()->buy_price);
-            $data_detail['selling_price']   = unformatNumber($item->good->getPcsSellingPrice()->selling_price);
-            $data_detail['expiry_date']     = null;
-
-            GoodLoadingDetail::create($data_detail);
-
-            $account = Account::where('code', '1111')->first();
-
-            $data_journal_loading_retur['type']               = 'good_loading';
-            $data_journal_loading_retur['journal_date']       = date('Y-m-d');
-            $data_journal_loading_retur['name']               = 'Loading barang retur (dari distributor berupa barang) tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal_loading_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_journal_loading_retur['debit']              = unformatNumber($data_loading['total_item_price']);
-            $data_journal_loading_retur['credit_account_id']  = $account->id;
-            $data_journal_loading_retur['credit']             = unformatNumber($data_loading['total_item_price']);
-
-            Journal::create($data_journal_loading_retur);
-        }
-
-        session(['alert' => 'add', 'data' => 'retur']);
-
-        return redirect('/admin/retur/all/null/20');
+        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total', 'real_stock'));
     }
 }

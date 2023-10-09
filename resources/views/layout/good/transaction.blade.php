@@ -55,7 +55,7 @@
               </thead>
               <tbody id="table-good">
                 @foreach($transactions as $transaction)
-                  <tr>
+                  <tr @if($transaction->type != 'normal') style='background-color: yellow' @endif>
                     <td>{{ $transaction->created_at }}</td>
                     <td><a href="{{ url($role . '/transaction/' . $transaction->transaction->id . '/detail') }}" class="btn" target="_blank">{{ $transaction->transaction->id }}</a></td>
                     <td>{{ $transaction->type }}</td>

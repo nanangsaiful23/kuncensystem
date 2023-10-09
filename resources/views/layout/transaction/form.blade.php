@@ -186,7 +186,7 @@
         {{ Form::hidden('type', 'normal') }}
     </div>
     <div class="row" style="background-color: yellow;">
-        <h3>Barang Retur</h3>
+        <h3>Transaksi Retur</h3>
         <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
             {!! Form::label('all_barcode_retur', 'Cari barcode', array('class' => 'col-sm-4 control-label')) !!}
             <div class="col-sm-8">

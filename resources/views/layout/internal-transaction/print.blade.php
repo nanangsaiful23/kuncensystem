@@ -25,7 +25,7 @@
 			<?php $i = 1; ?>
 			@foreach($transaction->details as $detail)
 				<tr>
-					<td>{{ $i }}.<br></td>
+					<td>{{ $i++ }}.<br></td>
 					<td style="text-align: left !important;">
 						{{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
 					</td>

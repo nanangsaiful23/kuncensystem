@@ -282,12 +282,30 @@
         return $goods;
     }
 
+    function getGoodLists()
+    {
+        $goods = [null => 'Pilih barang'];
+        foreach (getGoods() as $data) {
+            $goods = array_add($goods, $data->id, $data->name . ' ' . $data->getPcsSellingPrice()->unit->name);
+        }
+        return $goods;
+    }
+
     function getGoodUnits()
     {
         $good_units = GoodUnit::join('goods', 'goods.id', 'good_units.good_id')
                               ->select('good_units.*', 'goods.*', 'good_units.id as good_unit_id', 'goods.name as good_name')
                               ->orderBy('goods.name', 'asc')->get();
 
+        return $good_units;
+    }
+
+    function getGoodUnitLists()
+    {
+        $good_units = [null => 'Pilih barang'];
+        foreach (getGoodUnits() as $data) {
+            $good_units = array_add($good_units, $data->good_unit_id, $data->good_name . ' ' . $data->unit->name);
+        }
         return $good_units;
     }
 

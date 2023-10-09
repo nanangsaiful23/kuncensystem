@@ -31,17 +31,20 @@
               </div>
             </div>
             <div class="box-body" style="overflow-x:scroll; color: black !important">
+              <a href="{{ url($role . '/retur/create') }}" class="btn btn-success" style="margin-bottom: 10px;">Tambah Retur Barang ke Distributor</a>
               <table id="example1" class="table table-bordered table-striped">
                 <thead>
                 <tr>
-                  <th>Distributor</th>
+                  <th width="10%">Tanggal Retur</th>
+                  <th width="15%">Distributor</th>
                   <th>Nama Barang</th>
-                  <th>Status</th>
+                  <th width="10%">Status</th>
                 </tr>
                 </thead>
                 <tbody id="table-good">
-                  @foreach($items as $item)
+                  @foreach($returs as $item)
                     <tr>
+                      <td>{{ $item->created_at }}</td>
                       <td>{{ $item->last_distributor->name }}</td>
                       <td>{{ $item->good->name }}</td>
                       <td>

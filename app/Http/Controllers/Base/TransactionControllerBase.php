@@ -532,47 +532,29 @@ trait TransactionControllerBase
                     $data_detail['expiry_date']     = null;
 
                     GoodLoadingDetail::create($data_detail);
-
-                    if($request->payment == 'cash')
-                    {
-                        $account = Account::where('code', '1111')->first();
-                    }
-                    elseif($request->payment == 'transfer')
-                    {
-                        $account = Account::where('code', '1112')->first();
-                    }
-
-                    $data_journal_loading_retur['type']               = 'good_loading';
-                    $data_journal_loading_retur['journal_date']       = date('Y-m-d');
-                    $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
-                    $data_journal_loading_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
-                    $data_journal_loading_retur['debit']              = unformatNumber($data_loading['total_item_price']);
-                    $data_journal_loading_retur['credit_account_id']  = $account->id;
-                    $data_journal_loading_retur['credit']             = unformatNumber($data_loading['total_item_price']);
-
-                    Journal::create($data_journal_loading_retur);
                 }
             }
         }
 
         if($is_retur)
         {
-            #tabel journal transaksi retur
-            if($request->payment == 'cash')
-            {
-                $data_journal_retur['credit_account_id']   = Account::where('code', '1111')->first()->id;
-            }
-            elseif($request->payment == 'transfer')
-            {
-                $data_journal_retur['credit_account_id']   = Account::where('code', '1112')->first()->id;
-            }
+            $data_journal_loading_retur['type']               = 'good_loading';
+            $data_journal_loading_retur['journal_date']       = date('Y-m-d');
+            $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
+            $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
+            $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
+
+            Journal::create($data_journal_loading_retur);
 
             $data_journal_retur['type']               = 'retur';
             $data_journal_retur['journal_date']       = date('Y-m-d');
             $data_journal_retur['name']               = 'Retur barang ID transaksi ' . $transaction->id . ' tanggal ' . displayDate(date('Y-m-d'));
             $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_journal_retur['debit']              = unformatNumber($sum_retur);
-            $data_journal_retur['credit']             = unformatNumber($sum_retur);
+            $data_journal_retur['debit']              = unformatNumber($hpp_retur);
+            $data_journal_retur['credit_account_id']   = Account::where('code', '5101')->first()->id;
+            $data_journal_retur['credit']             = unformatNumber($hpp_retur);
 
             Journal::create($data_journal_retur);
         }
@@ -740,12 +722,18 @@ trait TransactionControllerBase
                                             ->where('type', '2101')
                                             ->get();
 
+        $transactions['piutang'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', '1131')
+                                            ->get();
+
         $transactions['internal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
                                             ->where('type', '!=', 'retur')
                                             ->where('type', '!=', 'not valid')
                                             ->where('type', '!=', '2101')
+                                            ->where('type', '!=', '1131')
                                             ->get();
 
         $account = Account::where('code', '5220')->first();
@@ -759,7 +747,11 @@ trait TransactionControllerBase
         $transactions['other_transaction'] = Journal::where('type', 'like', '%_transaction')
                                                     ->whereDate('journals.journal_date', '>=', $start_date)
                                                     ->whereDate('journals.journal_date', '<=', $end_date) 
-                                                    ->get();   
+                                                    ->get();     
+
+        $transactions['cash_account'] = Account::where('code', '1111')->first();
+        $transactions['cash_in'] = Journal::where('debit_account_id', $transactions['cash_account']->id)->get();
+        $transactions['cash_out'] = Journal::where('credit_account_id', $transactions['cash_account']->id)->get();
 
         return $transactions;                             
     }

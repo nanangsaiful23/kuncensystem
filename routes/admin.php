@@ -4,8 +4,6 @@ Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 Route::get('profit', 'MainController@profit');
 Route::get('scale', 'MainController@scale');
-Route::get('retur/{distributor_id}/{status}/{pagination}', 'MainController@retur');
-Route::put('retur/{item_id}', 'MainController@returItem');
 
 Route::group(['prefix' => 'account'], function () {
 	Route::get('/create', 'AccountController@create');
@@ -152,6 +150,13 @@ Route::group(['prefix' => 'other-transaction'], function () {
 	Route::put('/{other-transaction_id}/edit', 'OtherTransactionController@update')->name('other-transaction.update');
 	Route::delete('/{other-transaction_id}/delete', 'OtherTransactionController@delete')->name('other-transaction.delete');
 	Route::get('/{start_date}/{end_date}/{pagination}', 'OtherTransactionController@index');
+});
+
+Route::group(['prefix' => 'retur'], function () {
+	Route::get('/create', 'ReturController@create');
+	Route::post('/store', 'ReturController@store')->name('retur.store');
+	Route::get('{distributor_id}/{status}/{pagination}', 'ReturController@index');
+	Route::put('{item_id}', 'ReturController@returItem');
 });
 
 Route::group(['prefix' => 'transaction'], function () {
