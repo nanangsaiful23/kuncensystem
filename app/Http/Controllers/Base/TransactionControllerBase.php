@@ -536,28 +536,28 @@ trait TransactionControllerBase
             }
         }
 
-        if($is_retur)
-        {
-            $data_journal_loading_retur['type']               = 'good_loading';
-            $data_journal_loading_retur['journal_date']       = date('Y-m-d');
-            $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
-            $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
-            $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
+        // if($is_retur)
+        // {
+        //     $data_journal_loading_retur['type']               = 'good_loading';
+        //     $data_journal_loading_retur['journal_date']       = date('Y-m-d');
+        //     $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+        //     $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
+        //     $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
+        //     $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
+        //     $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
 
-            Journal::create($data_journal_loading_retur);
+        //     Journal::create($data_journal_loading_retur);
 
-            $data_journal_retur['type']               = 'retur';
-            $data_journal_retur['journal_date']       = date('Y-m-d');
-            $data_journal_retur['name']               = 'Retur barang ID transaksi ' . $transaction->id . ' tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_journal_retur['debit']              = unformatNumber($hpp_retur);
-            $data_journal_retur['credit_account_id']   = Account::where('code', '5101')->first()->id;
-            $data_journal_retur['credit']             = unformatNumber($hpp_retur);
+        //     $data_journal_retur['type']               = 'retur';
+        //     $data_journal_retur['journal_date']       = date('Y-m-d');
+        //     $data_journal_retur['name']               = 'Retur barang ID transaksi ' . $transaction->id . ' tanggal ' . displayDate(date('Y-m-d'));
+        //     $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
+        //     $data_journal_retur['debit']              = unformatNumber($hpp_retur);
+        //     $data_journal_retur['credit_account_id']   = Account::where('code', '5101')->first()->id;
+        //     $data_journal_retur['credit']             = unformatNumber($hpp_retur);
 
-            Journal::create($data_journal_retur);
-        }
+        //     Journal::create($data_journal_retur);
+        // }
 
         return $transaction;
     }

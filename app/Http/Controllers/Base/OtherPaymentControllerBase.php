@@ -11,16 +11,35 @@ trait OtherPaymentControllerBase
 {
     public function indexOtherPaymentBase($start_date, $end_date, $pagination)
     {
-        if($pagination == 'all')
-           $other_payments = Journal::where('type', 'like', '%_payment%')
-                                        ->whereDate('journals.journal_date', '>=', $start_date)
-                                        ->whereDate('journals.journal_date', '<=', $end_date) 
-                                        ->get();
+        if(\Auth::user()->email == 'admin')
+        {
+            if($pagination == 'all')
+               $other_payments = Journal::where('type', 'like', '%_payment%')
+                                            ->whereDate('journals.journal_date', '>=', $start_date)
+                                            ->whereDate('journals.journal_date', '<=', $end_date) 
+                                            ->get();
+            else
+               $other_payments = Journal::where('type', 'like', '%_payment%')
+                                            ->whereDate('journals.journal_date', '>=', $start_date)
+                                            ->whereDate('journals.journal_date', '<=', $end_date) 
+                                            ->paginate($pagination);
+
+        }
         else
-           $other_payments = Journal::where('type', 'like', '%_payment%')
-                                        ->whereDate('journals.journal_date', '>=', $start_date)
-                                        ->whereDate('journals.journal_date', '<=', $end_date) 
-                                        ->paginate($pagination);
+        {
+            $account_admin_show = Account::where('code', '5220')->first();
+            if($pagination == 'all')
+               $other_payments = Journal::where('debit_account_id', $account_admin_show->id)
+                                            ->whereDate('journals.journal_date', '>=', $start_date)
+                                            ->whereDate('journals.journal_date', '<=', $end_date) 
+                                            ->get();
+            else
+               $other_payments = Journal::wwhere('debit_account_id', $account_admin_show->id)
+                                            ->whereDate('journals.journal_date', '>=', $start_date)
+                                            ->whereDate('journals.journal_date', '<=', $end_date) 
+                                            ->paginate($pagination);
+
+        }
 
         return $other_payments;
     }

@@ -8,6 +8,7 @@
         <div class="box">
           <div class="box-header">
             <h3 class="box-title">{{ $default['page_name'] }}</h3>
+            <h5>List barang yang akan exp dalam 15 hari kedepan</h5>
           </div>
           <div class="box-body" style="overflow-x:scroll">
             <table id="example1" class="table table-bordered table-striped">

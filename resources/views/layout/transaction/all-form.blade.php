@@ -12,6 +12,7 @@
       @if($role == 'admin')
         <th>Kasir</th>
       @endif
+      <th>Note</th>
       <th>Total Belanja</th>
       <th>Total Diskon</th>
       <th>Potongan Akhir</th>
@@ -32,6 +33,7 @@
           @if($role == 'admin')
             <td>{{ $transaction->actor()->name }}</td>
           @endif
+          <td>{{ $transaction->note }}</td>
           <td>{{ showRupiah($transaction->total_item_price) }}</td>
           <td>{{ showRupiah(checkNull($discount_price)) }}</td>
           <td>{{ showRupiah($transaction->total_discount_price) }}</td>

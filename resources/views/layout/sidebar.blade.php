@@ -76,7 +76,7 @@
         </ul>
       </li>
       @if($role == 'admin')
-        <li class="treeview {{ Request::segment(2) == 'retur' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/retur/all/null/20') }}"><i class="fa fa-arrow-left"></i> Barang Retur</a></li>
+        <li class="{{ Request::segment(2) == 'retur' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/retur/all/null/20') }}"><i class="fa fa-arrow-left"></i> Barang Retur</a></li>
       @endif
       <li class="header">PEMASUKAN LAIN-LAIN</li>
       <li class="treeview {{ (Request::segment(2) == 'other-transaction' ) ? 'active' : ''  }}">
