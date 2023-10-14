@@ -166,31 +166,31 @@ class MainController extends Controller
 
         $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_ditangan->balance;
 
-        $real_stock = DB::select(DB::raw("SELECT SUM(final.stock) as stock
-                                        FROM (SELECT goods.id, SUM(total.total_real * total.real_price) as stock
-                                                FROM goods 
-                                                JOIN (SELECT goods.id, SUM(loading.total_loading - transaction.total_transaction) as total_real, SUM(price.buy_price/price.quantity) as real_price
-                                                    FROM goods
-                                                    LEFT JOIN (SELECT goods.id, SUM(good_loading_details.real_quantity) AS total_loading
-                                                        FROM good_loading_details
-                                                        JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                        JOIN goods ON goods.id = good_units.good_id
-                                                        WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
-                                                        GROUP BY goods.id) as loading ON loading.id = goods.id
-                                                    LEFT JOIN (SELECT goods.id, SUM(transaction_details.real_quantity) AS total_transaction
-                                                        FROM transaction_details
-                                                        JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                        RIGHT JOIN goods ON goods.id = good_units.good_id
-                                                        WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
-                                                        GROUP BY goods.id) as transaction ON transaction.id = goods.id
-                                                    LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity
-                                                        FROM good_units
-                                                        RIGHT JOIN goods ON goods.id = good_units.good_id
-                                                        JOIN units ON units.id = good_units.unit_id
-                                                        GROUP BY goods.id) as price ON price.id = goods.id
-                                                GROUP BY goods.id) as total ON total.id = goods.id
-                                        GROUP BY goods.id) as final"));
+        // $real_stock = DB::select(DB::raw("SELECT SUM(final.stock) as stock
+        //                                 FROM (SELECT goods.id, total.total_loading, total.total_transaction, total.total_real, total.buy_price, total.quantity, total.real_price, SUM(total.total_real * total.real_price) as stock
+        //                                         FROM goods 
+        //                                         JOIN (SELECT goods.id, coalesce(loading.total_loading, 0), coalesce(transaction.total_transaction, 0), SUM(loading.total_loading - transaction.total_transaction) as total_real, price.buy_price, price.quantity, SUM(price.buy_price/price.quantity) as real_price
+        //                                             FROM goods
+        //                                             LEFT JOIN (SELECT goods.id, SUM(good_loading_details.real_quantity) AS total_loading
+        //                                                 FROM good_loading_details
+        //                                                 JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+        //                                                 JOIN goods ON goods.id = good_units.good_id
+        //                                                 WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+        //                                                 GROUP BY goods.id) as loading ON loading.id = goods.id
+        //                                             LEFT JOIN (SELECT goods.id, SUM(transaction_details.real_quantity) AS total_transaction
+        //                                                 FROM transaction_details
+        //                                                 JOIN good_units ON good_units.id = transaction_details.good_unit_id
+        //                                                 RIGHT JOIN goods ON goods.id = good_units.good_id
+        //                                                 WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+        //                                                 GROUP BY goods.id) as transaction ON transaction.id = goods.id
+        //                                             LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity
+        //                                                 FROM good_units
+        //                                                 RIGHT JOIN goods ON goods.id = good_units.good_id
+        //                                                 JOIN units ON units.id = good_units.unit_id
+        //                                                 GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
+        //                                         GROUP BY goods.id) as total ON total.id = goods.id
+        //                                 GROUP BY goods.id) as final"));
 
-        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total', 'real_stock'));
+        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total'));
     }
 }

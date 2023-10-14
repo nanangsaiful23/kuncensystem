@@ -25,6 +25,7 @@ trait InternalTransactionControllerBase
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
                                             ->where('type', '!=', 'retur')
+                                            ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
                                             ->orderBy('transactions.created_at','desc')
                                             ->get();
@@ -35,6 +36,7 @@ trait InternalTransactionControllerBase
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
                                             ->where('type', '!=', 'retur')
+                                            ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
                                             ->where('role', $role)
                                             ->where('role_id', $role_id)
@@ -50,6 +52,7 @@ trait InternalTransactionControllerBase
                                             ->whereDate('transactions.created_at', '<=', $end_date)
                                             ->where('type', '!=', 'normal')
                                             ->where('type', '!=', 'retur')
+                                            ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
                                             ->orderBy('transactions.created_at','desc')
                                             ->paginate($pagination);
@@ -62,6 +65,7 @@ trait InternalTransactionControllerBase
                                             ->where('role_id', $role_id)
                                             ->where('type', '!=', 'normal')  
                                             ->where('type', '!=', 'retur') 
+                                            ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
                                             ->orderBy('transactions.created_at','desc')
                                             ->paginate($pagination);

@@ -34,7 +34,7 @@ trait OtherPaymentControllerBase
                                             ->whereDate('journals.journal_date', '<=', $end_date) 
                                             ->get();
             else
-               $other_payments = Journal::wwhere('debit_account_id', $account_admin_show->id)
+               $other_payments = Journal::where('debit_account_id', $account_admin_show->id)
                                             ->whereDate('journals.journal_date', '>=', $start_date)
                                             ->whereDate('journals.journal_date', '<=', $end_date) 
                                             ->paginate($pagination);
@@ -47,6 +47,9 @@ trait OtherPaymentControllerBase
     public function storeOtherPaymentBase(Request $request)
     {
         $request->money = unformatNumber($request->money);
+        $this->validate($request, [
+            'money' => array('required', 'regex:/^[\d\s,]*$/'),
+        ]);
         
         if($request->payment == 'cash')
         {

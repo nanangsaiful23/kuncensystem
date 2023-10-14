@@ -53,7 +53,6 @@ trait GoodLoadingControllerBase
 
     public function storeGoodLoadingBase($role, $role_id, $type, Request $request)
     {
-        // dd(intval(456789 / 1000));die;
         $data = $request->input();
 
         if($type == 'internal')
@@ -233,9 +232,9 @@ trait GoodLoadingControllerBase
         $data_journal['journal_date']       = $data['loading_date'];
         $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date);
         $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
-        $data_journal['debit']              = unformatNumber($request->total_item_price);
+        $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
         $data_journal['credit_account_id']  = $account->id;
-        $data_journal['credit']             = unformatNumber($request->total_item_price);
+        $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
 
         Journal::create($data_journal);
 

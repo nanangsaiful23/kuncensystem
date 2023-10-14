@@ -191,6 +191,22 @@
         return $result;
     }
 
+    function showShortName($string)
+    {
+        if(strlen($string) > 30){
+            $textLength = strlen($string);
+            $maxChars = 20;
+
+            $string = substr_replace($string, '...', $maxChars/2, $textLength-$maxChars);
+        }
+        return $string;
+
+        // if(strlen($string) > 30)
+        //     $string = substr($string, 0, 30);
+
+        return $string;
+    }
+
     function getAccounts()
     {
         return Account::orderBy('code', 'asc')->get();
