@@ -24,7 +24,7 @@
             </div>
             {!! Form::label('code', 'Akun', array('class' => 'col-sm-1 control-label')) !!}
            <div class="col-sm-2">
-              {!! Form::select('code', getAccountLists(), $code, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'code', 'onchange' => 'advanceSearch()']) !!}
+              {!! Form::select('code', getAccountLists(), $code, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'code', 'onchange' => 'advanceSearch()']) !!}
             </div>
             {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
             <div class="col-sm-2">
@@ -40,6 +40,7 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
+            <a href="{{ url($role . '/journal/create') }}" class="btn btn-success" style="margin-bottom: 10px;">Tambah Jurnal</a>
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
@@ -86,7 +87,8 @@
 
 @section('js-addon')
   <script type="text/javascript">
-    $(document).ready(function(){
+    $(document).ready(function(){        
+      $('.select2').select2();
       $('#datepicker').datepicker({
         autoclose: true,
         format: 'yyyy-mm-dd'

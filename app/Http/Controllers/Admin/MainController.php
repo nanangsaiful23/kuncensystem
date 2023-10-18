@@ -153,18 +153,18 @@ class MainController extends Controller
                         ->get();
 
         #count total neraca dari laba rugi
+        [$kas_di_ins, $kas_di_outs] = $this->getPayment('111%');
+        [$utang_dagang, $utang_dagang_debit, $utang_dagang_credit] = $this->getPenjualanHpp('2101');
+        [$modal_pemilik, $modal_pemilik_debit, $modal_pemilik_credit] = $this->getPenjualanHpp('3001');
         [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
         [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
         [$payment_ins, $payment_outs] = $this->getPayment('52%');
-        [$utang_dagang, $utang_dagang_debit, $utang_dagang_credit] = $this->getPenjualanHpp('2101');
-        [$modal_pemilik, $modal_pemilik_debit, $modal_pemilik_credit] = $this->getPenjualanHpp('3001');
-        [$kas_ditangan, $kas_ditangan_debit, $kas_ditangan_credit] = $this->getPenjualanHpp('1111');
         [$pendapatan_lain, $pendapatan_lain_debit, $pendapatan_lain_credit] = $this->getPenjualanHpp('6101');
         [$biaya_lain, $biaya_lain_debit, $biaya_lain_credit] = $this->getPenjualanHpp('6102');
 
         $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($pendapatan_lain->balance + $pendapatan_lain_debit->sum('debit') - $pendapatan_lain_credit->sum('credit')) - ($biaya_lain->balance + $biaya_lain_debit->sum('debit') - $biaya_lain_credit->sum('credit'));
 
-        $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_ditangan->balance;
+        $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_di_ins->sum('balance');
 
         // $real_stock = DB::select(DB::raw("SELECT SUM(final.stock) as stock
         //                                 FROM (SELECT goods.id, total.total_loading, total.total_transaction, total.total_real, total.buy_price, total.quantity, total.real_price, SUM(total.total_real * total.real_price) as stock

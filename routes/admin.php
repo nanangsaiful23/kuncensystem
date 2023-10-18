@@ -116,6 +116,8 @@ Route::group(['prefix' => 'internal-transaction'], function () {
 });
 
 Route::group(['prefix' => 'journal'], function () {
+	Route::get('/create', 'JournalController@create');
+    Route::post('/store', 'JournalController@store')->name('journal.store');
 	Route::get('/{code}/{start_date}/{end_date}/{pagination}', 'JournalController@index');
 });
 

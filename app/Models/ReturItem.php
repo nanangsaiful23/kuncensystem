@@ -10,7 +10,7 @@ class ReturItem extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'good_id', 'last_distributor_id', 'returned_date', 'returned_type'
+        'good_id', 'good_unit_id', 'last_distributor_id', 'returned_date', 'returned_type'
     ];
 
     protected $hidden = [
@@ -24,6 +24,11 @@ class ReturItem extends Model
     public function good()
     {
         return $this->belongsTo('App\Models\Good');
+    }
+    
+    public function good_unit()
+    {
+        return $this->belongsTo('App\Models\GoodUnit');
     }
     
     public function last_distributor()

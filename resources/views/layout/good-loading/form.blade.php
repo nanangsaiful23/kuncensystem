@@ -116,7 +116,7 @@
                     </td>
                     <td>
                         <div class="input-group date">
-                            <input type="text" class="form-control" name="exp_dates[]" id="exp-{{$i}}" style="word-wrap: break-word; height: 70px;"> 
+                            <input type="text" class="form-control" name="exp_dates[]" id="exp-{{$i}}" style="word-wrap: break-word; height: 70px;">
                         </div>
                     </td>
                     <td>

@@ -53,4 +53,20 @@ trait JournalControllerBase
 
         return $journals;
     }
+
+    public function storeJournalBase(Request $request)
+    {
+        $data = $request->input();
+        $data['debit'] = unformatNumber($request->debit);
+        $data['credit'] = unformatNumber($request->credit);
+        $this->validate($request, [
+            'debit' => array('required', 'regex:/^[\d\s,]*$/'),
+            'credit' => array('required', 'regex:/^[\d\s,]*$/'),
+        ]);
+        // dd($data);die;
+
+        $journal = Journal::create($data);
+
+        return $journal;
+    }
 }

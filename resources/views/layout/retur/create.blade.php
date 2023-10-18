@@ -9,7 +9,7 @@
             <h3 class="box-title"> {{ $default['page_name'] }}</h3>
           </div>
 
-          {!! Form::model(old(),array('url' => route($role . '.retur.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+          {!! Form::model(old(),array('url' => route($role . '.retur.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'retur-form')) !!}
             <div class="box-body">
               @include('layout' . '.retur.form', ['SubmitButtonText' => 'Tambah'])
             </div>

@@ -1,12 +1,23 @@
 <html>
+    <link rel="stylesheet" hr class="new2"ef="https://fonts.googleapis.com/css2?family=AR+One+Sans:wght@300;400;500;600">
 	<style type="text/css">
-
+		body, table, th, td
+		{
+			font-family: "AR One Sans" !important;
+/*			font-weight: bold;*/
+		}
 		table {
 		  border-collapse: collapse;
+		  margin-left: auto;
+		  margin-right: auto;
 		}
 
 		table, th, td {
 		  /*border: 0.1px solid black;*/
+		}
+
+		hr class="new2".new2 {
+		  border-top: 1px dashed;
 		}
 	</style>
 	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
@@ -16,7 +27,7 @@
 			Getasan, Semarang<br>
 			Menerima pesanan<br>
 			wa/telp 0823-2292-2654
-			<hr>
+			<hr class="new2">
 			{{ displayDateTime($transaction->created_at) }}<br>
 			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}<br>
 			Member: {{ $transaction->member->name }}
@@ -49,7 +60,7 @@
 				@endif
 			@endforeach
 			<tr style="margin-top: 10px;">
-				<td colspan="3"><hr></td>
+				<td colspan="3"><hr class="new2"></td>
 			</tr>
 			<tr style="margin-top: 10px; text-align: right !important">
 				<td colspan="2">Total harga</td>
@@ -81,7 +92,7 @@
 			</tr>
 			<tr style="margin-top: 10px;">
 				<td></td>
-				<td colspan="2"><hr></td>
+				<td colspan="2"><hr class="new2"></td>
 			</tr>
 			<tr style="margin-top: 10px;">
 				<td style="text-align: right !important" colspan="2">Bayar</td>
@@ -93,7 +104,7 @@
 			</tr>
 		</table>
 		<div style="text-align: center;">
-			<hr>
+			<hr class="new2">
 			Terima kasih<br>
 			Anda telah hemat sejumlah {{ showRupiah(checkNull($transaction->details->sum('discount_price')) + checkNull($transaction->total_discount_price)) }}<br>
 			Keberkahan di setiap transaksi

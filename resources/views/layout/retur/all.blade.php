@@ -38,6 +38,9 @@
                   <th width="10%">Tanggal Retur</th>
                   <th width="15%">Distributor</th>
                   <th>Nama Barang</th>
+                  @if($status == 'null')
+                    <th>Jumlah</th>
+                  @endif
                   <th width="10%">Status</th>
                 </tr>
                 </thead>
@@ -45,13 +48,11 @@
                   @foreach($returs as $item)
                     <tr>
                       <td>{{ $item->created_at }}</td>
-                      <td>{{ $item->last_distributor->name }}</td>
-                      <td>{{ $item->good->name }}</td>
-                      <td>
-                        @if($item->returned_date != null)
-                          Dikembalikan dalam bentuk {{ $item->returned_type }} pada tanggal {{ displayDate($item->returned_date) }}
-                        @else
-                          Belum diretur<br>
+                      <td>{{ $item->distributor_name }}</td>
+                      <td>{{ $item->good_name . ' ' . $item->unit_name }}</td>
+                      @if($status == 'null')
+                        <td>{{ $item->total }}</td>
+                        <td>Belum diretur<br>
                           <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#modal-retur-{{$item->id}}">Retur Barang</button>
 
                           <div class="modal modal-retur fade" id="modal-retur-{{ $item->id }}">
@@ -60,15 +61,16 @@
                                 <div class="modal-header">
                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span></button>
-                                    <h4 class="modal-title">Retur Barang {{ $item->good->name }}</h4>
+                                    <h4 class="modal-title">Retur Barang {{ $item->good_name . ' ' . $item->unit_name  }}</h4>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Anda yakin ingin meretur {{ $item->good->name }}?</p>
+                                    <p>Anda yakin ingin meretur {{ $item->good_name . ' ' . $item->unit_name  }}?</p>
+                                    Masukkan jumlah barang yang ingin diretur: <input id='qty-retur-{{ $item->id }}'>
                                 </div>
                                 <div class="modal-footer">
                                   <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                                  <button type="button" class="btn btn-outline" onclick="event.preventDefault(); document.getElementById('uang-{{ $item->id }}').submit();">Retur Uang</button>
-                                  <button type="button" class="btn btn-outline" onclick="event.preventDefault(); document.getElementById('barang-{{ $item->id }}').submit();">Retur Barang</button>
+                                  <button type="button" class="btn btn-outline" onclick="event.preventDefault(); changeQty('uang', '{{ $item->id }}');">Retur Uang</button>
+                                  <button type="button" class="btn btn-outline" onclick="event.preventDefault(); changeQty('barang', '{{ $item->id }}');">Retur Barang</button>
                                 </div>
                               </div>
                             </div>
@@ -76,17 +78,24 @@
 
                           <form id="uang-{{$item->id}}" action="{{ url('admin/retur/' . $item->id) }}" method="POST" style="display: none;">
                             {{ csrf_field() }}
+                            {{ form::hidden('qty-uang-' . $item->id, null, ['id' => 'qty-uang-' . $item->id])}}
                             {{ form::hidden('type', 'uang')}}
                             {{ method_field('PUT') }}
                           </form>
 
                           <form id="barang-{{$item->id}}" action="{{ url('admin/retur/' . $item->id) }}" method="POST" style="display: none;">
                             {{ csrf_field() }}
+                            {{ form::hidden('qty-barang-' . $item->id, null, ['id' => 'qty-barang-' . $item->id])}}
                             {{ form::hidden('type', 'barang')}}
                             {{ method_field('PUT') }}
-                          </form>
+                          </form></td>
+                      @else
+                      <td>
+                        @if($item->returned_date != null)
+                          Dikembalikan dalam bentuk {{ $item->returned_type }} pada tanggal {{ displayDate($item->returned_date) }}
                         @endif
                       </td>
+                      @endif
                     </tr>
                   @endforeach
                 </tbody>
@@ -121,6 +130,17 @@
       var distributor_id = $('#distributor_id').val();
       var status         = $('#status').val();
       window.location = window.location.origin + '/admin/retur/' + distributor_id + '/' + status + '/' + show;
+    }
+
+    function changeQty(type, id)
+    {
+      $('#qty-' + type + '-' + id).val($('#qty-retur-' + id).val());
+      submitForm(type, id);
+    }
+
+    function submitForm(type, id)
+    {
+      document.getElementById(type + '-' + id).submit();
     }
     </script>
   @endsection

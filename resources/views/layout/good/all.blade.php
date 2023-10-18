@@ -161,6 +161,7 @@
               htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>" + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
 
               var username = "{{ \Auth::user()->email }}";
+              var role = "{{ $role }}";
               if(username == 'admin')
               {
                 htmlResult += "<br><i class='fa fa-truck green' aria-hidden='true'></i> " + r[i].last_loading + "</td>";
@@ -174,8 +175,11 @@
                 if(username == 'admin')
                 { 
                   htmlResult += "Untung: " + r[i].good_units[j].profit + " (" + r[i].good_units[j].percentage + "%)<br>";
+                }
 
-                  htmlResult += "<a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" onclick=\"event.preventDefault(); document.getElementById('delete-form-unit" + r[i].unit_id + "').submit();\"><i class=\"fa fa-times red\"></i> Hapus harga</a><form id='delete-form-unit" + r[i].unit_id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form>";
+                if(role == 'admin')
+                {
+                  htmlResult += "<a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" onclick=\"event.preventDefault(); document.getElementById('delete-form-unit" + r[i].unit_id + "').submit();\"><i class=\"fa fa-times red\"></i> Hapus harga</a><form id='delete-form-unit" + r[i].unit_id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form><br>";
                 }
               }
               htmlResult += "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/price/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat harga jual</a></td>";

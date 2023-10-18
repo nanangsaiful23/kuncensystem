@@ -212,6 +212,15 @@
         return Account::orderBy('code', 'asc')->get();
     }
 
+    function getAccountJournalLists()
+    {
+        $accounts = [null => 'Pilih akun'];
+        foreach (Account::orderBy('code', 'asc')->get() as $data) {
+            $accounts = array_add($accounts, $data->id, $data->code . ' - ' . $data->name);
+        }
+        return $accounts;
+    }
+
     function getAccountLists()
     {
         $accounts = ['all' => 'Seluruh akun'];
@@ -323,6 +332,13 @@
             $good_units = array_add($good_units, $data->good_unit_id, $data->good_name . ' ' . $data->unit->name);
         }
         return $good_units;
+    }
+
+    function getJournalTypes()
+    {
+        $types = ['transaction' => 'Transaksi', 'hpp' => 'HPP', 'good_loading' => 'Loading barang', 'other_payment' => 'Biaya lain', 'operasional' => 'Operasional', 'cash_draw' => 'Penarikan uang', 'modal pemilik' => 'Modal pemilik', 'penyusutan' => 'Penyusutan', 'retur' => 'Retur', 'internal_cash_flow' => 'Perpindahan uang'];
+
+        return $types;
     }
 
     function getMembers()

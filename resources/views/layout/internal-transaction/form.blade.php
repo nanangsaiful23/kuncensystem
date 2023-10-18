@@ -229,7 +229,7 @@
                 {
                     if(document.getElementById("barcode-" + i))
                     {
-                        if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.getPcsSellingPrice.id && document.getElementById("price-" + i).value == good.getPcsSellingPrice.selling_price)
+                        if(document.getElementById("barcode-" + i).value != '' && document.getElementById("barcode-" + i).value == good.getPcsSellingPrice.id && document.getElementById("price-" + i).value == good.getPcsSellingPrice.buy_price)
                         {
                             temp_total = document.getElementById("quantity-" + i).value;
                             temp_total = parseInt(temp_total) + 1;
@@ -465,6 +465,7 @@
           $.ajax({
             url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + $("#search_good").val(),
             success: function(result){
+                console.log(result);
                 htmlResult = '';
 
                 htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
@@ -475,7 +476,7 @@
                     color = '#FFF1CE';
                 }
                 else color = "#FDEFF4";
-                htmlResult += "<a class='col-sm-12 modal-div' onclick='searchByKeyword(\"" + r[i].good_unit_id + "\")' style='color:black; cursor: pointer; height:40px; background-color:" + color + "; padding: 5px;'>" + r[i].name + " " + r[i].unit + "</a>";
+                htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
               }
               $("#result-good").html(htmlResult);
               $('.modal-body').css('height',$( window ).height()*0.5);
