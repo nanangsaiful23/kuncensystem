@@ -26,9 +26,12 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'all';
 
-        [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur] = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
+        $role_user = 'cashier';
+        $role_id = \Auth::user()->id;
 
-        return view('cashier.layout.page', compact('default', 'transactions', 'all_normal', 'all_retur', 'hpp_normal', 'hpp_retur', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
+        [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur, $hpp_retur_normal] = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
+
+        return view('cashier.layout.page', compact('default', 'transactions', 'all_normal', 'all_retur', 'hpp_normal', 'hpp_retur', 'hpp_retur_normal', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()
@@ -71,5 +74,27 @@ class TransactionController extends Controller
         $transaction = Transaction::find($transaction_id);
 
         return view('layout.transaction.print', compact('role', 'transaction'));
+    }
+
+    public function resumeTotal($start_date, $end_date)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Resume transaksi total';
+        $default['page'] = 'transaction';
+        $default['section'] = 'resume-total';
+
+        $transactions = $this->resumeTotalTransactionBase($start_date, $end_date);
+
+        return view('cashier.layout.page', compact('default', 'transactions', 'start_date', 'end_date'));
+    }
+
+    public function storeMoney(Request $request)
+    {
+        $this->storeMoneyTransactionBase($request);
+
+        session(['alert' => 'add', 'data' => 'pengambilan uang']);
+
+        return redirect('/cashier/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d'));
     }
 }

@@ -17,6 +17,7 @@ return [
     'offline_address' => env('APP_OFFADD', 'Getasan'),
     'phone_number' => env('APP_PHONE', '0823-2292-2654'),
     'app_color' => env('APP_COLOR', ''),
+    'secret' => 'fEJdsaOwdnUL2K8y94fmJ8c9jsa4stx6plDmL62!',
 
     /*
     |--------------------------------------------------------------------------
@@ -165,6 +166,8 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
+        SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
+        Barryvdh\Snappy\ServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -232,6 +235,9 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'Image' => Intervention\Image\Facades\Image::class,
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
+        'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
+        'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
+        'SnappyImage' => Barryvdh\Snappy\Facades\SnappyImage::class,
 
     ],
 

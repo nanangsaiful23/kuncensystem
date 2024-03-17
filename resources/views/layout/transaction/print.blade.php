@@ -1,9 +1,9 @@
 <html>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=AR+One+Sans:wght@300;400;500;600">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=AR+One+Sans&family=Glegoo:wght@300;400;500;600">
 	<style type="text/css">
 		body, table, th, td
 		{
-			font-family: "AR One Sans" !important;
+			font-family: "Glegoo" !important;
 /*			font-weight: bold;*/
 		}
 		table {
@@ -82,6 +82,16 @@
 						-{{ showRupiah(checkNull($transaction->total_discount_price)) }}
 					</td>
 				</tr>
+				@if($transaction->voucher != null)
+					<tr>	
+						<td style="text-align: right !important">
+							<b>Voucher
+						</td>
+						<td style="text-align: right !important">
+							<b>-{{ showRupiah(checkNull($transaction->voucher_nominal)) }}
+						</td>
+					</tr>
+				@endif
 				<tr style="margin-top: 10px;">
 					<td colspan="2"><hr></td>
 				</tr>

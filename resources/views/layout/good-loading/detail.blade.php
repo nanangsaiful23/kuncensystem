@@ -27,6 +27,18 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            {!! Form::label('type', 'Type', array('class' => 'col-sm-2 left control-label')) !!}
+                            <div class="col-sm-4">
+                                {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-2 left control-label')) !!}
+                            <div class="col-sm-4">
+                                {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        <div class="form-group">
                             {!! Form::label('note', 'Catatan', array('class' => 'col-sm-2 left control-label')) !!}
                             <div class="col-sm-4">
                                 {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
@@ -54,8 +66,10 @@
                                 <th>Expired</th>
                                 <th>Jumlah Input</th>
                                 <th>Jumlah Real</th>
-                                <th>Harga Beli</th>
-                                <th>Total Harga</th>
+                                @if(\Auth::user()->role == 'supervisor')
+                                    <th>Harga Beli</th>
+                                    <th>Total Harga</th>
+                                @endif
                                 <th>Stock Sebelumnya</th>
                                 <th>Harga Jual</th>
                             </thead>
@@ -78,12 +92,14 @@
                                         <td>
                                             {{ $detail->real_quantity . ' ' . $detail->good_unit->unit->base }}
                                         </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->price) }}
-                                        </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->quantity * $detail->price) }}
-                                        </td>
+                                        @if(\Auth::user()->role == 'supervisor')
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->price) }}
+                                            </td>
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->quantity * $detail->price) }}
+                                            </td>
+                                        @endif
                                         <td>
                                             {{ checkNull($detail->last_stock) }}
                                         </td>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Distributor extends Model
 {    
@@ -21,17 +22,126 @@ class Distributor extends Model
         'deleted_at',
     ];
 
-    public function totalHutangDagang()
+    public function totalHutangDagangInternal()
     {
         $journals = Journal::where('type', 'hutang dagang ' . $this->id)
+                           ->orderBy('id', 'desc')
                            ->get();
 
         return $journals;
     }
 
-    public function totalPiutangDagang()
+    public function totalHutangDagangLoading()
+    {
+        $good_loadings = GoodLoading::where('payment', '2101')
+                                    ->where('distributor_id', $this->id)
+                                    ->orderBy('id', 'desc')
+                                    ->get();
+
+        return $good_loadings;
+    }
+
+    public function totalPiutangDagangInternal()
     {
         $journals = Journal::where('type', 'piutang dagang ' . $this->id)
+                           ->get();
+
+        return $journals;
+    }
+
+    public function totalPiutangDagangLoading()
+    {
+        $good_loadings = GoodLoading::where('payment', '1131')
+                                    ->where('distributor_id', $this->id)
+                                    ->orderBy('id', 'desc')
+                                    ->get();
+
+        return $good_loadings;
+    }
+
+    public function loadings()
+    {
+        return GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                                ->join('goods', 'goods.id', 'good_units.good_id')
+                                ->select(DB::raw('SUM(good_loading_details.quantity * good_loading_details.price) AS total'))
+                                ->where('goods.last_distributor_id', $this->id)
+                                ->where('good_loadings.deleted_at', null)
+                                ->where('good_units.deleted_at', null)
+                                ->where('goods.deleted_at', null)
+                                ->get();
+    }
+    
+    public function transactions()
+    {
+        return TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                ->join('goods', 'goods.id', 'good_units.good_id')
+                                ->select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
+                                ->where('goods.last_distributor_id', $this->id)
+                                ->where('transaction_details.type', '!=', 'retur')
+                                ->where('transactions.deleted_at', null)
+                                ->where('good_units.deleted_at', null)
+                                ->where('goods.deleted_at', null)
+                                ->get();
+    }
+
+    public function getAsset()
+    {
+        $loadings = $this->loadings()->sum('total');
+
+        $transactions = $this->transactions()->sum('total');
+
+        $total = $loadings - $transactions;
+
+        return $total;
+    }
+
+    public function detailAsset()
+    {
+        $result = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock
+                    FROM goods 
+                    LEFT JOIN(SELECT goods.id, loading.total_loading as total_loading, transaction.total_transaction as total_transaction, price.real_price
+                        FROM goods
+                        LEFT JOIN (SELECT goods.id, coalesce(SUM(good_loading_details.real_quantity), 0) AS total_loading
+                         FROM good_loading_details
+                         JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+                         JOIN goods ON goods.id = good_units.good_id
+                         WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+                         GROUP BY goods.id) as loading ON loading.id = goods.id
+                        LEFT JOIN (SELECT goods.id, coalesce(SUM(transaction_details.real_quantity), 0) AS total_transaction
+                         FROM transaction_details
+                         JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                         RIGHT JOIN goods ON goods.id = good_units.good_id
+                         WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL AND transaction_details.type != 'retur'
+                         GROUP BY goods.id) as transaction ON transaction.id = goods.id
+                        LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity, good_units.buy_price/units.quantity as real_price
+                         FROM good_units
+                         RIGHT JOIN goods ON goods.id = good_units.good_id
+                         JOIN units ON units.id = good_units.unit_id
+                         GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
+                        WHERE goods.last_distributor_id = " . $this->id . "
+                        GROUP BY goods.id, goods.name, total_loading, total_transaction, real_price) as recap ON recap.id = goods.id
+                    WHERE goods.last_distributor_id = " . $this->id . "
+                    GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price
+                    ORDER BY money_stock DESC"));
+
+        return $result;
+    }
+
+    public function totalOutcome()
+    {
+        $journals = Journal::where('type', 'credit_payment')
+                           ->where('name', 'Pembayaran hutang ' . $this->name . ' (ID ' . $this->id . ')')
+                           ->get();
+
+        return $journals;
+    }
+
+    public function titipUang()
+    {
+        $journals = Journal::where('type', 'cash_transaction')
+                           ->where('name', 'like', 'Titipan Uang Pembayaran ' . $this->name . '%')
                            ->get();
 
         return $journals;

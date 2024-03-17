@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Form Detail Transaksi</h3>
+            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $transaction->created_at }}</h3>
           </div>
 
           {!! Form::model($transaction, array('class' => 'form-horizontal')) !!}
@@ -69,10 +69,12 @@
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
-                                <th>Harga Beli</th>
-                                <th>Harga Jual</th>
-                                <th>Total Diskon</th>
-                                <th>Total Akhir</th>
+                                @if(\Auth::user()->role == 'supervisor')
+                                    <th>Harga Beli</th>
+                                    <th>Harga Jual</th>
+                                    <th>Total Diskon</th>
+                                    <th>Total Akhir</th>
+                                @endif
                             </thead>
                             <tbody>
                                 @foreach($transaction->details as $detail)
@@ -81,23 +83,25 @@
                                             {{ $detail->good_unit->good->code }}
                                         </td>
                                         <td>
-                                            {{ $detail->good_unit->good->name }}
+                                            {{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
                                         </td>
                                         <td>
                                             {{ $detail->quantity }}
                                         </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->buy_price) }}
-                                        </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->selling_price) }}
-                                        </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->discount_price) }}
-                                        </td>
-                                        <td style="text-align: right;">
-                                            {{ showRupiah($detail->sum_price) }}
-                                        </td>
+                                        @if(\Auth::user()->role == 'supervisor')
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->buy_price) }}
+                                            </td>
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->selling_price) }}
+                                            </td>
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->discount_price) }}
+                                            </td>
+                                            <td style="text-align: right;">
+                                                {{ showRupiah($detail->sum_price) }}
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>

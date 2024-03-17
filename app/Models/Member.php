@@ -30,6 +30,23 @@ class Member extends Model
         return $transactions;
     }
 
+    public function totalTransactionNormal()
+    {
+        $transactions = Transaction::whereRaw('(type = "normal" OR type = "retur") AND member_id = ' . $this->id)
+                                    ->get();
+                                    // dd($transactions);die;
+
+        return $transactions;
+    }
+
+    public function totalTransactionCash()
+    {
+        $transactions = Transaction::whereRaw('(type = "normal" OR type = "retur") AND money_paid >= total_sum_price AND payment = "cash" AND member_id = ' . $this->id)
+                                    ->get();
+
+        return $transactions;
+    }
+
     public function totalPayment()
     {
         $payments = PiutangPayment::where('member_id', $this->id)

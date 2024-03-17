@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
+use App\Http\Controllers\Base\GoodControllerBase;
 use App\Http\Controllers\Base\TransactionControllerBase;
 
 use App\Models\Transaction;
 
 class TransactionController extends Controller
 {
+    use GoodControllerBase;
     use TransactionControllerBase;
 
     public function __construct()
@@ -26,9 +28,12 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'all';
 
-        [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur] = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
+        // $role_user = 'admin';
+        // $role_id = \Auth::user()->id;
 
-        return view('admin.layout.page', compact('default', 'transactions', 'all_normal', 'all_retur', 'hpp_normal', 'hpp_retur', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
+        [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur, $hpp_retur_normal] = $this->indexTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
+
+        return view('admin.layout.page', compact('default', 'transactions', 'all_normal', 'all_retur', 'hpp_normal', 'hpp_retur', 'hpp_retur_normal', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()
@@ -40,6 +45,22 @@ class TransactionController extends Controller
         $default['section'] = 'create';
 
         return view('admin.layout.page', compact('default'));
+    }
+
+    public function createNew()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Tambah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'create-new';
+
+        $role = 'admin';
+
+        $goods = $this->getPopularGoodsGoodBase('10', '20');
+        // dd($goods);die;
+
+        return view('layout.transaction.create-new', compact('default', 'goods' ,'role'));
     }
 
     public function store(Request $request)
@@ -82,7 +103,7 @@ class TransactionController extends Controller
         return redirect('/admin/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
     }
 
-    public function resume($category_id, $distributor_id, $start_date, $end_date)
+    public function resume($type, $category_id, $distributor_id, $start_date, $end_date)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -90,9 +111,9 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'resume';
 
-        [$transaction_details, $total] = $this->resumeTransactionBase($category_id, $distributor_id, $start_date, $end_date);
+        [$transaction_details, $total] = $this->resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date);
 
-        return view('admin.layout.page', compact('default', 'transaction_details', 'total', 'category_id', 'distributor_id', 'start_date', 'end_date'));
+        return view('admin.layout.page', compact('default', 'transaction_details', 'total', 'type', 'category_id', 'distributor_id', 'start_date', 'end_date'));
     }
 
     public function resumeTotal($start_date, $end_date)

@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Form Edit Kategori</h3>
+            <h3 class="box-title"> {{ $default['page_name'] }}</h3>
           </div>
 
 		      {!! Form::model($category, array('url' => route($role . '.category.update', $category->id), 'method' => 'POST', 'class' => 'form-horizontal')) !!}

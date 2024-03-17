@@ -76,7 +76,7 @@
                       <td style="text-align: center;">{{ $good->obj->getLastBuy() == null ? "" : displayDate($good->obj->getLastBuy()->good_loading->loading_date) }}</td>
                       <td style="text-align: right;">{{ $good->obj->getLastBuy() == null ? "" : showRupiah($good->obj->getLastBuy()->price) }}</td>
                     @endif
-                    <td style="text-align: center;">{{ $good->obj->getStock() }}</td>
+                    <td style="text-align: center;">{{ $good->obj->getStock() . ' ' . $good->obj->getPcsSellingPrice()->unit->code }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td style="text-align: center;">
                         <input type="checkbox" name="exports[]" value="{{ $good->obj->id }}" checked="checked">

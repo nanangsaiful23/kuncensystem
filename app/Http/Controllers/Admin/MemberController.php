@@ -18,7 +18,7 @@ class MemberController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($pagination)
+    public function index($start_date, $end_date, $sort, $order, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,9 +26,9 @@ class MemberController extends Controller
         $default['page'] = 'member';
         $default['section'] = 'all';
 
-        $members = $this->indexMemberBase($pagination);
+        $members = $this->indexMemberBase($start_date, $end_date, $sort, $order, $pagination);
 
-        return view('admin.layout.page', compact('default', 'members', 'pagination'));
+        return view('admin.layout.page', compact('default', 'members', 'start_date', 'end_date', 'sort', 'order', 'pagination'));
     }
 
     public function create()
@@ -121,5 +121,47 @@ class MemberController extends Controller
         session(['alert' => 'delete', 'data' => 'member']);
 
         return redirect('/admin/member/all/10');
+    }
+
+    public function search($member_id)
+    {
+        $member = Member::find($member_id);
+
+        return response()->json([
+            "member"  => $member
+        ], 200);
+    }
+
+    public function searchByName($name)
+    {
+        $members = $this->searchByNameMemberBase($name);
+
+        return response()->json([
+            "members"  => $members
+        ], 200);
+    }
+
+    public function showQrCode($member_id)
+    {
+        $member = Member::find($member_id);
+
+        return view('layout.member.qr-code', compact('member'));
+    }
+
+    public function downloadQrCode($member_id)
+    {
+//         $member = Member::find($member_id);
+// $pdf = \PDF::loadView('layout.member.qr-code');
+// return $pdf->download('member.pdf');
+//         $snappy = \App::make('snappy.pdf');
+
+//         $snappy->generateFromHtml($html, '/tmp/member.pdf');
+//         $file= '/tmp/member.pdf';
+
+//         $headers = array(
+//           'Content-Type: application/pdf',
+//         );
+
+//         return \Response::download($file, 'filename.pdf', $headers)->deleteFileAfterSend(true);
     }
 }

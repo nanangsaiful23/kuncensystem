@@ -13,12 +13,20 @@
         margin-left: -500px;*/
     }
 </style>
+<script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
 
 <div class="panel-body">
+    <video id="preview" style="display: none; margin-top: 0px;"></video>
     <div class="alert alert-danger alert-dismissible" id="message" style="display:none">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <h4><i class="icon fa fa-warning"></i> Barang kosong</h4>
-            <div id="empty-item"></div>
+        <h4><i class="icon fa fa-warning"></i> Barang kosong</h4>
+        <div id="empty-item"></div>
+    </div>
+    <div class="row" style="background-color: {{ config('app.app_color') }}; margin-top: -10px; margin-bottom: 20px; padding-left: 20px; padding-bottom: 20px;">
+        <h2>Penggunaan Keyboard untuk Mempercepat Proses Transaksi</h2>
+        F2 untuk SCAN barang<br>
+        F4 untuk SEARCH barang<br>
+        F8 untuk BAYAR
     </div>
     <div class="row">
         <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
@@ -78,6 +86,12 @@
                 <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('piring')">Piring</div>
                 <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('sprei')">Sprei</div>
                 <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('tikar')">Tikar</div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="form-group col-sm-5">
+                <div class="col-sm-8 col-sm-offset-4 btn btn-warning" onclick="startCamera()">Scan Barcode Member</div>
+                <div class="col-sm-8 col-sm-offset-4 btn btn-warning" onclick="stopCamera()">Berhenti Scan</div>
             </div>
         </div>
         <div class="form-group col-sm-5">
@@ -166,6 +180,20 @@
             </div>
         </div>
         <div class="form-group">
+            {!! Form::label('voucher', 'Potongan Voucher', array('class' => 'col-sm-3 control-label')) !!}
+            <div class="col-sm-3">
+                <input type="text" name="voucher_nominal" class="form-control" id="voucher_nominal">
+            </div>
+            <div class="col-sm-2">
+                <input type="text" name="voucher" class="form-control" id="voucher"><br>
+                <div onclick="event.preventDefault(); checkVoucher();" class= 'btn btn-success btn-flat btn-block form-control'>Check Voucher</div>
+            </div>
+            <div class="col-sm-2">
+            </div>
+            <div class="col-sm-3" id="voucher_result">
+            </div>
+        </div>
+        <div class="form-group">
             {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-3 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
             <div class="col-sm-3">
                 {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => "font-size: 40px; height: 40px;")) !!}
@@ -185,6 +213,16 @@
         </div>
         {{ Form::hidden('type', 'normal') }}
     </div>
+
+    <hr>
+    @if($SubmitButtonText == 'Edit')
+        {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control',])  !!}
+    @elseif($SubmitButtonText == 'Tambah')
+        <div onclick="event.preventDefault(); submitForm(this);" class= 'btn btn-success btn-flat btn-block form-control' style="height: 80px; font-size: 40px;">Proses Transaksi</div>
+    @elseif($SubmitButtonText == 'View')
+    @endif
+    <hr>
+
     <div class="row" style="background-color: yellow;">
         <h3>Transaksi Retur</h3>
         <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
@@ -275,18 +313,11 @@
 
 {{ csrf_field() }}
 
-<hr>
-@if($SubmitButtonText == 'Edit')
-    {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control',])  !!}
-@elseif($SubmitButtonText == 'Tambah')
-    <div onclick="event.preventDefault(); submitForm(this);" class= 'btn btn-success btn-flat btn-block form-control' style="height: 80px; font-size: 40px;">Proses Transaksi</div>
-@elseif($SubmitButtonText == 'View')
-@endif
-
 {!! Form::close() !!}
 
 @section('js-addon')
     <script type="text/javascript">
+        let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
         var total_item = 1;
         var total_item_retur = 1;
         $(document).ready (function (){
@@ -308,6 +339,18 @@
               }
             });
         });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.keyCode == 113) {  //F2
+                $("#all_barcode").focus();
+            }
+            else if (event.keyCode == 115) { //F4
+                $("#search_good").focus();
+            }
+            else if (event.keyCode == 119) { //F8
+                $("#money_paid").focus();
+            }
+        }, true);
 
         $('#modal_search').on('shown.bs.modal', function() {
           $('#search_good').focus();
@@ -511,7 +554,7 @@
 
             document.getElementById("total_item_price").value = total_item_price;
             document.getElementById("total_discount_items_price").value = total_discount_items;
-            document.getElementById("total_sum_price").value = total_sum_price;
+            document.getElementById("total_sum_price").value = total_sum_price - $('#voucher_nominal').val();
 
             formatNumber("total_item_price");
             formatNumber("total_discount_items_price");
@@ -684,6 +727,98 @@
                     console.log('error');
                 }
               });
+        }
+
+        function checkVoucher()
+        {
+            if(total_item == 1 && total_item_retur == 1)
+            {
+                alert('Silahkan pilih barang');
+            }
+            else
+            {
+
+              $.ajax({
+                url: "{!! url($role . '/voucher/searchByCode/') !!}/" + $('#voucher').val(),
+                success: function(result){
+                    var r = result.voucher;
+                    console.log(result);
+                    if(result.voucher != null)
+                    {
+                        if(r.type == 'discount')
+                        {
+                            $("#voucher_result").html("Diskon sebesar " + r.nominal + " %");
+                            potongan = parseInt(unFormatNumber($('#total_sum_price').val())) * r.nominal / 100;
+                            total = parseInt(unFormatNumber($('#total_sum_price').val())) - potongan;
+                            $('#voucher_result').css('background-color', '#DADDB1');
+                            $('#voucher_result').css('height',$( window ).height()*0.1);
+                        }
+                        else
+                        {
+                            $("#voucher_result").html("Potongan sebesar Rp" + r.nominal);
+                            potongan = r.nominal;
+                            total = parseInt(unFormatNumber($('#total_sum_price').val())) - potongan;
+                            $('#voucher_result').css('background-color', '#DADDB1');
+                            $('#voucher_result').css('height',$( window ).height()*0.1);
+                        }
+                        $('#total_sum_price').val(total);
+                        $('#voucher_nominal').val(potongan);
+                    }
+                    else
+                    {
+                      $("#voucher_result").html(result.message);
+                      $('#voucher_result').css('background-color', '#FF6969');
+                      $('#voucher_result').css('height',$( window ).height()*0.1);
+                      $('#voucher_nominal').val(0);
+                    }
+                },
+                error: function(){
+                    console.log('error');
+                }
+              }); 
+            }
+        }
+
+        function startCamera()
+        {    
+            $('#preview').show();
+          scanner.addListener('scan', function (content) {
+            console.log(content);
+            $.ajax({
+                url: "{!! url($role . '/member/search/') !!}/" + content,
+                success: function(result){
+                    if(result.member != null)
+                    {
+                        $("#all_member").val(result.member.id).change(); 
+                    }
+                    else
+                    {
+                        alert('Member tidak ditemukan');
+                    }
+                    scanner.stop();
+                    $('#preview').hide();
+                },
+                error: function(){
+                    console.log('error');
+                }
+              });
+          });
+          Instascan.Camera.getCameras().then(function (cameras) {
+            if (cameras.length > 0) {
+              scanner.start(cameras[0]);
+            } else {
+              console.error('No cameras found.');
+            }
+          }).catch(function (e) {
+            console.error(e);
+          });
+        }
+
+        function stopCamera()
+        {
+          // let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+            scanner.stop();
+            $('#preview').hide();
         }
     </script>
 @endsection

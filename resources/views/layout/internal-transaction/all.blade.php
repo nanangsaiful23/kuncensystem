@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">Daftar transaksi</h3>
+            <h3 class="box-title">{{ $default['page_name'] }}</h3>
             <!-- @include('layout.search-form') -->
           </div>
           <div class="box-body">
@@ -32,12 +32,12 @@
               </div>
             </div>
           </div>
-          <div class="box-body" style="overflow-x:scroll; background-color: #E5F9DB">
+          <div class="box-body" style="background-color: yellow;">
             <h3>Transaksi</h3><br>
-            <h4>Total transaksi: {{ showRupiah($transactions->sum('total_sum_price')) }}</h4>
-            <h4>Total potongan: {{ showRupiah($transactions->sum('total_discount_price')) }}</h4><br>
+            <h4>Total transaksi: {{ showRupiah($all_transactions->sum('total_sum_price')) }}</h4>
+            <h4>Total potongan: {{ showRupiah($all_transactions->sum('total_discount_price')) }}</h4><br>
           </div>
-          <div class="box-body" style="overflow-x:scroll; background-color: #E5F9DB">
+          <div class="box-body" style="overflow-x:scroll;">
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
@@ -54,12 +54,17 @@
                 <th>Uang Dibayar</th>
                 <th>Kembalian</th>
                 <th class="center">Detail</th>
+                <th class="center">Print</th>
               </tr>
               </thead>
               <tbody id="table-good">
                 @foreach($transactions as $transaction)
                   <tr>
-                    <td>{{ $transaction->type_name()->code . ' - ' . $transaction->type_name()->name }}</td>
+                    @if($transaction->type == 'stock_opname')
+                      <td style="background-color: yellow;">{{ $transaction->type }}</td>
+                    @else
+                      <td>{{ $transaction->type_name()->code . ' - ' . $transaction->type_name()->name }}</td>  
+                    @endif
                     <td>{{ $transaction->created_at }}</td>
                     <td>{{ $transaction->note }}</td>
                     @if(\Auth::user()->email == 'admin')
@@ -71,7 +76,8 @@
                     <td>{{ showRupiah($transaction->total_sum_price) }}</td>
                     <td>{{ showRupiah($transaction->money_paid) }}</td>
                     <td>{{ showRupiah($transaction->money_returned) }}</td>
-                    <td class="center"><a href="{{ url($role . '/transaction/' . $transaction->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+                    <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+                    <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach
               </tbody>

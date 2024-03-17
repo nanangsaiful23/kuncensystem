@@ -49,7 +49,7 @@
                 <div class="col-xs-12">
                   <div class="box">
                     <div class="box-header" style="text-align: center;">
-                      <h1 class="box-title" style="font-size: 30px !important;">CARI BARANG</h1>
+                      <h1 class="box-title" style="font-size: 30px !important;">CARI BARANG {{ config('app.name') }}</h1>
                     </div>
                     <div class="box-body" style="overflow-x:scroll; color: black !important">
                       <div class="col-sm-12">
@@ -60,8 +60,10 @@
                         <div class="input-group">
                           <input type="text" name="q" class="form-control" placeholder="Search..." id="search-input" value="{{ $query }}" style="height: 50px; font-size: 30px; border: solid black 2px;">
                           <span class="input-group-btn">
-                            <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search" style="font-size: 30px"></i>
-                            </button>
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search" style="font-size: 30px"></i></button>
+                          </span>
+                          <span class="input-group-btn">
+                            <div onclick="clearInput()" class="btn btn-flat" style="background-color: red"><i class="fa fa-times" style="font-size: 30px"></i></div>
                           </span>
                           <span class="input-group-btn">
                             <div class="loader" style="display: none;"></div>
@@ -199,6 +201,13 @@
           $('#photo-div').hide();
           $('#table-div').show();
         }
+      }
+
+      function clearInput()
+      {
+        console.log('hay')
+        document.getElementById("search-input").value = "";
+        $("#search-input").focus();
       }
     </script>
 </html>

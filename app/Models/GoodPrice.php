@@ -13,7 +13,7 @@ class GoodPrice extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'role', 'role_id', 'good_unit_id', 'old_price', 'recent_price', 'reason', 'is_checked'
+        'role', 'role_id', 'good_unit_id', 'old_buy_price', 'recent_buy_price', 'old_price', 'recent_price', 'reason', 'is_checked'
     ];
 
     protected $hidden = [

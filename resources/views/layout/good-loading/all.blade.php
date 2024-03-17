@@ -41,6 +41,7 @@
               <tr>
                 <th>Created at</th>
                 <th>Payment</th>
+                <th>Type</th>
                 <th>ID</th>
                 <th>Tanggal</th>
                 <th>Nama distributor</th>
@@ -52,9 +53,10 @@
               </thead>
               <tbody id="table-good">
                 @foreach($good_loadings as $good_loading)
-                  <tr>
+                  <tr @if($good_loading->type == 'internal') style="background-color: yellow" @endif>
                     <td>{{ $good_loading->created_at }}</td>
                     <td>{{ $good_loading->payment }}</td>
+                    <td>{{ $good_loading->type }}</td>
                     <td>{{ $good_loading->id }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->distributor->name }}</td>

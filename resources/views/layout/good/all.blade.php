@@ -52,7 +52,7 @@
                   <th style="width: 12%; text-align: center;">Stock</th>
                   <th style="width: 15%; text-align: center;">Harga Jual</th>
                   <th style="width: 15%; text-align: center;">Kode</th>
-                  @if(\Auth::user()->email == 'admin')
+                  @if(\Auth::user()->role == 'supervisor')
                     <th style="width: 10%; text-align: center;">Harga Beli</th>
                   @endif
                   <th style="width: 5%; text-align: center;">Action</th>
@@ -80,9 +80,9 @@
                     </td>
                     <td>
                       @foreach($good->good_units as $unit)
-                        <b>{{ showRupiah(roundMoney($unit->selling_price)) . ' /' . $unit->unit->name}}</b>
+                        <b>{{ showRupiah($unit->selling_price) . ' /' . $unit->unit->name}}</b>
                         @if(\Auth::user()->email == 'admin')
-                          <br>Untung: {{ showRupiah(roundMoney($unit->selling_price) - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, roundMoney($unit->selling_price)) }}%)<br>
+                          <br>Untung: {{ showRupiah($unit->selling_price - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, $unit->selling_price) }}%)<br>
                         @endif
                         @if($role == 'admin')
                           <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{ 'unit-' . $unit->id }}"><i class="fa fa-times red" aria-hidden="true"></i> Hapus harga</button>
@@ -98,10 +98,10 @@
                       <br><a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
                     </td>
                     <td>{{ $good->code }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(\Auth::user()->role == 'supervisor')
                       <td>
                         @foreach($good->good_units as $unit)
-                          {{ showRupiah(roundMoney($unit->buy_price)) . ' /' . $unit->unit->name}}
+                          {{ showRupiah($unit->buy_price) . ' /' . $unit->unit->name}}
                         @endforeach
                       </td>
                     @endif
@@ -148,7 +148,6 @@
 
     function ajaxFunction()
     {
-      console.log("{!! url($role . '/good/searchByKeyword/') !!}/" + $("#search-input").val());
       $.ajax({
         url: "{!! url($role . '/good/searchByKeyword/') !!}/" + $("#search-input").val(),
         success: function(result){
@@ -179,7 +178,7 @@
 
                 if(role == 'admin')
                 {
-                  htmlResult += "<a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" onclick=\"event.preventDefault(); document.getElementById('delete-form-unit" + r[i].unit_id + "').submit();\"><i class=\"fa fa-times red\"></i> Hapus harga</a><form id='delete-form-unit" + r[i].unit_id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].unit_id + "\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form><br>";
+                  htmlResult += "<a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].good_units[j].id + "\" onclick=\"event.preventDefault(); document.getElementById('delete-form-unit" + r[i].good_units[j].id + "').submit();\"><i class=\"fa fa-times red\"></i> Hapus harga</a><form id='delete-form-unit" + r[i].good_units[j].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/deletePrice/" + r[i].good_units[j].id + "\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form><br>";
                 }
               }
               htmlResult += "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/price/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat harga jual</a></td>";

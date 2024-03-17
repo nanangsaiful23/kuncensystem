@@ -66,16 +66,16 @@
                       <td>{{ $pasiva_debits[$i]->code }}</td>
                       <td>{{ $pasiva_debits[$i]->name }}</td>
                       <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance + $pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit) }}</td>
+                      <td style="text-align: right;">{{ showRupiah(-1 * ($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit)) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance + (-1 * ($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit))) }}</td>
                     </tr>
                   @endfor
                   <tr style="font-weight: bold;">
                     <td></td>
                     <td></td>
                     <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance') + $pasiva_debits->sum('debit') - $pasiva_credits->sum('credit')) }}</td>
+                    <td style="text-align: right;">{{ showRupiah(-1 * ($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit'))) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance') + (-1 * ($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit')))) }}</td>
                   </tr>
                   <tr>
                     <td colspan="5"></td>

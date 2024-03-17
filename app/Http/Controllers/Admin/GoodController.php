@@ -19,6 +19,8 @@ class GoodController extends Controller
     public function __construct()
     {
         $this->middleware('admin');
+        // $this->middleware('api.guard')->only(['getTransfer']);
+        // $this->middleware('jwt.auth')->except(['getTransfer']);
     }
 
     public function index($category_id, $distributor_id, $pagination)
@@ -236,13 +238,36 @@ class GoodController extends Controller
         return redirect('/admin/good/zeroStock/all/all/1/10');
     }
 
+    public function createPrice($good_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Tambah Harga Barang';
+        $default['page'] = 'good';
+        $default['section'] = 'create-good-price';
+
+        $good = Good::find($good_id);
+
+        return view('admin.layout.page', compact('default', 'good'));
+    }
+
+    public function storePrice($good_id, Request $request)
+    {
+        $good = $this->storePriceGoodBase('admin', \Auth::user()->id, $good_id, $request);
+
+        session(['alert' => 'add', 'data' => 'Harga barang']);
+
+        return redirect('/admin/good/' . $good->id . '/detail');
+    }
+
+
     public function editPrice($good_id)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Ubah Harga Barang';
         $default['page'] = 'good';
-        $default['section'] = 'good-price';
+        $default['section'] = 'edit-good-price';
 
         $good = Good::find($good_id);
 
@@ -301,5 +326,52 @@ class GoodController extends Controller
         $goods = $this->zeroStockGoodBase($category_id, $location, $distributor_id, $stock);
 
         return view('admin.layout.page', compact('default', 'goods', 'category_id', 'location', 'distributor_id', 'stock'));
+    }
+
+    public function stockOpname()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Stock Opname Barang';
+        $default['page'] = 'good';
+        $default['section'] = 'stock-opname';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
+    public function storeStockOpname(Request $request)
+    {
+        $this->storeStockOpnameGoodBase('admin', \Auth::user()->id, $request);
+
+        session(['alert' => 'add', 'data' => 'Stock Opname barang']);
+
+        return redirect('/admin/good/stockOpname');
+    }
+
+    public function transfer()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Transfer Barang';
+        $default['page'] = 'good';
+        $default['section'] = 'transfer';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
+    public function storeTransfer(Request $request)
+    {
+        $this->storeTransferGoodBase($request);
+
+        session(['alert' => 'add', 'data' => 'Transfer barang']);
+
+        return redirect('/admin/good/transfer');
+    }
+
+    public function getTransfer($data)
+    {
+        $this->getTransferGoodBase($request);
+
+        return api_response('success', 'ok', 200);
     }
 }

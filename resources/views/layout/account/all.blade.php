@@ -26,6 +26,7 @@
                 <th>Grup</th>
                 <th>Tipe</th>
                 <th>Saldo Awal</th>
+                <th>Tanggal</th>
                 <th class="center">Detail</th>
                 <th class="center">Ubah</th>
                 @if($role == 'admin')
@@ -42,6 +43,7 @@
                     <td>{{ $account->group }}</td>
                     <td>{{ $account->activa }}</td>
                     <td style="text-align: right;">{{ showRupiah($account->balance) }}</td>
+                    <td>{{ displayDate($account->updated_at) }}</td>
                     <td class="center"><a href="{{ url($role . '/account/' . $account->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/account/' . $account->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')

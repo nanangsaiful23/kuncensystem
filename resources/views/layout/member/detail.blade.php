@@ -6,7 +6,8 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Detail Member</h3>
+            <h3 class="box-title"> Detail Member</h3><br>
+            <a href="{{ url($role . '/member/' . $member->id . '/showQrCode') }}" target="_blank()" class="btn btn-warning col-sm-3">QR Code</a>
           </div>
 
           {!! Form::model($member, array('class' => 'form-horizontal')) !!}
@@ -17,7 +18,7 @@
 
         </div>
       </div>
-      <div class="col-xs-12">
+      <!-- <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
             <h3 class="box-title">Riwayat transaksi</h3>
@@ -43,7 +44,7 @@
             </table>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </section>
 </div>

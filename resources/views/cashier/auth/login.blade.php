@@ -4,7 +4,7 @@
 <div class="container" style="margin-top: 50px;">
     <div class="row">
         <div class="col-sm-8 col-md-6 col-md-offset-3">
-            <img src="{{asset('assets/icon/logo.png')}}" alt="about" style="display: block;width: 80%;margin-left: auto;margin-right: auto;display: block;">
+            <a href="{{ url('/admin/login') }}"><img src="{{asset('assets/icon/logo.png')}}" alt="about" style="display: block;width: 80%;margin-left: auto;margin-right: auto;display: block;"></a>
         </div>
         <div class="col-md-8 col-md-offset-2" style="margin-top: 30px;">
             <div class="panel panel-default" style=" background-color: #FFFFFF;">

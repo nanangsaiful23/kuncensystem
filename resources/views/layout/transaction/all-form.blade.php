@@ -1,6 +1,6 @@
 <div class="box-body" style="overflow-x:scroll; background-color: {{ $color }}">
   <h3>Transaksi {{ $name }}</h3><br>
-  <h4>Total transaksi transfer: {{ showRupiah($total_sum_price) }}</h4>
+  <h4>Total transaksi {{ $name }}: {{ showRupiah($total_sum_price) }}</h4>
   <h4>Total potongan: {{ showRupiah($total_discount_price) }}</h4><br>
 </div>
 <div class="box-body" style="overflow-x:scroll; background-color: {{ $color }}">
@@ -20,6 +20,7 @@
       <th>Uang Dibayar</th>
       <th>Kembalian</th>
       <th class="center">Detail</th>
+      <th class="center">Print</th>
       @if($role == 'admin')
         <th class="center">Retur</th>
       @endif
@@ -41,6 +42,7 @@
           <td>{{ showRupiah($transaction->money_paid) }}</td>
           <td>{{ showRupiah($transaction->money_returned) }}</td>
           <td class="center"><a href="{{ url($role . '/transaction/' . $transaction->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+          <td class="center"><a href="{{ url($role . '/transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
           @if($role == 'admin')
           <td><button type="button" class="no-btn" data-toggle="modal" data-target="#modal-reverse-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 

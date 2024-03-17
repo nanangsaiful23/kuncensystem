@@ -14,28 +14,36 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">List Jurnal</h3>
+            <h3 class="box-title">{{ $default['page_name'] }}</h3>
             @include('layout.search-form')
           </div>
           <div class="box-body">
-            {!! Form::label('show', 'Show', array('class' => 'col-sm-1 control-label')) !!}
-           <div class="col-sm-1">
-              {!! Form::select('show', getPaginations(), $pagination, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
-            </div>
-            {!! Form::label('code', 'Akun', array('class' => 'col-sm-1 control-label')) !!}
-           <div class="col-sm-2">
-              {!! Form::select('code', getAccountLists(), $code, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'code', 'onchange' => 'advanceSearch()']) !!}
-            </div>
-            {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
-            <div class="col-sm-2">
-              <div class="input-group date">
-                <input type="text" class="form-control pull-right" id="datepicker" name="start_date" value="{{ $start_date }}" onchange="changeDate()">
+            <div class="col-sm-12">
+              {!! Form::label('show', 'Show', array('class' => 'col-sm-1 control-label')) !!}
+             <div class="col-sm-1">
+                {!! Form::select('show', getPaginations(), $pagination, ['class' => 'form-control', 'style'=>'width: 100%', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
+              </div>
+              {!! Form::label('journal_type', 'Tipe', array('class' => 'col-sm-1 control-label')) !!}
+             <div class="col-sm-2">
+                {!! Form::select('journal_type', getJournalTypes(), $type, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'journal_type', 'onchange' => 'advanceSearch()']) !!}
+              </div>
+              {!! Form::label('code', 'Akun', array('class' => 'col-sm-1 control-label')) !!}
+             <div class="col-sm-2">
+                {!! Form::select('code', getAccountLists(), $code, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'code', 'onchange' => 'advanceSearch()']) !!}
               </div>
             </div>
-            {!! Form::label('end_date', 'Tanggal Akhir', array('class' => 'col-sm-1 control-label')) !!}
-            <div class="col-sm-2">
-              <div class="input-group date">
-                <input type="text" class="form-control pull-right" id="datepicker2" name="end_date" value="{{ $end_date }}" onchange="changeDate()">
+            <div class="col-sm-12" style="margin-top: 10px">
+              {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-2 control-label')) !!}
+              <div class="col-sm-2">
+                <div class="input-group date">
+                  <input type="text" class="form-control pull-right" id="datepicker" name="start_date" value="{{ $start_date }}" onchange="changeDate()">
+                </div>
+              </div>
+              {!! Form::label('end_date', 'Tanggal Akhir', array('class' => 'col-sm-2 control-label')) !!}
+              <div class="col-sm-2">
+                <div class="input-group date">
+                  <input type="text" class="form-control pull-right" id="datepicker2" name="end_date" value="{{ $end_date }}" onchange="changeDate()">
+                </div>
               </div>
             </div>
           </div>
@@ -44,6 +52,8 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
+                <th width="5%">Highlight</th>
+                <th width="15%">Tipe</th>
                 <th width="10%">ID</th>
                 <th width="10%">Created_at</th>
                 <th width="10%">Tanggal</th>
@@ -54,21 +64,34 @@
                 <th style="background-color: #FFABAB">No Akun</th>
                 <th style="background-color: #FFABAB">Akun</th>
                 <th style="background-color: #FFABAB">Kredit</th>
+                <th width="10%">Edit</th>
               </tr>
               </thead>
               <tbody id="table-good">
                 @foreach($journals as $journal)
-                  <tr>
+                  <tr id="div-journal-{{ $journal->id }}">
+                    <td><input type="checkbox" name="journals[]" id="journal-{{ $journal->id }}" onclick="highlight('journal-{{ $journal->id }}')"></td>
+                    <td>{{ $journal->type }}</td>
                     <td>{{ $journal->id }}</td>
-                    <td>{{ displayDate($journal->created_at) }}</td>
+                    <td>{{ $journal->created_at }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
-                    <td>{{ $journal->name }}</td>
+                    <td>@if($journal->type == 'good_loading')
+                          <?php 
+                            $subs = explode(" ", $journal->name);
+                            $id   = $subs[sizeof($subs) - 1];
+                          ?>
+                          <a href="{{ url($role . '/good-loading/' . substr($id, 0, -1) . '/detail') }}" style="color: blue;">{{ $journal->name }}</a>
+                        @else
+                          {{ $journal->name }}
+                        @endif
+                    </td>
                     <td style="background-color: #E5F9DB">{{ $journal->debit_account()->code }}</td>
                     <td style="background-color: #E5F9DB">{{ $journal->debit_account()->name }}</td>
                     <td style="background-color: #E5F9DB">{{ showRupiah($journal->debit) }}</td>
                     <td style="background-color: #FFABAB">{{ $journal->credit_account()->code }}</td>
                     <td style="background-color: #FFABAB">{{ $journal->credit_account()->name }}</td>
                     <td style="background-color: #FFABAB">{{ showRupiah($journal->credit) }}</td>
+                    <td class="center"><a href="{{ url($role . '/journal/' . $journal->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach
               </tbody>
@@ -114,14 +137,23 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/{{ $role }}/journal/{{ $code }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/journal/{{ $code }}/{{ $type }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
     }
 
     function advanceSearch()
     {
       var show        = $('#show').val();
       var code        = $('#code').val();
-      window.location = window.location.origin + '/{{ $role }}/journal/' + code + '/{{ $start_date }}/{{ $end_date }}/' + show;
+      var type        = $('#journal_type').val();
+      window.location = window.location.origin + '/{{ $role }}/journal/' + code + '/' + type + '/{{ $start_date }}/{{ $end_date }}/' + show;
+    }
+
+    function highlight(id)
+    {
+      if($("#" + id).prop('checked') == true)
+        $('#div-' + id).css('background-color', "{{ config('app.app_color') }}");
+      else
+        $('#div-' + id).css('background-color', "white");
     }
   </script>
 @endsection

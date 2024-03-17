@@ -2,6 +2,7 @@
     <div class="row">
         @foreach($good->good_units as $unit)
             {{ Form::hidden('good_unit_ids[]', $unit->id) }}
+            {{ Form::hidden('qtys[]', $unit->unit->quantity, array('id' => 'qty-' . $unit->id)) }}
             <div class="form-group">
                 {!! Form::label('units[]', 'Satuan', array('class' => 'col-sm-12')) !!}
                 <div class="col-sm-5">
@@ -22,7 +23,7 @@
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('buy_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
-                        {!! Form::text('buy_prices[]', null, array('class' => 'form-control')) !!}
+                        <input type="text" name="buy_prices[]" class="form-control" id="buy_price-{{ $unit->id}}" required="required" onkeyup="formatNumber('buy_price-{{ $unit->id}}')" onchange="changeBuyPrice('{{ $unit->id}}')">
                     @endif
                 </div>
             </div>
@@ -40,7 +41,7 @@
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('selling_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
-                        {!! Form::text('selling_prices[]', null, array('class' => 'form-control')) !!}
+                        <input type="text" name="selling_prices[]" class="form-control" id="selling_price-{{ $unit->id}}" required="required" onkeyup="formatNumber('selling_price-{{ $unit->id}}')">
                     @endif
                 </div>
             </div>
@@ -74,4 +75,30 @@
 {!! Form::close() !!}
 
 @section('js-addon')
+    <script type="text/javascript">
+        function formatNumber(name)
+        {
+            num = document.getElementById(name).value;
+            num = num.toString().replace(/,/g,'');
+            document.getElementById(name).value = num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        }
+
+        function unFormatNumber(num)
+        {
+            return num.replace(/,/g,'');
+        }
+
+        function changeBuyPrice(unit_id)
+        {
+            price = unFormatNumber($('#buy_price-' + unit_id).val());
+            unit  = $('#qty-' + unit_id).val(); 
+            base_price = price / unit;
+            // console.log($('#buy_price-' + unit_id).val() + " " + $('#qty-' + unit_id).val() + "  " + base_price);
+
+            @foreach($good->good_units as $unit)
+                $('#buy_price-{{ $unit->id }}').val(base_price * $('#qty-{{ $unit->id }}').val());
+                formatNumber('buy_price-{{ $unit->id }}');
+            @endforeach
+        }
+    </script>
 @endsection

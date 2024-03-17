@@ -6,8 +6,11 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::select('type', getJournalTypes(), null, ['class' => 'form-control select2',
-                    'style'=>'width: 100%']) !!}
+                    @if(isset($distributor))
+                        {!! Form::text('type', 'credit_payment', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    @else
+                        {!! Form::select('type', getJournalTypes(), null, ['class' => 'form-control select2', 'style'=>'width: 100%']) !!}
+                    @endif
                 @endif
             </div>
         </div>
@@ -19,7 +22,7 @@
                     {!! Form::text('journal_date', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <div class="input-group date">
-                        <input type="text" class="form-control" name="journal_date" id="journal_date" style="word-wrap: break-word;">
+                        <input type="text" class="form-control" name="journal_date" id="journal_date" style="word-wrap: break-word;" @if(isset($journal)) value="{{ $journal->journal_date}}" @endif>
                     </div>
                 @endif
             </div>
@@ -31,37 +34,34 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('name', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::text('name', null, array('class' => 'form-control', 'required' => 'required')) !!}
+                    @if(isset($distributor))
+                        {!! Form::text('name', 'Pembayaran hutang ' . $distributor->name . ' (ID ' . $distributor->id . ')', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    @else
+                        {!! Form::text('name', null, array('class' => 'form-control', 'required' => 'required')) !!}
+                    @endif
                 @endif
             </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group col-sm-3">
             {!! Form::label('debit_account_id', 'Akun Debit', array('class' => 'col-sm-12')) !!}
-            <div class="col-sm-5">
+            <div class="col-sm-12">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('debit_account_id', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::select('debit_account_id', getAccountJournalLists(), null, ['class' => 'form-control select2',
-                    'style'=>'width: 100%']) !!}
+                    @if(isset($distributor))
+                        {!! Form::hidden('debit_account_id', '15') !!}
+                        {!! Form::text('debit_account', '2101 - Utang Dagang', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    @else
+                        {!! Form::select('debit_account_id', getAccountJournalLists(), null, ['class' => 'form-control select2', 'style'=>'width: 100%']) !!}
+                    @endif
                 @endif
             </div>
         </div>
 
-        <div class="form-group">
-            {!! Form::label('debit', 'Nominal Debit', array('class' => 'col-sm-12')) !!}
-            <div class="col-sm-5">
-                @if($SubmitButtonText == 'View')
-                    {!! Form::text('debit', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                @else
-                    {!! Form::text('debit', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("debit")', 'required' => 'required')) !!}
-                @endif
-            </div>
-        </div>
-
-        <div class="form-group">
+        <div class="form-group col-sm-3">
             {!! Form::label('credit_account_id', 'Akun Kredit', array('class' => 'col-sm-12')) !!}
-            <div class="col-sm-5">
+            <div class="col-sm-12">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('credit_account_id', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
@@ -72,12 +72,12 @@
         </div>
 
         <div class="form-group">
-            {!! Form::label('credit', 'Nominal Kredit', array('class' => 'col-sm-12')) !!}
+            {!! Form::label('debit', 'Nominal', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
-                    {!! Form::text('credit', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    {!! Form::text('debit', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::text('credit', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("credit")', 'required' => 'required')) !!}
+                    {!! Form::text('debit', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("debit")', 'required' => 'required')) !!}
                 @endif
             </div>
         </div>

@@ -6,10 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Models\Account;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Distributor;
 use App\Models\Good;
+use App\Models\GoodLoading;
 use App\Models\GoodLoadingDetail;
 use App\Models\GoodPrice;
 use App\Models\GoodUnit;
+use App\Models\Journal;
+use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\Unit;
 
@@ -246,7 +253,15 @@ trait GoodControllerBase
 
     public function storeGoodBase(Request $request)
     {
+        $request->price = unformatNumber($request->price);
+        $request->selling_price = unformatNumber($request->selling_price);
+        $this->validate($request, [
+            'price' => array('required', 'regex:/^[\d\s,]*$/'),
+            'selling_price' => array('required', 'regex:/^[\d\s,]*$/'),
+        ]);
         $data = $request->input();
+        $data['price'] = unformatNumber($request->price);
+        $data['selling_price'] = unformatNumber($request->selling_price);
 
         $good = Good::where('name', $data['name'])->first();
 
@@ -345,23 +360,25 @@ trait GoodControllerBase
         if($pagination == 'all')
         {
             $loadings = GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                         ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                                          ->select('good_loading_details.*')
                                          ->where('good_units.good_id', $good_id)
-                                         ->whereDate('good_loading_details.loading_date', '>=', $start_date)
-                                         ->whereDate('good_loading_details.loading_date', '<=', $end_date)
+                                         ->whereDate('good_loadings.loading_date', '>=', $start_date)
+                                         ->whereDate('good_loadings.loading_date', '<=', $end_date)
                                          ->where('good_units.deleted_at', null)
-                                         ->orderBy('good_loading_details.created_at', 'desc')
+                                         ->orderBy('good_loadings.created_at', 'desc')
                                          ->get();
         }
         else
         {
             $loadings = GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                         ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                                          ->select('good_loading_details.*')
                                          ->where('good_units.good_id', $good_id)
-                                         ->whereDate('good_loading_details.created_at', '>=', $start_date)
-                                         ->whereDate('good_loading_details.created_at', '<=', $end_date)
+                                         ->whereDate('good_loadings.created_at', '>=', $start_date)
+                                         ->whereDate('good_loadings.created_at', '<=', $end_date)
                                          ->where('good_units.deleted_at', null)
-                                         ->orderBy('good_loading_details.created_at', 'desc')
+                                         ->orderBy('good_loadings.created_at', 'desc')
                                          ->paginate($pagination);
         }
 
@@ -374,11 +391,13 @@ trait GoodControllerBase
         {
             $transactions = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                              ->join('goods', 'goods.id', 'good_units.good_id')
+                                             ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                              ->select('transaction_details.*')
                                              ->where('goods.id', $good_id)
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
                                             ->where('good_units.deleted_at', null)
+                                            ->where('transactions.deleted_at', null)
                                              ->orderBy('transaction_details.created_at', 'desc')
                                              ->get();
         }
@@ -386,11 +405,13 @@ trait GoodControllerBase
         {
             $transactions = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                              ->join('goods', 'goods.id', 'good_units.good_id')
+                                             ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                              ->select('transaction_details.*')
                                              ->where('goods.id', $good_id)
                                              ->whereDate('transaction_details.created_at', '>=', $start_date)
                                              ->whereDate('transaction_details.created_at', '<=', $end_date)
                                             ->where('good_units.deleted_at', null)
+                                            ->where('transactions.deleted_at', null)
                                              ->orderBy('transaction_details.created_at', 'desc')
                                              ->paginate($pagination);
         }
@@ -403,17 +424,23 @@ trait GoodControllerBase
         if($pagination == 'all')
         {
             $prices = GoodPrice::join('good_units', 'good_units.id', 'good_prices.good_unit_id')
+                               ->select('good_prices.created_at', 'good_prices.*')
                                ->where('good_units.good_id', $good_id)
                                ->whereDate('good_prices.created_at', '>=', $start_date)
                                ->whereDate('good_prices.created_at', '<=', $end_date)
+                               ->where('good_units.deleted_at', null)
+                               ->orderBy('good_prices.created_at', 'desc')
                                ->get();
         }
         else
         {
             $prices = GoodPrice::join('good_units', 'good_units.id', 'good_prices.good_unit_id')
+                               ->select('good_prices.created_at', 'good_prices.*')
                                ->where('good_units.good_id', $good_id)
                                ->whereDate('good_prices.created_at', '>=', $start_date)
                                ->whereDate('good_prices.created_at', '<=', $end_date)
+                               ->where('good_units.deleted_at', null)
+                               ->orderBy('good_prices.created_at', 'desc')
                                ->paginate($pagination);
         }
 
@@ -665,9 +692,57 @@ trait GoodControllerBase
         return $goods;
     }
 
+    public function storePriceGoodBase($role, $role_id, $good_id, Request $request)
+    {
+        $this->validate($request, [
+            'unit_id' => array('required'),
+            'buy_price' => array('required', 'regex:/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/'),
+            'selling_price' => array('required', 'regex:/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/'),
+        ]);
+
+        $data = $request->input();
+        $data['buy_price'] = unformatNumber($request->buy_price);
+        $data['selling_price'] = unformatNumber($request->selling_price);
+        $data['good_id'] = $good_id;
+
+        $good_unit = GoodUnit::where('good_id', $good_id)
+                             ->where('unit_id', $request->unit_id)
+                             ->first();
+
+        if($good_unit)
+        {
+            $good_unit->update($data);
+        }
+        else
+        {
+            $good_unit = GoodUnit::create($data);
+        }
+
+        $data_price['role'] = $role;
+        $data_price['role_id'] = $role_id;
+        $data_price['good_unit_id'] = $good_unit->id;
+        $data_price['old_buy_price'] = 0;
+        $data_price['recent_buy_price'] = $good_unit->buy_price;
+        $data_price['old_price'] = 0;
+        $data_price['recent_price'] = $good_unit->selling_price;
+        $data_price['reason'] = $request->reason;
+
+        GoodPrice::create($data_price);
+
+        return $good_unit->good;
+    }
+
     public function updatePriceGoodBase($role, $role_id, $good_id, Request $request)
     {
+        // $request->buy_prices = unformatNumber($request->buy_prices);
+        // $request->selling_prices = unformatNumber($request->selling_prices);
+        $this->validate($request, [
+            'buy_prices.*' => array('required', 'regex:/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/'),
+            'selling_prices.*' => array('required', 'regex:/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/'),
+        ]);
+
         $good = Good::find($good_id);
+        $laba_goods = [];
 
         for($i = 0; $i < sizeof($request->good_unit_ids); $i++)
         {
@@ -676,14 +751,53 @@ trait GoodControllerBase
             $data_price['role'] = $role;
             $data_price['role_id'] = $role_id;
             $data_price['good_unit_id'] = $good_unit->id;
+            $data_price['old_buy_price'] = $good_unit->buy_price;
+            $data_price['recent_buy_price'] = unformatNumber($request->buy_prices[$i]);
             $data_price['old_price'] = $good_unit->selling_price;
-            $data_price['recent_price'] = $request->selling_prices[$i];
+            $data_price['recent_price'] = unformatNumber($request->selling_prices[$i]);
             $data_price['reason'] = $request->reason;
 
             GoodPrice::create($data_price);
 
-            $data_good_unit['buy_price'] = $request->buy_prices[$i];
-            $data_good_unit['selling_price'] = $request->selling_prices[$i];
+            $data_good_unit['buy_price'] = unformatNumber($request->buy_prices[$i]);
+            $data_good_unit['selling_price'] = unformatNumber($request->selling_prices[$i]);
+
+            if((floatval($good_unit->buy_price) < floatval($data_good_unit['buy_price'])) && $good_unit->good->getStock() > 0 && !in_array($good_unit->good->id, $laba_goods))
+            {
+                $account_buy = Account::where('code', '1141')->first();
+
+                $amount = $good_unit->good->getStock() * (($data_good_unit['buy_price'] - $good_unit->buy_price) / $good_unit->unit->quantity);
+
+                $data_payment_buy['type']               = 'other_payment';
+                $data_payment_buy['journal_date']       = date('Y-m-d');
+                $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (dari menu riwayat perubahan harga jual)';
+                $data_payment_buy['debit_account_id']   = $account_buy->id;
+                $data_payment_buy['debit']              = $amount;
+                $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
+                $data_payment_buy['credit']             = $amount;
+
+                Journal::create($data_payment_buy);
+
+                array_push($laba_goods, $good_unit->good->id);
+            }
+            elseif((floatval($good_unit->buy_price) > floatval($data_good_unit['buy_price'])) && $good_unit->good->getStock() > 0 && !in_array($good_unit->good->id, $laba_goods)) #journal penyusutan kalau harga beli turun
+            {
+                $account_buy = Account::where('code', '5215')->first();
+
+                $amount = $good_unit->good->getStock() * (($good_unit->buy_price - $data_good_unit['buy_price']) / $good_unit->unit->quantity);
+
+                $data_payment_buy['type']               = 'other_payment';
+                $data_payment_buy['journal_date']       = date('Y-m-d');
+                $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . '(dari menu riwayat perubahan harga jual)';
+                $data_payment_buy['debit_account_id']   = $account_buy->id;
+                $data_payment_buy['debit']              = $amount;
+                $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                $data_payment_buy['credit']             = $amount;
+
+                Journal::create($data_payment_buy);
+
+                array_push($laba_goods, $good_unit->good->id);
+            }
 
             $good_unit->update($data_good_unit);
         }
@@ -737,5 +851,280 @@ trait GoodControllerBase
                                   ->get();
 
         return $loadings;
+    }
+
+    public function storeStockOpnameGoodBase($role, $role_id, Request $request)
+    {
+        // dd($request);die;
+        for($i = 0; $i < sizeof($request->names); $i++)
+        {
+            if($request->names[$i] != null)
+            {
+                $good_unit = GoodUnit::where('good_id', $request->names[$i])
+                                     ->where('unit_id', $request->units[$i])
+                                     ->first();
+
+                if($request->old_stocks[$i] < $request->new_stocks[$i])
+                {
+                    $distributor = Distributor::where('name', 'Stock Opname')->first();
+
+                    if($distributor == null)
+                    {
+                        $data_distributor['name'] = 'Stock Opname';
+
+                        $distributor = Distributor::create($data_distributor);
+                    }
+                    $data_loading['distributor_id'] = $distributor->id;
+
+                    $data_loading['role']         = $role;
+                    $data_loading['role_id']      = $role_id;
+                    $data_loading['checker']      = $request->checker;
+                    $data_loading['loading_date'] = date('Y-m-d');
+                    $data_loading['total_item_price'] = $good_unit->buy_price * ($request->new_stocks[$i] - $request->old_stocks[$i]);
+                    $data_loading['note']         = $request->note . ' (stock opname by system)';
+                    $data_loading['payment']      = 'by system';
+
+                    $good_loading = GoodLoading::create($data_loading);
+
+                    $data_detail['good_loading_id'] = $good_loading->id;
+                    $data_detail['good_unit_id']    = $good_unit->id;
+                    $data_detail['last_stock']      = $request->old_stocks[$i];
+                    $data_detail['quantity']        = ($request->new_stocks[$i] - $request->old_stocks[$i]);
+                    $data_detail['real_quantity']   = $data_detail['quantity'] * $good_unit->unit->quantity;
+                    $data_detail['price']           = $good_unit->buy_price;
+                    $data_detail['selling_price']   = $good_unit->selling_price;
+                    $data_detail['expiry_date']     = null;
+
+                    GoodLoadingDetail::create($data_detail);
+
+                    $data_journal['type']               = 'good_loading';
+                    $data_journal['journal_date']       = date('Y-m-d');
+                    $data_journal['name']               = 'Loading barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate($good_loading->loading_date);
+                    $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
+                    $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
+                    $data_journal['credit_account_id']  = Account::where('code', '5215')->first()->id;
+                    $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
+
+                    Journal::create($data_journal);
+                }
+                elseif($request->old_stocks[$i] > $request->new_stocks[$i])
+                {
+                    $data_transaction['type'] = 'stock_opname';
+                    $data_transaction['role'] = $role;
+                    $data_transaction['role_id'] = $role_id;
+                    $data_transaction['member_id'] = '1';
+                    $data_transaction['total_item_price'] = $good_unit->buy_price * ($request->old_stocks[$i] - $request->new_stocks[$i]);
+                    $data_transaction['total_discount_price'] = 0;
+                    $data_transaction['total_sum_price'] = $data_transaction['total_item_price'];
+                    $data_transaction['voucher'] = null;
+                    $data_transaction['voucher_nominal'] = null;
+                    $data_transaction['money_paid'] = $data_transaction['total_item_price'];
+                    $data_transaction['money_returned'] = 0;
+                    $data_transaction['store']   = 'ntn getasan';
+                    $data_transaction['payment'] = 'stock_opname';
+                    $data_transaction['note']    = $request->note . ' (stock opname by system)';
+
+                    $transaction = Transaction::create($data_transaction);
+
+                    $data_detail['transaction_id'] = $transaction->id;
+                    $data_detail['good_unit_id']   = $good_unit->id;
+                    $data_detail['type']           = $transaction->type;
+                    $data_detail['quantity']       = ($request->old_stocks[$i] - $request->new_stocks[$i]);
+                    $data_detail['real_quantity']  = $data_detail['quantity'] * $good_unit->unit->quantity;
+                    $data_detail['last_stock']     = $request->old_stocks[$i];
+                    $data_detail['buy_price']      = $good_unit->buy_price;
+                    $data_detail['selling_price']  = $good_unit->buy_price;
+                    $data_detail['discount_price'] = null;
+                    $data_detail['sum_price']      = $data_transaction['total_sum_price'];
+
+                    TransactionDetail::create($data_detail);
+
+                    $data_journal['type']               = 'transaction';
+                    $data_journal['journal_date']       = date('Y-m-d');
+                    $data_journal['name']               = 'Transaksi barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate(date('Y-m-d'));
+                    $data_journal['debit_account_id']   = Account::where('code', '5215')->first()->id;
+                    $data_journal['debit']              = unformatNumber($transaction->total_item_price);
+                    $data_journal['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                    $data_journal['credit']             = unformatNumber($transaction->total_item_price);
+
+                    Journal::create($data_journal);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public function storeTransferGoodBase(Request $request)
+    {
+        for($i = 0; $i < sizeof($request->names); $i++)
+        {
+            if($request->names[$i] != null)
+            {
+                $good = Good::find($request->names[$i]);
+                $data[$i]['good_name'] = $good->name;
+                $data[$i]['good_last_distributor_id'] = $good->last_distributor_id;
+
+                $data[$i]['category_code'] = $good->category->code;
+                $data[$i]['category_name'] = $good->category->name;
+                $data[$i]['category_eng_name'] = $good->category->eng_name;
+                $data[$i]['category_unit_id'] = $good->category->unit_id;
+
+                $data[$i]['brand_name'] = $good->brand == null ? null : $good->brand->name;
+
+                if($good->last_distributor_id != null)
+                {
+                    $distributor = Distributor::find($good->last_distributor_id);
+                    $data[$i]['distributor_name'] = $distributor->name;
+                    $data[$i]['distributor_location'] = $distributor->location; 
+                }
+
+                $unit = Unit::find($request->units[$i]);
+                $data[$i]['unit_code'] = $unit->code;
+                $data[$i]['unit_name'] = $unit->name;
+                $data[$i]['unit_eng_name'] = $unit->eng_name;
+                $data[$i]['unit_quantity'] = $unit->quantity;
+                $data[$i]['unit_base'] = $unit->base;
+
+                $good_unit = GoodUnit::where('good_id', $good->id)
+                                     ->where('unit_id', $unit->id)
+                                     ->first();
+
+                $data[$i]['good_unit_buy_price'] = $good_unit->buy_price;
+                $data[$i]['good_unit_selling_price'] = $good_unit->selling_price;
+            }
+        }
+        dd($data);die;
+
+        $result = callPostGuzzle($request->address . '/good/getTransfer', Cookie::get('token'), $data);
+
+        if($result["status"] == "ok")
+        {
+            $photo = $result['data']->photo;
+            $languages = $result2['data']->languages;
+
+            return redirect('/uphoto/' . Crypt::encrypt($photo->id));
+        }
+        elseif($result["code"] == 422)
+        {
+            session(['alert' => 'error', 'data' => 'Photo']);
+
+            return redirect('/uphoto/create');
+        }
+        elseif($result["code"] == 500)
+        {
+            return redirect('/login');
+        }
+        elseif($result["code"] == 401)
+        {
+            return redirect('/login')->withCookie(Cookie::forget('token'));
+        }
+    }
+
+    public function getTransferGoodBase($data)
+    {
+        for($i = 0; $i < sizeof($data); $i++)
+        {
+            $category = Category::where('code', $data[$i]['category_code'])->first();
+
+            if($category == null)
+            {
+                $data_category['code'] = $data[$i]['category_code'];
+                $data_category['name'] = $data[$i]['category_name'];
+                $data_category['eng_name'] = $data[$i]['category_eng_name'];
+                $data_category['unit_id'] = $data[$i]['category_unit_id'];
+
+                $category = Category::create($data_category);
+            }
+
+            if($data[$i]['brand_name'] != null)
+            {
+                $brand = Brand::where('name', $data[$i]['brand_name'])->first();
+
+                if($brand == null)
+                {
+                    $data_brand['name'] = $data[$i]['brand_name'];
+
+                    $brand = Brand::create($data_brand);
+                }
+                $data_good['brand_id'] = $brand->id;
+            }
+            else
+            {
+                $data_good['brand_id'] = null;
+            }
+
+            if($data[$i]['good_last_distributor_id'] != null)
+            {
+                $distributor = Distributor::where('name', $data[$i]['distributor_name'])->first();
+
+                if($distributor == null)
+                {
+                    $data_distributor['name'] = $data[$i]['distributor_name'];
+                    $data_distributor['location'] = $data[$i]['distributor_location'];
+
+                    $distributor = Distributor::create($data_distributor);
+                }
+                $data_good['last_distributor_id'] = $distributor->id;
+            }
+            else
+            {
+                $data_good['last_distributor_id'] = null;
+            }
+
+            $unit = Unit::where('code', $data[$i]['unit_code'])->first();
+
+            if($unit == null)
+            { 
+                $data_unit['code'] = $data[$i]['unit_code'];
+                $data_unit['name'] = $data[$i]['unit_name'];
+                $data_unit['eng_name'] = $data[$i]['unit_eng_name'];
+                $data_unit['quantity'] = $data[$i]['unit_quantity'];
+                $data_unit['base'] = $data[$i]['unit_base'];
+
+                $unit = Unit::create($data_unit);
+            }
+
+            $data_good['category_id'] = $category->id;
+            $data_good['name'] = $data[$i]['good_name'];
+
+            $good = Good::create($data_good);
+            $data_good['code'] = $good->id;
+            $good->update($data_good);
+
+            $data_good_unit['good_id'] = $good->id;
+            $data_good_unit['unit_id'] = $unit->id;
+            $data_good_unit['buy_price'] = $data[$i]['good_unit_buy_price'];
+            $data_good_unit['selling_price'] = $data[$i]['good_unit_selling_price'];
+
+            GoodUnit::create($data_good_unit);
+        }
+
+        return true;
+    }
+
+    public function getPopularGoodsGoodBase($time_limit, $limit)
+    {
+        $today = Carbon::now();
+        $old_days = $today->subDays($time_limit);
+
+        $goods = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity) AS total, goods.name as good_name, units.name as unit_name, good_photos.location, good_units.id as guid'))
+                                  ->join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                  ->join('goods', 'goods.id', 'good_units.good_id')
+                                  ->join('units', 'units.id', 'good_units.unit_id')
+                                  ->join('good_photos', 'goods.id', 'good_photos.good_id')
+                                  ->whereDate('transaction_details.created_at', '>=', $old_days)
+                                  ->whereDate('transaction_details.created_at', '<=', date('Y-m-d'))
+                                  ->where('good_photos.is_profile_picture', 1)
+                                  ->where('transaction_details.type', 'normal')
+                                  ->orderBy('total', 'desc')
+                                  ->groupBy('goods.name')
+                                  ->groupBy('units.name')
+                                  ->groupBy('good_photos.location')
+                                  ->groupBy('good_units.id')
+                                  ->take($limit)
+                                  ->get();
+
+        return $goods;
     }
 }

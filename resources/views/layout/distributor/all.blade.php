@@ -17,8 +17,14 @@
                 <th>ID</th>
                 <th>Nama</th>
                 <th>Lokasi</th>
-                <th>Total Hutang Dagang</th>
-                <th>Total Piutang Dagang</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>Total Aset</th>
+                  <th>Total Hutang Dagang</th>
+                  <th>Pembayaran Hutang dengan Barang</th>
+                  <th>Pembayaran Hutang dengan Uang</th>
+                  <th>Sisa Hutang</th>
+                  <th class="center">Pembayaran Hutang</th>
+                @endif
                 <th class="center">Detail</th>
                 <th class="center">Ubah</th>
                 @if($role == 'admin')
@@ -32,8 +38,14 @@
                     <td>{{ $distributor->id }}</td>
                     <td>{{ $distributor->name }}</td>
                     <td>{{ $distributor->location }}</td>
-                    <td>{{ showRupiah($distributor->totalHutangDagang()->sum('debit')) }}</td>
-                    <td>{{ showRupiah($distributor->totalPiutangDagang()->sum('debit')) }}</td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td>{{ showRupiah($distributor->getAsset()) }}</td>
+                      <td>{{ showRupiah($distributor->totalHutangDagangLoading()->sum('total_item_price') + $distributor->titipUang()->sum('debit')) }}</td>
+                      <td>{{ showRupiah($distributor->totalHutangDagangInternal()->sum('debit') + $distributor->totalPiutangDagangInternal()->sum('debit') + $distributor->totalPiutangDagangLoading()->sum('total_item_price')) }}</td>
+                      <td>{{ showRupiah($distributor->totalOutcome()->sum('debit')) }}</td>
+                      <td>{{ showRupiah($distributor->totalHutangDagangLoading()->sum('total_item_price') + $distributor->titipUang()->sum('debit') - $distributor->totalHutangDagangInternal()->sum('debit') - $distributor->totalPiutangDagangInternal()->sum('debit') - $distributor->totalPiutangDagangLoading()->sum('total_item_price') - $distributor->totalOutcome()->sum('debit')) }}</td>
+                      <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/creditPayment') }}"><i class="fa fa-dollar tosca" aria-hidden="true"></i></a></td>
+                    @endif
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')

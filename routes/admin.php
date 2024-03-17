@@ -4,6 +4,7 @@ Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 Route::get('profit', 'MainController@profit');
 Route::get('scale', 'MainController@scale');
+Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 
 Route::group(['prefix' => 'account'], function () {
 	Route::get('/create', 'AccountController@create');
@@ -53,6 +54,7 @@ Route::group(['prefix' => 'distributor'], function () {
 	Route::get('/{distributor_id}/detail', 'DistributorController@detail');
 	Route::get('/{distributor_id}/edit', 'DistributorController@edit');
 	Route::put('/{distributor_id}/edit', 'DistributorController@update')->name('distributor.update');
+	Route::get('/{distributor_id}/creditPayment', 'DistributorController@creditPayment');
 	Route::delete('/{distributor_id}/delete', 'DistributorController@delete')->name('distributor.delete');
 	Route::get('/{pagination}', 'DistributorController@index');
 });
@@ -69,13 +71,17 @@ Route::group(['prefix' => 'good'], function () {
 
     Route::get('/checkDiscount/{good_id}/{quantity}/{price}', 'GoodController@checkDiscount');
     Route::get('/getPriceUnit/{good_id}/{unit_id}', 'GoodController@getPriceUnit');
+	Route::get('/printDisplay', 'GoodController@choosePrintDisplay');
+	Route::post('/printDisplay', 'GoodController@printDisplay')->name('print-display');
     Route::get('/searchByBarcode/{barcode}', 'GoodController@searchByBarcode');
     Route::get('/searchById/{good_id}', 'GoodController@searchById');
     Route::get('/searchByGoodUnit/{good_unit_id}', 'GoodController@searchByGoodUnit');
 	Route::get('/searchByKeyword/{query}', 'GoodController@searchByKeyword');
 	Route::get('/searchByKeywordGoodUnit/{query}', 'GoodController@searchByKeywordGoodUnit');
-	Route::get('/printDisplay', 'GoodController@choosePrintDisplay');
-	Route::post('/printDisplay', 'GoodController@printDisplay')->name('print-display');
+	Route::get('/stockOpname', 'GoodController@stockOpname');
+	Route::post('/stockOpname', 'GoodController@storeStockOpname')->name('good.stockOpname');
+	Route::get('/transfer', 'GoodController@transfer');
+	Route::post('/transfer', 'GoodController@storeTransfer')->name('good.transfer');
 	Route::get('/zeroStock/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');
 	Route::post('/zeroStock/export', 'GoodController@stockExport')->name('zeroStock.export');
 	Route::delete('/zeroStock/delete', 'GoodController@deleteExport')->name('zeroStock.delete');
@@ -87,6 +93,8 @@ Route::group(['prefix' => 'good'], function () {
     Route::get('/{good_id}/detail', 'GoodController@detail');
     Route::get('/{good_id}/edit', 'GoodController@edit');
     Route::put('/{good_id}/edit', 'GoodController@update')->name('good.update');
+	Route::get('/{good_id}/createPrice', 'GoodController@createPrice');
+	Route::post('/{good_id}/storePrice', 'GoodController@storePrice')->name('good.store-price');
     Route::get('/{good_id}/editPrice', 'GoodController@editPrice');
     Route::put('/{good_id}/editPrice', 'GoodController@updatePrice')->name('good.update-price');
     Route::delete('/{good_id}/delete', 'GoodController@delete')->name('good.delete');
@@ -118,19 +126,34 @@ Route::group(['prefix' => 'internal-transaction'], function () {
 Route::group(['prefix' => 'journal'], function () {
 	Route::get('/create', 'JournalController@create');
     Route::post('/store', 'JournalController@store')->name('journal.store');
-	Route::get('/{code}/{start_date}/{end_date}/{pagination}', 'JournalController@index');
+	Route::get('/{journal_id}/edit', 'JournalController@edit');
+	Route::put('/{journal_id}/edit', 'JournalController@update')->name('journal.update');
+	Route::get('/{code}/{type}/{start_date}/{end_date}/{pagination}', 'JournalController@index');
 });
 
 Route::group(['prefix' => 'member'], function () {
 	Route::get('/create', 'MemberController@create');
 	Route::post('/store', 'MemberController@store')->name('member.store');
+	Route::get('/search/{member_id}', 'MemberController@search');
+	Route::get('/searchByName/{name}', 'MemberController@searchByName');
 	Route::get('/{member_id}/detail', 'MemberController@detail');
+	Route::get('/{member_id}/showQrCode', 'MemberController@showQrCode');
 	Route::get('/{member_id}/transaction/{start_date}/{end_date}/{pagination}', 'MemberController@transaction');
 	Route::get('/{member_id}/payment/{start_date}/{end_date}/{pagination}', 'MemberController@payment');
 	Route::get('/{member_id}/edit', 'MemberController@edit');
 	Route::put('/{member_id}/edit', 'MemberController@update')->name('member.update');
 	Route::delete('/{member_id}/delete', 'MemberController@delete')->name('member.delete');
-	Route::get('/{pagination}', 'MemberController@index');
+	Route::get('/{start_date}/{end_date}/{sort}/{order}/{pagination}', 'MemberController@index');
+});
+
+Route::group(['prefix' => 'delivery-fee'], function () {
+	Route::get('/create', 'DeliveryFeeController@create');
+	Route::post('/store', 'DeliveryFeeController@store')->name('delivery-fee.store');
+	Route::get('/{ongkir_id}/detail', 'DeliveryFeeController@detail');
+	Route::get('/{ongkir_id}/edit', 'DeliveryFeeController@edit');
+	Route::put('/{ongkir_id}/edit', 'DeliveryFeeController@update')->name('delivery-fee.update');
+	Route::delete('/{ongkir_id}/delete', 'DeliveryFeeController@delete')->name('delivery-fee.delete');
+	Route::get('/{pagination}', 'DeliveryFeeController@index');
 });
 
 Route::group(['prefix' => 'other-payment'], function () {
@@ -163,9 +186,10 @@ Route::group(['prefix' => 'retur'], function () {
 
 Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/create', 'TransactionController@create');
+	Route::get('/createNew', 'TransactionController@createNew');
     Route::post('/store', 'TransactionController@store')->name('transaction.store');
     Route::post('/storeMoney', 'TransactionController@storeMoney')->name('transaction.storeMoney');
-    Route::get('/resume/{category_id}/{distributor_id}/{start_date}/{end_date}', 'TransactionController@resume');
+    Route::get('/resume/{type}/{category_id}/{distributor_id}/{start_date}/{end_date}', 'TransactionController@resume');
     Route::get('/resumeTotal/{start_date}/{end_date}', 'TransactionController@resumeTotal');
 	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'TransactionController@index');
     Route::get('/{transaction_id}/detail', 'TransactionController@detail');
@@ -181,5 +205,17 @@ Route::group(['prefix' => 'unit'], function () {
 	Route::put('/{unit_id}/edit', 'UnitController@update')->name('unit.update');
 	Route::delete('/{unit_id}/delete', 'UnitController@delete')->name('unit.delete');
 	Route::get('/{pagination}', 'UnitController@index');
+});
+
+Route::group(['prefix' => 'voucher'], function () {
+	Route::get('/create', 'VoucherController@create');
+	Route::post('/store', 'VoucherController@store')->name('voucher.store');
+	Route::get('/searchByCode/{code}', 'VoucherController@searchByCode');
+	Route::get('/{voucher_id}/detail', 'VoucherController@detail');
+	Route::get('/{voucher_id}/good', 'VoucherController@good');
+	Route::get('/{voucher_id}/edit', 'VoucherController@edit');
+	Route::put('/{voucher_id}/edit', 'VoucherController@update')->name('voucher.update');
+	Route::delete('/{voucher_id}/delete', 'VoucherController@delete')->name('voucher.delete');
+	Route::get('/{pagination}', 'VoucherController@index');
 });
 

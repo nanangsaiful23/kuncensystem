@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">Daftar transaksi</h3>
+            <h3 class="box-title">{{ $default['page_name'] }}</h3>
             <!-- @include('layout.search-form') -->
           </div>
           <div class="box-body">
@@ -36,10 +36,9 @@
           </div>
           <div class="box-body" style="overflow-x:scroll;">
             <h3>Total transaksi hari ini: {{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price')) }}</h3>
-            <!-- <h3>Total uang masuk cash: {{ showRupiah($transactions['cash']->sum('total_sum_price') + $transactions['credit']->sum('money_paid') + $transactions['retur']->sum('total_sum_price')) }}</h3> -->
-            <!-- <h3>Total uang masuk transfer: {{ showRupiah($transactions['transfer']->sum('total_sum_price') + ($transactions['credit_transfer']->sum('money_paid'))) }}</h3> -->
             @if(\Auth::user()->email == 'admin')
-            <h3>HPP: {{ showRupiah($hpp_normal->sum('total') + $hpp_retur->sum('total')) }}</h3>
+            <h3>HPP: {{ showRupiah($hpp_normal->sum('total') + $hpp_retur_normal->sum('total') - $hpp_retur->sum('total')) }}</h3>
+            <h3>Untung: {{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price') - ($hpp_normal->sum('total') + $hpp_retur_normal->sum('total') - $hpp_retur->sum('total'))) }}</h3>
             @endif
           </div>
 

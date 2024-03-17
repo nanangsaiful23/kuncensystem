@@ -26,9 +26,10 @@ class InternalTransactionController extends Controller
         $default['page'] = 'internal-transaction';
         $default['section'] = 'all';
 
+        $all_transactions = $this->indexInternalTransactionBase($role_user, $role_id, $start_date, $end_date, 'all'); 
         $transactions = $this->indexInternalTransactionBase($role_user, $role_id, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'transactions', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'all_transactions', 'transactions', 'role_user', 'role_id', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()

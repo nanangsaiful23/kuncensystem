@@ -5,6 +5,7 @@
     use App\Models\Brand;
     use App\Models\Category;
     use App\Models\Color;
+    use App\Models\DeliveryFee;
     use App\Models\Distributor;
     use App\Models\Good;
     use App\Models\GoodChecking;
@@ -57,6 +58,80 @@
         }
 
         return [$type, $color, $data];
+    }
+
+    function callGetGuzzle($url, $token = null)
+    {
+        if($token == null)
+        {
+            $header = [
+                    'Secret' => config('app.secret')
+                ];
+        }
+        else
+        {
+            $header = [
+                    'Secret' => config('app.secret'),
+                    'Authorization' => 'Bearer ' . $token                
+                ];
+        }
+
+        $client = new \GuzzleHttp\Client([
+                'headers' => $header
+            ]);
+        try {
+            $response = $client->get($url);
+            $response = json_decode($response->getBody()->getContents());
+            
+            return ["status" => "ok", "data" => $response->content];
+        } 
+        catch (\GuzzleHttp\Exception\RequestException $e) {
+            return ["status" => "error", "data" => $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+
+    function callPostGuzzle($url, $token = null, $data = null)
+    {
+        if($token == null)
+        {
+            $header = [
+                    'Content-Type' => 'application/json',
+                    'Secret' => config('app.secret')
+                ];
+        }
+        else
+        {
+            $header = [
+                    'Content-Type' => 'application/json',
+                    'Secret' => config('app.secret'),
+                    'Authorization' => 'Bearer ' . $token                
+                ];
+        }
+
+        $client = new \GuzzleHttp\Client();
+        try {
+            $response = $client->request('POST', $url, [
+                'headers' => $header,
+                'json' => $data
+            ]);
+
+            $response = json_decode($response->getBody()->getContents());
+            
+            return ["status" => "ok", "data" => $response->content];
+        } 
+        catch (\GuzzleHttp\Exception\RequestException $e) {
+            return ["status" => "error", "data" => $e->getMessage(), "code" => $e->getCode()];
+        }
+    }
+    
+    function api_response($status, $message, $code, $content = null)
+    {
+        return response([
+            'status' => $status,
+            'message' => $message,
+            'code' => $code,
+            'content' => $content
+        ], $code);
     }
 
     function resizeImage($folder, $pathInput)
@@ -336,7 +411,7 @@
 
     function getJournalTypes()
     {
-        $types = ['transaction' => 'Transaksi', 'hpp' => 'HPP', 'good_loading' => 'Loading barang', 'other_payment' => 'Biaya lain', 'operasional' => 'Operasional', 'cash_draw' => 'Penarikan uang', 'modal pemilik' => 'Modal pemilik', 'penyusutan' => 'Penyusutan', 'retur' => 'Retur', 'internal_cash_flow' => 'Perpindahan uang'];
+        $types = ['all' => 'Seluruh tipe', 'transaction' => 'Transaksi', 'hpp' => 'HPP', 'good_loading' => 'Loading barang', 'other_payment' => 'Biaya lain', 'operasional' => 'Operasional', 'cash_draw' => 'Penarikan uang', 'modal pemilik' => 'Modal pemilik', 'penyusutan' => 'Penyusutan', 'retur' => 'Retur', 'internal_cash_flow' => 'Perpindahan uang', 'credit_payment' => 'Pembayaran hutang'];
 
         return $types;
     }
@@ -346,6 +421,13 @@
         $members = Member::all();
 
         return $members;
+    }
+
+    function getOngkir()
+    {
+        $fees = DeliveryFee::orderBy('location', 'asc')->get();
+
+        return $fees;
     }
 
     function getOtherPayment()
@@ -380,6 +462,15 @@
             }
         }
         return $search;
+    }
+
+    function getTransactionDetailTypes($start_date, $end_date)
+    {
+        $types = [];
+        foreach (DB::select("SELECT DISTINCT type FROM transaction_details WHERE DATE(transaction_details.created_at) >= '" . $start_date . "' AND DATE(transaction_details.created_at) <= '" . $end_date . "' ORDER BY type") as $data) {
+            $types = array_add($types, $data->type, $data->type);
+        }
+        return $types;
     }
 
     function getUnits()

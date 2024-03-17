@@ -60,6 +60,15 @@ trait TransactionControllerBase
                                        ->whereDate('transaction_details.created_at', '>=', $start_date)
                                         ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                         ->where('transactions.type', 'normal')
+                                        ->where('transaction_details.type', 'normal')
+                                        ->get();
+
+        $hpp_retur_normal = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
+                                        ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                        ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                        ->where('transactions.type', 'retur')
+                                        ->where('transaction_details.type', 'normal')
                                         ->get();
 
         $hpp_retur = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
@@ -67,6 +76,7 @@ trait TransactionControllerBase
                                        ->whereDate('transaction_details.created_at', '>=', $start_date)
                                         ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                         ->where('transactions.type', 'retur')
+                                        ->where('transaction_details.type', 'retur')
                                         ->get();
 
         if($pagination == 'all')
@@ -263,7 +273,7 @@ trait TransactionControllerBase
             }
         }
 
-        return [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur];
+        return [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur, $hpp_retur_normal];
     }
 
     public function storeTransactionBase($role, $role_id, Request $request)
@@ -301,6 +311,9 @@ trait TransactionControllerBase
         $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
         $data_transaction['total_discount_price'] = unformatNumber($request->total_discount_price);
         $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
+        $data_transaction['voucher'] = $request->voucher;
+        $data_transaction['voucher_nominal'] = unformatNumber($request->voucher_nominal);
+        // $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
         $data_transaction['money_paid'] = unformatNumber($request->money_paid);
         $data_transaction['money_returned'] = unformatNumber($request->money_returned);
         $data_transaction['store']   = 'ntn getasan';
@@ -334,6 +347,8 @@ trait TransactionControllerBase
             }
         }
 
+        $sum = $sum - checkNull($data_transaction['total_discount_price']) - checkNull($data_transaction['voucher_nominal']);
+
         #tabel journal transaksi
         if($request->payment == 'cash')
         {
@@ -350,8 +365,8 @@ trait TransactionControllerBase
 
         if($journal != null)
         {
-            $data_journal['debit'] = floatval($journal->debit) + floatval($data_transaction['total_sum_price']);
-            $data_journal['credit'] = floatval($journal->credit) + floatval($data_transaction['total_sum_price']);
+            $data_journal['debit'] = floatval($journal->debit) + floatval($sum);
+            $data_journal['credit'] = floatval($journal->credit) + floatval($sum);
 
             $journal->update($data_journal);
         }
@@ -360,9 +375,9 @@ trait TransactionControllerBase
             $data_journal['type']               = 'transaction';
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-            $data_journal['debit']              = $data_transaction['total_sum_price'];
+            $data_journal['debit']              = $sum;
             $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
-            $data_journal['credit']             = $data_transaction['total_sum_price'];
+            $data_journal['credit']             = $sum;
 
             Journal::create($data_journal);
         }
@@ -410,8 +425,8 @@ trait TransactionControllerBase
             if($piutang != null)
             {
                 $data_piutang['name']   = $piutang->name . ', ' . $transaction->id;
-                $data_piutang['debit']  = floatval($piutang->debit) + floatval($data_transaction['total_sum_price']);
-                $data_piutang['credit'] = floatval($piutang->credit) + floatval($data_transaction['total_sum_price']);
+                $data_piutang['debit']  = floatval($piutang->debit) + floatval($sum);
+                $data_piutang['credit'] = floatval($piutang->credit) + floatval($sum);
 
                 $piutang->update($data_piutang);
             }
@@ -421,8 +436,8 @@ trait TransactionControllerBase
                 $data_piutang['journal_date']       = date('Y-m-d');
                 $data_piutang['name']               = 'Piutang dagang member ' . $transaction->member->name . ' (ID member ' . $transaction->member->id . ') -> ID transaksi ' . $transaction->id;
                 $data_piutang['debit_account_id']   = Account::where('code', '1131')->first()->id;
-                $data_piutang['debit']              = $data_transaction['total_sum_price'];
-                $data_piutang['credit']             = $data_transaction['total_sum_price'];
+                $data_piutang['debit']              = $sum;
+                $data_piutang['credit']             = $sum;
 
                 Journal::create($data_piutang);
             }
@@ -492,7 +507,7 @@ trait TransactionControllerBase
 
                 TransactionDetail::create($data_detail_retur);
 
-                $sum_retur += $data_detail_retur['sum_price'];
+                $sum_retur += unformatNumber($request->pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
                 $hpp_retur += $data_detail_retur['buy_price'] * $data_detail_retur['quantity'];
 
                 $is_retur = true;
@@ -515,7 +530,7 @@ trait TransactionControllerBase
                     $data_loading['role_id']      = $role_id;
                     $data_loading['checker']      = 'Load by sistem';
                     $data_loading['loading_date'] = date('Y-m-d');
-                    $data_loading['distributor_id']   = $good->getLastBuy()->good_loading->distributor->id;
+                    $data_loading['distributor_id']   = $good->last_distributor_id;
                     $data_loading['total_item_price'] = unformatNumber($request->buy_pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
                     $data_loading['note']             = 'Loading barang retur';
                     $data_loading['payment']          = $request->payment;
@@ -536,28 +551,37 @@ trait TransactionControllerBase
             }
         }
 
-        // if($is_retur)
-        // {
-        //     $data_journal_loading_retur['type']               = 'good_loading';
-        //     $data_journal_loading_retur['journal_date']       = date('Y-m-d');
-        //     $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
-        //     $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
-        //     $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
-        //     $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
-        //     $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
+        if($is_retur)
+        {
+            if($request->payment == 'cash')
+            {
+                $data_journal_loading_retur['credit_account_id']   = Account::where('code', '1111')->first()->id;
+            }
+            elseif($request->payment == 'transfer')
+            {
+                $data_journal_loading_retur['credit_account_id']   = Account::where('code', '1112')->first()->id;
+            }
 
-        //     Journal::create($data_journal_loading_retur);
+            $data_journal_loading_retur['type']               = 'good_loading';
+            $data_journal_loading_retur['journal_date']       = date('Y-m-d');
+            $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
+            $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
+            // $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
 
-        //     $data_journal_retur['type']               = 'retur';
-        //     $data_journal_retur['journal_date']       = date('Y-m-d');
-        //     $data_journal_retur['name']               = 'Retur barang ID transaksi ' . $transaction->id . ' tanggal ' . displayDate(date('Y-m-d'));
-        //     $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
-        //     $data_journal_retur['debit']              = unformatNumber($hpp_retur);
-        //     $data_journal_retur['credit_account_id']   = Account::where('code', '5101')->first()->id;
-        //     $data_journal_retur['credit']             = unformatNumber($hpp_retur);
+            Journal::create($data_journal_loading_retur);
 
-        //     Journal::create($data_journal_retur);
-        // }
+            $data_journal_retur['type']               = 'hpp';
+            $data_journal_retur['journal_date']       = date('Y-m-d');
+            $data_journal_retur['name']               = 'HPP retur barang (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            $data_journal_retur['debit']              = unformatNumber($hpp_retur);
+            $data_journal_retur['credit_account_id']   = Account::where('code', '5101')->first()->id;
+            $data_journal_retur['credit']             = unformatNumber($hpp_retur);
+
+            Journal::create($data_journal_retur);
+        }
 
         return $transaction;
     }
@@ -575,7 +599,7 @@ trait TransactionControllerBase
             $data_loading['role_id']      = $role_id;
             $data_loading['checker']      = "Created by system";
             $data_loading['loading_date'] = date('Y-m-d');
-            $data_loading['distributor_id']   = $good->getLastBuy()->good_loading->distributor_id;
+            $data_loading['distributor_id']   = $good->last_distributor_id;
             $data_loading['total_item_price'] = $detail->quantity * $detail->buy_price;
             $data_loading['note']             = "Reverse transaction id " . $transaction->id;
             $data_loading['payment']          = "cash";
@@ -600,7 +624,10 @@ trait TransactionControllerBase
         $data_journal['name']               = 'Loading reverse transaction (id ' . $transaction->id . ')';
         $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
         $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-        $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+        if($transaction->payment == 'cash')
+            $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+        elseif($transaction->payment == 'transfer')
+            $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
         $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
 
         Journal::create($data_journal);
@@ -621,20 +648,23 @@ trait TransactionControllerBase
         return true;
     }
 
-    public function resumeTransactionBase($category_id, $distributor_id, $start_date, $end_date)
+    public function resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date)
     {
         if($category_id == 'all' && $distributor_id == 'all')
         {
             $total = TransactionDetail::whereDate('transaction_details.created_at', '>=', $start_date)
                                       ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      ->where('transaction_details.type', $type)
                                       ->get();
 
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->where('transaction_details.type', $type)
+                                                    ->groupBy('goods.id')
                                                     ->groupBy('goods.code')
                                                     ->groupBy('goods.name')
                                                     ->groupBy('units.name')
@@ -648,6 +678,7 @@ trait TransactionControllerBase
         {
             $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                       ->join('goods', 'goods.id', 'good_units.good_id')
+                                      ->where('transaction_details.type', $type)
                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
                                       ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                       ->where('goods.last_distributor_id', $distributor_id)
@@ -656,10 +687,42 @@ trait TransactionControllerBase
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->where('transaction_details.type', $type)
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                                     ->where('goods.last_distributor_id', $distributor_id)
+                                                    ->groupBy('goods.id')
+                                                    ->groupBy('goods.code')
+                                                    ->groupBy('goods.name')
+                                                    ->groupBy('units.name')
+                                                    ->groupBy('transaction_details.buy_price')
+                                                    ->groupBy('transaction_details.selling_price')
+                                                    ->orderBy('selling_price', 'desc')
+                                                    ->orderBy('quantity', 'desc')
+                                                    ->get();
+        }
+        else if($distributor_id == 'all')
+        {
+            $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                      ->join('goods', 'goods.id', 'good_units.good_id')
+                                      ->where('transaction_details.type', $type)
+                                      ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                      ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                      // ->where('goods.last_distributor_id', $distributor_id)
+                                      ->where('goods.category_id', $category_id)
+                                      ->get();
+
+            $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                                    ->join('goods', 'goods.id', 'good_units.good_id')
+                                                    ->join('units', 'units.id', 'good_units.unit_id')
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->where('transaction_details.type', $type)
+                                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                                    ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->where('goods.category_id', $category_id)
+                                                    // ->where('goods.last_distributor_id', $distributor_id)
+                                                    ->groupBy('goods.id')
                                                     ->groupBy('goods.code')
                                                     ->groupBy('goods.name')
                                                     ->groupBy('units.name')
@@ -673,6 +736,7 @@ trait TransactionControllerBase
         {   
             $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                       ->join('goods', 'goods.id', 'good_units.good_id')
+                                      ->where('transaction_details.type', $type)
                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
                                       ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                       ->where('goods.last_distributor_id', $distributor_id)
@@ -682,11 +746,13 @@ trait TransactionControllerBase
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->where('transaction_details.type', $type)
                                                     ->where('goods.category_id', $category_id)
                                                     ->where('goods.last_distributor_id', $distributor_id)
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
+                                                    ->groupBy('goods.id')
                                                     ->groupBy('goods.code')
                                                     ->groupBy('goods.name')
                                                     ->groupBy('units.name')
@@ -727,13 +793,26 @@ trait TransactionControllerBase
                                             ->where('type', '1131')
                                             ->get();
 
+        $transactions['modal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', '3001')
+                                            ->get();
+
+        $transactions['stock_opname'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', 'stock_opname')
+                                            ->get();
+
         $transactions['internal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', '!=', 'normal')
                                             ->where('type', '!=', 'retur')
+                                            ->where('type', '!=', 'retur_item')
+                                            ->where('type', '!=', 'stock_opname')
                                             ->where('type', '!=', 'not valid')
                                             ->where('type', '!=', '2101')
                                             ->where('type', '!=', '1131')
+                                            ->where('type', '!=', '3001')
                                             ->get();
 
         $account = Account::where('code', '5220')->first();

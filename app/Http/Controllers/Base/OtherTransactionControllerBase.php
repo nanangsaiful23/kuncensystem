@@ -29,8 +29,20 @@ trait OtherTransactionControllerBase
     public function storeOtherTransactionBase(Request $request)
     {
         $request->money = unformatNumber($request->money);
+        $this->validate($request, [
+            'money' => array('required', 'regex:/^[\d\s,]*$/'),
+            // 'buy_price' => array('regex:/^[\d\s,]*$/'),
+        ]);
+        if($request->buy_price != null) 
+        {
+            $request->buy_price = unformatNumber($request->buy_price);
+            $this->validate($request, [
+                // 'money' => array('required', 'regex:/^[\d\s,]*$/'),
+                'buy_price' => array('regex:/^[\d\s,]*$/'),
+            ]);
+        }
 
-        if($request->type == 'box_transaction')
+        if($request->type == 'box_transaction' || $request->type == 'ongkir_transaction')
         {
             $data_box['type']               = 'box_transaction';
             $data_box['journal_date']       = date('Y-m-d');
@@ -107,7 +119,7 @@ trait OtherTransactionControllerBase
         {
             $data_cash['type']               = 'cash_transaction';
             $data_cash['journal_date']       = date('Y-m-d');
-            $data_cash['name']               = 'Titipan Uang Pembayaran Bu Maryati (note = ' . $request->note . ')';
+            $data_cash['name']               = 'Titipan Uang Pembayaran Toko Kuncen (note = ' . $request->note . ')';
             $data_cash['debit_account_id']   = Account::where('code', '1111')->first()->id;
             $data_cash['debit']              = $request->money;
             $data_cash['credit_account_id']  = Account::where('code', '2101')->first()->id;

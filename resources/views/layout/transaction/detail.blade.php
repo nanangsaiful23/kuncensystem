@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Form Detail Transaksi {{ $transaction->created_at }}</h3>
+            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $transaction->created_at }}</h3>
           </div>
 
           {!! Form::model($transaction, array('class' => 'form-horizontal')) !!}
@@ -17,6 +17,16 @@
                             {!! Form::label('actor', 'PIC', array('class' => 'col-sm-2 control-label')) !!}
                             <div class="col-sm-4">
                                 {!! Form::text('actor', $transaction->actor()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {!! Form::label('type', 'Tipe', array('class' => 'col-sm-2 control-label')) !!}
+                            <div class="col-sm-4">
+                                @if($transaction->type_name() != null)
+                                    {!! Form::text('type', $transaction->type_name()->code . ' - ' . $transaction->type_name()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                @else
+                                    {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                @endif
                             </div>
                         </div>
                         <div class="form-group">

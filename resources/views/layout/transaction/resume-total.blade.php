@@ -24,11 +24,13 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll;">
-            <h2>Total transaksi akhir: {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price') + $transactions['not_valid']->sum('total_sum_price') + $transactions['internal']->sum('total_sum_price') + $transactions['credit']->sum('total_sum_price') + $transactions['piutang']->sum('total_sum_price')) }}</h2>
+            <h2>Total transaksi akhir: {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price') + $transactions['not_valid']->sum('total_sum_price') + $transactions['internal']->sum('total_sum_price') + $transactions['credit']->sum('total_sum_price') + $transactions['piutang']->sum('total_sum_price') + $transactions['modal']->sum('total_sum_price') + $transactions['stock_opname']->sum('total_sum_price')) }}</h2>
             <h3>Total transaksi (normal + retur): {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi double/tidak valid: {{ showRupiah($transactions['not_valid']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi internal (utang dagang): {{ showRupiah($transactions['credit']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi internal (piutang dagang): {{ showRupiah($transactions['piutang']->sum('total_sum_price')) }}</h3>
+            <h3>Total transaksi internal (modal pemilik): {{ showRupiah($transactions['modal']->sum('total_sum_price')) }}</h3>
+            <h3>Total transaksi internal (stock opname): {{ showRupiah($transactions['stock_opname']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi internal lainnya: {{ showRupiah($transactions['internal']->sum('total_sum_price')) }}</h3>
             <h3>Total transaksi lain: {{ showRupiah($transactions['other_transaction']->sum('debit')) }}</h3>
             <h3>Total biaya lain: {{ showRupiah($transactions['other_payment']->sum('debit')) }}</h3>
@@ -38,7 +40,7 @@
               <div class="form-group">
                 {!! Form::label('money', 'Pengambilan Uang', array('class' => 'col-sm-12')) !!}
                 <div class="col-sm-5">
-                  {!! Form::text('money', null, array('class' => 'form-control', 'onchange' => 'changeBalance()', 'id' => 'money', 'onkeyup' => 'formatNumber("money")')) !!}
+                  {!! Form::text('money', null, array('class' => 'form-control', 'onchange' => 'changeBalance()', 'id' => 'money', 'onkeyup' => 'formatNumber("money")', 'required' => 'required')) !!}
                 </div>
               </div>
               <div class="col-sm-5">

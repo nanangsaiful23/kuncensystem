@@ -37,12 +37,16 @@
                 <th>Created at</th>
                 <th>Tanggal loading</th>
                 <th>Note</th>
-                <th>Nama Distributor</th>
+                @if(\Auth::user()->role == 'supervisor')
+                  <th>Nama Distributor</th>
+                @endif
                 <th>Expired</th>
                 <th>Jumlah Input</th>
                 <th>Jumlah Real</th>
-                <th>Harga Beli</th>
-                <th>Total Harga</th>
+                @if(\Auth::user()->role == 'supervisor')
+                  <th>Harga Beli</th>
+                  <th>Total Harga</th>
+                @endif
                 <th>Stock Sebelumnya</th>
                 <th>Harga Jual</th>
                 @if(\Auth::user()->email == 'admin')
@@ -56,12 +60,16 @@
                     <td><a href="{{ url($role . '/good-loading/' . $good_loading->good_loading->id . '/detail') }}" class="btn" target="_blank">{{ $good_loading->created_at }}</a></td>
                     <td>{{ displayDate($good_loading->good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->good_loading->note }}</td>
-                    <td>{{ $good_loading->good_loading->distributor->name }}</td>
+                    @if(\Auth::user()->role == 'supervisor')
+                      <td>{{ $good_loading->good_loading->distributor->name }}</td>
+                    @endif
                     <td>{{ $good_loading->expiry_date }}</td>
                     <td>{{ $good_loading->quantity. ' ' . $good_loading->good_unit->unit->code }}</td>
                     <td>{{ $good_loading->real_quantity }}</td>
-                    <td style="text-align: right;">{{ showRupiah($good_loading->price) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($good_loading->quantity * $good_loading->price) }}</td>
+                    @if(\Auth::user()->role == 'supervisor')
+                      <td style="text-align: right;">{{ showRupiah($good_loading->price) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($good_loading->quantity * $good_loading->price) }}</td>
+                    @endif
                     <td>{{ $good_loading->last_stock }}</td>
                     <td style="text-align: right;">{{ showRupiah($good_loading->selling_price) }}</td>
                     @if(\Auth::user()->email == 'admin')

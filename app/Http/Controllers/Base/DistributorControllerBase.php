@@ -25,8 +25,8 @@ trait DistributorControllerBase
 
         foreach($distributors as $distributor)
         {
-            $distributor->hutang = $distributor->totalHutangDagang()->sum('debit');
-            $distributor->piutang = $distributor->totalPiutangDagang()->sum('debit');
+            $distributor->hutang = $distributor->totalHutangDagangLoading()->sum('total_item_price') - $distributor->totalHutangDagangInternal()->sum('debit');
+            $distributor->piutang = $distributor->totalPiutangDagangInternal()->sum('debit') - $distributor->totalPiutangDagangLoading()->sum('total_item_price');
         }
 
         return $distributors;

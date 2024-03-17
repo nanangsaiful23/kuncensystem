@@ -18,7 +18,7 @@ class JournalController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($code, $start_date, $end_date, $pagination)
+    public function index($code, $type, $start_date, $end_date, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,9 +26,9 @@ class JournalController extends Controller
         $default['page'] = 'journal';
         $default['section'] = 'all';
 
-        $journals = $this->indexJournalBase($code, $start_date, $end_date, $pagination);
+        $journals = $this->indexJournalBase($code, $type, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'journals', 'code', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'journals', 'code', 'type', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()
@@ -48,6 +48,28 @@ class JournalController extends Controller
 
         session(['alert' => 'add', 'data' => 'Jurnal']);
 
-        return redirect('/admin/journal/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15');
+        return redirect('/admin/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15');
+    }
+
+    public function edit($journal_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Ubah Jurnal';
+        $default['page'] = 'journal';
+        $default['section'] = 'edit';
+
+        $journal = Journal::find($journal_id);
+
+        return view('admin.layout.page', compact('default', 'journal'));
+    }
+
+    public function update($journal_id, Request $request)
+    {
+        $journal = $this->updateJournalBase($journal_id, $request);
+
+        session(['alert' => 'edit', 'data' => 'Jurnal barang']);
+
+        return redirect('/admin/journal/all/all/' . $journal->journal_date . '/' . $journal->journal_date . '/15');
     }
 }

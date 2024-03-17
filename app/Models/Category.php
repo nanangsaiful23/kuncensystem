@@ -10,7 +10,7 @@ class Category extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'code', 'name', 'eng_name', 'unit'
+        'code', 'name', 'eng_name', 'unit_id'
     ];
 
     protected $hidden = [

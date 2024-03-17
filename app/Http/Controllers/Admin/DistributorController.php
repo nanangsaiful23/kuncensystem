@@ -103,4 +103,17 @@ class DistributorController extends Controller
 
         return redirect('/admin/distributor/all/10');
     }
+
+    public function creditPayment($distributor_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $distributor = Distributor::find($distributor_id);
+
+        $default['page_name'] = 'Pembayaran Hutang ' . $distributor->name;
+        $default['page'] = 'journal';
+        $default['section'] = 'create';
+
+        return view('admin.layout.page', compact('default', 'distributor'));
+    }
 }

@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">{{ $default['page_name'] . ' ' . $good->name }}</h3>
+            <h3 class="box-title"><a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $default['page_name'] . ' ' . $good->name }}</a></h3>
             <!-- @include('layout.search-form') -->
           </div>
           <div class="box-body">
@@ -29,15 +29,20 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll">
-            <a href="{{ url($role . '/good/' . $good->id . '/editPrice') }}" class="btn btn-warning" target="_blank()">Ubah Harga Jual</a>
+            @if(\Auth::user()->role == 'supervisor')
+              <a href="{{ url($role . '/good/' . $good->id . '/editPrice') }}" class="btn btn-warning" target="_blank()">Ubah Harga Jual</a>
+              <a href="{{ url($role . '/good/' . $good->id . '/createPrice') }}" class="btn btn-warning" target="_blank()">Tambah Harga Jual</a>
+            @endif
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                @if(\Auth::user()->email == 'admin')
-                  <th>Created at</th>
-                @endif
+                <th>Created at</th>
                 <th>PIC</th>
                 <th>Satuan</th>
+                @if(\Auth::user()->role == 'supervisor')
+                  <th>Harga Beli Lama</th>
+                  <th>Harga Beli Baru</th>
+                @endif
                 <th>Harga Jual Lama</th>
                 <th>Harga Jual Baru</th>
                 <th>Alasan</th>
@@ -46,11 +51,13 @@
               <tbody id="table-good">
                 @foreach($prices as $price)
                   <tr>
-                    @if(\Auth::user()->email == 'admin')
-                      <td>{{ $price->created_at }}</td>
-                    @endif
+                    <td>{{ $price->created_at }}</td>
                     <td>{{ $price->actor()->name }}</td>
                     <td>{{ $price->good_unit->unit->code }}</td>
+                    @if(\Auth::user()->role == 'supervisor')
+                      <td style="text-align: right;">{{ showRupiah($price->old_buy_price) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($price->recent_buy_price) }}</td>
+                    @endif
                     <td style="text-align: right;">{{ showRupiah($price->old_price) }}</td>
                     <td style="text-align: right;">{{ showRupiah($price->recent_price) }}</td>
                     <td>{{ $price->reason }}</td>
@@ -98,14 +105,14 @@
     function changeDate()
     {
         var distributor = $('#distributor').val();
-      window.location = window.location.origin + '/{{ $role }}/good/{{ $good->id }}/loading/' + $("#datepicker").val() + '/' + $("#datepicker2").val() +'/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/good/{{ $good->id }}/price/' + $("#datepicker").val() + '/' + $("#datepicker2").val() +'/{{ $pagination }}';
     }
 
     function advanceSearch()
     {
       var show        = $('#show').val();
       var distributor = $('#distributor').val();
-      window.location = window.location.origin + '/{{ $role }}/good/{{ $good->id }}/loading/{{ $start_date }}/{{ $end_date }}/' + show;
+      window.location = window.location.origin + '/{{ $role }}/good/{{ $good->id }}/price/{{ $start_date }}/{{ $end_date }}/' + show;
     }
   </script>
 @endsection

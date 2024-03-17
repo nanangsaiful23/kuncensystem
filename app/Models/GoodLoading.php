@@ -13,7 +13,7 @@ class GoodLoading extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'role', 'role_id', 'checker', 'loading_date', 'distributor_id', 'total_item_price', 'note', 'payment'
+        'role', 'role_id', 'type', 'checker', 'loading_date', 'distributor_id', 'total_item_price', 'note', 'payment'
     ];
 
     protected $hidden = [

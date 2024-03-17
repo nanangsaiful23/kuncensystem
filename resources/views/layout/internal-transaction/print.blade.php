@@ -1,9 +1,9 @@
 <html>
-    <link rel="stylesheet" hr class="new2"ef="https://fonts.googleapis.com/css2?family=AR+One+Sans:wght@300;400;500;600">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=AR+One+Sans&family=Glegoo:wght@300;400;500;600">
 	<style type="text/css">
 		body, table, th, td
 		{
-			font-family: "AR One Sans" !important;
+			font-family: "Glegoo" !important;
 /*			font-weight: bold;*/
 		}
 		table {
@@ -16,98 +16,48 @@
 		  /*border: 0.1px solid black;*/
 		}
 
-		hr class="new2".new2 {
+		hr.new2 {
 		  border-top: 1px dashed;
 		}
 	</style>
 	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 	<body style="font-size: 10px;">
 		<div style="text-align: center;">
-			NTN Mart<br>
-			Getasan, Semarang<br>
-			Menerima pesanan<br>
-			wa/telp 0823-2292-2654
-			<hr class="new2">
+			{{ config('app.name') }}<br>
 			{{ displayDateTime($transaction->created_at) }}<br>
 			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}<br>
-			Member: {{ $transaction->member->name }}
-		</div>
-		<table style="font-size: 10px; text-align: center;">
-			<?php $i = 1; ?>
-			@foreach($transaction->details as $detail)
-				<tr>
-					<td>{{ $i++ }}.<br></td>
-					<td style="text-align: left !important;">
-						{{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
-					</td>
-					<td></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td>
-						{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name . ' @' . printRupiah(checkNull($detail->selling_price))  . ' = '}}
-					</td>
-					<td style="text-align: right !important;">
-						@if($detail->type == 'retur') - @endif {{ printRupiah(checkNull($detail->selling_price) * $detail->quantity) }}
-					</td>
-				</tr>
-				@if($detail->discount_price != 0) 
-					<tr>
-						<td></td>
-						<td style="text-align: right;">Diskon</td>
-						<td style="text-align: right !important;">-{{ printRupiah(checkNull($detail->discount_price)) }}</td>
-					</tr>
-				@endif
-			@endforeach
-			<tr style="margin-top: 10px;">
-				<td colspan="3"><hr class="new2"></td>
-			</tr>
-			<tr style="margin-top: 10px; text-align: right !important">
-				<td colspan="2">Total harga</td>
-				<td>{{ printRupiah(checkNull($transaction->total_item_price) - checkNull($transaction->details->sum('discount_price'))) }}</td>
-			</tr>
-			<tr>
-				<td style="text-align: right !important" colspan="2">
-					Total Diskon per Item
-				</td>
-				<td style="text-align: right !important">
-					-{{ printRupiah(checkNull($transaction->details->sum('discount_price'))) }}
-				</td>
-			</tr>
-			<tr>
-				<td style="text-align: right !important" colspan="2">
-					Potongan Akhir
-				</td>
-				<td style="text-align: right !important">
-					-{{ printRupiah(checkNull($transaction->total_discount_price)) }}
-				</td>
-			</tr>
-			<tr>
-				<td style="text-align: right !important" colspan="2">
-					Total akhir
-				</td>
-				<td style="text-align: right !important">
-					{{ printRupiah(checkNull($transaction->total_sum_price)) }}
-				</td>
-			</tr>
-			<tr style="margin-top: 10px;">
-				<td></td>
-				<td colspan="2"><hr class="new2"></td>
-			</tr>
-			<tr style="margin-top: 10px;">
-				<td style="text-align: right !important" colspan="2">Bayar</td>
-				<td style="text-align: right !important">{{ printRupiah(checkNull($transaction->money_paid)) }}</td>
-			</tr>
-			<tr style="margin-top: 10px;">
-				<td style="text-align: right !important" colspan="2">Kembali</td>
-				<td style="text-align: right !important">{{ printRupiah(checkNull($transaction->money_returned)) }}</td>
-			</tr>
-		</table>
-		<div style="text-align: center;">
 			<hr class="new2">
-			Terima kasih<br>
-			Anda telah hemat sejumlah {{ showRupiah(checkNull($transaction->details->sum('discount_price')) + checkNull($transaction->total_discount_price)) }}<br>
-			Keberkahan di setiap transaksi
+		</div>
+		<div style="text-align: center;">
+			<table style="font-size: 10px; text-align: center;">
+				<?php $i = 1; ?>
+				@foreach($transaction->details as $detail)
+					<tr>
+						<td style="text-align: left !important;">
+							@if($detail->type == 'retur') Retur: @endif
+							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: left !important;">
+							{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name }}
+						</td>
+					</tr>
+				@endforeach
+			</table>
+		</div>
+		<hr class="new2">
+		<div style="text-align: center;">
+			<table style="font-size: 10px; text-align: center;">
+				<tr>
+					<td style="text-align: right !important">
+						<b>Total Akhir
+					</td>
+					<td style="text-align: right !important">
+						<b>{{ showRupiah(checkNull($transaction->total_sum_price)) }}
+					</td>
+				</tr>
+			</table>
 		</div>
 	</body>
 
@@ -117,7 +67,7 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/{{ $role }}/internal-transaction/create';
+      		window.location = window.location.origin + '/{{ $role }}/transaction/create';
 	    }, 5000);
 	</script>
 </html>

@@ -40,6 +40,3 @@
 </div>
 
 {!! Form::close() !!}
-
-@section('js-addon')
-@endsection

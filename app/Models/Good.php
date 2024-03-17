@@ -54,15 +54,22 @@ class Good extends Model
     public function good_loadings()
     {
         return GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                                ->select('good_loading_details.*')
                                 ->where('good_units.good_id', $this->id)
+                                ->where('good_loadings.deleted_at', null)
+                                ->where('good_units.deleted_at', null)
                                 ->get();
     }
     
     public function good_transactions()
     {
         return TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                 ->where('good_units.good_id', $this->id)
-                                ->where('type', '!=', 'retur')
+                                ->where('transaction_details.type', '!=', 'retur')
+                                ->where('transactions.deleted_at', null)
+                                ->where('good_units.deleted_at', null)
                                 ->get();
     }
 
@@ -89,7 +96,11 @@ class Good extends Model
     public function getLastBuy()
     {
         return GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                                ->select('good_loading_details.*')
                                 ->where('good_units.good_id', $this->id)
+                                ->where('good_loadings.deleted_at', null)
+                                ->where('good_units.deleted_at', null)
                                 ->orderBy('good_loading_details.id', 'desc')
                                 ->first();
     }
@@ -97,6 +108,22 @@ class Good extends Model
     public function getStock()
     {
         $loadings = $this->good_loadings()->sum('real_quantity');
+
+        $transactions = $this->good_transactions()->sum('real_quantity');
+
+        $total = $loadings - $transactions;
+
+        return $total / $this->getPcsSellingPrice()->unit->quantity;
+    }
+
+    public function getStockWoLastLoad($good_loading_id)
+    {
+        $loadings = GoodLoadingDetail::join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                                    ->join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                                    ->where('good_units.good_id', $this->id)
+                                    ->where('good_loadings.id', '!=', $good_loading_id)
+                                    ->where('good_loadings.deleted_at', null)
+                                    ->sum('real_quantity');
 
         $transactions = $this->good_transactions()->sum('real_quantity');
 

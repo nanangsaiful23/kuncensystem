@@ -8,10 +8,29 @@
                 @else
                     <select class="form-control select2" style="width: 100%;" name="type" onchange="showother_payment()" id="type">
                         <div>
-                            <option value="box_transaction">Penjualan Lainnya (Kardus/Ongkir/Jasa Kado/dll)</option>
+                            <option value="box_transaction">Penjualan Lainnya (Kardus/Jasa Kado/dll)</option>
+                            <option value="ongkir_transaction">Biaya Ongkir</option>
                             <option value="piutang_transaction">Pembayaran Piutang</option>
                             <option value="pulsa_transaction">Penjualan Pulsa/Token Listrik</option>
-                            <option value="cash_transaction">Titipan Uang Pembayaran Bu Maryati</option>
+                            <option value="cash_transaction">Titipan Uang Pembayaran Bu Maryati/Toko Kuncen</option>
+                        </div>
+                    </select>
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group" id='ongkir'>
+            {!! Form::label('ongkir', 'Daerah', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('ongkir', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    <select class="form-control select2" style="width: 100%;" name="ongkir" id="ongkir-fee" onchange="changePrice()">
+                        <div>
+                            <option value="null">Pilih Daerah</option>
+                            @foreach(getOngkir() as $ongkir)
+                            <option value="{{ $ongkir->fee }}">{{ $ongkir->location }}</option>
+                            @endforeach
                         </div>
                     </select>
                 @endif
@@ -70,7 +89,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('money', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    {!! Form::text('money', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("money")')) !!}
+                    {!! Form::text('money', null, array('class' => 'form-control', 'onkeyup' => 'formatNumber("money")', 'id' => 'money')) !!}
                 @endif
             </div>
         </div>
@@ -125,6 +144,7 @@
                 $("#payment").hide();
                 $("#buy_price_div").hide();
                 $("#no_token").hide();
+                $("#ongkir").hide();
             @endif
         });
 
@@ -137,6 +157,7 @@
                 $("#payment").show();
                 $("#buy_price_div").hide();
                 $("#no_token").hide();
+                $("#ongkir").hide();
             }
             else if(selectBox.options[selectBox.selectedIndex].value == 'pulsa_transaction')
             {
@@ -144,6 +165,15 @@
                 $("#payment").show();
                 $("#buy_price_div").show();
                 $("#no_token").show();
+                $("#ongkir").hide();
+            }
+            else if(selectBox.options[selectBox.selectedIndex].value == 'ongkir_transaction')
+            {
+                $("#member").hide();
+                $("#payment").show();
+                $("#buy_price_div").hide();
+                $("#no_token").hide();
+                $("#ongkir").show();
             }
             else
             {
@@ -151,6 +181,7 @@
                 $("#payment").hide();
                 $("#buy_price_div").hide();
                 $("#no_token").hide();
+                $("#ongkir").hide();
             }
         }
 
@@ -160,6 +191,11 @@
             num = document.getElementById(name).value;
             num = num.toString().replace(/,/g,'');
             document.getElementById(name).value = num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        }
+
+        function changePrice()
+        {
+            $('#money').val($('#ongkir-fee').val());
         }
     </script>
 @endsection

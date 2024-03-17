@@ -95,10 +95,12 @@
                 <th>Stock Lama</th>
                 <th>Jumlah</th>
                 <th>Stock Baru</th>
-                <th>Harga</th>
-                <th>Potongan</th>
-                <th>Total Harga</th>
-                <th>Total Akhir</th>
+                @if(\Auth::user()->role == 'supervisor')
+                    <th>Harga</th>
+                    <th>Potongan</th>
+                    <th>Total Harga</th>
+                    <th>Total Akhir</th>
+                @endif
                 <th>Hapus</th>
             </thead>
             <tbody id="table-transaction">
@@ -120,28 +122,28 @@
                     <td>
                         {!! Form::text('new_stocks[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'new_stock-'.$i)) !!}
                     </td>
-                    <td>
+                    <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
                         {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
                         {!! Form::text('prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-'.$i)) !!}
                     </td>
-                    <td>
+                    <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
                         @if(\Auth::user()->email == 'admin')
                             <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('{{ $i }}')" onkeypress="editPrice('{{ $i }}')">
                         @else
                             {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
                         @endif
                     </td>
-                    <td>
+                    <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
                         {!! Form::text('total_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_price-'.$i)) !!}
                     </td>
-                    <td>
+                    <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
                         {!! Form::text('sums[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum-'.$i)) !!}
                     </td>
                     <td><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('{{ $i }}')"></i></td>
                 </tr>
             </tbody>
         </table>
-        <div class="form-group">
+        <div class="form-group" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
             {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-3 control-label')) !!}
             <div class="col-sm-3">
                 {!! Form::text('total_item_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_item_price')) !!}
@@ -153,31 +155,31 @@
                 {!! Form::text('total_promo_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_promo_price')) !!}
             </div>
         </div> -->
-        <div class="form-group">
+        <div class="form-group" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
             {!! Form::label('total_discount_items_price', 'Total Potongan Harga Per Barang', array('class' => 'col-sm-3 control-label')) !!}
             <div class="col-sm-3">
                 {!! Form::text('total_discount_items_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_discount_items_price')) !!}
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
             {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-3 control-label')) !!}
             <div class="col-sm-3">
                 <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price')">
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
             {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-3 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
             <div class="col-sm-3">
                 {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => "font-size: 40px; height: 40px;")) !!}
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
             {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-3 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
             <div class="col-sm-3">
                 <input type="text" name="money_paid" class="form-control" id="money_paid" readonly="readonly" required="required" style="font-size: 40px; height: 40px;">
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
             {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-3 control-label')) !!}
             <div class="col-sm-3">
                 {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
@@ -440,10 +442,10 @@
             temp1=parseInt(index)+1
 
             @if(\Auth::user()->email == 'admin')
-                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
                 + temp1+ ')"></i></td></tr>';
             @else
-                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+                htmlResult = '<tr id="row-data-' + temp1+ '"><td><input type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><input id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities[]" class="form-control" id="quantity-' + temp1+'" onkeypress="editPrice(' + temp1+')" onchange="editPrice(' + temp1+ ')"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input id="buy_price-' + temp1 + '" name="buy_prices[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' +temp1+ '" name="prices[]" type="text"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input type="text" name="discounts[]" class="form-control" id="discount-' + temp1+'" readonly="readonly" value="0"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input class="form-control" readonly="readonly" id="total_price-' + temp1+ '" name="total_prices[]" type="text"></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><input class="form-control" readonly="readonly" id="sum-' + temp1+'" name="sums[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
                 + temp1+ ')"></i></td></tr>';
             @endif
             htmlResult += "<script>$('#type-" + temp1 + "').select2();<\/script>";
