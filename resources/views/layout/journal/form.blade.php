@@ -36,6 +36,7 @@
                 @else
                     @if(isset($distributor))
                         {!! Form::text('name', 'Pembayaran hutang ' . $distributor->name . ' (ID ' . $distributor->id . ')', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        {!! Form::text('add_on_name', null, array('class' => 'form-control')) !!}
                     @else
                         {!! Form::text('name', null, array('class' => 'form-control', 'required' => 'required')) !!}
                     @endif

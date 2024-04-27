@@ -18,6 +18,8 @@ use App\Models\GoodUnit;
 use App\Models\Journal;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Models\StockOpname;
+use App\Models\StockOpnameDetail;
 use App\Models\Unit;
 
 trait GoodControllerBase 
@@ -855,7 +857,14 @@ trait GoodControllerBase
 
     public function storeStockOpnameGoodBase($role, $role_id, Request $request)
     {
-        // dd($request);die;
+        $data_stock_opname['role']    = $role;
+        $data_stock_opname['role_id'] = $role_id;
+        $data_stock_opname['note']    = $request->note;
+        $data_stock_opname['checker'] = $request->checker;
+
+        $stock_opname = StockOpname::create($data_stock_opname);
+
+        $total = 0;
         for($i = 0; $i < sizeof($request->names); $i++)
         {
             if($request->names[$i] != null)
@@ -863,6 +872,11 @@ trait GoodControllerBase
                 $good_unit = GoodUnit::where('good_id', $request->names[$i])
                                      ->where('unit_id', $request->units[$i])
                                      ->first();
+
+                $data_stock_opname_detail['stock_opname_id'] = $stock_opname->id;
+                $data_stock_opname_detail['good_unit_id'] = $good_unit->id;
+                $data_stock_opname_detail['old_stock'] = $request->old_stocks[$i];
+                $data_stock_opname_detail['new_stock'] = $request->new_stocks[$i];
 
                 if($request->old_stocks[$i] < $request->new_stocks[$i])
                 {
@@ -898,6 +912,7 @@ trait GoodControllerBase
                     GoodLoadingDetail::create($data_detail);
 
                     $data_journal['type']               = 'good_loading';
+                    $data_journal['type_id']            = $good_loading->id;
                     $data_journal['journal_date']       = date('Y-m-d');
                     $data_journal['name']               = 'Loading barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate($good_loading->loading_date);
                     $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
@@ -906,6 +921,9 @@ trait GoodControllerBase
                     $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
 
                     Journal::create($data_journal);
+
+                    $total += $good_loading->total_item_price;
+                    $data_stock_opname_detail['total'] = $good_loading->total_item_price;
                 }
                 elseif($request->old_stocks[$i] > $request->new_stocks[$i])
                 {
@@ -940,6 +958,7 @@ trait GoodControllerBase
                     TransactionDetail::create($data_detail);
 
                     $data_journal['type']               = 'transaction';
+                    $data_journal['type_id']            = $transaction->id;
                     $data_journal['journal_date']       = date('Y-m-d');
                     $data_journal['name']               = 'Transaksi barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate(date('Y-m-d'));
                     $data_journal['debit_account_id']   = Account::where('code', '5215')->first()->id;
@@ -948,9 +967,17 @@ trait GoodControllerBase
                     $data_journal['credit']             = unformatNumber($transaction->total_item_price);
 
                     Journal::create($data_journal);
+
+                    $total += $transaction->total_item_price;
+                    $data_stock_opname_detail['total'] = $transaction->total_item_price;
                 }
+
+                StockOpnameDetail::create($data_stock_opname_detail);
             }
         }
+
+        $data_stock_opname['total'] = $total;
+        $stock_opname->update($data_stock_opname);
 
         return true;
     }

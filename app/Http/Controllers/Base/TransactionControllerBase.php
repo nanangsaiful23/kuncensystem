@@ -353,26 +353,37 @@ trait TransactionControllerBase
         if($request->payment == 'cash')
         {
             $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
+
+            $journal = Journal::whereDate('journal_date', date('Y-m-d'))
+                              ->where('type', 'transaction')
+                              ->where('debit_account_id', $data_journal['debit_account_id'])
+                              ->first();
+
+            if($journal != null)
+            {
+                $data_journal['debit'] = floatval($journal->debit) + floatval($sum);
+                $data_journal['credit'] = floatval($journal->credit) + floatval($sum);
+
+                $journal->update($data_journal);
+            }
+            else
+            {
+                $data_journal['type']               = 'transaction';
+                $data_journal['journal_date']       = date('Y-m-d');
+                $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
+                $data_journal['debit']              = $sum;
+                $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
+                $data_journal['credit']             = $sum;
+
+                Journal::create($data_journal);
+            }
         }
         elseif($request->payment == 'transfer')
         {
             $data_journal['debit_account_id']   = Account::where('code', '1112')->first()->id;
-        }
-        $journal = Journal::whereDate('journal_date', date('Y-m-d'))
-                          ->where('type', 'transaction')
-                          ->where('debit_account_id', $data_journal['debit_account_id'])
-                          ->first();
 
-        if($journal != null)
-        {
-            $data_journal['debit'] = floatval($journal->debit) + floatval($sum);
-            $data_journal['credit'] = floatval($journal->credit) + floatval($sum);
-
-            $journal->update($data_journal);
-        }
-        else
-        {
             $data_journal['type']               = 'transaction';
+            $data_journal['type_id']            = $transaction->id;
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
             $data_journal['debit']              = $sum;
@@ -381,6 +392,7 @@ trait TransactionControllerBase
 
             Journal::create($data_journal);
         }
+
 
         #tabel journal hpp
         $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'hpp')->first();
@@ -620,6 +632,7 @@ trait TransactionControllerBase
         }
 
         $data_journal['type']               = 'good_loading';
+        $data_journal['type_id']            = $transaction->id;
         $data_journal['journal_date']       = date('Y-m-d');
         $data_journal['name']               = 'Loading reverse transaction (id ' . $transaction->id . ')';
         $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;

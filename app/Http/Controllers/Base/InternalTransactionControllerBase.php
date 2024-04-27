@@ -172,6 +172,7 @@ trait InternalTransactionControllerBase
         if($request->type == '5215')
         {
             $data_pb['type']               = 'penyusutan';
+            $data_pb['type_id']            = $transaction->id;
             $data_pb['journal_date']       = date('Y-m-d');
             $data_pb['name']               = 'Barang hilang (ID transaksi ' . $transaction->id . ')';
             $data_pb['debit_account_id']   = Account::where('code', '5215')->first()->id;
@@ -186,6 +187,7 @@ trait InternalTransactionControllerBase
         if($request->type == '5220')
         {
             $data_op['type']               = 'operasional';
+            $data_op['type_id']            = $transaction->id;
             $data_op['journal_date']       = date('Y-m-d');
             $data_op['name']               = 'Biaya operasional toko (ID transaksi' . $transaction->id . ')';
             $data_op['debit_account_id']   = Account::where('code', '5220')->first()->id;
@@ -202,6 +204,7 @@ trait InternalTransactionControllerBase
             $distributor = Distributor::find($request->distributor_id);
 
             $data_ud['type']               = 'hutang dagang ' . $distributor->id;
+            $data_ud['type_id']            = $transaction->id;
             $data_ud['journal_date']       = date('Y-m-d');
             $data_ud['name']               = 'Hutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
             $data_ud['debit_account_id']   = Account::where('code', '2101')->first()->id;
@@ -218,6 +221,7 @@ trait InternalTransactionControllerBase
             $distributor = Distributor::find($request->distributor_id);
 
             $data_ud['type']               = 'piutang dagang ' . $distributor->id;
+            $data_ud['type_id']            = $transaction->id;
             $data_ud['journal_date']       = date('Y-m-d');
             $data_ud['name']               = 'Piutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
             $data_ud['debit_account_id']   = Account::where('code', '1131')->first()->id;
@@ -232,6 +236,7 @@ trait InternalTransactionControllerBase
         if($request->type == '3001')
         {
             $data_ud['type']               = 'modal pemilik';
+            $data_ud['type_id']            = $transaction->id;
             $data_ud['journal_date']       = date('Y-m-d');
             $data_ud['name']               = 'Modal pemilik transaksi internal (ID transaksi ' . $transaction->id . ')';
             $data_ud['debit_account_id']   = Account::where('code', '3001')->first()->id;

@@ -94,47 +94,52 @@
     <body class="hold-transition sidebar-mini" style="background-color: {{ config('app.app_color') }} !important">
         <div class="wrapper">
 
-            <header class="main-header" style="background-color: white !important;border-bottom: 0.5px; border: solid #DDDDDD;">
-                <a href="{{ url('/admin/' ) }}" class="logo">
-                <span class="logo-mini"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 80%"></span>
-                <span class="logo-lg" style="font-family: dosis !important;"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 15%;"> {{ config('app.name') }}</span>
-              </a>
-              
-              <nav class="navbar navbar-static-top" style="background-color: #FFFFFF !important">
-                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
-                  <span class="sr-only">Toggle navigation</span>
+            <!-- <div style="position: fixed; width: 100%;"> -->
+              <div>
+              <header class="main-header" style="background-color: white !important;border-bottom: 0.5px; border: solid #DDDDDD;width: 100%;">
+                  <a href="{{ url('/admin/' ) }}" class="logo">
+                  <span class="logo-mini"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 80%"></span>
+                  <span class="logo-lg" style="font-family: dosis !important;"><img src="{{asset('assets/icon/education.png')}}" class="user-image" alt="User Image" style="width: 15%;"> {{ config('app.name') }}</span>
                 </a>
+                
+                <nav class="navbar navbar-static-top" style="background-color: #FFFFFF !important">
+                  <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                  </a>
 
-                <div class="navbar-custom-menu">
-                  <ul class="nav navbar-nav">
-                    <li class="dropdown user user-menu">
-                        <a href="{{ url('/profile') }}">
-                        <img src="{{asset('assets/icon/programmer.png')}}" class="user-image" alt="User Image">
-                        <span class="hidden-xs">{{ \Auth::user()->name }} | {{ $role }} </span>
-                      </a>
-                    </li>
-                    <li class="dropdown user user-menu">
-                      <a href=@if($role != 'admin') "{{ url('/' . $role . '/logout') }}" @else "{{ url('/logout') }}" @endif onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fa fa-power-off" aria-hidden="true" style="color: red"></i></a>
+                  <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                      <li class="dropdown user user-menu">
+                          <a href="{{ url('/profile') }}">
+                          <img src="{{asset('assets/icon/programmer.png')}}" class="user-image" alt="User Image">
+                          <span class="hidden-xs">{{ \Auth::user()->name }} | {{ $role }} </span>
+                        </a>
+                      </li>
+                      <li class="dropdown user user-menu">
+                        <a href=@if($role != 'admin') "{{ url('/' . $role . '/logout') }}" @else "{{ url('/logout') }}" @endif onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fa fa-power-off" aria-hidden="true" style="color: red"></i></a>
 
-                      <form id="logout-form" action="{{ url('/' . $role . '/logout') }}" method="POST" style="display: none;">
-                          {{ csrf_field() }}
-                      </form>
-                    </li>
-                  </ul>
-                </div>
-              </nav>
-            </header>
+                        <form id="logout-form" action="{{ url('/' . $role . '/logout') }}" method="POST" style="display: none;">
+                            {{ csrf_field() }}
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </nav>
+              </header>
 
-            @include('layout.sidebar')
+              @include('layout.sidebar')
 
-            @yield('content')
+              <!-- <div style="position: fixed; overflow-y: scroll; top:8%; bottom: 0; width: 100%;"> -->
+                @yield('content')
+              <!-- </div> -->
 
-            <footer class="main-footer">
-                <div class="pull-right hidden-xs">
-                  <b>Copyright &copy; 2022 #jadi_aplikasi by NTN Group</b>
-                </div>
-                <strong>Template by <a href="https://adminlte.io">Almsaeed Studio</a>.</strong> 
-            </footer>
+              <footer class="main-footer">
+                  <div class="pull-right hidden-xs">
+                    <b>Copyright &copy; 2022 #jadi_aplikasi by NTN Group</b>
+                  </div>
+                  <strong>Template by <a href="https://adminlte.io">Almsaeed Studio</a>.</strong> 
+              </footer>
+            </div>
         </div>
     </body>
 

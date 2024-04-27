@@ -78,8 +78,6 @@ Route::group(['prefix' => 'good'], function () {
     Route::get('/searchByGoodUnit/{good_unit_id}', 'GoodController@searchByGoodUnit');
 	Route::get('/searchByKeyword/{query}', 'GoodController@searchByKeyword');
 	Route::get('/searchByKeywordGoodUnit/{query}', 'GoodController@searchByKeywordGoodUnit');
-	Route::get('/stockOpname', 'GoodController@stockOpname');
-	Route::post('/stockOpname', 'GoodController@storeStockOpname')->name('good.stockOpname');
 	Route::get('/transfer', 'GoodController@transfer');
 	Route::post('/transfer', 'GoodController@storeTransfer')->name('good.transfer');
 	Route::get('/zeroStock/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');
@@ -182,6 +180,13 @@ Route::group(['prefix' => 'retur'], function () {
 	Route::post('/store', 'ReturController@store')->name('retur.store');
 	Route::get('{distributor_id}/{status}/{pagination}', 'ReturController@index');
 	Route::put('{item_id}', 'ReturController@returItem');
+});
+
+Route::group(['prefix' => 'stock-opname'], function () {
+	Route::get('/create', 'StockOpnameController@create');
+    Route::post('/store', 'StockOpnameController@store')->name('stock-opname.store');
+    Route::get('/{stock_opname_id}/detail', 'StockOpnameController@detail');
+	Route::get('/{start_date}/{end_date}/{pagination}', 'StockOpnameController@index');
 });
 
 Route::group(['prefix' => 'transaction'], function () {

@@ -73,19 +73,19 @@ trait GoodLoadingControllerBase
 
         $request->total_item_price = unformatNumber($request->total_item_price);
         $data_loading['note']      = $data['note'];
-        if($request->total_item_price % 1000 > 0 && $request->total_item_price % 1000 <= 500 && $request->total_item_price > 1000)
+        $data_loading['total_item_price'] = $request->total_item_price;
+        if($data['payment'] != '1112')
         {
-            $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 500;
-            $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
-        }
-        elseif($request->total_item_price % 1000 > 500 && $request->total_item_price > 1000)
-        {
-            $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 1000;
-            $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
-        }
-        else
-        {
-            $data_loading['total_item_price'] = $request->total_item_price;
+            if($request->total_item_price % 1000 > 0 && $request->total_item_price % 1000 <= 500 && $request->total_item_price > 1000)
+            {
+                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 500;
+                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+            }
+            elseif($request->total_item_price % 1000 > 500 && $request->total_item_price > 1000)
+            {
+                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 1000;
+                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+            }
         }
 
         $data_loading['role']         = $role;
@@ -242,6 +242,7 @@ trait GoodLoadingControllerBase
             $account = Account::where('code', $data['payment'])->first();
 
             $data_journal['type']               = 'good_loading';
+            $data_journal['type_id']            = $good_loading->id;
             $data_journal['journal_date']       = $data['loading_date'];
             $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . '(ID loading ' . $good_loading->id . ')';
             $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
@@ -290,6 +291,7 @@ trait GoodLoadingControllerBase
 
             #tabel journal 
             $data_journal['type']               = 'good_loading';
+            $data_journal['type_id']            = $good_loading->id;
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ' (ID loading ' . $good_loading->id . ')';
             $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;

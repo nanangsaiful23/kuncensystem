@@ -180,6 +180,7 @@ trait ReturControllerBase
             GoodLoadingDetail::create($data_detail);
 
             $data_journal_loading_retur['type']               = 'good_loading';
+            $data_journal_loading_retur['type_id']            = $good_loading->id;
             $data_journal_loading_retur['journal_date']       = date('Y-m-d');
             $data_journal_loading_retur['name']               = 'Loading barang retur ' . $item->good->name . ' (dari distributor berupa barang) tanggal ' . displayDate(date('Y-m-d'));
             $data_journal_loading_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;

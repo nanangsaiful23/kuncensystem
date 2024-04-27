@@ -132,7 +132,7 @@ class Distributor extends Model
     public function totalOutcome()
     {
         $journals = Journal::where('type', 'credit_payment')
-                           ->where('name', 'Pembayaran hutang ' . $this->name . ' (ID ' . $this->id . ')')
+                           ->where('name', 'like', 'Pembayaran hutang ' . $this->name . ' (ID ' . $this->id . ') %')
                            ->get();
 
         return $journals;

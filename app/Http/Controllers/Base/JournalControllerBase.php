@@ -114,6 +114,8 @@ trait JournalControllerBase
         ]);
         // dd($data);die;
 
+        if(isset($data['add_on_name']))
+            $data['name'] = $data['name'] . ' ' . $data['add_on_name'];
         $journal = Journal::create($data);
 
         return $journal;

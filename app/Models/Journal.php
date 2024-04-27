@@ -12,7 +12,7 @@ class Journal extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'type', 'journal_date', 'name', 'debit_account_id', 'debit', 'credit_account_id', 'credit'
+        'type', 'type_id', 'journal_date', 'name', 'debit_account_id', 'debit', 'credit_account_id', 'credit'
     ];
 
     protected $hidden = [
