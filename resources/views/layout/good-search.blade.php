@@ -40,6 +40,11 @@
         margin: 5px;
         font-size: 20px;
       }
+
+      .btn-warning
+      {
+        background-color: {{ config('app.app_color') }} !important;
+      }
     </style>
 
     <body class="hold-transition sidebar-mini" style="background-color: white !important">
