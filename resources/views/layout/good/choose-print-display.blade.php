@@ -45,7 +45,7 @@
                   <input type="text" id="name-{{ $i }}" name="names[]" class="form-control" placeholder="nama">
                 </div>
                 <div class="form-group col-sm-2">
-                  <input type="text" id="quantity-{{ $i }}" name="quantities[]" class="form-control" onchange="addElement('{{ $i }}')" placeholder="jumlah">
+                  <input type="text" id="quantity-{{ $i }}" name="quantities[]" class="form-control" placeholder="jumlah" onchange="checkTotal()">
                 </div>
                 <div class="form-group col-sm-1">
                   <i class="fa fa-times" onclick="deleteItem('{{ $i }}')" style="color: red"></i>
@@ -74,44 +74,47 @@
       var good = $("#good-list").val().split(";;;");
       $("#id-" + total_item).val(good[0]);
       $("#name-" + total_item).val(good[1]);
+      $("#quantity-" + total_item).val(1);
       
-      if($("#quantity-" + total_item).val() != null)
-        total_item += 1;
+      addElement(total_item);
+      // if($("#quantity-" + total_item).val() != null)
+      total_item += 1;
     }
 
     function addElement(index)
     {
-      console.log($("#quantity-" + total_item).val());
-      if($("#quantity-" + total_item).val() == null)
-      {
+      // console.log($("#quantity-" + total_item).val());
+      // if($("#quantity-" + total_item).val() == null)
+      // {
         index = parseInt(index) + 1;
         index = index.toString();
-        htmlResult = '<div id="row-data-' + index + '"><div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-6"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" onchange="addElement(' + index + ')" id="quantity-' + index+ '"></div><div class="form-group col-sm-1"><i class="fa fa-times" onclick="deleteItem(\'' + index + '\')" style="color: red"></i></div></div>';
+        htmlResult = '<div id="row-data-' + index + '"><div class="form-group col-sm-3"><input type="text" name="ids[]" class="form-control" id="id-' + index + '"></div><div class="form-group col-sm-6"><input type="text" name="names[]" class="form-control" id="name-' + index + '"></div><div class="form-group col-sm-2"><input type="text" name="quantities[]" class="form-control" id="quantity-' + index+ '" onchange="checkTotal()"></div><div class="form-group col-sm-1"><i class="fa fa-times" onclick="deleteItem(\'' + index + '\')" style="color: red"></i></div></div>';
 
         $("#div-result").prepend(htmlResult);
-      }
+      // }
 
-      total_quantity = 0;
-      for (var i = 1; i < total_item; i++) 
-      {
-        if($("#quantity-" + i).val() != null)
-          total_quantity += parseInt($("#quantity-" + i).val());
-      }
-      $("#total").html("Jumlah barang yang akan diprint " + total_quantity + " <br>(max 24 untuk print rak & max 17 untuk print list dalam satu halaman)");
+        checkTotal();
+
     }
 
     function deleteItem(index)
     {
-      console.log('masuk hapus');
+      // console.log('masuk hapus');
       $("#row-data-" + index).remove();
 
+      checkTotal();
+    }
+
+    function checkTotal()
+    {
       total_quantity = 0;
-      for (var i = 1; i < total_item; i++) 
+      for (var i = 1; i <= total_item; i++) 
       {
-        if($("#quantity-" + i).val() != null)
+        if($("#quantity-" + i).val() != null && $("#quantity-" + i).val() != '')
           total_quantity += parseInt($("#quantity-" + i).val());
+        console.log(parseInt($("#quantity-" + i).val()));
       }
-      $("#total").html("Jumlah barang " + total_quantity + " dari 24 (untuk print rak)");
+      $("#total").html("Jumlah barang yang akan diprint " + total_quantity + " <br>(max 24 untuk print rak & max 17 untuk print list dalam satu halaman)");
     }
   </script>
 @endsection
