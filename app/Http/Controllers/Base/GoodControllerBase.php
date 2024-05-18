@@ -125,8 +125,8 @@ trait GoodControllerBase
             $temp['good_unit_id'] = $unit->id;
             $temp['unit_id'] = $unit->unit_id;
             $temp['unit_qty'] = $unit->unit->quantity;
-            $temp['good_base_qty'] = $good->getPcsSellingPrice()->unit->quantity;
-            $temp['good_base_buy_price'] = $good->getPcsSellingPrice()->buy_price;
+            $temp['good_base_qty'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->unit->quantity;
+            $temp['good_base_buy_price'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->buy_price;
             $temp['code'] = $good->code;
             $temp['name'] = $good->name;
             $temp['unit'] = $unit->unit->name;
@@ -166,8 +166,8 @@ trait GoodControllerBase
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;
             $good->last_loading = $good->getLastBuy() == null ? $good->getDistributor()->name : $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
             $good->stock = $good->getStock();
-            $good->transaction = $good->good_transactions()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
-            $good->loading = $good->good_loadings()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
+            $good->transaction = $good->getPcsSellingPrice() == null ? $good->good_transactions()->sum('real_quantity') :  $good->good_transactions()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
+            $good->loading = $good->getPcsSellingPrice() == null ? $good->good_loadings()->sum('real_quantity') : $good->good_loadings()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
             $good->unit = $good->getPcsSellingPrice() == null ? "" : $good->getPcsSellingPrice()->unit->code;
 
             foreach($good->good_units as $unit)
