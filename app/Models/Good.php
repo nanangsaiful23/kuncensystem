@@ -129,6 +129,9 @@ class Good extends Model
 
         $total = $loadings - $transactions;
 
+        if($this->getPcsSellingPrice() == null)
+            return $total;
+
         return $total / $this->getPcsSellingPrice()->unit->quantity;
     }
 
