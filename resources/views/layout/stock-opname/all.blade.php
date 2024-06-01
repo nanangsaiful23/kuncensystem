@@ -49,7 +49,7 @@
                     <td>{{ $stock_opname->actor()->name }}</td>
                     <td>{{ showRupiah($stock_opname->total) }}</td>
                     <td>{{ $stock_opname->note }}</td>
-                    <td class="center"><a href="{{ url($role . '/stock_opname/' . $stock_opname->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+                    <td class="center"><a href="{{ url($role . '/stock-opname/' . $stock_opname->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach
               </tbody>

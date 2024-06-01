@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Models\Account;
 use App\Models\Distributor;
 use App\Models\GoodLoading;
 use App\Models\GoodLoadingDetail;
@@ -147,7 +148,7 @@ trait StockOpnameControllerBase
 
                     Journal::create($data_journal);
 
-                    $total += $transaction->total_item_price;
+                    $total -= $transaction->total_item_price;
                     $data_stock_opname_detail['total'] = $transaction->total_item_price;
                 }
 
@@ -158,6 +159,6 @@ trait StockOpnameControllerBase
         $data_stock_opname['total'] = $total;
         $stock_opname->update($data_stock_opname);
 
-        return true;
+        return $stock_opname;
     }
 }

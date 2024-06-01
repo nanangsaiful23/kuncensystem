@@ -63,14 +63,14 @@
       @if($role == 'admin')
         <li class="treeview {{ (Request::segment(2) == 'stock-opname' ) ? 'active' : ''  }}">
           <a href="#">
-              <i class="fa fa-magnifier"></i><span> Stock Opname Barang</span>
+              <i class="fa fa-search-plus"></i><span> Stock Opname Barang</span>
             <span class="pull-right-container">
               <i class="fa fa-angle-left pull-right"></i>
             </span>
           </a>
           <ul class="treeview-menu">
               <li class="{{ Request::segment(2) == 'stock-opname' && Request::segment(4) == 'create' && Request::segment(3) != 'internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/stock-opname/create') }}"><i class="fa fa-circle-o"></i> Tambah Stock Opname Barang</a></li>
-              <li class="{{ Request::segment(2) == 'stock-opname' && Request::segment(4) != 'create' && Request::segment(4) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/stock-opname/2023-01-01/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Stock Opname Barang</a></li>
+              <li class="{{ Request::segment(2) == 'stock-opname' && Request::segment(4) != 'create' && Request::segment(4) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/stock-opname/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Stock Opname Barang</a></li>
           </ul>
         </li>
         <li class="treeview {{ (Request::segment(2) == 'good-loading' ) ? 'active' : ''  }}">

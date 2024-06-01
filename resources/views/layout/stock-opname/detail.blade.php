@@ -50,7 +50,7 @@
                                 <th>Total</th>
                             </thead>
                             <tbody>
-                                @foreach($stock_opname->stock_opname_details() as $detail)
+                                @foreach($stock_opname->stock_opname_details as $detail)
                                     <tr @if($detail->good_unit->good->deleted_at != null) style="background-color: red" @endif>
                                         <td>
                                             <a href="{{ url($role . '/good/' . $detail->good_unit->good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn" target="_blank()">

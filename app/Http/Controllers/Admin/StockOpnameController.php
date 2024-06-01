@@ -18,7 +18,7 @@ class StockOpnameController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($pagination)
+    public function index($start_date, $end_date, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,9 +26,9 @@ class StockOpnameController extends Controller
         $default['page'] = 'stock-opname';
         $default['section'] = 'all';
 
-        $stock_opnames = $this->indexStockOpnameBase($pagination);
+        $stock_opnames = $this->indexStockOpnameBase($start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'stock_opnames', 'pagination'));
+        return view('admin.layout.page', compact('default', 'stock_opnames', 'start_date', 'end_date', 'pagination'));
     }
 
     public function create()
@@ -48,7 +48,7 @@ class StockOpnameController extends Controller
 
         session(['alert' => 'add', 'data' => 'stock opname barang']);
 
-        return redirect('/admin/stock_opname/' . $stock_opname->id . '/detail');
+        return redirect('/admin/stock-opname/' . $stock_opname->id . '/detail');
     }
 
     public function detail($stock_opname_id)
