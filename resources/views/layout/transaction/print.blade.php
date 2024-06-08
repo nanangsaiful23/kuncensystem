@@ -38,11 +38,10 @@
 				<?php $i = 1; ?>
 				@foreach($transaction->details as $detail)
 					<tr>
-						<td style="text-align: left !important;">
+						<td style="text-align: left !important;" colspan="2">
 							@if($detail->type == 'retur') Retur: @endif
 							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
 						</td>
-						<td></td>
 					</tr>
 					<tr>
 						<td style="text-align: left !important;">
