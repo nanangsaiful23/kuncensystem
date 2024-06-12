@@ -12,14 +12,14 @@
             
             <div class="form-group">
                 {!! Form::label('old_buy_prices[]', 'Harga Beli Lama', array('class' => 'col-sm-12')) !!}
-                <div class="col-sm-5">
+                <div class="col-sm-5" style="background-color: yellow;">
                     {!! Form::text('old_buy_prices[]', showRupiah($unit->buy_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 </div>
             </div>
             
             <div class="form-group">
                 {!! Form::label('buy_prices[]', 'Harga Beli Baru', array('class' => 'col-sm-12')) !!}
-                <div class="col-sm-5">
+                <div class="col-sm-5" style="background-color: yellow;">
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('buy_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
