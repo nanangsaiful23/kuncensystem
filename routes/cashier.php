@@ -32,6 +32,14 @@ Route::group(['prefix' => 'good-price'], function () {
 	Route::get('/{price_id}/checked', 'GoodPriceController@checked');
 });
 
+Route::group(['prefix' => 'internal-transaction'], function () {
+	Route::get('/create', 'InternalTransactionController@create');
+    Route::post('/store', 'InternalTransactionController@store')->name('internal-transaction.store');
+	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'InternalTransactionController@index');
+    Route::get('/{transaction_id}/detail', 'InternalTransactionController@detail');
+    Route::get('/{transaction_id}/print', 'InternalTransactionController@print');
+});
+
 Route::group(['prefix' => 'other-transaction'], function () {
 	Route::get('/create', 'OtherTransactionController@create');
 	Route::post('/store', 'OtherTransactionController@store')->name('other-transaction.store');
