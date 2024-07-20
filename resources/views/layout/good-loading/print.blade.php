@@ -23,9 +23,8 @@
 	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 	<body style="font-size: 10px;">
 		<div style="text-align: center;">
-			{{ config('app.name') }}<br>
+			LOADING<br>
 			{{ displayDateTime($transaction->created_at) }}<br>
-			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}<br>
 			<hr class="new2">
 		</div>
 		<div style="text-align: center;">
@@ -34,7 +33,6 @@
 				@foreach($transaction->details as $detail)
 					<tr>
 						<td style="text-align: left !important;">
-							@if($detail->type == 'retur') Retur: @endif
 							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
 						</td>
 					</tr>
@@ -44,19 +42,6 @@
 						</td>
 					</tr>
 				@endforeach
-			</table>
-		</div>
-		<hr class="new2">
-		<div style="text-align: center;">
-			<table style="font-size: 10px; text-align: center;">
-				<tr>
-					<td style="text-align: right !important">
-						<b>Total Akhir
-					</td>
-					<td style="text-align: right !important">
-						<b>{{ showRupiah(checkNull($transaction->total_sum_price)) }}
-					</td>
-				</tr>
 			</table>
 		</div>
 	</body>
