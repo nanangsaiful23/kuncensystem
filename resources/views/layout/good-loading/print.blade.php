@@ -52,7 +52,7 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/{{ $role }}/good_loading/normal/create';
+      		window.location = window.location.origin + '/admin/good_loading/normal/create';
 	    }, 5000);
 	</script>
 </html>
