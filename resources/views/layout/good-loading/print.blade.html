@@ -23,17 +23,18 @@
 	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 	<body style="font-size: 10px;">
 		<div style="text-align: center;">
-			LOADING<br>
-			{{ displayDateTime($good_loading->created_at) }}<br>
-			PJ: {{ getActor($good_loading->role, $good_loading->role_id)->name }}<br>
+			{{ config('app.name') }}<br>
+			{{ displayDateTime($transaction->created_at) }}<br>
+			Kasir: {{ getActor($transaction->role, $transaction->role_id)->name }}<br>
 			<hr class="new2">
 		</div>
 		<div style="text-align: center;">
 			<table style="font-size: 10px; text-align: center;">
 				<?php $i = 1; ?>
-				@foreach($good_loading->details as $detail)
+				@foreach($transaction->details as $detail)
 					<tr>
 						<td style="text-align: left !important;">
+							@if($detail->type == 'retur') Retur: @endif
 							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
 						</td>
 					</tr>
@@ -45,6 +46,19 @@
 				@endforeach
 			</table>
 		</div>
+		<hr class="new2">
+		<div style="text-align: center;">
+			<table style="font-size: 10px; text-align: center;">
+				<tr>
+					<td style="text-align: right !important">
+						<b>Total Akhir
+					</td>
+					<td style="text-align: right !important">
+						<b>{{ showRupiah(checkNull($transaction->total_sum_price)) }}
+					</td>
+				</tr>
+			</table>
+		</div>
 	</body>
 
 	<script type="text/javascript">		
@@ -53,7 +67,7 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/{{ $role }}/good_loading/create';
+      		window.location = window.location.origin + '/{{ $role }}/transaction/create';
 	    }, 5000);
 	</script>
 </html>

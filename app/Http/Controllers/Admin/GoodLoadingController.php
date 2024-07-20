@@ -86,4 +86,17 @@ class GoodLoadingController extends Controller
 
         return redirect('/admin/good-loading/' . $good_loading->id . '/detail');
     }
+
+    public function print($good_loading_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Print Loading';
+        $default['page'] = 'good-loading';
+        $default['section'] = 'print';
+
+        $good_loading = GoodLoading::find($good_loading_id);
+
+        return view('admin.layout.page', compact('default', 'good_loading'));
+    }
 }
