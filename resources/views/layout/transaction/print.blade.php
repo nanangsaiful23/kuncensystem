@@ -25,7 +25,6 @@
 		<div style="text-align: center;">
 			LOADING<br>
 			{{ displayDateTime($good_loading->created_at) }}<br>
-			PJ: {{ getActor($good_loading->role, $good_loading->role_id)->name }}<br>
 			<hr class="new2">
 		</div>
 		<div style="text-align: center;">
