@@ -24,13 +24,13 @@
 	<body style="font-size: 10px;">
 		<div style="text-align: center;">
 			LOADING<br>
-			{{ displayDateTime($transaction->created_at) }}<br>
+			{{ displayDateTime($good_loading->created_at) }}<br>
 			<hr class="new2">
 		</div>
 		<div style="text-align: center;">
 			<table style="font-size: 10px; text-align: center;">
 				<?php $i = 1; ?>
-				@foreach($transaction->details as $detail)
+				@foreach($good_loading->details as $detail)
 					<tr>
 						<td style="text-align: left !important;">
 							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
@@ -52,7 +52,7 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/{{ $role }}/transaction/create';
+      		window.location = window.location.origin + '/{{ $role }}/good_loading/create';
 	    }, 5000);
 	</script>
 </html>
