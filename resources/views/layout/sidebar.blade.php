@@ -132,20 +132,20 @@
             <li class="{{ Request::segment(2) == 'other-transaction' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-transaction/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi Lain</a></li>
         </ul>
       </li>
+      <li class="header">PENGELUARAN LAIN-LAIN</li>
+      <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
+        <a href="#">
+            <i class="fa fa-plus"></i><span> Biaya Lain</span>
+          <span class="pull-right-container">
+            <i class="fa fa-angle-left pull-right"></i>
+          </span>
+        </a>
+        <ul class="treeview-menu">
+            <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Biaya Lain</a></li>
+            <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
+        </ul>
+      </li>
       @if($role == 'admin')
-        <li class="header">PENGELUARAN LAIN-LAIN</li>
-        <li class="treeview {{ (Request::segment(2) == 'other-payment' ) ? 'active' : ''  }}">
-          <a href="#">
-              <i class="fa fa-plus"></i><span> Biaya Lain</span>
-            <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-          </a>
-          <ul class="treeview-menu">
-              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/create') }}"><i class="fa fa-circle-o"></i> Tambah Biaya Lain</a></li>
-              <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
-          </ul>
-        </li>
         @if(\Auth::user()->role == 'supervisor')
           <li class="header">MENU LAIN</li>
           <li class="treeview {{ (Request::segment(2) == 'brand' ) ? 'active' : ''  }}">

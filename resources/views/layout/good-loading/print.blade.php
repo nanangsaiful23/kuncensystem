@@ -33,7 +33,7 @@
 				@foreach($good_loading->details as $detail)
 					<tr>
 						<td style="text-align: left !important;">
-							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
+							<b>{{ $detail->good_unit->good->name }}</b>
 						</td>
 					</tr>
 					<tr>
@@ -52,7 +52,7 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/admin/good_loading/normal/create';
+      		window.location = window.location.origin + '/admin/good-loading/normal/create';
 	    }, 5000);
 	</script>
 </html>

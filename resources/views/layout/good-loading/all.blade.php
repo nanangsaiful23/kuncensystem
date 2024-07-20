@@ -49,6 +49,7 @@
                 <th>Catatan</th>
                 <th>User</th>
                 <th class="center">Detail</th>
+                <th class="center">Print</th>
               </tr>
               </thead>
               <tbody id="table-good">
@@ -64,6 +65,7 @@
                     <td>{{ $good_loading->note }}</td>
                     <td>{{ $good_loading->actor()->name }}</td>
                     <td class="center"><a href="{{ url($role . '/good-loading/' . $good_loading->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+                    <td class="center"><a href="{{ url($role . '/good-loading/' . $good_loading->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach
               </tbody>
