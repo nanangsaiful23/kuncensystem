@@ -97,6 +97,6 @@ class GoodLoadingController extends Controller
 
         $good_loading = GoodLoading::find($good_loading_id);
 
-        return view('layout.good-loading.page', compact('default', 'good_loading'));
+        return view('layout.good-loading.print', compact('default', 'good_loading'));
     }
 }
