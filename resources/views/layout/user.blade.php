@@ -62,7 +62,7 @@
 
       .content-wrapper 
       {
-        background-color: white;
+        background-color: "{{ config('app.app_color') }}";
       }
 
       .no-btn
@@ -91,7 +91,7 @@
       }
     </style>
 
-    <body class="hold-transition sidebar-mini" style="background-color: {{ config('app.app_color') }} !important">
+    <body class="hold-transition sidebar-mini" style="background-color: {{ \Auth::user()->color }} !important">
         <div class="wrapper">
 
             <!-- <div style="position: fixed; width: 100%;"> -->
