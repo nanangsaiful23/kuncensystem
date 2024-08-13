@@ -18,7 +18,7 @@ class JournalController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($code, $type, $start_date, $end_date, $pagination)
+    public function index($code, $type, $start_date, $end_date, $sort, $order, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,9 +26,9 @@ class JournalController extends Controller
         $default['page'] = 'journal';
         $default['section'] = 'all';
 
-        $journals = $this->indexJournalBase($code, $type, $start_date, $end_date, $pagination);
+        $journals = $this->indexJournalBase($code, $type, $start_date, $end_date, $sort, $order, $pagination);
 
-        return view('admin.layout.page', compact('default', 'journals', 'code', 'type', 'start_date', 'end_date', 'pagination'));
+        return view('admin.layout.page', compact('default', 'journals', 'code', 'type', 'start_date', 'end_date', 'sort', 'order', 'pagination'));
     }
 
     public function create()

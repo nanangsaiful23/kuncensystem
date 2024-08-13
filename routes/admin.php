@@ -127,7 +127,7 @@ Route::group(['prefix' => 'journal'], function () {
     Route::post('/store', 'JournalController@store')->name('journal.store');
 	Route::get('/{journal_id}/edit', 'JournalController@edit');
 	Route::put('/{journal_id}/edit', 'JournalController@update')->name('journal.update');
-	Route::get('/{code}/{type}/{start_date}/{end_date}/{pagination}', 'JournalController@index');
+	Route::get('/{code}/{type}/{start_date}/{end_date}/{sort}/{order}/{pagination}', 'JournalController@index');
 });
 
 Route::group(['prefix' => 'member'], function () {

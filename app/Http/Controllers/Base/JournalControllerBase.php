@@ -9,7 +9,7 @@ use App\Models\Journal;
 
 trait JournalControllerBase 
 {
-    public function indexJournalBase($code, $type, $start_date, $end_date, $pagination)
+    public function indexJournalBase($code, $type, $start_date, $end_date, $sort, $order, $pagination)
     {
       if($code != 'all')
          $account = Account::where('code', $code)->first();
@@ -22,7 +22,7 @@ trait JournalControllerBase
                 {
                    $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
                                       ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->get(); 
                 }
                 else
@@ -30,7 +30,7 @@ trait JournalControllerBase
                    $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
                                       ->whereDate('journals.created_at', '<=', $end_date)
                                       ->where('journals.type', $type)
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->get();
                 }
             }
@@ -41,7 +41,7 @@ trait JournalControllerBase
                    $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
                                       ->whereDate('journals.created_at', '<=', $end_date)
                                       ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->get(); 
                 }
                 else
@@ -50,7 +50,7 @@ trait JournalControllerBase
                                       ->whereDate('journals.created_at', '<=', $end_date)
                                       ->where('journals.type', $type)
                                       ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->get();
                 }
             }
@@ -63,7 +63,7 @@ trait JournalControllerBase
                 {
                    $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
                                       ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->paginate($pagination);
                 }
                 else
@@ -71,7 +71,7 @@ trait JournalControllerBase
                    $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
                                       ->whereDate('journals.created_at', '<=', $end_date)
                                       ->where('journals.type', $type)
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->paginate($pagination);
                 }
             }
@@ -82,7 +82,7 @@ trait JournalControllerBase
                    $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
                                       ->whereDate('journals.created_at', '<=', $end_date)
                                       ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->paginate($pagination);
                 }
                 else
@@ -91,7 +91,7 @@ trait JournalControllerBase
                                       ->whereDate('journals.created_at', '<=', $end_date)
                                       ->where('journals.type', $type)
                                       ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
-                                      ->orderBy('journals.journal_date', 'asc')
+                                      ->orderBy($sort, $order)
                                       ->paginate($pagination);
                 }
             }

@@ -14,6 +14,8 @@ use App\Models\GoodLoadingDetail;
 use App\Models\GoodPrice;
 use App\Models\GoodUnit;
 use App\Models\Journal;
+use App\Models\Transaction;
+use App\Models\TransactionDetail;
 
 trait GoodLoadingControllerBase 
 {
@@ -105,6 +107,27 @@ trait GoodLoadingControllerBase
         }
         else
         {
+            if($type == 'transaction-internal')
+            {
+                #tabel transaction
+                $data_transaction['type'] = '1131';
+                $data_transaction['role'] = $role;
+                $data_transaction['role_id'] = $role_id;
+                $data_transaction['member_id'] = 1;
+                $data_transaction['total_item_price'] = unformatNumber($data_loading['total_item_price']);
+                $data_transaction['total_discount_price'] = 0;
+                $data_transaction['total_sum_price'] = unformatNumber($data_loading['total_item_price']);
+                $data_transaction['money_paid'] = unformatNumber($data_loading['total_item_price']);
+                $data_transaction['money_returned'] = 0;
+                $data_transaction['store']   = 'offline';
+                $data_transaction['payment'] = $data_loading['payment'];
+                $data_transaction['note']    = $data_loading['note'] ;
+
+                $transaction = Transaction::create($data_transaction);
+                $data_detail['transaction_id'] = $transaction->id;
+                $hpp = 0;
+            }
+
             $good_loading = GoodLoading::create($data_loading);
             $laba_goods = [];
 
@@ -235,6 +258,22 @@ trait GoodLoadingControllerBase
                     $data_detail['expiry_date']     = $data['exp_dates'][$i];
 
                     GoodLoadingDetail::create($data_detail);
+
+                    if($type == 'transaction-internal')
+                    {
+                        $data_detail['good_unit_id']   = $good_unit->id;
+                        $data_detail['type']           = $request->type;
+                        $data_detail['quantity']       = $data_detail['quantity'] ;
+                        $data_detail['real_quantity']  = $data_detail['real_quantity'] ;
+                        $data_detail['buy_price']      = $data_detail['price'] ;
+                        $data_detail['selling_price']  = $data_detail['selling_price'] ;
+                        $data_detail['discount_price'] = 0;
+                        $data_detail['sum_price']      = $data_detail['quantity'] * $data_detail['buy_price'];
+
+                        TransactionDetail::create($data_detail);
+
+                        $hpp += $data_detail['sum_price'];
+                    }
                 }
             }
 
@@ -250,8 +289,90 @@ trait GoodLoadingControllerBase
             $data_journal['credit_account_id']  = $account->id;
             $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
 
-            Journal::create($data_journal);
+            Journal::create($data_journal); 
 
+            if($type == 'transaction-internal')
+            {
+               #journal penyusutan barang
+                if($request->type == '5215')
+                {
+                    $data_pb['type']               = 'penyusutan';
+                    $data_pb['type_id']            = $transaction->id;
+                    $data_pb['journal_date']       = date('Y-m-d');
+                    $data_pb['name']               = 'Barang hilang (ID transaksi ' . $transaction->id . ')';
+                    $data_pb['debit_account_id']   = Account::where('code', '5215')->first()->id;
+                    $data_pb['debit']              = $data_transaction['total_sum_price'];
+                    $data_pb['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                    $data_pb['credit']             = $data_transaction['total_sum_price'];
+
+                    Journal::create($data_pb);
+                }
+
+                #journal operasional toko
+                if($request->type == '5220')
+                {
+                    $data_op['type']               = 'operasional';
+                    $data_op['type_id']            = $transaction->id;
+                    $data_op['journal_date']       = date('Y-m-d');
+                    $data_op['name']               = 'Biaya operasional toko (ID transaksi' . $transaction->id . ')';
+                    $data_op['debit_account_id']   = Account::where('code', '5220')->first()->id;
+                    $data_op['debit']              = $data_transaction['total_sum_price'];
+                    $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                    $data_op['credit']             = $data_transaction['total_sum_price'];
+
+                    Journal::create($data_op);
+                }
+
+                #journal hutang dagang
+                if($request->type == '2101')
+                {
+                    $distributor = Distributor::find($request->distributor_id);
+
+                    $data_ud['type']               = 'hutang dagang ' . $distributor->id;
+                    $data_ud['type_id']            = $transaction->id;
+                    $data_ud['journal_date']       = date('Y-m-d');
+                    $data_ud['name']               = 'Hutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
+                    $data_ud['debit_account_id']   = Account::where('code', '2101')->first()->id;
+                    $data_ud['debit']              = $data_transaction['total_sum_price'];
+                    $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                    $data_ud['credit']             = $data_transaction['total_sum_price'];
+
+                    Journal::create($data_ud);
+                }
+
+                #journal piutang dagang
+                if($request->type == '1131')
+                {
+                    $distributor = Distributor::find($request->distributor_id);
+
+                    $data_ud['type']               = 'piutang dagang ' . $distributor->id;
+                    $data_ud['type_id']            = $transaction->id;
+                    $data_ud['journal_date']       = date('Y-m-d');
+                    $data_ud['name']               = 'Piutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
+                    $data_ud['debit_account_id']   = Account::where('code', '1131')->first()->id;
+                    $data_ud['debit']              = $data_transaction['total_sum_price'];
+                    $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                    $data_ud['credit']             = $data_transaction['total_sum_price'];
+
+                    Journal::create($data_ud);
+                }
+
+                #journal modal pemilik
+                if($request->type == '3001')
+                {
+                    $data_ud['type']               = 'modal pemilik';
+                    $data_ud['type_id']            = $transaction->id;
+                    $data_ud['journal_date']       = date('Y-m-d');
+                    $data_ud['name']               = 'Modal pemilik transaksi internal (ID transaksi ' . $transaction->id . ')';
+                    $data_ud['debit_account_id']   = Account::where('code', '3001')->first()->id;
+                    $data_ud['debit']              = $data_transaction['total_sum_price'];
+                    $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                    $data_ud['credit']             = $data_transaction['total_sum_price'];
+
+                    Journal::create($data_ud);
+                } 
+            }
+            
             return $good_loading;
         }
     }

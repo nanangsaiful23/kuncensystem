@@ -54,14 +54,14 @@
               <tr>
                 <th width="5%">Highlight</th>
                 <th width="15%">Tipe</th>
-                <th width="10%">ID</th>
+                <th width="10%"><a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/asc/' . $pagination) }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/desc/' . $pagination) }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> ID</th>
                 <th width="10%">Created_at</th>
                 <th width="10%">Tanggal</th>
                 <th>Nama</th>
-                <th style="background-color: #E5F9DB">No Akun</th>
+                <th style="background-color: #E5F9DB"><a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/debit_account_id/asc/' . $pagination) }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/debit_account_id/desc/' . $pagination) }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> No Akun</th>
                 <th style="background-color: #E5F9DB">Akun</th>
-                <th style="background-color: #E5F9DB">Debet</th>
-                <th style="background-color: #FFABAB">No Akun</th>
+                <th style="background-color: #E5F9DB"><a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/debit/asc/' . $pagination) }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/debit/desc/' . $pagination) }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> Debet</th>
+                <th style="background-color: #FFABAB"><a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/credit_account_id/asc/' . $pagination) }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/credit_account_id/desc/' . $pagination) }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> No Akun</th>
                 <th style="background-color: #FFABAB">Akun</th>
                 <th style="background-color: #FFABAB">Kredit</th>
                 <th width="10%">Edit</th>
@@ -135,7 +135,7 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/{{ $role }}/journal/{{ $code }}/{{ $type }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
+      window.location = window.location.origin + '/{{ $role }}/journal/{{ $code }}/{{ $type }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $sort }}/{{ $order }}/{{ $pagination }}';
     }
 
     function advanceSearch()
@@ -143,7 +143,7 @@
       var show        = $('#show').val();
       var code        = $('#code').val();
       var type        = $('#journal_type').val();
-      window.location = window.location.origin + '/{{ $role }}/journal/' + code + '/' + type + '/{{ $start_date }}/{{ $end_date }}/' + show;
+      window.location = window.location.origin + '/{{ $role }}/journal/' + code + '/' + type + '/{{ $start_date }}/{{ $end_date }}/{{ $sort }}/{{ $order }}/' + show;
     }
 
     function highlight(id)

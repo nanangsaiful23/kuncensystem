@@ -81,8 +81,6 @@ trait InternalTransactionControllerBase
 
     public function storeInternalTransactionBase($role, $role_id, Request $request)
     {
-        $hpp = 0;
-
         #tabel transaction
         $data_transaction['type'] = $request->type;
         $data_transaction['role'] = $role;
@@ -121,52 +119,6 @@ trait InternalTransactionControllerBase
                 $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
             }
         }
-
-        #tabel journal transaksi
-        // $journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'transaction')->first();
-
-        // if($journal != null)
-        // {
-        //     $data_journal['debit'] = floatval($journal->debit) + floatval($data_transaction['total_sum_price']);
-        //     $data_journal['credit'] = floatval($journal->credit) + floatval($data_transaction['total_sum_price']);
-
-        //     $journal->update($data_journal);
-        // }
-        // else
-        // {
-        //     $data_journal['type']               = 'transaction';
-        //     $data_journal['journal_date']       = date('Y-m-d');
-        //     $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-        //     $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
-        //     $data_journal['debit']              = $data_transaction['total_sum_price'];
-        //     $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
-        //     $data_journal['credit']             = $data_transaction['total_sum_price'];
-
-        //     Journal::create($data_journal);
-        // }
-
-        #tabel journal hpp
-        // $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'hpp')->first();
-
-        // if($hpp_journal != null)
-        // {
-        //     $data_hpp['debit'] = floatval($hpp_journal->debit) + floatval($hpp);
-        //     $data_hpp['credit'] = floatval($hpp_journal->credit) + floatval($hpp);
-
-        //     $hpp_journal->update($data_hpp);
-        // }
-        // else
-        // {
-        //     $data_hpp['type']               = 'hpp';
-        //     $data_hpp['journal_date']       = date('Y-m-d');
-        //     $data_hpp['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
-        //     $data_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
-        //     $data_hpp['debit']              = $hpp;
-        //     $data_hpp['credit_account_id']  = Account::where('code', '1141')->first()->id;
-        //     $data_hpp['credit']             = $hpp;
-
-        //     Journal::create($data_hpp);
-        // }
 
         #journal penyusutan barang
         if($request->type == '5215')

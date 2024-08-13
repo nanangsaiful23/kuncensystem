@@ -37,6 +37,8 @@ class GoodLoadingController extends Controller
 
         if($type == 'internal')
             $default['page_name'] = 'Tambah Loading Internal';
+        elseif($type == 'transaction-internal')
+            $default['page_name'] = 'Tambah Loading & Transaksi Internal';
         else
             $default['page_name'] = 'Tambah Loading';
         $default['page'] = 'good-loading';

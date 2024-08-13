@@ -4,7 +4,7 @@
     }
 </style>
 
-<div class="panel-body" @if($type == 'internal') style="background-color: yellow" @endif>
+<div class="panel-body" @if($type == 'internal') style="background-color: yellow" @elseif($type == 'transaction-internal') style="background-color: #EECAD5" @endif>
     <?php $distributors = getDistributors() ?>
     <div class="row">
         <div class="col-sm-5">
@@ -178,8 +178,7 @@
     @if($SubmitButtonText == 'Edit')
     {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control']) !!}
     @elseif($SubmitButtonText == 'Tambah')
-    <div onclick="event.preventDefault(); submitForm();" class='btn btn-success btn-flat btn-block form-control'>Proses
-        Loading</div>
+        <div onclick="event.preventDefault(); submitForm();" class='btn btn-success btn-flat btn-block form-control'>{{ $default['page_name'] }}</div>
     @elseif($SubmitButtonText == 'View')
     @endif
 
