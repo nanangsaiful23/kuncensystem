@@ -108,6 +108,9 @@ Route::group(['prefix' => 'good-loading'], function () {
 	Route::get('/{start_date}/{end_date}/{distributor_id}/{pagination}', 'GoodLoadingController@index');
     Route::get('/{good_loading_id}/detail', 'GoodLoadingController@detail');
     Route::get('/{good_loading_id}/print', 'GoodLoadingController@print');
+    Route::get('/{good_loading_id}/edit', 'GoodLoadingController@edit');
+    Route::put('/{good_loading_id}/edit', 'GoodLoadingController@update')->name('good-loading.update');
+    Route::delete('/{good_loading_id}/delete', 'GoodLoadingController@delete')->name('good-loading.delete');
 });
 
 Route::group(['prefix' => 'good-price'], function () {

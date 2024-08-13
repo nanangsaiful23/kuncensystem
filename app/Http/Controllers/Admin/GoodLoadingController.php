@@ -101,4 +101,35 @@ class GoodLoadingController extends Controller
 
         return view('layout.good-loading.print', compact('default', 'good_loading'));
     }
+
+    public function edit($good_loading_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Ubah Loading';
+        $default['page'] = 'good-loading';
+        $default['section'] = 'edit';
+
+        $good_loading = GoodLoading::find($good_loading_id);
+
+        return view('admin.layout.page', compact('default', 'good_loading'));
+    }
+
+    public function update($good_loading_id, Request $request)
+    {
+        $good_loading = $this->updateGoodLoadingBase($good_loading_id, $request);
+
+        session(['alert' => 'edit', 'data' => 'Data loading']);
+
+        return redirect('/admin/good_loading/' . $good_loading->id . '/detail');
+    }
+
+    public function delete($good_loading_id)
+    {
+        $this->deleteGoodLoadingBase($good_loading_id);
+
+        session(['alert' => 'delete', 'data' => 'Loading barang']);
+
+        return redirect('/admin/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/20');
+    }
 }

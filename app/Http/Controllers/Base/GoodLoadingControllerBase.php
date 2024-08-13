@@ -425,4 +425,18 @@ trait GoodLoadingControllerBase
             return $good_loading;
         }
     }
+
+    public function deleteGoodLoadingBase($good_loading_id)
+    {
+        $good_loading = GoodLoading::find($good_loading_id);
+
+        $journal = Journal::where('type','good_loading')
+                          ->where('type_id', $good_loading->id)
+                          ->first();
+
+        $journal->delete();
+        $good_loading->delete();
+
+        return true;
+    }
 }
