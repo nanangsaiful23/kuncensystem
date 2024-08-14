@@ -116,7 +116,7 @@ trait InternalTransactionControllerBase
 
                 TransactionDetail::create($data_detail);
 
-                $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
+                // $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
             }
         }
 
