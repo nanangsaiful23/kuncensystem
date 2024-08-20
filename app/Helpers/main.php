@@ -416,10 +416,26 @@
         return $types;
     }
 
+    function getLoadingPaymentType()
+    {
+        $types = ["0000" => '0000 - Sistem Error', "1111" => '1111 - Kas di Tangan', "1112" => '1112 - Kas di Bank', "1113" => '1113 - Kas di Nanang', "2101" =>'2101 - Utang Dagang', "3001" => '3001 - Modal Pemilik', "1131" => '1131 - Piutang Dagang'];
+
+        return $types;
+    }
+
     function getMembers()
     {
         $members = Member::all();
 
+        return $members;
+    }
+
+    function getMemberLists()
+    {
+        $members = [null => 'Pilih member', 'all' => 'Seluruh member'];
+        foreach (Member::orderBy('name', 'asc')->get() as $data) {
+            $members = array_add($members, $data->id, $data->name);
+        }
         return $members;
     }
 

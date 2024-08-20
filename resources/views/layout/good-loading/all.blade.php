@@ -51,6 +51,7 @@
                 <th class="center">Detail</th>
                 <th class="center">Print</th>
                 @if(\Auth::user()->email == 'admin')
+                  <th class="center">Edit</th>
                   <th class="center">Hapus</th>
                 @endif
               </tr>
@@ -70,6 +71,7 @@
                     <td class="center"><a href="{{ url($role . '/good-loading/' . $good_loading->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/good-loading/' . $good_loading->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
                     @if(\Auth::user()->email == 'admin')
+                      <td class="center"><a href="{{ url($role . '/good-loading/' . $good_loading->id . '/edit') }}"><i class="fa fa-file tosca" aria-hidden="true"></i></a></td>
                       <td>
                           <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good_loading->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 

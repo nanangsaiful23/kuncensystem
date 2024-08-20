@@ -55,6 +55,10 @@
                 <th>Kembalian</th>
                 <th class="center">Detail</th>
                 <th class="center">Print</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th class="center">Edit</th>
+                  <th class="center">Hapus</th>
+                @endif
               </tr>
               </thead>
               <tbody id="table-good">
@@ -78,6 +82,19 @@
                     <td>{{ showRupiah($transaction->money_returned) }}</td>
                     <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-file tosca" aria-hidden="true"></i></a></td>
+                      <td>
+                          <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
+
+                          @include('layout' . '.delete-modal', ['id' => $transaction->id, 'data' => $transaction->created_at, 'formName' => 'delete-form-' . $transaction->id])
+
+                          <form id="delete-form-{{$transaction->id}}" action="{{ url($role . '/internal-transaction/' . $transaction->id . '/delete') }}" method="POST" style="display: none;">
+                            {{ csrf_field() }}
+                            {{ method_field('DELETE') }}
+                          </form>
+                      </td>
+                    @endif
                   </tr>
                 @endforeach
               </tbody>

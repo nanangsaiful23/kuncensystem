@@ -96,7 +96,7 @@ class TransactionController extends Controller
 
     public function reverse($transaction_id)
     {
-        $this->reverseTransactionBase('admin', \Auth::user()->id, $transaction_id);
+        $this->reverseTransactionBase('admin', \Auth::user()->id, 'not valid', $transaction_id);
 
         session(['alert' => 'add', 'data' => 'transaksi']);
 
@@ -136,5 +136,36 @@ class TransactionController extends Controller
         session(['alert' => 'add', 'data' => 'pengambilan uang']);
 
         return redirect('/admin/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d'));
+    }
+
+    public function edit($transaction_id)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Ubah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'edit';
+
+        $transaction = Transaction::find($transaction_id);
+
+        return view('admin.layout.page', compact('default', 'transaction'));
+    }
+
+    public function update($transaction_id, Request $request)
+    {
+        $transaction = $this->updateTransactionBase('admin', \Auth::user()->id, $transaction_id, $request);
+
+        session(['alert' => 'edit', 'data' => 'Data transaksi']);
+
+        return redirect('/admin/transaction/' . $transaction->id . '/detail');
+    }
+
+    public function delete($transaction_id)
+    {
+        $this->reverseTransactionBase('admin', \Auth::user()->id, 'deleted', $transaction_id);
+
+        session(['alert' => 'delete', 'data' => 'Transaksi barang']);
+
+        return redirect('/admin/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
     }
 }

@@ -20,6 +20,12 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            {!! Form::label('member', 'Member', array('class' => 'col-sm-2 control-label')) !!}
+                            <div class="col-sm-4">
+                                {!! Form::text('member', $transaction->member->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        <div class="form-group">
                             {!! Form::label('type', 'Tipe', array('class' => 'col-sm-2 control-label')) !!}
                             <div class="col-sm-4">
                                 @if($transaction->type_name() != null)

@@ -598,7 +598,7 @@ trait TransactionControllerBase
         return $transaction;
     }
 
-    public function reverseTransactionBase($role, $role_id, $transaction_id)
+    public function reverseTransactionBase($role, $role_id, $status, $transaction_id)
     {
         $transaction = Transaction::find($transaction_id);
         $total = 0;
@@ -631,10 +631,15 @@ trait TransactionControllerBase
             $total += $data_loading['total_item_price'];
         }
 
+        if($status == 'not valid')
+            $journal_status = 'reverse';
+        elseif($status == 'deleted')
+            $journal_status = 'delete';
+
         $data_journal['type']               = 'good_loading';
-        $data_journal['type_id']            = $transaction->id;
+        $data_journal['type_id']            = $good_loading->id;
         $data_journal['journal_date']       = date('Y-m-d');
-        $data_journal['name']               = 'Loading reverse transaction (id ' . $transaction->id . ')';
+        $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
         $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
         $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
         if($transaction->payment == 'cash')
@@ -647,7 +652,7 @@ trait TransactionControllerBase
 
         $data_hpp['type']               = 'hpp';
         $data_hpp['journal_date']       = date('Y-m-d');
-        $data_hpp['name']               = 'Penjualan reverse transaction (id ' . $transaction->id . ')';
+        $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
         $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
         $data_hpp['debit']              = unformatNumber($total);
         $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
@@ -655,7 +660,7 @@ trait TransactionControllerBase
 
         Journal::create($data_hpp);
 
-        $data_transaction['type'] = 'not valid';
+        $data_transaction['type'] = $status;
         $transaction->update($data_transaction);
 
         return true;
@@ -861,5 +866,10 @@ trait TransactionControllerBase
         Journal::create($data_journal);
 
         return true;
+    }
+
+    public function updateTransactionBase($role, $role_id, $transaction_id, Request $request)
+    {
+        dd($request);die;
     }
 }

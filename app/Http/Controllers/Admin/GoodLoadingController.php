@@ -117,11 +117,11 @@ class GoodLoadingController extends Controller
 
     public function update($good_loading_id, Request $request)
     {
-        $good_loading = $this->updateGoodLoadingBase($good_loading_id, $request);
+        $good_loading = $this->updateGoodLoadingBase('admin', \Auth::user()->id, $good_loading_id, $request);
 
         session(['alert' => 'edit', 'data' => 'Data loading']);
 
-        return redirect('/admin/good_loading/' . $good_loading->id . '/detail');
+        return redirect('/admin/good-loading/' . $good_loading->id . '/detail');
     }
 
     public function delete($good_loading_id)

@@ -135,12 +135,18 @@ trait GoodLoadingControllerBase
             { 
                 if($data['names'][$i] != null)
                 {
+
+                    $data_good['code'] = $data['barcodes'][$i];
+                    $data_good['name'] = $data['name_temps'][$i];
+
+                    $good = Good::find($data['names'][$i]);
+
                     if($type != 'internal')
                     {
                         $data_good['last_distributor_id'] = $data['distributor_id'];
-                        $good = Good::find($data['names'][$i]);
-                        $good->update($data_good); 
                     }
+
+                    $good->update($data_good);
 
                     $good_unit = GoodUnit::where('good_id', $data['names'][$i])
                                          ->where('unit_id', $data['units'][$i])
@@ -424,6 +430,131 @@ trait GoodLoadingControllerBase
 
             return $good_loading;
         }
+    }
+
+    public function updateGoodLoadingBase($role, $role_id, $good_loading_id, Request $request)
+    {
+        // dd($request);die;
+        $data = $request->input();
+
+        $request->total_item_price = unformatNumber($request->total_item_price);
+        $data_loading['note']      = $data['note'];
+        $data_loading['total_item_price'] = $request->total_item_price;
+        if($data['payment'] != '1112')
+        {
+            if($request->total_item_price % 1000 > 0 && $request->total_item_price % 1000 <= 500 && $request->total_item_price > 1000)
+            {
+                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 500;
+                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+            }
+            elseif($request->total_item_price % 1000 > 500 && $request->total_item_price > 1000)
+            {
+                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 1000;
+                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+            }
+        }
+
+        $data_loading['checker']      = $data['checker'];
+        $data_loading['loading_date'] = $data['loading_date'];
+        $data_loading['distributor_id']   = $data['distributor_id'];
+        $data_loading['payment']      = $data['payment'];
+
+        $good_loading = GoodLoading::find($good_loading_id);
+        $good_loading->update($data_loading);
+
+        $change_ids = explode(';', $data['change']);
+
+        for($i = 0; $i < sizeof($change_ids); $i++) 
+        { 
+            if($change_ids[$i] != null)
+            {
+                $good_loading_detail = GoodLoadingDetail::find($change_ids[$i]);
+
+                $good_unit = $good_loading_detail->good_unit;
+
+                $data_good['code'] = $data['barcodes'][$i];
+                $data_good['name'] = $data['name_temps'][$i];
+
+                $good = Good::find($good_unit->good_id);
+                $good->update($data_good);
+
+                if($good_unit)
+                {
+                    if($good_unit->selling_price != $data['sell_prices'][$i])
+                    {
+                        $data_price['role']         = $role;
+                        $data_price['role_id']      = $role_id;
+                        $data_price['good_unit_id'] = $good_unit->id;
+                        $data_price['old_price']    = $good_unit->selling_price;
+                        $data_price['recent_price'] = $data['sell_prices'][$i];
+                        $data_price['reason']       = 'Diubah saat loading';
+
+                        GoodPrice::create($data_price);
+                    }
+
+                    #journal penambahan barang kalau harga beli naik
+                    if((floatval($good_unit->buy_price) < floatval($data['prices'][$i])) && $good_unit->good->getStockWoLastLoad($good_loading->id) > 0 && !in_array($good_unit->good->id, $laba_goods))
+                    {
+                        $account_buy = Account::where('code', '1141')->first();
+
+                        $amount = $good_unit->good->getStockWoLastLoad($good_loading->id) * (($data['prices'][$i] - $good_unit->buy_price) / $good_unit->unit->quantity);
+
+                        $data_payment_buy['type']               = 'other_payment';
+                        $data_payment_buy['journal_date']       = date('Y-m-d');
+                        $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                        $data_payment_buy['debit_account_id']   = $account_buy->id;
+                        $data_payment_buy['debit']              = $amount;
+                        $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
+                        $data_payment_buy['credit']             = $amount;
+
+                        Journal::create($data_payment_buy);
+
+                        array_push($laba_goods, $good_unit->good->id);
+                    }
+                    elseif((floatval($good_unit->buy_price) > floatval($data['prices'][$i])) && $good_unit->good->getStockWoLastLoad($good_loading->id) > 0 && !in_array($good_unit->good->id, $laba_goods)) #journal penyusutan kalau harga beli turun
+                    {
+                        $account_buy = Account::where('code', '5215')->first();
+
+                        $amount = $good_unit->good->getStockWoLastLoad($good_loading->id) * (($good_unit->buy_price - $data['prices'][$i]) / $good_unit->unit->quantity);
+
+                        $data_payment_buy['type']               = 'other_payment';
+                        $data_payment_buy['journal_date']       = date('Y-m-d');
+                        $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                        $data_payment_buy['debit_account_id']   = $account_buy->id;
+                        $data_payment_buy['debit']              = $amount;
+                        $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                        $data_payment_buy['credit']             = $amount;
+
+                        Journal::create($data_payment_buy);
+
+                        array_push($laba_goods, $good_unit->good->id);
+                    }
+
+                    $data_unit['buy_price']     = $data['prices'][$i];
+                    $data_unit['selling_price'] = $data['sell_prices'][$i];
+
+                    $good_unit->update($data_unit);
+                }
+
+                $data_detail['quantity']        = $data['quantities'][$i];
+                $data_detail['real_quantity']   = $data['quantities'][$i] * $good_unit->unit->quantity;
+                $data_detail['price']           = $data['prices'][$i];
+                $data_detail['selling_price']   = $data['sell_prices'][$i];
+
+                $good_loading_detail->update($data_detail);
+            }
+        }
+
+        $journal = Journal::where('type', 'good_loading')->where('type_id', $good_loading->id)->first();
+
+        $data_journal['journal_date']       = $data['loading_date'];
+        $data_journal['name']               = 'Edit loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . '(ID loading ' . $good_loading->id . ')';
+        $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
+        $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
+
+       $journal->update($data_journal);
+
+       return $good_loading; 
     }
 
     public function deleteGoodLoadingBase($good_loading_id)

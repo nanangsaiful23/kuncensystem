@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Form Detail Loading</h3>
+            <h3 class="box-title"> {{ $default['page_name'] }}</h3>
           </div>
 
           {!! Form::model($good_loading, array('class' => 'form-horizontal')) !!}

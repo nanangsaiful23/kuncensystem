@@ -48,7 +48,7 @@ class JournalController extends Controller
 
         session(['alert' => 'add', 'data' => 'Jurnal']);
 
-        return redirect('/admin/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15');
+        return redirect('/admin/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15');
     }
 
     public function edit($journal_id)
@@ -70,6 +70,6 @@ class JournalController extends Controller
 
         session(['alert' => 'edit', 'data' => 'Jurnal barang']);
 
-        return redirect('/admin/journal/all/all/' . $journal->journal_date . '/' . $journal->journal_date . '/15');
+        return redirect('/admin/journal/all/all/' . $journal->journal_date . '/' . $journal->journal_date . '/id/asc/15');
     }
 }
