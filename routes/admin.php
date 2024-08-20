@@ -123,6 +123,9 @@ Route::group(['prefix' => 'internal-transaction'], function () {
 	Route::get('/{role}/{role_id}/{start_date}/{end_date}/{pagination}', 'InternalTransactionController@index');
     Route::get('/{transaction_id}/detail', 'InternalTransactionController@detail');
     Route::get('/{transaction_id}/print', 'InternalTransactionController@print');
+    Route::get('/{transaction_id}/edit', 'InternalTransactionController@edit');
+    Route::put('/{transaction_id}/edit', 'InternalTransactionController@update')->name('internal-transaction.update');
+    Route::delete('/{transaction_id}/delete', 'InternalTransactionController@delete')->name('internal-transaction.delete');
 });
 
 Route::group(['prefix' => 'journal'], function () {

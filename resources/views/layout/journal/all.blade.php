@@ -54,7 +54,8 @@
               <tr>
                 <th width="5%">Highlight</th>
                 <th width="15%">Tipe</th>
-                <th width="10%"><a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/asc/' . $pagination) }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/desc/' . $pagination) }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> ID</th>
+                <th width="10%"><a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/asc/' . $pagination) }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/desc/' . $pagination) }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> Journal ID</th>
+                <th width="10%">Tipe ID</th>
                 <th width="10%">Created_at</th>
                 <th width="10%">Tanggal</th>
                 <th>Nama</th>
@@ -73,6 +74,7 @@
                     <td><input type="checkbox" name="journals[]" id="journal-{{ $journal->id }}" onclick="highlight('journal-{{ $journal->id }}')"></td>
                     <td>{{ $journal->type }}</td>
                     <td>{{ $journal->id }}</td>
+                    <td>{{ $journal->type_id }}</td>
                     <td>{{ $journal->created_at }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
                     <td>@if($journal->type == 'good_loading')

@@ -91,7 +91,7 @@ trait InternalTransactionControllerBase
         $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
         $data_transaction['money_paid'] = unformatNumber($request->money_paid);
         $data_transaction['money_returned'] = unformatNumber($request->money_returned);
-        $data_transaction['store']   = 'kuncen';
+        $data_transaction['store']   = config('app.name');
         $data_transaction['payment'] = $request->payment;
         $data_transaction['note']    = $request->note;
 
@@ -200,6 +200,55 @@ trait InternalTransactionControllerBase
         }
 
         return $transaction;
+    }
+
+    public function updateTransactionBase($role, $role_id, $transaction_id, Request $request)
+    {
+        $transaction = Transaction::find($transaction_id);
+
+        #tabel transaction
+        $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
+        $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
+        $data_transaction['money_paid'] = unformatNumber($request->money_paid);
+        $data_transaction['money_returned'] = unformatNumber($request->money_returned);
+        $data_transaction['store']   = config('app.name');
+        $data_transaction['payment']    = $transaction->payment;
+        $data_transaction['member_id'] = $transaction->member_id;
+        $data_transaction['note']    = $request->note;
+        
+        $last_sum = $transaction->total_sum_price;
+        $transaction->update($data_transaction);
+
+        for($i = 0; $i < sizeof($transaction->details); $i++) 
+        { 
+            if($request->ids[$i] != null)
+            {
+                $transaction_detail = TransactionDetail::find($request->ids[$i]);
+
+                $good_unit = $transaction_detail->good_unit;
+
+                if($good_unit)
+                {
+                    $data_detail['quantity']       = $request->quantities[$i];
+                    $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
+                    $data_detail['sum_price']      = unformatNumber($request->sum_prices[$i]);
+
+                    $transaction_detail->update($data_detail);
+                }
+            }
+        }
+
+        $journal = Journal::where('type_id', $transaction->id)
+                          ->where('type', '!=', 'good_loading')
+                          ->first();
+                          // dd($journal);die;
+
+        $data_journal['debit'] = $transaction->total_sum_price;
+        $data_journal['credit'] = $data_journal['debit'];
+
+        $journal->update($data_journal);
+
+       return $transaction; 
     }
 
 }

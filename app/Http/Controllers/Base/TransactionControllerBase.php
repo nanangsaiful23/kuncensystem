@@ -870,6 +870,92 @@ trait TransactionControllerBase
 
     public function updateTransactionBase($role, $role_id, $transaction_id, Request $request)
     {
-        dd($request);die;
+        $data = $request->input();
+        $hpp = 0;
+        $last_hpp = 0;
+        $sum = 0;
+
+        $transaction = Transaction::find($transaction_id);
+        if($request->member_name != null)
+        {
+            $data_member_new['name'] = $request->member_name;
+
+            $member = Member::where('name', $request->member_name)->first();
+
+            if($member == null)
+                $member = Member::create($data_member_new);
+
+            $data_transaction['member_id'] = $member->id;
+        }
+        else
+        {
+            $data_transaction['member_id'] = $request->member_id;
+        }
+
+        #tabel transaction
+        $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
+        $data_transaction['total_discount_price'] = unformatNumber($request->total_discount_price);
+        $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
+        $data_transaction['money_paid'] = unformatNumber($request->money_paid);
+        $data_transaction['money_returned'] = unformatNumber($request->money_returned);
+        $data_transaction['store']   = config('app.name');
+        $data_transaction['payment']    = $transaction->payment;
+        $data_transaction['note']    = $request->note;
+        
+        $last_sum = $transaction->total_sum_price;
+        $transaction->update($data_transaction);
+
+        for($i = 0; $i < sizeof($transaction->details); $i++) 
+        { 
+            if($request->ids[$i] != null)
+            {
+                $transaction_detail = TransactionDetail::find($request->ids[$i]);
+
+                $good_unit = $transaction_detail->good_unit;
+
+                if($good_unit)
+                {
+                    $data_detail['quantity']       = $request->quantities[$i];
+                    $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
+                    $data_detail['sum_price']      = unformatNumber($request->sum_prices[$i]);
+
+                    $sum += $data_detail['sum_price'];
+                    $last_hpp += $transaction_detail->buy_price * $transaction_detail->quantity;
+                    $hpp += $transaction_detail->buy_price * $data_detail['quantity'];
+
+                    $transaction_detail->update($data_detail);
+                }
+            }
+        }
+
+        if($transaction->payment == 'cash')
+        {
+            $account = Account::where('code', '1111')->first()->id;
+        }
+        else
+        {
+            $account = Account::where('code', '1112')->first()->id;
+        }
+        // dd($transaction);die;
+        $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
+                          ->where('type', 'transaction')
+                          ->where('debit_account_id', $account)
+                          ->first();
+
+        $data_journal['debit']              = $journal->debit - $last_sum + $sum;
+        $data_journal['credit']             = $journal->credit - $last_sum + $sum;
+
+        $journal->update($data_journal);
+
+        $hpp = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
+                      ->where('type', 'hpp')
+                      ->first();
+
+        $data_hpp['debit']              = $hpp->debit - $last_sum + $sum;
+        $data_hpp['credit']             = $hpp->credit - $last_sum + $sum;
+
+        $hpp->update($data_hpp);
+
+       return $transaction; 
     }
 }
