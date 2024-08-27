@@ -41,13 +41,13 @@
         font-size: 20px;
       }
 
-      .btn-warning
+      /*body
       {
         background-color: {{ config('app.app_color') }} !important;
-      }
+      }*/
     </style>
 
-    <body class="hold-transition sidebar-mini" style="background-color: white !important">
+    <body class="hold-transition sidebar-mini">
         <div class="wrapper">
             <section class="content">
               <div class="row">
@@ -56,10 +56,10 @@
                     <div class="box-header" style="text-align: center;">
                       <h1 class="box-title" style="font-size: 30px !important;">CARI BARANG {{ config('app.name') }}</h1>
                     </div>
-                    <div class="box-body" style="overflow-x:scroll; color: black !important">
+                    <div class="box-body" style="overflow-x:scroll; color: black !important; background-color: {{ config('app.app_color') }} !important;">
                       <div class="col-sm-12">
-                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px;" onclick="changeView('photo')">Tampilan foto</div>
-                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px;" onclick="changeView('list')">Tampilan list</div>
+                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px; background-color:white !important;" onclick="changeView('photo')">Tampilan foto</div>
+                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px; background-color:white !important;" onclick="changeView('list')">Tampilan list</div>
                       </div>
                       <div class="col-sm-12" style="margin-top: 20px"> 
                         <div class="input-group">
@@ -75,7 +75,7 @@
                           </span>
                         </div>
                       </div>
-                      <div class="col-sm-12">
+                      <!-- <div class="col-sm-12" style=" background-color:white !important;">
                         <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('bed cover')">Bed Cover</div>
                         <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('beras')">Beras</div>
                         <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('ember')">Ember</div>
@@ -86,7 +86,7 @@
                         <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('piring')">Piring</div>
                         <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('sprei')">Sprei</div>
                         <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('tikar')">Tikar</div>
-                      </div>
+                      </div> -->
                       <div class="col-sm-12" id="photo-div"> 
                         @foreach($goods as $good)
                           <div class="col-sm-4" style="text-align: center; border: black solid 2px;"> 
