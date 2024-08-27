@@ -56,34 +56,34 @@
   </section>
 </div>
 
-@section('js-addon')
-  <script type="text/javascript">
-    $(document).ready(function(){
-      $('.select2').select2();
-      $('#datepicker').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-      })
+  @section('js-addon')
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('.select2').select2();
+        $('#datepicker').datepicker({
+          autoclose: true,
+          format: 'yyyy-mm-dd'
+        })
 
-      $('#datepicker2').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-      })
-      
+        $('#datepicker2').datepicker({
+          autoclose: true,
+          format: 'yyyy-mm-dd'
+        })
+        
 
-    });
+      });
 
-    function changeDate()
-    {
-      window.location = window.location.origin + '/admin/cashFlow/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
-    }
+      function changeDate()
+      {
+        window.location = window.location.origin + '/admin/cashFlow/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
+      }
 
-    function advanceSearch()
-    {
-      var show        = $('#show').val();
+      function advanceSearch()
+      {
+        var show        = $('#show').val();
 
-      window.location = window.location.origin + '/admin/cashFlow/{{ $start_date }}/{{ $end_date }}/' + show;
-    }
-  </script>
-@endsection
+        window.location = window.location.origin + '/admin/cashFlow/{{ $start_date }}/{{ $end_date }}/' + show;
+      }
+    </script>
+  @endsection
 @endsection

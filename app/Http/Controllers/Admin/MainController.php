@@ -166,7 +166,7 @@ class MainController extends Controller
         return view('admin.profit', compact('default', 'penjualan_account', 'penjualan_debit', 'penjualan_credit', 'hpp_account', 'hpp_debit', 'hpp_credit', 'payment_ins', 'payment_outs', 'other_income_debits', 'other_income_credits', 'other_outcome_debits', 'other_outcome_credits'));
     }
 
-    public function scale()
+    public function scale($start_date, $end_date)
     {
         $default['page_name'] = 'Neraca';
 
@@ -174,6 +174,8 @@ class MainController extends Controller
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->where('accounts.deleted_at', null)
+                        ->whereDate('journals.journal_date', '>=', $start_date) 
+                        ->whereDate('journals.journal_date', '<=', $end_date) 
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->orderBy('accounts.code')
                         ->get();
@@ -182,6 +184,8 @@ class MainController extends Controller
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->where('accounts.deleted_at', null)
+                        ->whereDate('journals.journal_date', '>=', $start_date) 
+                        ->whereDate('journals.journal_date', '<=', $end_date) 
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->orderBy('accounts.code')
                         ->get();
@@ -190,6 +194,8 @@ class MainController extends Controller
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->where('accounts.deleted_at', null)
+                        ->whereDate('journals.journal_date', '>=', $start_date) 
+                        ->whereDate('journals.journal_date', '<=', $end_date) 
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->orderBy('accounts.code')
                         ->get();
@@ -198,6 +204,8 @@ class MainController extends Controller
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->where('accounts.deleted_at', null)
+                        ->whereDate('journals.journal_date', '>=', $start_date) 
+                        ->whereDate('journals.journal_date', '<=', $end_date) 
                         ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->orderBy('accounts.code')
                         ->get();
@@ -241,7 +249,7 @@ class MainController extends Controller
         //                                         GROUP BY goods.id) as total ON total.id = goods.id
         //                                 GROUP BY goods.id) as final"));
 
-        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total'));
+        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total', 'start_date', 'end_date'));
     }
 
     public function cashFlow($start_date, $end_date, $pagination)

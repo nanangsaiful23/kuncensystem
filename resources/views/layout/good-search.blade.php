@@ -210,7 +210,6 @@
 
       function clearInput()
       {
-        console.log('hay')
         document.getElementById("search-input").value = "";
         $("#search-input").focus();
       }

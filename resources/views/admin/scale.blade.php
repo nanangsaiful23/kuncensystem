@@ -17,6 +17,20 @@
               <h3 class="box-title">Neraca</h3>
               <h4>{{ showRupiah($total) }}</h4>
             </div>
+            <div class="box-body">
+              {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-2 control-label')) !!}
+              <div class="col-sm-2">
+                <div class="input-group date">
+                  <input type="text" class="form-control pull-right" id="datepicker" name="start_date" value="{{ $start_date }}" onchange="changeDate()">
+                </div>
+              </div>
+              {!! Form::label('end_date', 'Tanggal Akhir', array('class' => 'col-sm-2 control-label')) !!}
+              <div class="col-sm-2">
+                <div class="input-group date">
+                  <input type="text" class="form-control pull-right" id="datepicker2" name="end_date" value="{{ $end_date }}" onchange="changeDate()">
+                </div>
+              </div>
+            </div>
             <div class="box-body" style="overflow-x:scroll; color: black !important">
               <table id="example1" class="table table-bordered table-striped">
                 <thead>
@@ -114,6 +128,11 @@
           });
 
       });
+
+      function changeDate()
+      {
+        window.location = window.location.origin + '/admin/scale/' + $("#datepicker").val() + '/' + $("#datepicker2").val();
+      }
     </script>
   @endsection
 @endsection

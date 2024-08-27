@@ -29,9 +29,19 @@
 				<button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
 				</button>
 			</span>
+      <span class="input-group-btn">
+        <div onclick="clearInput()" class="btn btn-flat" style="background-color: red"><i class="fa fa-times"></i></div>
+      </span>
 			<span class="input-group-btn">
 				<div class="loader" style="display: none;"></div>
 			</span>
 		</div>
 	</div>
 
+<script type="text/javascript">
+      function clearInput()
+      {
+        document.getElementById("search-input").value = "";
+        $("#search-input").focus();
+      }
+</script>

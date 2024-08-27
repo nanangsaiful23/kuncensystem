@@ -3,7 +3,7 @@
 Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 Route::get('profit', 'MainController@profit');
-Route::get('scale', 'MainController@scale');
+Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 
 Route::group(['prefix' => 'account'], function () {
