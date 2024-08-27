@@ -62,6 +62,7 @@
                   <th>Nama Barang</th>
                   <th>Harga Lama</th>
                   <th>Harga Baru</th>
+                  <th>Tanggal Perubahan</th>
                   <th>Sudah Diganti</th>
                 </tr>
               </thead>
@@ -71,6 +72,7 @@
                     <td>{{ $price->good_unit->good->name . ' ' . $price->good_unit->unit->name}}</td>
                     <td>{{ showRupiah($price->old_price) }}</td>
                     <td>{{ showRupiah($price->recent_price) }}</td>
+                    <td>{{ displayDate($price->created_at) }}</td>
                     <td><a href="{{ url('cashier/good-price/' . $price->id . '/checked') }}"><i class="fa fa-check orange" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach
