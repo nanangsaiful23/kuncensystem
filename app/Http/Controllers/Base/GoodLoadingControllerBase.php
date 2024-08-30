@@ -473,8 +473,9 @@ trait GoodLoadingControllerBase
                 $good_unit = $good_loading_detail->good_unit;
 
                 $good = Good::find($good_unit->good_id);
-                if($good->code != $data['barcodes'][$i])
-                    $data_good['code'] = $data['barcodes'][$i];
+                // if($good->code != $data['barcodes'][$i])
+                //     $data_good['code'] = $data['barcodes'][$i];
+                // else
                 $data_good['name'] = $data['name_temps'][$i];
 
                 $good->update($data_good);
