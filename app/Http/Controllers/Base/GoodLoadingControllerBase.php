@@ -468,7 +468,8 @@ trait GoodLoadingControllerBase
         { 
             if($change_ids[$i] != null)
             {
-                $good_loading_detail = GoodLoadingDetail::find($change_ids[$i]);
+                $j = $change_ids[$i];
+                $good_loading_detail = GoodLoadingDetail::find($data['ids'][$j]);
 
                 $good_unit = $good_loading_detail->good_unit;
 
@@ -476,30 +477,30 @@ trait GoodLoadingControllerBase
                 // if($good->code != $data['barcodes'][$i])
                 //     $data_good['code'] = $data['barcodes'][$i];
                 // else
-                $data_good['name'] = $data['name_temps'][$i];
+                $data_good['name'] = $data['name_temps'][$j];
 
                 $good->update($data_good);
 
                 if($good_unit)
                 {
-                    if($good_unit->selling_price != $data['sell_prices'][$i])
+                    if($good_unit->selling_price != $data['sell_prices'][$j])
                     {
                         $data_price['role']         = $role;
                         $data_price['role_id']      = $role_id;
                         $data_price['good_unit_id'] = $good_unit->id;
                         $data_price['old_price']    = $good_unit->selling_price;
-                        $data_price['recent_price'] = $data['sell_prices'][$i];
+                        $data_price['recent_price'] = $data['sell_prices'][$j];
                         $data_price['reason']       = 'Diubah saat loading';
 
                         GoodPrice::create($data_price);
                     }
 
                     #journal penambahan barang kalau harga beli naik
-                    if((floatval($good_unit->buy_price) < floatval($data['prices'][$i])) && $good_unit->good->getStockWoLastLoad($good_loading->id) > 0 && !in_array($good_unit->good->id, $laba_goods))
+                    if((floatval($good_unit->buy_price) < floatval($data['prices'][$j])) && $good_unit->good->getStockWoLastLoad($good_loading->id) > 0 && !in_array($good_unit->good->id, $laba_goods))
                     {
                         $account_buy = Account::where('code', '1141')->first();
 
-                        $amount = $good_unit->good->getStockWoLastLoad($good_loading->id) * (($data['prices'][$i] - $good_unit->buy_price) / $good_unit->unit->quantity);
+                        $amount = $good_unit->good->getStockWoLastLoad($good_loading->id) * (($data['prices'][$j] - $good_unit->buy_price) / $good_unit->unit->quantity);
 
                         $data_payment_buy['type']               = 'other_payment';
                         $data_payment_buy['journal_date']       = date('Y-m-d');
@@ -513,11 +514,11 @@ trait GoodLoadingControllerBase
 
                         array_push($laba_goods, $good_unit->good->id);
                     }
-                    elseif((floatval($good_unit->buy_price) > floatval($data['prices'][$i])) && $good_unit->good->getStockWoLastLoad($good_loading->id) > 0 && !in_array($good_unit->good->id, $laba_goods)) #journal penyusutan kalau harga beli turun
+                    elseif((floatval($good_unit->buy_price) > floatval($data['prices'][$j])) && $good_unit->good->getStockWoLastLoad($good_loading->id) > 0 && !in_array($good_unit->good->id, $laba_goods)) #journal penyusutan kalau harga beli turun
                     {
                         $account_buy = Account::where('code', '5215')->first();
 
-                        $amount = $good_unit->good->getStockWoLastLoad($good_loading->id) * (($good_unit->buy_price - $data['prices'][$i]) / $good_unit->unit->quantity);
+                        $amount = $good_unit->good->getStockWoLastLoad($good_loading->id) * (($good_unit->buy_price - $data['prices'][$j]) / $good_unit->unit->quantity);
 
                         $data_payment_buy['type']               = 'other_payment';
                         $data_payment_buy['journal_date']       = date('Y-m-d');
@@ -532,16 +533,16 @@ trait GoodLoadingControllerBase
                         array_push($laba_goods, $good_unit->good->id);
                     }
 
-                    $data_unit['buy_price']     = $data['prices'][$i];
-                    $data_unit['selling_price'] = $data['sell_prices'][$i];
+                    $data_unit['buy_price']     = $data['prices'][$j];
+                    $data_unit['selling_price'] = $data['sell_prices'][$j];
 
                     $good_unit->update($data_unit);
                 }
 
-                $data_detail['quantity']        = $data['quantities'][$i];
-                $data_detail['real_quantity']   = $data['quantities'][$i] * $good_unit->unit->quantity;
-                $data_detail['price']           = $data['prices'][$i];
-                $data_detail['selling_price']   = $data['sell_prices'][$i];
+                $data_detail['quantity']        = $data['quantities'][$j];
+                $data_detail['real_quantity']   = $data['quantities'][$j] * $good_unit->unit->quantity;
+                $data_detail['price']           = $data['prices'][$j];
+                $data_detail['selling_price']   = $data['sell_prices'][$j];
 
                 $good_loading_detail->update($data_detail);
             }

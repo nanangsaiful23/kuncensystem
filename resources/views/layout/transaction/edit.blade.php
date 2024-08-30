@@ -256,7 +256,7 @@
 
           function editPrice(index)
           {
-            changeLists(document.getElementById("id-" + index).value);
+            changeLists(index);
               document.getElementById("sum_price-" + index).value = (unFormatNumber(document.getElementById("selling_price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value)) - unFormatNumber(document.getElementById("discount_price-" + index).value);
 
               formatNumber("sum_price-" + index);
