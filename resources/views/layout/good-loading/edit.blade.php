@@ -69,7 +69,7 @@
                                             <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" style="height: 70px">{{ $detail->good_unit->good->code }}</textarea>
                                         </td>
                                         <td width="20%">
-                                            {!! Form::textarea('name_temps[]', $detail->good_unit->good->name, array('class' => 'form-control', 'id' => 'name_temp-'.$i, 'style' => 'height: 70px', 'onchange' => 'changeLists(' . $detail->id . ')')) !!}
+                                            {!! Form::textarea('name_temps[]', $detail->good_unit->good->name, array('class' => 'form-control', 'id' => 'name_temp-'.$i, 'style' => 'height: 70px', 'onchange' => 'changeLists(' . $i . ')')) !!}
                                         </td>
                                         <td>
                                             {!! Form::textarea('units[]', $detail->good_unit->unit->name, array('class' => 'form-control', 'id' => 'unit-'.$i, 'style' => 'height: 70px', 'readonly' => 'readonly')) !!}</td>
@@ -133,10 +133,10 @@
           function changeLists($id)
           {
             change = $("#change").val();
-            if(change.includes($id) == false)
-            {
+            // if(change.includes($id) == false)
+            // {
                 change += $id + ';';
-            }
+            // }
             $("#change").val(change);
           }
 
@@ -228,7 +228,7 @@
 
           function editPrice(index)
           {
-            changeLists(document.getElementById("id-" + index).value);
+            changeLists(index);
               document.getElementById("total_price-" + index).value = unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value);
 
               formatNumber("total_price-" + index);
