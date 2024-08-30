@@ -133,10 +133,10 @@
           function changeLists($id)
           {
             change = $("#change").val();
-            // if(change.includes($id) == false)
-            // {
+            if(change.includes(';' + $id + ';') == false)
+            {
                 change += $id + ';';
-            // }
+            }
             $("#change").val(change);
           }
 

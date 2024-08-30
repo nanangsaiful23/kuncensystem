@@ -468,7 +468,7 @@ trait GoodLoadingControllerBase
         { 
             if($change_ids[$i] != null)
             {
-                $j = $change_ids[$i];
+                $j = $change_ids[$i] - 1;
                 $good_loading_detail = GoodLoadingDetail::find($data['ids'][$j]);
 
                 $good_unit = $good_loading_detail->good_unit;
