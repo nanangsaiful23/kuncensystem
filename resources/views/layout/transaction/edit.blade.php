@@ -93,7 +93,7 @@
                                             <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" style="height: 70px" readonly="readonly">{{ $detail->good_unit->good->code }}</textarea>
                                         </td>
                                         <td width="20%">
-                                            {!! Form::textarea('name_temps[]', $detail->good_unit->good->name, array('class' => 'form-control', 'id' => 'name_temp-'.$i, 'readonly' => 'readonly', 'style' => 'height: 70px', 'onchange' => 'changeLists(' . $i . ')')) !!}
+                                            {!! Form::textarea('name_temps[]', $detail->good_unit->good->name, array('class' => 'form-control', 'id' => 'name_temp-'.$i, 'readonly' => 'readonly', 'style' => 'height: 70px', 'onchange' => 'changeLists("' . $i . '")')) !!}
                                         </td>
                                         <td>
                                             {!! Form::textarea('units[]', $detail->good_unit->unit->name, array('class' => 'form-control', 'id' => 'unit-'.$i, 'style' => 'height: 70px', 'readonly' => 'readonly')) !!}</td>
