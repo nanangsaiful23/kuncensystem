@@ -155,7 +155,7 @@
             change = $("#change").val();
             // if(change.includes(id) == false)
             // {
-                change += id + ';';
+            change += id + ';';
             // }
             $("#change").val(change);
           }
