@@ -170,43 +170,43 @@ class MainController extends Controller
     {
         $default['page_name'] = 'Neraca';
 
-        $activa_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $activa_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->where('accounts.deleted_at', null)
                         ->whereDate('journals.journal_date', '>=', $start_date) 
                         ->whereDate('journals.journal_date', '<=', $end_date) 
-                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->orderBy('accounts.code')
                         ->get();
 
-        $activa_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $activa_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->where('accounts.deleted_at', null)
                         ->whereDate('journals.journal_date', '>=', $start_date) 
                         ->whereDate('journals.journal_date', '<=', $end_date) 
-                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->orderBy('accounts.code')
                         ->get();
 
-        $pasiva_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $pasiva_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->where('accounts.deleted_at', null)
                         ->whereDate('journals.journal_date', '>=', $start_date) 
                         ->whereDate('journals.journal_date', '<=', $end_date) 
-                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->orderBy('accounts.code')
                         ->get();
 
-        $pasiva_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $pasiva_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->where('accounts.deleted_at', null)
                         ->whereDate('journals.journal_date', '>=', $start_date) 
                         ->whereDate('journals.journal_date', '<=', $end_date) 
-                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
+                        ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance', 'journals.journal_date')
                         ->orderBy('accounts.code')
                         ->get();
 
