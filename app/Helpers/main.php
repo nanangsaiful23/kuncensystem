@@ -274,12 +274,12 @@
 
             $string = substr_replace($string, '...', $maxChars/2, $textLength-$maxChars);
         }
-        return $string;
+        return ucwords($string);
 
         // if(strlen($string) > 30)
         //     $string = substr($string, 0, 30);
 
-        return $string;
+        // return $string;
     }
 
     function getAccounts()
