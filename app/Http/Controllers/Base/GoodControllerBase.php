@@ -37,10 +37,10 @@ trait GoodControllerBase
                 $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
                              ->orderBy('goods.id', 'desc')
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->get();
             }
             elseif($distributor_id == 'all')
@@ -54,11 +54,11 @@ trait GoodControllerBase
                 $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->get();
             }
         }
@@ -73,10 +73,10 @@ trait GoodControllerBase
                 $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
                              ->orderBy('goods.id', 'desc')
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->paginate($pagination);
             }
             elseif($distributor_id == 'all')
@@ -90,11 +90,11 @@ trait GoodControllerBase
                 $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
                              ->orderBy('goods.id', 'desc')
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->paginate($pagination);
             }
         }

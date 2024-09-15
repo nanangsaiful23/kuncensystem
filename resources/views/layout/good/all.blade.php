@@ -66,7 +66,7 @@
                       <h4>{{ $good->name }}</h4>
                       @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
                       @if(\Auth::user()->email == 'admin')
-                        <i class="fa fa-truck green" aria-hidden="true"></i> @if($good->getLastBuy() != null) {{ $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
+                        <i class="fa fa-truck green" aria-hidden="true"></i> {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
                       @endif
                     </td>
                     <td>
