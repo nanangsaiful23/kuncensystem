@@ -452,7 +452,7 @@ trait GoodControllerBase
     public function updateGoodBase($good_id, Request $request)
     {
         $data = $request->input();
-        $data['code'] = '';
+        $data['code'] = null;
         
         $good = Good::find($good_id);
         $good->update($data);
