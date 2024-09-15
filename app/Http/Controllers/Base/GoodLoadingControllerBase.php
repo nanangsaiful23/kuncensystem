@@ -456,14 +456,25 @@ trait GoodLoadingControllerBase
 
         $data_loading['checker']      = $data['checker'];
         $data_loading['loading_date'] = $data['loading_date'];
-        $data_loading['distributor_id']   = $data['distributor_id'];
+        $data_loading['distributor_id'] = $data['distributor_id'];
         $data_loading['payment']      = $data['payment'];
 
         $good_loading = GoodLoading::find($good_loading_id);
+
+        if($good_loading->distributor_id != $data['distributor_id'])
+        {
+            foreach($good_loading->details as $detail)
+            {
+                $data_detail['last_distributor_id'] = $data['distributor_id'];
+
+                $good = Good::find($detail->good_unit->good_id);
+                $good->update($data_detail);
+            }
+        }
         $good_loading->update($data_loading);
 
         $change_ids = explode(';', $data['change']);
-        
+
         $data_good['last_distributor_id'] = $data['distributor_id'];
 
         for($i = 0; $i < sizeof($change_ids); $i++) 
