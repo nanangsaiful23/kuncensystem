@@ -472,6 +472,7 @@ trait GoodLoadingControllerBase
             }
         }
         $good_loading->update($data_loading);
+        $laba_goods = [];
 
         $change_ids = explode(';', $data['change']);
 
