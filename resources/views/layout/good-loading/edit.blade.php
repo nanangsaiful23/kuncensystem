@@ -212,7 +212,7 @@
           function editBuyPrice(index)
           {
             //change all buy price
-            changeLists(document.getElementById("id-" + index).value);
+            changeLists(index);
             good_id = document.getElementById("barcode-" + index).value;
             base_buy_price = document.getElementById("price-" + index).value / document.getElementById("base_qty-" + index).value;
             for(i = 1; i <= total_item; i++)

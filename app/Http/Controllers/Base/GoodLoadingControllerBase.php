@@ -434,7 +434,7 @@ trait GoodLoadingControllerBase
 
     public function updateGoodLoadingBase($role, $role_id, $good_loading_id, Request $request)
     {
-        dd($request);die;
+        // dd($request);die;
         $data = $request->input();
 
         $request->total_item_price = unformatNumber($request->total_item_price);
