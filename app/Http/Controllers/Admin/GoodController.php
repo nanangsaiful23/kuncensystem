@@ -218,7 +218,7 @@ class GoodController extends Controller
         {
             $good = Good::find($export);
 
-            array_push($goods, [$good->getLastBuy()->good_loading->distributor->name, $good->name, $good->getLastBuy()->price, $good->getStock()]);
+            array_push($goods, [$good->getDistributor()->name, $good->name, $good->getPcsSellingPrice()->buy_price, $good->getStock()]);
         }
 
         return Excel::download(new ZeroStockExport($goods), 'Data Kulak ' . date('Y-m-d') . '.xlsx');
