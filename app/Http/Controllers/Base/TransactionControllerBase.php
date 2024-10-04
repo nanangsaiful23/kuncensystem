@@ -638,29 +638,58 @@ trait TransactionControllerBase
         elseif($status == 'deleted')
             $journal_status = 'delete';
 
-        $data_journal['type']               = 'good_loading';
-        $data_journal['type_id']            = $good_loading->id;
-        $data_journal['journal_date']       = date('Y-m-d');
-        $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-        $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-        $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-        if($transaction->payment == 'cash')
-            $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-        elseif($transaction->payment == 'transfer')
-            $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
-        $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+        if($transaction->details is not null)
+        {
+            $data_journal['type']               = 'good_loading';
+            $data_journal['type_id']            = $good_loading->id;
+            $data_journal['journal_date']       = date('Y-m-d');
+            $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
+            $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
+            $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
+            if($transaction->payment == 'cash')
+                $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            elseif($transaction->payment == 'transfer')
+                $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
+            $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
 
-        Journal::create($data_journal);
+            Journal::create($data_journal);
 
-        $data_hpp['type']               = 'hpp';
-        $data_hpp['journal_date']       = date('Y-m-d');
-        $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-        $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-        $data_hpp['debit']              = unformatNumber($total);
-        $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-        $data_hpp['credit']             = unformatNumber($total);
+            $data_hpp['type']               = 'hpp';
+            $data_hpp['journal_date']       = date('Y-m-d');
+            $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
+            $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            $data_hpp['debit']              = unformatNumber($total);
+            $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
+            $data_hpp['credit']             = unformatNumber($total);
 
-        Journal::create($data_hpp);
+            Journal::create($data_hpp); 
+        }
+        else
+        {  
+            $data_journal['type']               = 'transaction';
+            $data_journal['type_id']            = null;
+            $data_journal['journal_date']       = date('Y-m-d');
+            $data_journal['name']               = 'Double transaction with detail transaksi null';
+            $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
+            $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
+            if($transaction->payment == 'cash')
+                $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            elseif($transaction->payment == 'transfer')
+                $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
+            $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+
+            Journal::create($data_journal);
+
+            $data_hpp['type']               = 'hpp';
+            $data_hpp['journal_date']       = date('Y-m-d');
+            $data_hpp['name']               = 'Double transaction with detail transaksi null';
+            $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            $data_hpp['debit']              = unformatNumber($total);
+            $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
+            $data_hpp['credit']             = unformatNumber($total);
+
+            Journal::create($data_hpp);
+        }
 
         $data_transaction['type'] = $status;
         $transaction->update($data_transaction);
