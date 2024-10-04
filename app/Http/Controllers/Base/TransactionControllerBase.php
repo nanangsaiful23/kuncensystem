@@ -638,7 +638,7 @@ trait TransactionControllerBase
         elseif($status == 'deleted')
             $journal_status = 'delete';
 
-        if($transaction->details is not null)
+        if($transaction->details != null)
         {
             $data_journal['type']               = 'good_loading';
             $data_journal['type_id']            = $good_loading->id;
