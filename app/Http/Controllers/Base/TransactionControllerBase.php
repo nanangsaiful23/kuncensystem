@@ -512,6 +512,7 @@ trait TransactionControllerBase
                 $data_detail_retur['type']           = $data_transaction['type'];
                 $data_detail_retur['quantity']       = $request->quantitiesretur_s[$i];
                 $data_detail_retur['real_quantity']  = $request->quantitiesretur_s[$i] * $good_unit_retur->unit->quantity;
+                $data_detail_retur['last_stock']     = $good_unit_retur->good->getStock();
                 $data_detail_retur['buy_price']      = unformatNumber($request->buy_pricesretur_s[$i]);
                 $data_detail_retur['selling_price']  = unformatNumber($request->pricesretur_s[$i]);
                 $data_detail_retur['discount_price'] = unformatNumber($request->discountsretur_s[$i]);
@@ -528,9 +529,10 @@ trait TransactionControllerBase
 
                 if($request->conditionsretur_s[$i] == 'rusak') #barang rusak
                 {
-                    for($j = 0; $j < $data_detail_retur['real_quantity']; $j++)
+                    for($j = 0; $j < $data_detail_retur['quantity']; $j++)
                     {
                         $data_retur['good_id'] = $request->namesretur_s[$i];
+                        $data_retur['good_unit_id']   = $request->barcodesretur_s[$i];
                         $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
 
                         ReturItem::create($data_retur);
