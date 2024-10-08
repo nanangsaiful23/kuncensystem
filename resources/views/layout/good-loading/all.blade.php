@@ -75,7 +75,7 @@
                       <td>
                           <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good_loading->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 
-                          @include('layout' . '.delete-modal', ['id' => $good_loading->id, 'data' => $good_loading->created_at . ' ' . $good_loading->distributor->name, 'formName' => 'delete-form-' . $good_loading->id])
+                          @include('layout' . '.delete-modal', ['id' => $good_loading->id, 'data' => $good_loading->created_at . ' ' . $good_loading->getDistributor()->name, 'formName' => 'delete-form-' . $good_loading->id])
 
                           <form id="delete-form-{{$good_loading->id}}" action="{{ url($role . '/good-loading/' . $good_loading->id . '/delete') }}" method="POST" style="display: none;">
                             {{ csrf_field() }}
