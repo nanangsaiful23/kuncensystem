@@ -64,7 +64,7 @@
                     <td>{{ $good_loading->type }}</td>
                     <td>{{ $good_loading->id }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
-                    <td>{{ $good_loading->distributor->name }}</td>
+                    <td>{{ $good_loading->getDistributor()->name }}</td>
                     <td>{{ showRupiah($good_loading->total_item_price) }}</td>
                     <td>{{ $good_loading->note }}</td>
                     <td>{{ $good_loading->actor()->name }}</td>

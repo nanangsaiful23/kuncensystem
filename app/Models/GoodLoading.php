@@ -26,9 +26,14 @@ class GoodLoading extends Model
 
     public function distributor()
     {
+        return $this->belongsTo('App\Models\Distributor');
+    }
+
+    public function getDistributor()
+    {
         if($this->distributor_id == null)
             return Distributor::where('name', 'Lainnya')->first();
-        return $this->belongsTo('App\Models\Distributor');
+        return Distributor::find($this->distributor_id);
     }
     
     public function details()
