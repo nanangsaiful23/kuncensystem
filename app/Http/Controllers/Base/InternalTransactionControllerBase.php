@@ -207,6 +207,7 @@ trait InternalTransactionControllerBase
         $transaction = Transaction::find($transaction_id);
 
         #tabel transaction
+        $data_transaction['type'] = $request->type;
         $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
         $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
         $data_transaction['money_paid'] = unformatNumber($request->money_paid);
@@ -243,6 +244,7 @@ trait InternalTransactionControllerBase
                           ->first();
                           // dd($journal);die;
 
+        $data_journal['debit_account_id']   = Account::where('code', $request->type)->first()->id;
         $data_journal['debit'] = $transaction->total_sum_price;
         $data_journal['credit'] = $data_journal['debit'];
 

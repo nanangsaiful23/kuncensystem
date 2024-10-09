@@ -49,6 +49,21 @@
                                 {!! Form::text('money_returned', showRupiah($transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
                             </div>
                         </div>
+                        <div class="form-group">
+                            {!! Form::label('type', 'Jenis Transaksi', array('class' => 'col-sm-4 control-label', 'style' => 'text-align: left')) !!}
+                            <div class="col-sm-8">
+                                <select class="form-control select2" style="width: 100%;" name="type" id="type">
+                                    <div>
+                                        <option value="0000" @if($transaction->type == '0000') selected @endif>0000 - Sistem Error</option>
+                                        <option value="5215" @if($transaction->type == '5215') selected @endif>5215 - Biaya Penyusutan Barang</option>
+                                        <option value="5220" @if($transaction->type == '5220') selected @endif>5220 - Biaya Perlengkapan Kantor</option>
+                                        <option value="2101" @if($transaction->type == '2101') selected @endif>2101 - Utang Dagang</option>
+                                        <option value="3001" @if($transaction->type == '3001') selected @endif>3001 - Modal Pemilik</option>
+                                        <option value="1131" @if($transaction->type == '1131') selected @endif>1131 - Piutang Dagang</option>
+                                    </div>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group col-sm-12" style="overflow-x:scroll">
