@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> {{ $default['page_name'] }}</h3>
+            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $transaction->created_at }}</h3>
           </div>
 
           {!! Form::model($transaction, array('class' => 'form-horizontal', 'id' => 'loading-form')) !!}
@@ -28,13 +28,13 @@
                         <div class="form-group">
                             {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-4 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('total_item_price', showRupiah($transaction->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly' ,'id' => 'total_item_price')) !!}
+                                {!! Form::text('total_item_price', $transaction->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly' ,'id' => 'total_item_price')) !!}
                             </div>
                         </div>
                         <div class="form-group">
                             {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-4 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('total_sum_price', showRupiah($transaction->total_sum_price), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price')) !!}
+                                {!! Form::text('total_sum_price', $transaction->total_sum_price), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price')) !!}
                             </div>
                         </div>
                         <div class="form-group">
@@ -46,12 +46,12 @@
                         <div class="form-group">
                             {!! Form::label('money_returned', 'Kembalian', array('class' => 'col-sm-4 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('money_returned', showRupiah($transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
+                                {!! Form::text('money_returned', $transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
                             </div>
                         </div>
                         <div class="form-group">
-                            {!! Form::label('type', 'Jenis Transaksi', array('class' => 'col-sm-4 control-label', 'style' => 'text-align: left')) !!}
-                            <div class="col-sm-8">
+                            {!! Form::label('type', 'Jenis Transaksi', array('class' => 'col-sm-4 control-label')) !!}
+                            <div class="col-sm-4">
                                 <select class="form-control select2" style="width: 100%;" name="type" id="type">
                                     <div>
                                         <option value="0000" @if($transaction->type == '0000') selected @endif>0000 - Sistem Error</option>
