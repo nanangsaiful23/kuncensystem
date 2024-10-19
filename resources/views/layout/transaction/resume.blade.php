@@ -47,7 +47,6 @@
                 <th>Nama</th>
                 <th>Jumlah</th>
                 <th>Unit</th>
-                <th>Stok</th>
                 <th>Untung</th>
                 <th>Total Untung</th>
                 <th>Harga Beli</th>
@@ -64,7 +63,6 @@
                     <td><a href="{{ url($role . '/good/' . $detail->id . '/detail') }}" target="_blank()">{{ $detail->name }}</a></td>
                     <td>{{ $detail->quantity }}</td>
                     <td>{{ $detail->unit_name }}</td>
-                    <td>{{ $detail->good_unit->good->getStock() }}</td>
                     <td>{{ showRupiah($detail->selling_price - $detail->buy_price) }}<br>{{ $profit }}%</td>
                     <?php $total = ($detail->selling_price - $detail->buy_price) * $detail->quantity; $total_all += $total; ?>
                     <td>{{ showRupiah($total) }}</td>
