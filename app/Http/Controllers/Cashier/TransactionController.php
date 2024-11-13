@@ -45,6 +45,17 @@ class TransactionController extends Controller
         return view('cashier.layout.page', compact('default'));
     }
 
+    public function createTouch()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Tambah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'create-touch';
+
+        return view('cashier.layout.page', compact('default'));
+    }
+
     public function store(Request $request)
     {
         $transaction = $this->storeTransactionBase('cashier', \Auth::user()->id, $request);

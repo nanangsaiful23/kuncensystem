@@ -47,6 +47,17 @@ class TransactionController extends Controller
         return view('admin.layout.page', compact('default'));
     }
 
+    public function createTouch()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Tambah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'create-touch';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
     public function createNew()
     {
         [$default['type'], $default['color'], $default['data']] = alert();

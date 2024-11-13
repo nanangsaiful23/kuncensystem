@@ -566,9 +566,9 @@ trait GoodLoadingControllerBase
 
         $data_journal['journal_date']       = $data['loading_date'];
         $data_journal['name']               = 'Edit loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . '(ID loading ' . $good_loading->id . ')';
-        $data_journal['debit_account_id']   = Account::where('code', $request->payment)->first()->id;
         $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
         $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
+        $data_journal['credit_account_id']  = Account::where('code', $request->payment)->first()->id;
 
        $journal->update($data_journal);
 
