@@ -257,7 +257,7 @@
         </div>
         <table class="table table-bordered table-striped" style="overflow-x: auto; overflow-y: auto">
             <thead>
-                <th>Barcode</th>
+                <th style="display: none;">Barcode</th>
                 <th>Nama</th>
                 <th>Kondisi</th>
                 <th>Jumlah</th>

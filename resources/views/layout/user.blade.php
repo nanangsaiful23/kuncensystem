@@ -91,7 +91,7 @@
       }
     </style>
 
-    <body class="hold-transition sidebar-mini @if($default['section'] == 'create-touch') sidebar-collapse @endif" style="background-color: {{ \Auth::user()->color }} !important" id="my-body">
+    <body class="hold-transition sidebar-mini @if(isset($default['section'])) @if($default['section'] == 'create-touch') sidebar-collapse @endif @endif" style="background-color: {{ \Auth::user()->color }} !important" id="my-body">
         <div class="wrapper">
 
             <!-- <div style="position: fixed; width: 100%;"> -->
