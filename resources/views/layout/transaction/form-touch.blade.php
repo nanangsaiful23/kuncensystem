@@ -144,7 +144,7 @@
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
-                        {!! Form::text('note', null, array('class' => 'form-control', 'style' => 'height: 70px')) !!}
+                        {!! Form::text('note', null, array('class' => 'form-control', 'style' => 'height: 50px')) !!}
                     @endif
                 </div>
             </div>
@@ -208,6 +208,10 @@
                 <div class="col-sm-8">
                     {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
                 </div>
+            </div>  
+            <div class="form-group" style="margin-top: -10px;">
+                <div id="div_total_item"></div>
+                Total qty:
             </div>  
         </div>
         {{ Form::hidden('type', 'normal') }}
@@ -660,6 +664,7 @@
 
             htmlResult += "<script>$('#type-" + type + temp1 + "').select2();<\/script>";
            
+            // document.getElementById("div_total_item").value = "Total item: " + total_item;
             if(index == items)
             {
                 if(name == 'all_barcode_retur')
