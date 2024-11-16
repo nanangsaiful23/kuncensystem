@@ -32,6 +32,28 @@
                 @endif
             </div>
         </div>
+
+        <div class="form-group">
+            {!! Form::label('store_name', 'Nama Toko', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('store_name', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('store_name', null, array('class' => 'form-control')) !!}
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group">
+            {!! Form::label('store_address', 'Alamat Toko', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('store_address', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::text('store_address', null, array('class' => 'form-control')) !!}
+                @endif
+            </div>
+        </div>
         
         <div class="form-group">
             {{ csrf_field() }}
