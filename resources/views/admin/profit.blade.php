@@ -71,13 +71,13 @@
                   <tr>
                     <td colspan="5"></td>
                   </tr>
-                  <tr style="font-weight: bold;">
+                  <!-- <tr style="font-weight: bold;">
                     <td></td>
                     <td>Laba Bersih Usaha</td>
                     <td style="text-align: right;">{{ showRupiah(($penjualan_account->balance - $hpp_account->balance) - $payment_ins->sum('balance')) }}</td>
                     <td style="text-align: right;">{{ showRupiah(($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
                     <td style="text-align: right;">{{ showRupiah($penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
-                  </tr>
+                  </tr> -->
                   <tr>
                     <td colspan="5"></td>
                   </tr>

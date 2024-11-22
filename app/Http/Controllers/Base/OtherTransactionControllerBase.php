@@ -109,7 +109,7 @@ trait OtherTransactionControllerBase
             $data_pulsa_hpp['name']               = 'Pembayaran ' . $request->payment . ' pulsa hpp ('. $request->no_token . ') (note = ' . $request->note . ')';
             $data_pulsa_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
             $data_pulsa_hpp['debit']              = $request->buy_price;
-            $data_pulsa_hpp['credit_account_id']  = Account::where('code', '1112')->first()->id;
+            $data_pulsa_hpp['credit_account_id']  = Account::where('code', '1116')->first()->id;
             $data_pulsa_hpp['credit']             = $request->buy_price;
 
             Journal::create($data_pulsa_hpp);
