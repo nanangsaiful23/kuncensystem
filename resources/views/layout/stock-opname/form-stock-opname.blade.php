@@ -64,7 +64,6 @@
                 <tbody id="table-transaction">
                     <?php $i = 1; ?>
                     <tr id="row-data-{{ $i }}">
-                        <input type="hidden" name="base_qtys[]" id="base_qty-{{ $i}}">
                         <td>
                             <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" style="height: 70px"></textarea>
                         </td>
@@ -73,11 +72,9 @@
                             {!! Form::text('names[]', null, array('id'=>'name-' . $i, 'style' => 'display:none')) !!}
                         </td>
                         <td>
-                            @if($SubmitButtonText == 'View')
-                                {!! Form::text('unit', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                            @else
-                                {!! Form::select('units[]', getUnits(), null, ['class' => 'form-control select2','required'=>'required', 'style'=>'width:100%', 'id' => 'unit-' . $i]) !!}
-                            @endif
+                            {!! Form::text('unit_names[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'unit_name-'.$i)) !!}
+                            <input type="hidden" name="base_qtys[]" id="base_qty-{{ $i}}">
+                            <input type="hidden" name="units[]" id="unit-{{ $i}}">
                         </td>
                         <td>
                             {!! Form::textarea('old_stocks[]', null, array('class' => 'form-control', 'readonly' =>
@@ -131,7 +128,8 @@
                   document.getElementById("name-" + total_item).value = good.id;
                   document.getElementById("name_temp-" + total_item).value = good.name;
                   document.getElementById("barcode-" + total_item).value = good.code;
-                  $("#unit-" + total_item).val(good.getPcsSellingPrice.unit_id).change();
+                  document.getElementById("unit-" + total_item).value = good.getPcsSellingPrice.unit_id;
+                  document.getElementById("unit_name-" + total_item).value = good.getPcsSellingPrice.unit;
                   document.getElementById("base_qty-" + total_item).value = good.getPcsSellingPrice.unit_qty;
                   document.getElementById("old_stock-" + total_item).value = good.old_stock;
 
@@ -169,7 +167,7 @@
                     var r = result.units;
 
                     for (var i = 0; i < r.length; i++) {
-                        const getPcsSellingPrice = {unit_id: r[i].unit_id, unit_qty: r[i].unit_qty, base_qty: r[i].good_base_qty, base_buy_price: r[i].good_base_buy_price, buy_price: r[i].buy_price, selling_price: r[i].selling_price};
+                        const getPcsSellingPrice = {unit_id: r[i].unit_id, unit_qty: r[i].unit_qty, base_qty: r[i].good_base_qty, base_buy_price: r[i].good_base_buy_price, buy_price: r[i].buy_price, selling_price: r[i].selling_price, unit: r[i].unit};
                         const good = {id: r[i].good_id, name: r[i].name, code: r[i].code, getPcsSellingPrice: getPcsSellingPrice, old_stock: r[i].stock};
 
                         fillItem(good,index);
@@ -225,9 +223,9 @@
           {
 
               temp1=parseInt(index)+1
-              htmlResult = '<tr id="row-data-' + temp1+ '"><input type="hidden" name="base_qtys[]" id="base_qty-' + temp1 + '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + temp1+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="new_stock-' + temp1+ '" name="new_stocks[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><textarea  class="form-control" readonly="readonly" id="unit_name-' + temp1 + '" name="unit_names[]" type="text"></textarea><input type="hidden" name="base_qtys[]" id="base_qty-' + temp1 + '"><input type="hidden" name="units[]" id="unit-' + temp1 + '"></td><td><textarea class="form-control" readonly="readonly" id="old_stock-' + temp1+ '" name="old_stocks[]" type="text"></textarea></td><td><textarea class="form-control" id="new_stock-' + temp1+ '" name="new_stocks[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
               + temp1+ ')"></i></td></tr>';
-              htmlResult += "<script>$('#unit-" + temp1 + "').select2();$('#exp-"+temp1+"').datepicker({autoclose: true,format: 'yyyy-mm-dd',todayHighlight: true});<\/script>";
+              htmlResult += "<script>$('#exp-"+temp1+"').datepicker({autoclose: true,format: 'yyyy-mm-dd',todayHighlight: true});<\/script>";
               if(index == total_item)
               {
                   total_item += 1;

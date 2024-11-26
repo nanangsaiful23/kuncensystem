@@ -37,6 +37,7 @@ trait StockOpnameControllerBase
 
     public function storeStockOpnameBase($role, $role_id, Request $request)
     {
+        // dd($request);die;
         $data_stock_opname['role']    = $role;
         $data_stock_opname['role_id'] = $role_id;
         $data_stock_opname['note']    = $request->note;

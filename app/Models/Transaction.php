@@ -44,10 +44,10 @@ class Transaction extends Model
 
         foreach($details as $detail)
         {
-            $detail->good_unit = GoodUnit::withTrashed()->where('id', $detail->good_unit_id)->get();
-            $detail->good = Good::withTrashed()->where('id', $detail->good_unit[0]->good_id)->get();
-            $detail->good_unit = $detail->good_unit[0];
-            $detail->good = $detail->good[0];
+            $detail->good_unit = GoodUnit::withTrashed()->where('id', $detail->good_unit_id)->first();
+            $detail->good = Good::withTrashed()->where('id', $detail->good_unit->good_id)->first();
+            // $detail->good_unit = $detail->good_unit[0];
+            // $detail->good = $detail->good[0];
         }
 
         return $details;
