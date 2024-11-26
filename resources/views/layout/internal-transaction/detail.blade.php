@@ -77,7 +77,7 @@
                                 @endif
                             </thead>
                             <tbody>
-                                @foreach($transaction->details as $detail)
+                                @foreach($transaction->detailsWithDeleted() as $detail)
                                     <tr>
                                         <td>
                                             {{ $detail->good_unit->good->code }}
