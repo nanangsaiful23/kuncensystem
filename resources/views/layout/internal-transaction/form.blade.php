@@ -390,7 +390,7 @@
             // console.log($('#distributor_id').val());
             if($('#money_paid').val() != '' && $('#total_discount_price').val() != '')
             {
-                if($('#type').val() == '2101' && $('#distributor_id').val() == 'null')
+                if(($('#type').val() == '2101' && $('#distributor_id').val() == 'null') || ($('#type').val() == '1131' && $('#distributor_id').val() == 'null'))
                 {
                     alert('Silahkan pilih distributor');
                 }
