@@ -34,7 +34,7 @@
                         <div class="form-group">
                             {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-4 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('total_item_price', showRupiah($transaction->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly' ,'id' => 'total_item_price')) !!}
+                                {!! Form::text('total_item_price', $transaction->total_item_price, array('class' => 'form-control', 'readonly' => 'readonly' ,'id' => 'total_item_price')) !!}
                             </div>
                         </div>
                         <div class="form-group">
@@ -52,7 +52,7 @@
                         <div class="form-group">
                             {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-4 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('total_sum_price', showRupiah($transaction->total_sum_price), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price')) !!}
+                                {!! Form::text('total_sum_price', $transaction->total_sum_price, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price')) !!}
                             </div>
                         </div>
                         <div class="form-group">
@@ -64,7 +64,7 @@
                         <div class="form-group">
                             {!! Form::label('money_returned', 'Kembalian', array('class' => 'col-sm-4 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('money_returned', showRupiah($transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
+                                {!! Form::text('money_returned', $transaction->money_returned, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
                             </div>
                         </div>
                     </div>
