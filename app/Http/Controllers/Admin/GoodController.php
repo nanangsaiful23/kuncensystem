@@ -132,7 +132,7 @@ class GoodController extends Controller
         $default['section'] = 'loading';
 
         $good = Good::find($good_id);
-        $loadings = $this->loadingGoodBase($good_id, $start_date, $end_date, $pagination);
+        $loadings = $good->goodLoadingWithTrashed($pagination);
 
         return view('admin.layout.page', compact('default', 'loadings', 'good', 'start_date', 'end_date', 'pagination'));
     }

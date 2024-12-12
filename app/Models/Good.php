@@ -61,6 +61,27 @@ class Good extends Model
                                 ->where('good_units.deleted_at', null)
                                 ->get();
     }
+
+    public function goodLoadingWithTrashed($pagination)
+    {
+        if($pagination == 'all')
+            return GoodLoading::join('good_loading_details', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                              ->join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                              ->select('good_loadings.*', 'good_loading_details.*', 'good_units.*', 'good_loadings.id as gid', 'good_loadings.created_at as gca', 'good_loadings.deleted_at as gda')
+                              ->where('good_units.good_id', $this->id)
+                              ->withTrashed()
+                              ->orderBy('good_loadings.id', 'desc')
+                              ->get();
+        else
+            return GoodLoading::join('good_loading_details', 'good_loadings.id', 'good_loading_details.good_loading_id')
+                              ->join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
+                              ->select('good_loadings.*', 'good_loading_details.*', 'good_units.*', 'good_loadings.id as gid', 'good_loadings.created_at as gca', 'good_loadings.deleted_at as gda')
+                              ->where('good_units.good_id', $this->id)
+                              ->withTrashed()
+                              ->orderBy('good_loadings.id', 'desc')
+                              ->paginate($pagination);
+
+    }
     
     public function good_transactions()
     {

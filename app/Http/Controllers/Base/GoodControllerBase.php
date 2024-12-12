@@ -357,36 +357,6 @@ trait GoodControllerBase
         return $good;
     }
 
-    public function loadingGoodBase($good_id, $start_date, $end_date, $pagination)
-    {
-        if($pagination == 'all')
-        {
-            $loadings = GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
-                                         ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                                         ->select('good_loading_details.*')
-                                         ->where('good_units.good_id', $good_id)
-                                         ->whereDate('good_loadings.loading_date', '>=', $start_date)
-                                         ->whereDate('good_loadings.loading_date', '<=', $end_date)
-                                         ->where('good_units.deleted_at', null)
-                                         ->orderBy('good_loadings.created_at', 'desc')
-                                         ->get();
-        }
-        else
-        {
-            $loadings = GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
-                                         ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                                         ->select('good_loading_details.*')
-                                         ->where('good_units.good_id', $good_id)
-                                         ->whereDate('good_loadings.created_at', '>=', $start_date)
-                                         ->whereDate('good_loadings.created_at', '<=', $end_date)
-                                         ->where('good_units.deleted_at', null)
-                                         ->orderBy('good_loadings.created_at', 'desc')
-                                         ->paginate($pagination);
-        }
-
-        return $loadings;
-    }
-
     public function transactionGoodBase($good_id, $start_date, $end_date, $pagination)
     {
         if($pagination == 'all')

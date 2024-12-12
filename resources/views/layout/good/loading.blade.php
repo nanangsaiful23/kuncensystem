@@ -28,9 +28,10 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll">
-            <h4>Total loading: {{ $loadings->sum('real_quantity') }}</h4><br>
+            <h4>Total loading: {{ $good->good_loadings()->sum('real_quantity') . ' ' . $good->getPcsSellingPrice()->code }}</h4><br>
           </div>
           <div class="box-body" style="overflow-x:scroll">
+            Baris berwarna merah merupakan deleted record
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
@@ -56,15 +57,15 @@
               </thead>
               <tbody id="table-good">
                 @foreach($loadings as $good_loading)
-                  <tr>
-                    <td><a href="{{ url($role . '/good-loading/' . $good_loading->good_loading->id . '/detail') }}" class="btn" target="_blank">{{ $good_loading->created_at }}</a></td>
-                    <td>{{ displayDate($good_loading->good_loading->loading_date) }}</td>
-                    <td>{{ $good_loading->good_loading->note }}</td>
+                  <tr @if($good_loading->gda != null) style="background-color: red" @endif>
+                    <td><a href="{{ url($role . '/good-loading/' . $good_loading->gid . '/detail') }}" class="btn" target="_blank">{{ $good_loading->gca }}</a></td>
+                    <td>{{ displayDate($good_loading->loading_date) }}</td>
+                    <td>{{ $good_loading->note }}</td>
                     @if(\Auth::user()->role == 'supervisor')
-                      <td>{{ $good_loading->good_loading->distributor->name }}</td>
+                      <td>{{ $good_loading->distributor->name }}</td>
                     @endif
                     <td>{{ $good_loading->expiry_date }}</td>
-                    <td>{{ $good_loading->quantity. ' ' . $good_loading->good_unit->unit->code }}</td>
+                    <td>{{ $good_loading->quantity. ' ' . $good_loading->code }}</td>
                     <td>{{ $good_loading->real_quantity }}</td>
                     @if(\Auth::user()->role == 'supervisor')
                       <td style="text-align: right;">{{ showRupiah($good_loading->price) }}</td>
