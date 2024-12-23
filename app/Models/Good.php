@@ -94,6 +94,31 @@ class Good extends Model
                                 ->get();
     }
 
+    public function goodTransactionWithTrashed($start_date, $end_date, $pagination)
+    {
+        if($pagination == 'all')
+            return Transaction::join('transaction_details', 'transactions.id', 'transaction_details.transaction_id')
+                              ->join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                              ->select('transactions.*', 'transaction_details.*', 'good_units.*', 'transactions.id as gid', 'transactions.created_at as gca', 'transactions.deleted_at as gda')
+                              ->where('good_units.good_id', $this->id)
+                              ->whereDate('transactions.created_at', '>=', $start_date)
+                              ->whereDate('transactions.created_at', '<=', $end_date)
+                              ->withTrashed()
+                              ->orderBy('transactions.id', 'desc')
+                              ->get();
+        else
+            return Transaction::join('transaction_details', 'transactions.id', 'transaction_details.transaction_id')
+                              ->join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                              ->select('transactions.*', 'transaction_details.*', 'good_units.*', 'transactions.id as gid', 'transactions.created_at as gca', 'transactions.deleted_at as gda')
+                              ->where('good_units.good_id', $this->id)
+                              ->whereDate('transactions.created_at', '>=', $start_date)
+                              ->whereDate('transactions.created_at', '<=', $end_date)
+                              ->withTrashed()
+                              ->orderBy('transactions.id', 'desc')
+                              ->paginate($pagination);
+
+    }
+
     public function getPcsSellingPrice()
     {
         $good_unit = GoodUnit::join('units', 'good_units.unit_id', 'units.id')

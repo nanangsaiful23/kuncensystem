@@ -80,10 +80,10 @@
                                 @foreach($transaction->detailsWithDeleted() as $detail)
                                     <tr>
                                         <td>
-                                            {{ $detail->good_unit->good->code }}
+                                            {{ $detail->good->code }}
                                         </td>
                                         <td>
-                                            {{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
+                                            {{ $detail->good->name . ' ' . $detail->good_unit->unit->name }}
                                         </td>
                                         <td>
                                             {{ $detail->quantity }}

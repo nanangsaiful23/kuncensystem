@@ -60,7 +60,7 @@
                 @foreach($good_loadings as $good_loading)
                   <tr @if($good_loading->type == 'internal') style="background-color: yellow" @endif>
                     <td>{{ $good_loading->created_at }}</td>
-                    <td>{{ $good_loading->payment }}</td>
+                    <td>{{ $good_loading->paymentObj() }}</td>
                     <td>{{ $good_loading->type }}</td>
                     <td>{{ $good_loading->id }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>

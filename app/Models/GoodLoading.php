@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Models\Account;
 use App\Admin;
 use App\Cashier;
 
@@ -63,4 +64,13 @@ class GoodLoading extends Model
         else
             return Cashier::find($this->role_id);
     }
+
+    public function paymentObj()
+    {
+        $account = Account::where('code', $this->payment)->first();
+        if($account != null)
+            return $account->name;
+        else
+            return $this->payment;
+    }   
 }
