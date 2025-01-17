@@ -14,11 +14,16 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="form-group">
+                            {!! Form::label('system', 'PIC', array('class' => 'col-sm-2 control-label')) !!}
+                            <div class="col-sm-4">
+                                {!! Form::text('system', $good_loading->created_at . ' ' . $good_loading->actor()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        <div class="form-group">
                             {!! Form::label('distributor_id', 'Distributor', array('class' => 'col-sm-2 control-label')) !!}
                             <div class="col-sm-4">
                                 {!! Form::text('distributor', $good_loading->distributor->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                             </div>
-
                         </div>
                         <div class="form-group">
                             {!! Form::label('loading_date', 'Tanggal Pembelian', array('class' => 'col-sm-2 control-label')) !!}

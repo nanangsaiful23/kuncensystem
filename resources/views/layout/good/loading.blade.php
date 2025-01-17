@@ -36,6 +36,7 @@
               <thead>
               <tr>
                 <th>Created at</th>
+                <th>PIC</th>
                 <th>Tanggal loading</th>
                 <th>Note</th>
                 @if(\Auth::user()->role == 'supervisor')
