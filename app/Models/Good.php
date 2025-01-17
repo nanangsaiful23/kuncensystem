@@ -148,7 +148,7 @@ class Good extends Model
                                 ->where('good_loadings.deleted_at', null)
                                 ->where('good_units.deleted_at', null)
                                 ->where('checker', '!=', 'Created by system')
-                                ->where('checker', '!=', 'Load by system')
+                                ->where('checker', '!=', 'Load by sistem')
                                 ->orderBy('good_loading_details.id', 'desc')
                                 ->first();
     }
