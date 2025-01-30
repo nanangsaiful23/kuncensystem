@@ -56,6 +56,7 @@
                         <option value="2101">2101 - Utang Dagang</option>
                         <option value="3001">3001 - Modal Pemilik</option>
                         <option value="1131">1131 - Piutang Dagang</option>
+                        <option value="6104">6104 - Biaya Dapur & Pasar</option>
                     </div>
                 </select>
             </div>

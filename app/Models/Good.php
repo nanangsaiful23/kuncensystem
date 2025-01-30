@@ -75,7 +75,7 @@ class Good extends Model
         else
             return GoodLoading::join('good_loading_details', 'good_loadings.id', 'good_loading_details.good_loading_id')
                               ->join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
-                              ->select('good_loadings.*', 'good_loading_details.*', 'good_units.*', 'good_loadings.id as gid', 'good_loadings.created_at as gca', 'good_loadings.deleted_at as gda')
+                              ->select('good_loadings.*', 'good_loading_details.*', 'good_units.*', 'good_loadings.id as gid', 'good_loadings.created_at as gca', 'good_loadings.deleted_at as gda', 'good_loadings.role', 'good_loadings.role_id')
                               ->where('good_units.good_id', $this->id)
                               ->withTrashed()
                               ->orderBy('good_loadings.id', 'desc')

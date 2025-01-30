@@ -60,6 +60,7 @@
                 @foreach($loadings as $good_loading)
                   <tr @if($good_loading->gda != null) style="background-color: red" @endif>
                     <td><a href="{{ url($role . '/good-loading/' . $good_loading->gid . '/detail') }}" class="btn" target="_blank">{{ $good_loading->gca }}</a></td>
+                    <td>{{ getActor($loading->role, $loading->role_id) }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->note }}</td>
                     @if(\Auth::user()->role == 'supervisor')
