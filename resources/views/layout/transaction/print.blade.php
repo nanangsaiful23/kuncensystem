@@ -40,7 +40,7 @@
 					<tr>
 						<td style="text-align: left !important;" colspan="2">
 							@if($detail->type == 'retur') Retur: @endif
-							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
+							<b>{{ $i++ . '. ' . showShortName($detail->good_unit->good->name) }}</b>
 						</td>
 					</tr>
 					<tr>
@@ -79,6 +79,11 @@
 					</td>
 					<td style="text-align: right !important">
 						-{{ showRupiah(checkNull($transaction->total_discount_price)) }}
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" style="text-align: left;">
+						Total item : {{ --$i }} | Total qty  : {{ $transaction->details->sum('quantity') }}
 					</td>
 				</tr>
 				@if($transaction->voucher != null)

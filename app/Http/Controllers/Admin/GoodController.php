@@ -31,7 +31,7 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'all';
 
-        $goods = $this->indexGoodBase($category_id, $distributor_id, $pagination);
+        $goods = $this->indexGoodBase($category_id, $distributor_id, 'goods.id', 'desc', $pagination);
 
         return view('admin.layout.page', compact('default', 'goods', 'category_id', 'distributor_id', 'pagination'));
     }
@@ -373,5 +373,18 @@ class GoodController extends Controller
         $this->getTransferGoodBase($request);
 
         return api_response('success', 'ok', 200);
+    }
+
+    public function resume($sort, $order, $pagination)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Resume Barang';
+        $default['page'] = 'good';
+        $default['section'] = 'all';
+
+        $goods = $this->resumeGoodBase($sort, $order, $pagination);
+
+        return view('admin.layout.page', compact('default', 'goods', 'pagination'));
     }
 }

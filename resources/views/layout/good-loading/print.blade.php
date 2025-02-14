@@ -33,16 +33,17 @@
 				@foreach($good_loading->details as $detail)
 					<tr>
 						<td style="text-align: left !important;">
-							<b>{{ $detail->good_unit->good->name }}</b>
+							<b>{{ $i++ . '. ' . $detail->good_unit->good->name }}</b>
 						</td>
 					</tr>
 					<tr>
 						<td style="text-align: left !important;">
-							{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name }}
+							{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name . ' (Stok lama: ' . $detail->good_unit->good->getStockWoLastLoad($good_loading->id) . ')' }}
 						</td>
 					</tr>
 				@endforeach
 			</table>
+			Total item: {{ --$i }} | Total qty: {{ $good_loading->details->sum('quantity') }}
 		</div>
 	</body>
 

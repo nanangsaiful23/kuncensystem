@@ -16,28 +16,30 @@
           <div class="box-header">
             <h3 class="box-title">{{ $default['page_name'] }}</h3>
           </div>
-          <div class="box-body" style="overflow-x:scroll">
-            <div class="form-group col-sm-12" style="margin-top: 10px;">
-              {!! Form::label('location', 'Lokasi', array('class' => 'col-sm-1 control-label')) !!}
-              <div class="col-sm-3">
-                {!! Form::select('location', getDistributorLocations(), $location, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'location', 'onchange' => 'advanceSearch()']) !!}
+          @if($stock >= 0)
+            <div class="box-body" style="overflow-x:scroll">
+              <div class="form-group col-sm-12" style="margin-top: 10px;">
+                {!! Form::label('location', 'Lokasi', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-3">
+                  {!! Form::select('location', getDistributorLocations(), $location, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'location', 'onchange' => 'advanceSearch()']) !!}
+                </div>
+                {!! Form::label('category_id', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-5">
+                  {!! Form::select('category_id', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category_id', 'onchange' => 'advanceSearch()']) !!}
+                </div>
               </div>
-              {!! Form::label('category_id', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
-              <div class="col-sm-5">
-                {!! Form::select('category_id', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category_id', 'onchange' => 'advanceSearch()']) !!}
+              <div class="form-group col-sm-12" style="margin-top: 10px;">
+                {!! Form::label('stock', 'Stock', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-3">
+                  {!! Form::select('stock', ['0' => '0', '3' => '3', '5' => '5', '10' => '10'], $stock, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'stock', 'onchange' => 'advanceSearch()']) !!}
+                </div>
+                {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-5">
+                  {!! Form::select('distributor_id', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor_id', 'onchange' => 'advanceSearch()']) !!}
+                </div>
               </div>
             </div>
-            <div class="form-group col-sm-12" style="margin-top: 10px;">
-              {!! Form::label('stock', 'Stock', array('class' => 'col-sm-1 control-label')) !!}
-              <div class="col-sm-3">
-                {!! Form::select('stock', ['0' => '0', '3' => '3', '5' => '5', '10' => '10'], $stock, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'stock', 'onchange' => 'advanceSearch()']) !!}
-              </div>
-              {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
-              <div class="col-sm-5">
-                {!! Form::select('distributor_id', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor_id', 'onchange' => 'advanceSearch()']) !!}
-              </div>
-            </div>
-          </div>
+          @endif
           <div class="box-body" style="overflow-x:scroll; color: black !important">
             @if(\Auth::user()->email == 'admin')
               {!! Form::model(old(),array('url' => route($role . '.zeroStock.export'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'export-form')) !!}

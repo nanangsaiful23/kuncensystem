@@ -90,7 +90,7 @@ class Good extends Model
                                 ->where('good_units.good_id', $this->id)
                                 ->where('transaction_details.type', '!=', 'retur')
                                 ->where('transactions.deleted_at', null)
-                                // ->where('good_units.deleted_at', null)
+                                // ->where('good_units.deleted_at', null) ini kalau di uncomment, loadingan yang unitnya kehapus bakal gak kehitung
                                 ->get();
     }
 

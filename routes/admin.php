@@ -73,6 +73,7 @@ Route::group(['prefix' => 'good'], function () {
     Route::get('/getPriceUnit/{good_id}/{unit_id}', 'GoodController@getPriceUnit');
 	Route::get('/printDisplay', 'GoodController@choosePrintDisplay');
 	Route::post('/printDisplay', 'GoodController@printDisplay')->name('print-display');
+    Route::get('/resume/{sort}/{order}/{pagination}', 'GoodController@resume');
     Route::get('/searchByBarcode/{barcode}', 'GoodController@searchByBarcode');
     Route::get('/searchById/{good_id}', 'GoodController@searchById');
     Route::get('/searchByGoodUnit/{good_unit_id}', 'GoodController@searchByGoodUnit');

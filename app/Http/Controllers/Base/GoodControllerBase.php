@@ -24,13 +24,13 @@ use App\Models\Unit;
 
 trait GoodControllerBase 
 {
-    public function indexGoodBase($category_id, $distributor_id, $pagination)
+    public function indexGoodBase($category_id, $distributor_id, $sort, $order, $pagination)
     {
         if($pagination == 'all')
         {
             if($category_id == 'all' && $distributor_id == 'all')
             {
-                $goods = Good::orderBy('goods.id', 'desc')->get();
+                $goods = Good::orderBy($sort, $order)->get();
             }
             elseif($category_id == 'all')
             {
@@ -39,14 +39,14 @@ trait GoodControllerBase
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
-                             ->orderBy('goods.id', 'desc')
+                             ->orderBy($sort, $order)
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->get();
             }
             elseif($distributor_id == 'all')
             {
                 $goods = Good::where('category_id', $category_id)
-                             ->orderBy('goods.id', 'desc')
+                             ->orderBy($sort, $order)
                              ->get();      
             }
             else
@@ -57,7 +57,7 @@ trait GoodControllerBase
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
-                             ->orderBy('goods.id', 'desc')
+                             ->orderBy($sort, $order)
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->get();
             }
@@ -66,7 +66,7 @@ trait GoodControllerBase
         {
             if($category_id == 'all' && $distributor_id == 'all')
             {
-                $goods = Good::orderBy('goods.id', 'desc')->paginate($pagination);
+                $goods = Good::orderBy($sort, $order)->paginate($pagination);
             }
             elseif($category_id == 'all')
             {
@@ -75,14 +75,14 @@ trait GoodControllerBase
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
-                             ->orderBy('goods.id', 'desc')
+                             ->orderBy($sort, $order)
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->paginate($pagination);
             }
             elseif($distributor_id == 'all')
             {
                 $goods = Good::where('category_id', $category_id)
-                             ->orderBy('goods.id', 'desc')
+                             ->orderBy($sort, $order)
                              ->paginate($pagination);         
             }
             else
@@ -93,7 +93,7 @@ trait GoodControllerBase
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->where('goods.last_distributor_id', $distributor_id)
                              ->where('goods.category_id', $category_id)
-                             ->orderBy('goods.id', 'desc')
+                             ->orderBy($sort, $order)
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id')
                              ->paginate($pagination);
             }
@@ -1125,6 +1125,38 @@ trait GoodControllerBase
                                   ->groupBy('good_units.id')
                                   ->take($limit)
                                   ->get();
+
+        return $goods;
+    }
+
+    public function resumeGoodBase($sort, $order, $pagination)
+    {
+        // dd('a');die;
+        // $goods = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock
+        //             FROM goods 
+        //             LEFT JOIN(SELECT goods.id, loading.total_loading as total_loading, transaction.total_transaction as total_transaction, price.real_price
+        //                 FROM goods
+        //                 LEFT JOIN (SELECT goods.id, coalesce(SUM(good_loading_details.real_quantity), 0) AS total_loading
+        //                  FROM good_loading_details
+        //                  JOIN good_units ON good_units.id = good_loading_details.good_unit_id
+        //                  JOIN goods ON goods.id = good_units.good_id
+        //                  WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+        //                  GROUP BY goods.id) as loading ON loading.id = goods.id
+        //                 LEFT JOIN (SELECT goods.id, coalesce(SUM(transaction_details.real_quantity), 0) AS total_transaction
+        //                  FROM transaction_details
+        //                  JOIN good_units ON good_units.id = transaction_details.good_unit_id
+        //                  RIGHT JOIN goods ON goods.id = good_units.good_id
+        //                  WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL AND transaction_details.type != 'retur'
+        //                  GROUP BY goods.id) as transaction ON transaction.id = goods.id
+        //                 LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity, good_units.buy_price/units.quantity as real_price
+        //                  FROM good_units
+        //                  RIGHT JOIN goods ON goods.id = good_units.good_id
+        //                  JOIN units ON units.id = good_units.unit_id
+        //                  GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
+        //                 GROUP BY goods.id, goods.name, total_loading, total_transaction, real_price) as recap ON recap.id = goods.id
+        //             GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price
+        //             ORDER BY money_stock DESC
+        //             LIMIT 10"));
 
         return $goods;
     }
