@@ -30,7 +30,7 @@
 		<div style="text-align: center;">
 			<table style="font-size: 10px; text-align: center;">
 				<?php $i = 1; ?>
-				@foreach($good_loading->details as $detail)
+				@foreach($good_loading->detailsWithDeleted() as $detail)
 					<tr>
 						<td style="text-align: left !important;">
 							<b>{{ $i++ . '. ' . $detail->good_unit->good->name }}</b>
