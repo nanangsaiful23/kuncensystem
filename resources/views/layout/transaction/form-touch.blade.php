@@ -37,6 +37,7 @@
             <table class="table table-bordered table-striped" style="overflow-x: auto;">
                 <thead>
                     <th style="display: none;">Barcode</th>
+                    <th>No</th>
                     <th>Nama</th>
                     <th>Qty</th>
                     <th>Harga</th>
@@ -50,6 +51,9 @@
                     <tr id="row-data-{{ $i }}" @if($i % 2 == 0) style="background-color: #FDDBBB" @endif>
                         <td style="display: none;">
                             {!! Form::text('barcodes[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'barcode-'.$i)) !!}
+                        </td>
+                        <td width="5%">
+                            <input type="text" name="numbers[]" class="form-control" id="no-{{ $i }}" value="{{ $i }}">
                         </td>
                         <td width="50%">
                             {!! Form::text('name_temps[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'name_temp-'.$i)) !!}
@@ -652,7 +656,7 @@
             if(temp1 % 2 == 0)
                 color = 'background-color: #FDDBBB !important;';
 
-            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"></text><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
+            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"></text><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
 
             @if(\Auth::user()->email == 'admin')
                 htmlResult += '<td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';

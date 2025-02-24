@@ -605,38 +605,77 @@ trait TransactionControllerBase
         $transaction = Transaction::find($transaction_id);
         $total = 0;
 
-        foreach($transaction->details as $detail)
-        {
-            $good = $detail->good_unit->good;
-
-            $data_loading['role']         = $role;
-            $data_loading['role_id']      = $role_id;
-            $data_loading['checker']      = "Created by system";
-            $data_loading['loading_date'] = date('Y-m-d');
-            $data_loading['distributor_id']   = $good->last_distributor_id;
-            $data_loading['total_item_price'] = $detail->quantity * $detail->buy_price;
-            $data_loading['note']             = "Reverse transaction id " . $transaction->id;
-            $data_loading['payment']          = "cash";
-
-            $good_loading = GoodLoading::create($data_loading);
-
-            $data_detail['good_loading_id'] = $good_loading->id;
-            $data_detail['good_unit_id']    = $detail->good_unit->id;
-            $data_detail['last_stock']      = $good->getStock();
-            $data_detail['quantity']        = $detail->quantity;
-            $data_detail['real_quantity']   = $detail->real_quantity;
-            $data_detail['price']           = $detail->buy_price;
-            $data_detail['selling_price']   = $detail->selling_price;
-
-            GoodLoadingDetail::create($data_detail);
-
-            $total += $data_loading['total_item_price'];
-        }
-
         if($status == 'not valid')
             $journal_status = 'reverse';
         elseif($status == 'deleted')
             $journal_status = 'delete';
+
+        foreach($transaction->details as $detail)
+        {
+            if($detail->type == 'normal')
+            {
+                $good = $detail->good_unit->good;
+
+                $data_loading['role']         = $role;
+                $data_loading['role_id']      = $role_id;
+                $data_loading['checker']      = "Created by system";
+                $data_loading['loading_date'] = date('Y-m-d');
+                $data_loading['distributor_id']   = $good->last_distributor_id;
+                $data_loading['total_item_price'] = $detail->quantity * $detail->buy_price;
+                $data_loading['note']             = "Reverse transaction id " . $transaction->id;
+                $data_loading['payment']          = "cash";
+
+                $good_loading = GoodLoading::create($data_loading);
+
+                $data_detail['good_loading_id'] = $good_loading->id;
+                $data_detail['good_unit_id']    = $detail->good_unit->id;
+                $data_detail['last_stock']      = $good->getStock();
+                $data_detail['quantity']        = $detail->quantity;
+                $data_detail['real_quantity']   = $detail->real_quantity;
+                $data_detail['price']           = $detail->buy_price;
+                $data_detail['selling_price']   = $detail->selling_price;
+
+                GoodLoadingDetail::create($data_detail);
+
+                $total += $data_loading['total_item_price'];
+
+            }
+            elseif($detail->type == 'retur')
+            {
+                // $data_transaction['type'] = $status;
+                // $data_transaction['role'] = $role;
+                // $data_transaction['role_id'] = $role_id;
+                // $data_transaction['total_item_price'] = $detail->quantity * $detail->selling_price;
+                // $data_transaction['total_discount_price'] = 0;
+                // $data_transaction['total_sum_price'] = $data_transaction['total_item_price'];
+                // $data_transaction['voucher'] = null;
+                // $data_transaction['voucher_nominal'] = null;
+                // $data_transaction['money_paid'] = $data_transaction['total_item_price'];
+                // $data_transaction['money_returned'] = 0;
+                // $data_transaction['store']   = 'ntn getasan';
+                // $data_transaction['payment'] = 'cash';
+                // $data_transaction['note']    = "Reverse transaction retur id " . $transaction->id;
+
+                // $transaction_temp = Transaction::create($data_transaction);
+
+                // $data_detail['transaction_id'] = $transaction_temp->id;
+                // $data_detail['good_unit_id']   = $detail->good_unit_id;
+                // $data_detail['type']           = 'normal';
+                // $data_detail['quantity']       = $detail->quantity;
+                // $data_detail['real_quantity']  = $detail->real_quantity;
+                // $data_detail['last_stock']     = $detail->good_unit->good->getStock();
+                // $data_detail['buy_price']      = $detail->buy_price;
+                // $data_detail['selling_price']  = $detail->selling_price;
+                // $data_detail['discount_price'] = 0;
+                // $data_detail['sum_price']      = $data_transaction['total_item_price'];
+
+                // TransactionDetail::create($data_detail);
+
+                // $total -= $data_transaction['total_item_price'];
+            }
+            $data_transaction['type'] = $status;
+            $detail->update($data_transaction);
+        }
 
         if(sizeof($transaction->details) > 0)
         {
@@ -666,29 +705,29 @@ trait TransactionControllerBase
         }
         else
         {  
-            $data_journal['type']               = 'transaction';
-            $data_journal['type_id']            = null;
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Double transaction with detail transaksi null';
-            $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-            if($transaction->payment == 'cash')
-                $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-            elseif($transaction->payment == 'transfer')
-                $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
-            $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+            // $data_journal['type']               = 'transaction';
+            // $data_journal['type_id']            = null;
+            // $data_journal['journal_date']       = date('Y-m-d');
+            // $data_journal['name']               = 'Double transaction with detail transaksi null';
+            // $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
+            // $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
+            // if($transaction->payment == 'cash')
+            //     $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            // elseif($transaction->payment == 'transfer')
+            //     $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
+            // $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
 
-            Journal::create($data_journal);
+            // Journal::create($data_journal);
 
-            $data_hpp['type']               = 'hpp';
-            $data_hpp['journal_date']       = date('Y-m-d');
-            $data_hpp['name']               = 'Double transaction with detail transaksi null';
-            $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_hpp['debit']              = unformatNumber($total);
-            $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-            $data_hpp['credit']             = unformatNumber($total);
+            // $data_hpp['type']               = 'hpp';
+            // $data_hpp['journal_date']       = date('Y-m-d');
+            // $data_hpp['name']               = 'Double transaction with detail transaksi null';
+            // $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
+            // $data_hpp['debit']              = unformatNumber($total);
+            // $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
+            // $data_hpp['credit']             = unformatNumber($total);
 
-            Journal::create($data_hpp);
+            // Journal::create($data_hpp);
         }
 
         $data_transaction['type'] = $status;
