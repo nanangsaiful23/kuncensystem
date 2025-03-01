@@ -159,6 +159,8 @@ trait GoodLoadingControllerBase
                             $data_price['role']         = $role;
                             $data_price['role_id']      = $role_id;
                             $data_price['good_unit_id'] = $good_unit->id;
+                            $data_price['old_buy_price']    = $good_unit->buy_price;
+                            $data_price['recent_buy_price'] = $data['prices'][$i];
                             $data_price['old_price']    = $good_unit->selling_price;
                             $data_price['recent_price'] = $data['sell_prices'][$i];
                             $data_price['reason']       = 'Diubah saat loading';
@@ -502,6 +504,8 @@ trait GoodLoadingControllerBase
                         $data_price['role']         = $role;
                         $data_price['role_id']      = $role_id;
                         $data_price['good_unit_id'] = $good_unit->id;
+                        $data_price['old_buy_price']    = $good_unit->buy_price;
+                        $data_price['recent_buy_price'] = $data['prices'][$i];
                         $data_price['old_price']    = $good_unit->selling_price;
                         $data_price['recent_price'] = $data['sell_prices'][$j];
                         $data_price['reason']       = 'Diubah saat loading';
