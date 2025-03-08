@@ -67,12 +67,12 @@
                     @else
                         {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
                         <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
-                            <div>
+                            <!-- <div> -->
                                 @foreach(getMembers() as $member)
                                 <option value="{{ $member->id }}">
                                     {{ $member->name . ' (' . $member->address . ')'}}</option>
                                 @endforeach
-                            </div>
+                            <!-- </div> -->
                         </select>
                     @endif
                 </div>
@@ -109,10 +109,10 @@
             <div class="col-sm-8">
                 <h5>(jika pembayaran hutang, pilih metode cash dan nominal uang isi sesuai dengan uang yang diterima)</h5>
                 <select class="form-control select2" style="width: 100%;" name="payment">
-                    <div>
+                    <!-- <div> -->
                         <option value="cash">Cash/Uang</option>
                         <option value="transfer">Transfer</option>
-                    </div>
+                    <!-- </div> -->
                 </select>
             </div>
         </div>
@@ -278,10 +278,10 @@
                     </td>
                     <td>
                         <select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s{{ $i }}">
-                            <div>
+                            <!-- <div> -->
                                 <option value="rusak">Rusak</option>
                                 <option value="not">Tidak Rusak</option>
-                            </div>
+                            <!-- </div> -->
                         </select>
                     </td>
                     <td>
@@ -628,7 +628,7 @@
             {
                 type = 'retur_s';
                 items = total_item_retur;
-                td_rusak = '<td><select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '"><div><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></div></select></td>';
+                td_rusak = '<td><select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '"><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></select></td>';
             }
             console.log(name);
 
