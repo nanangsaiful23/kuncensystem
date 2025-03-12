@@ -49,7 +49,7 @@
             {!! Form::label('type', 'Jenis Transaksi', array('class' => 'col-sm-4 control-label', 'style' => 'text-align: left')) !!}
             <div class="col-sm-8">
                 <select class="form-control select2" style="width: 100%;" name="type" id="type">
-                    <div>
+                    <!-- <div> -->
                         <option value="0000">0000 - Sistem Error</option>
                         <option value="5215">5215 - Biaya Penyusutan Barang</option>
                         <option value="5220">5220 - Biaya Perlengkapan Kantor</option>
@@ -57,7 +57,7 @@
                         <option value="3001">3001 - Modal Pemilik</option>
                         <option value="1131">1131 - Piutang Dagang</option>
                         <option value="6104">6104 - Biaya Dapur & Pasar</option>
-                    </div>
+                    <!-- </div> -->
                 </select>
             </div>
         </div>
@@ -78,13 +78,13 @@
                     {!! Form::text('distributor', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <select class="form-control select2" style="width: 100%;" name="distributor_id" id="distributor_id">
-                        <div>
+                        <!-- <div> -->
                             <option value="null">Silahkan pilih distributor</option>
                             @foreach(getDistributors() as $distributor)
                             <option value="{{ $distributor->id }}">
                                 {{ $distributor->name }}</option>
                             @endforeach
-                        </div>
+                        <!-- </div> -->
                     </select>
                 @endif
             </div>
