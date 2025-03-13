@@ -907,10 +907,9 @@ trait TransactionControllerBase
                                             ->where('type', '!=', '3001')
                                             ->get();
 
-        $account = Account::where('code', '5220')->first();
-
-        $transactions['other_payment'] = Journal::where('debit_account_id', $account->id)
-                                                ->where('type', 'like', '%_payment%')
+        $transactions['other_payment'] = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
+                                                ->whereRaw('(accounts.code = "5220" OR accounts.code = "6104")')
+                                                ->where('journals.type', 'like', '%_payment%')
                                                 ->whereDate('journals.journal_date', '>=', $start_date)
                                                 ->whereDate('journals.journal_date', '<=', $end_date) 
                                                 ->get();

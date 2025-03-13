@@ -22,21 +22,28 @@
             <table class="table table-bordered table-striped">
               <thead>
               <tr>
+                <th width="5%">No</th>
                 <th width="15%">Nama</th>
-                <th width="15%">Loading</th>
-                <th width="15%">Terjual</th>
-                <th width="15%">Stock</th>
-                <th width="15%">Stock Uang</th>
+                <th width="10%">Loading</th>
+                <th width="10%">Terjual</th>
+                <th width="10%">Stock</th>
+                <th width="10%">Stock Uang</th>
+                <th width="15%">Loading Terakhir</th>
+                <th width="15%">Penjualan Terakhir</th>
               </tr>
               </thead>
               <tbody>
+                <?php $i = 1 ?>
                 @foreach($distributor->detailAsset() as $item)
                   <tr>
+                    <td>{{ $i++ }}</td>
                     <td><a href="{{ url($role . '/good/' . $item->id . '/detail') }}" style="color: blue" target="_blank()">{{ $item->name }}</a></td>
                     <td>{{ $item->total_loading }}</td>
                     <td>{{ $item->total_transaction }}</td>
                     <td>{{ $item->total_real }}</td>
-                    <td>{{ showRupiah($item->total_real * $item->real_price) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($item->total_real * $item->real_price) }}</td>
+                    <td>{{ displayDate($item->loading_date) }}</td>
+                    <td>{{ displayDate($item->transaction_date) }}</td>
                   </tr>
                 @endforeach
               </tbody>

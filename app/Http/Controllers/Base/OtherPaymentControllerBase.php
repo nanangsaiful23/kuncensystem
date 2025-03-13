@@ -27,16 +27,17 @@ trait OtherPaymentControllerBase
         }
         else
         {
-            $account_admin_show = Account::where('code', '5220')->first();
             if($pagination == 'all')
-               $other_payments = Journal::where('debit_account_id', $account_admin_show->id)
-                                        ->where('type', 'like', '%_payment%')
+               $other_payments = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
+                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "6104")')
+                                        ->where('journals.type', 'like', '%_payment%')
                                         ->whereDate('journals.journal_date', '>=', $start_date)
                                         ->whereDate('journals.journal_date', '<=', $end_date) 
                                         ->get();
             else
-               $other_payments = Journal::where('debit_account_id', $account_admin_show->id)
-                                        ->where('type', 'like', '%_payment%')
+               $other_payments = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
+                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "6104")')
+                                        ->where('journals.type', 'like', '%_payment%')
                                         ->whereDate('journals.journal_date', '>=', $start_date)
                                         ->whereDate('journals.journal_date', '<=', $end_date) 
                                         ->paginate($pagination);

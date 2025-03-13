@@ -10,10 +10,10 @@
                         {!! Form::select('debit_account_id', getOtherPayment(), null, ['class' => 'form-control select2', 'style'=>'width: 100%']) !!}
                     @else
                         <select class="form-control select2" style="width: 100%;" name="debit_account_id">
-                            <div>
+                            <!-- <div> -->
                                 <option value="5220">Biaya Operasional Toko</option>
                                 <option value="6104">Biaya dapur & pasar</option>
-                            </div>
+                            <!-- </div> -->
                         </select>
                     @endif
                 @endif
@@ -27,10 +27,10 @@
                     {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <select class="form-control select2" style="width: 100%;" name="payment" required="required">
-                        <div>
+                        <!-- <div> -->
                             <option value="cash">Tunai/Cash</option>
                             <option value="transfer">Transfer</option>
-                        </div>
+                        <!-- </div> -->
                     </select>
                 @endif
             </div>
