@@ -7,13 +7,13 @@
                     {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <select class="form-control select2" style="width: 100%;" name="type" onchange="showother_payment()" id="type">
-                        <div>
+                        <!-- <div> -->
                             <option value="box_transaction">Penjualan Lainnya (Kardus/Jasa Kado/dll)</option>
                             <option value="ongkir_transaction">Biaya Ongkir</option>
                             <option value="piutang_transaction">Pembayaran Piutang</option>
                             <option value="pulsa_transaction">Penjualan Pulsa/Token Listrik</option>
                             <option value="cash_transaction">Titipan Uang Pembayaran Bu Maryati/Toko Kuncen</option>
-                        </div>
+                        <!-- </div> -->
                     </select>
                 @endif
             </div>
@@ -26,12 +26,12 @@
                     {!! Form::text('ongkir', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <select class="form-control select2" style="width: 100%;" name="ongkir" id="ongkir-fee" onchange="changePrice()">
-                        <div>
+                        <!-- <div> -->
                             <option value="null">Pilih Daerah</option>
                             @foreach(getOngkir() as $ongkir)
                             <option value="{{ $ongkir->fee }}">{{ $ongkir->location }}</option>
                             @endforeach
-                        </div>
+                        <!-- </div> -->
                     </select>
                 @endif
             </div>
@@ -44,13 +44,13 @@
                     {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
-                        <div>
+                        <!-- <div> -->
                             <option value="null">Non Member</option>
                             @foreach(getMembers() as $member)
                             <option value="{{ $member->id }}">
                                 {{ $member->name . ' (' . $member->address . ')'}}</option>
                             @endforeach
-                        </div>
+                        <!-- </div> -->
                     </select>
                 @endif
             </div>
@@ -63,10 +63,10 @@
                     {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     <select class="form-control select2" style="width: 100%;" name="payment">
-                        <div>
+                        <!-- <div> -->
                             <option value="cash">Tunai/Cash</option>
                             <option value="transfer">Transfer</option>
-                        </div>
+                        <!-- </div> -->
                     </select>
                 @endif
             </div>

@@ -27,7 +27,7 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'all';
 
-        $goods = $this->indexGoodBase($category_id, $distributor_id, $pagination);
+        $goods = $this->indexGoodBase($category_id, $distributor_id, 'goods.id', 'desc', $pagination);
 
         return view('cashier.layout.page', compact('default', 'goods', 'category_id', 'distributor_id', 'pagination'));
     }
