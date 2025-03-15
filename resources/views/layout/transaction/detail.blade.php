@@ -13,69 +13,97 @@
             <div class="box-body">
                 <div class="panel-body">
                     <div class="row">
-                        <div class="form-group">
-                            {!! Form::label('actor', 'PIC', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('actor', $transaction->actor()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        <div class="col-sm-12">
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('actor', 'PIC', array('class' => 'col-sm-3 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('actor', $transaction->actor()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-4 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('total_item_price', showRupiah($transaction->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            {!! Form::label('member', 'Member', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('member', $transaction->member->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        <div class="col-sm-12">
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('member', 'Member', array('class' => 'col-sm-3 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('member', $transaction->member->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('total_discount_price', 'Total Diskon', array('class' => 'col-sm-4 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('total_discount_price', showRupiah($transaction->details->sum('discount_price')), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            {!! Form::label('type', 'Tipe', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                @if($transaction->type_name() != null)
-                                    {!! Form::text('type', $transaction->type_name()->code . ' - ' . $transaction->type_name()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                                @else
-                                    {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                                @endif
+                        <div class="col-sm-12">
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('type', 'Tipe', array('class' => 'col-sm-3 control-label')) !!}
+                                <div class="col-sm-6">
+                                    @if($transaction->type_name() != null)
+                                        {!! Form::text('type', $transaction->type_name()->code . ' - ' . $transaction->type_name()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    @else
+                                        {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('total_discount_price', 'Total Potongan Akhir', array('class' => 'col-sm-4 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('total_discount_price', showRupiah($transaction->total_discount_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('note', $transaction->note, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        <div class="col-sm-12">
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-3 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('note', $transaction->note, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-4 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('total_sum_price', showRupiah($transaction->total_sum_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('total_item_price', showRupiah($transaction->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        <div class="col-sm-12">
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('money_paid', 'Total Uang', array('class' => 'col-sm-3 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('money_paid', showRupiah($transaction->money_paid), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
                             </div>
+                            @if(\Auth::user()->email == 'admin')
+                                <div class="form-group col-sm-6">
+                                    {!! Form::label('hpp', 'HPP', array('class' => 'col-sm-4 control-label')) !!}
+                                    <div class="col-sm-6">
+                                        {!! Form::text('hpp', showRupiah($transaction->getHpp()), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    </div>
+                                </div>
+                            @endif
                         </div>
-                        <div class="form-group">
-                            {!! Form::label('total_discount_price', 'Total Diskon', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('total_discount_price', showRupiah($transaction->details->sum('discount_price')), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        <div class="col-sm-12">
+                            <div class="form-group col-sm-6">
+                                {!! Form::label('money_returned', 'Kembalian', array('class' => 'col-sm-3 control-label')) !!}
+                                <div class="col-sm-6">
+                                    {!! Form::text('money_returned', showRupiah($transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            {!! Form::label('total_discount_price', 'Total Potongan Akhir', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('total_discount_price', showRupiah($transaction->total_discount_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('total_sum_price', showRupiah($transaction->total_sum_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            {!! Form::label('money_paid', 'Total Uang', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('money_paid', showRupiah($transaction->money_paid), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            {!! Form::label('money_returned', 'Kembalian', array('class' => 'col-sm-2 control-label')) !!}
-                            <div class="col-sm-4">
-                                {!! Form::text('money_returned', showRupiah($transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                            </div>
+                            @if(\Auth::user()->email == 'admin')
+                                <div class="form-group col-sm-6">
+                                    {!! Form::label('profit', 'Untung', array('class' => 'col-sm-4 control-label')) !!}
+                                    <div class="col-sm-6">
+                                        {!! Form::text('profit', showRupiah($transaction->getProfit()), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 

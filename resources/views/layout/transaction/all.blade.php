@@ -34,12 +34,36 @@
               </div>
             </div>
           </div>
-          <div class="box-body" style="overflow-x:scroll;">
-            <h3>Total transaksi hari ini: {{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price')) }}</h3>
-            @if(\Auth::user()->email == 'admin')
-            <h3>HPP: {{ showRupiah($hpp_normal->sum('total') + $hpp_retur_normal->sum('total') - $hpp_retur->sum('total')) }}</h3>
-            <h3>Untung: {{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price') - ($hpp_normal->sum('total') + $hpp_retur_normal->sum('total') - $hpp_retur->sum('total'))) }}</h3>
-            @endif
+          <div class="box-body" style="overflow-x:scroll; font-size: 16px">
+            <table>
+              <tr>
+                <td>Total transaksi</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($all_normal->sum('total_item_price') + $all_retur->sum('total_item_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total potongan</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($all_normal->sum('total_discount_price') + $all_retur->sum('total_discount_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi setelah potongan</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price')) }}</td>
+              </tr>
+              @if(\Auth::user()->email == 'admin')
+                <tr>
+                  <td>HPP</td>
+                  <td>:</td>
+                  <td style="text-align: right;">{{ showRupiah($hpp_normal->sum('total') + $hpp_retur_normal->sum('total') - $hpp_retur->sum('total')) }}</td>
+                </tr>
+                <tr>
+                  <td>Untung</td>
+                  <td>:</td>
+                  <td style="text-align: right;">{{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price') - ($hpp_normal->sum('total') + $hpp_retur_normal->sum('total') - $hpp_retur->sum('total'))) }}</td>
+                </tr>
+              @endif
+            </table>
           </div>
 
           @include('layout.transaction.all-form', ['name' => 'Lunas', 'transactions' => $transactions['cash'], 'color' => '#E5F9DB', 'total_sum_price' => $transactions['cash']->sum('total_sum_price'), 'total_discount_price' => $transactions['cash']->sum('total_discount_price'), 'discount_price' => $transactions['cash']->sum('discount_price')])

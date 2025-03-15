@@ -62,4 +62,32 @@ class Transaction extends Model
     {
         return Account::where('code', $this->type)->first();
     }
+
+    public function getProfit()
+    {
+        $sum = 0;
+
+        $details = $this->details;
+
+        foreach($details as $detail)
+        {
+            $sum += ($detail->selling_price - $detail->buy_price) * $detail->quantity;
+        }
+
+        return $sum - checkNull($this->total_discount_price) - checkNull($this->voucher_nominal);
+    }
+
+    public function getHpp()
+    {
+        $sum = 0;
+
+        $details = $this->details;
+
+        foreach($details as $detail)
+        {
+            $sum += ($detail->buy_price) * $detail->quantity;
+        }
+
+        return $sum;
+    }
 }
