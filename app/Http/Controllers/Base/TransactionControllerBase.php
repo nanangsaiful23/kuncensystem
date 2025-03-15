@@ -860,14 +860,28 @@ trait TransactionControllerBase
 
     public function resumeTotalTransactionBase($start_date, $end_date)
     {
-        $transactions['normal'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                            ->whereDate('transactions.created_at', '<=', $end_date) 
-                                            ->where('type', 'normal')
-                                            ->get();
+        $transactions['normal_cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('type', 'normal')
+                                                    ->where('payment', 'cash')
+                                                    ->get();
 
-        $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+        $transactions['normal_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                    ->where('type', 'normal')
+                                                    ->where('payment', 'transfer')
+                                                    ->get();
+
+        $transactions['retur_cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
                                             ->whereDate('transactions.created_at', '<=', $end_date) 
                                             ->where('type', 'retur')
+                                            ->where('payment', 'cash')
+                                            ->get();
+
+        $transactions['retur_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                            ->whereDate('transactions.created_at', '<=', $end_date) 
+                                            ->where('type', 'retur')
+                                            ->where('payment', 'transfer')
                                             ->get();
 
         $transactions['not_valid'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)

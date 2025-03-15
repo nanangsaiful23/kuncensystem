@@ -24,18 +24,62 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll;">
-            <h2>Total transaksi akhir: {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price') + $transactions['not_valid']->sum('total_sum_price') + $transactions['internal']->sum('total_sum_price') + $transactions['credit']->sum('total_sum_price') + $transactions['piutang']->sum('total_sum_price') + $transactions['modal']->sum('total_sum_price') + $transactions['stock_opname']->sum('total_sum_price')) }}</h2>
-            <h3>Total transaksi (normal + retur): {{ showRupiah($transactions['normal']->sum('total_sum_price') + $transactions['retur']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi double/tidak valid: {{ showRupiah($transactions['not_valid']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi internal (utang dagang): {{ showRupiah($transactions['credit']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi internal (piutang dagang): {{ showRupiah($transactions['piutang']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi internal (modal pemilik): {{ showRupiah($transactions['modal']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi internal (stock opname): {{ showRupiah($transactions['stock_opname']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi internal lainnya: {{ showRupiah($transactions['internal']->sum('total_sum_price')) }}</h3>
-            <h3>Total transaksi lain: {{ showRupiah($transactions['other_transaction']->sum('debit')) }}</h3>
-            <h3>Total biaya lain: {{ showRupiah($transactions['other_payment']->sum('debit')) }}</h3>
+            <h2>Total transaksi akhir: {{ showRupiah($transactions['normal_cash']->sum('total_sum_price') + $transactions['normal_transfer']->sum('total_sum_price') + $transactions['retur_cash']->sum('total_sum_price') + $transactions['retur_transfer']->sum('total_sum_price') + $transactions['not_valid']->sum('total_sum_price') + $transactions['internal']->sum('total_sum_price') + $transactions['credit']->sum('total_sum_price') + $transactions['piutang']->sum('total_sum_price') + $transactions['modal']->sum('total_sum_price') + $transactions['stock_opname']->sum('total_sum_price')) }}</h2>
+
+            <table style="font-size: 16px;">
+              <tr>
+                <td>Total transaksi cash (normal + retur)</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['normal_cash']->sum('total_sum_price') + $transactions['retur_cash']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi transfer (normal + retur)</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['normal_transfer']->sum('total_sum_price') + $transactions['retur_transfer']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi double/tidak valid</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['not_valid']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi internal (utang dagang)</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['credit']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi internal (piutang dagang)</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['piutang']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi internal (modal pemilik)</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['modal']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi internal (stock opname)</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['stock_opname']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi internal lainnya</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['internal']->sum('total_sum_price')) }}</td>
+              </tr>
+              <tr>
+                <td>Total transaksi lain</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['other_transaction']->sum('debit')) }}</td>
+              </tr>
+              <tr>
+                <td>Total biaya lain</td>
+                <td>:</td>
+                <td style="text-align: right;">{{ showRupiah($transactions['other_payment']->sum('debit')) }}</td>
+              </tr>
+            </table>
           </div>
-          <div class="box-body" style="overflow-x:scroll;">
+          <div class="box-body">
             {!! Form::model(old(),array('url' => route($role . '.transaction.storeMoney'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
               <div class="form-group">
                 {!! Form::label('money', 'Pengambilan Uang', array('class' => 'col-sm-12')) !!}
