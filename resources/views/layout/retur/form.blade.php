@@ -17,13 +17,13 @@
                     @else
                         <input type="text" name="distributor_name" class="form-control" id="distributor_name">
                         <select class="form-control select2" style="width: 100%;" name="distributor_id" id="all_distributor">
-                            <div>
+                            <!-- <div> -->
                                 <option value="null">Silahkan pilih distributor</option>
                                 @foreach($distributors as $distributor)
                                 <option value="{{ $distributor->id }}">
                                     {{ $distributor->name }}</option>
                                 @endforeach
-                            </div>
+                            <!-- </div> -->
                         </select>
                     @endif
                 </div>
@@ -45,12 +45,12 @@
             <div class="col-sm-9">
                 <select class="form-control select2" style="width: 100%;" name="items" id="all_name"
                     onchange="searchItemByName()">
-                    <div>
+                    <!-- <div> -->
                         <option value="null">Silahkan pilih barang</option>
                         @foreach($goods as $good)
                         <option value="{{ $good->id }}">{{ $good->name . ' ' }}</option>
                         @endforeach
-                    </div>
+                    <!-- </div> -->
                 </select>
             </div>
         </div>
