@@ -164,7 +164,7 @@ class Good extends Model
         if($this->getPcsSellingPrice() == null)
             return $total;
 
-        return $total / $this->getPcsSellingPrice()->unit->quantity;
+        return round($total / $this->getPcsSellingPrice()->unit->quantity, 3);
     }
 
     public function getStockWoLastLoad($good_loading_id)
