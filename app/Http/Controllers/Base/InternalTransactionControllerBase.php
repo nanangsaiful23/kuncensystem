@@ -27,6 +27,7 @@ trait InternalTransactionControllerBase
                                             ->where('type', '!=', 'retur')
                                             ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
+                                            ->where('type', '!=', 'deleted')
                                             // ->where('type', '!=', 'stock_opname')
                                             ->orderBy('transactions.created_at','desc')
                                             ->get();
@@ -39,6 +40,7 @@ trait InternalTransactionControllerBase
                                             ->where('type', '!=', 'retur')
                                             ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
+                                            ->where('type', '!=', 'deleted')
                                             // ->where('type', '!=', 'stock_opname')
                                             ->where('role', $role)
                                             ->where('role_id', $role_id)
@@ -56,6 +58,7 @@ trait InternalTransactionControllerBase
                                             ->where('type', '!=', 'retur')
                                             ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
+                                            ->where('type', '!=', 'deleted')
                                             // ->where('type', '!=', 'stock_opname')
                                             ->orderBy('transactions.created_at','desc')
                                             ->paginate($pagination);
@@ -70,6 +73,7 @@ trait InternalTransactionControllerBase
                                             ->where('type', '!=', 'retur') 
                                             ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'not valid')
+                                            ->where('type', '!=', 'deleted')
                                             // ->where('type', '!=', 'stock_opname')
                                             ->orderBy('transactions.created_at','desc')
                                             ->paginate($pagination);

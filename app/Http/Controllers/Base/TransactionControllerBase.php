@@ -916,6 +916,7 @@ trait TransactionControllerBase
                                             ->where('type', '!=', 'retur_item')
                                             ->where('type', '!=', 'stock_opname')
                                             ->where('type', '!=', 'not valid')
+                                            ->where('type', '!=', 'deleted')
                                             ->where('type', '!=', '2101')
                                             ->where('type', '!=', '1131')
                                             ->where('type', '!=', '3001')
