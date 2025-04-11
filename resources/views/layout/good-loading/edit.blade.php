@@ -61,7 +61,7 @@
                                 <!-- <th>Hapus</th> -->
                             </thead>
                             <tbody>
-                                <?php $i = 1; ?>
+                                <?php $i = 1 ?>
                                 <input type="hidden" name="change" id="change">
                                 @foreach($good_loading->detailsWithDeleted() as $detail)
                                     <tr id="row-data-{{ $i }}">

@@ -66,6 +66,7 @@
                     <div class="form-group col-sm-12" style="overflow-x:scroll">
                         <table class="table table-bordered table-striped">
                             <thead>
+                                <th>No</th>
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
@@ -77,8 +78,10 @@
                                 @endif
                             </thead>
                             <tbody>
+                                {{ $i = 1 }}
                                 @foreach($transaction->detailsWithDeleted() as $detail)
                                     <tr>
+                                        <td>{{ $i++ }}</td>
                                         <td>
                                             {{ $detail->good->code }}
                                         </td>
@@ -109,6 +112,8 @@
                     </div>
 
                     {!! Form::close() !!}
+                    Total item = {{ $i-- }}<br>
+                    Total qty = {{ $transaction->detailsWithDeleted()->sum('quantity') }}
 
                 </div>
             </div>

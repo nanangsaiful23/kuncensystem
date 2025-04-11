@@ -80,7 +80,7 @@
                                 <th>Harga Jual</th>
                             </thead>
                             <tbody>
-                                {{ $i = 1; }}
+                                {{ $i = 1 }}
                                 @foreach($good_loading->detailsWithDeleted() as $detail)
                                     <tr @if($detail->good->deleted_at != null) style="background-color: red" @endif>
                                         <td>{{ $i++ }}</td>
