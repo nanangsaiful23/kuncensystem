@@ -124,7 +124,7 @@
                     </div>
 
                     {!! Form::close() !!}
-                    Total item = {{ $i-2 }}<br>
+                    Total item = {{ $i-1 }}<br>
                     Total qty = {{ $good_loading->detailsWithDeleted()->sum('quantity') }}
                 </div>
             </div>

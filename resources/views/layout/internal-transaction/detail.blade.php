@@ -78,7 +78,7 @@
                                 @endif
                             </thead>
                             <tbody>
-                                {!! $i = 1 !!}
+                                <?php $i = 1 ?>
                                 @foreach($transaction->detailsWithDeleted() as $detail)
                                     <tr>
                                         <td>{{ $i++ }}</td>
@@ -112,7 +112,7 @@
                     </div>
 
                     {!! Form::close() !!}
-                    Total item = {{ $i-2 }}<br>
+                    Total item = {{ $i-1 }}<br>
                     Total qty = {{ $transaction->detailsWithDeleted()->sum('quantity') }}
 
                 </div>
