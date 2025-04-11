@@ -66,6 +66,7 @@
                     <div class="form-group col-sm-12" style="overflow-x:scroll">
                         <table class="table table-bordered table-striped">
                             <thead>
+                                <th>No</th>
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Expired</th>
@@ -79,8 +80,10 @@
                                 <th>Harga Jual</th>
                             </thead>
                             <tbody>
+                                {{ $i = 1; }}
                                 @foreach($good_loading->detailsWithDeleted() as $detail)
                                     <tr @if($detail->good->deleted_at != null) style="background-color: red" @endif>
+                                        <td>{{ $i++ }}</td>
                                         <td>
                                             <a href="{{ url($role . '/good/' . $detail->good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn" target="_blank()">
                                             {{ $detail->good->code }}</a>
@@ -121,7 +124,8 @@
                     </div>
 
                     {!! Form::close() !!}
-
+                    Total item = {{ $i-- }}<br>
+                    Total qty = {{ $good_loading->detailsWithDeleted()->sum('quantity') }}
                 </div>
             </div>
         </div>
