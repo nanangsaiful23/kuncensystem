@@ -116,7 +116,7 @@
                 </div>
                     <div onclick="event.preventDefault(); submitForm();" class='btn btn-success btn-flat btn-block form-control'>{{ $default['page_name'] }}</div>
                     {!! Form::close() !!}
-                    Total item = {{ $i-- }}<br>
+                    Total item = {{ $i-2 }}<br>
                     Total qty = {{ $transaction->detailsWithDeleted()->sum('quantity') }}
             </div>
         </div>
