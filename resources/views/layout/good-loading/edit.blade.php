@@ -65,7 +65,7 @@
                                 <input type="hidden" name="change" id="change">
                                 @foreach($good_loading->detailsWithDeleted() as $detail)
                                     <tr id="row-data-{{ $i }}">
-                                        <td>{{ $i++ }}</td>
+                                        <td>{{ $i }}</td>
                                         <td>
                                             <input type="hidden" name="ids[]" id="id-{{ $i }}" value="{{ $detail->id }}">
                                             <textarea type="text" name="barcodes[]" class="form-control" id="barcode-{{ $i }}" style="height: 70px">{{ $detail->good_unit->good->code }}</textarea>
@@ -90,6 +90,7 @@
                                         </td>
                                         <!-- <td><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('{{ $i }}')"></i></td> -->
                                     </tr>
+                                    <?php $i++ ?>
                                 @endforeach
                             </tbody>
                         </table>
