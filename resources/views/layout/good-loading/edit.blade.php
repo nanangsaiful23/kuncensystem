@@ -152,7 +152,7 @@
           {
               total_item_price = parseInt(0);
               total_item = parseInt('{{ sizeof($good_loading->detailsWithDeleted()) }}');
-              for (var i = 1; i <= total_item; i++)
+              for (var i = 1; i <= total_item + 1; i++)
               {
                   if(document.getElementById("barcode-" + i))
                   {
