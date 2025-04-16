@@ -134,7 +134,7 @@ trait GoodControllerBase
             // elseif($temp['stock'] < 0)
             //     $temp['name'] = '[MINUS] ' . $good->name;
             // else
-            //     $temp['name'] = $good->name;
+            $temp['name'] = $good->name;
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;
             $temp['selling_price'] = $unit->selling_price;
