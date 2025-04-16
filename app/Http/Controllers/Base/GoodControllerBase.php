@@ -127,12 +127,17 @@ trait GoodControllerBase
             $temp['unit_qty'] = $unit->unit->quantity;
             $temp['good_base_qty'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->unit->quantity;
             $temp['good_base_buy_price'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->buy_price;
+            $temp['stock'] = $good->getStock();
             $temp['code'] = $good->code;
-            $temp['name'] = $good->name;
+            if($temp['stock'] == 0)
+                $temp['name'] = '[KOSONG] ' . $good->name;
+            elseif($temp['stock'] < 0)
+                $temp['name'] = '[MINUS] ' . $good->name;
+            else
+                $temp['name'] = $good->name;
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;
             $temp['selling_price'] = $unit->selling_price;
-            $temp['stock'] = $good->getStock();
             array_push($units, $temp);
         }
 
@@ -147,6 +152,13 @@ trait GoodControllerBase
         $good = Good::find($good_unit->good_id);
         $good->getPcsSellingPrice = $good_unit;
         $good->stock = $good->getStock();
+
+        if($good->stock == 0)
+            $good->name = '[KOSONG] ' . $good->name;
+        elseif($good->stock < 0)
+            $good->name = ' [MINUS] ' . $good->name;
+        else
+            $good->name = ' [READY] ' . $good->name;
 
         return $good;
     }
