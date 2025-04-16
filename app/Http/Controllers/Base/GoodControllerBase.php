@@ -214,10 +214,16 @@ trait GoodControllerBase
                 $temp['good_unit_id'] = $unit->id;
                 $temp['unit_id'] = $unit->unit_id;
                 $temp['code'] = $good->code;
-                $temp['name'] = $good->name;
                 $temp['unit'] = $unit->unit->name;
                 $temp['buy_price'] = $unit->buy_price;
                 $temp['selling_price'] = $unit->selling_price;
+                $temp['stock'] = $good->getStock();
+                if($temp['stock'] == 0)
+                    $temp['name'] = '[KOSONG] ' . $good->name;
+                elseif($temp['stock'] < 0)
+                    $temp['name'] = '[MINUS] ' . $good->name;
+                else
+                    $temp['name'] = $good->name;
                 array_push($units, $temp);
             }
         }
