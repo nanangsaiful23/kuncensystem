@@ -129,12 +129,12 @@ trait GoodControllerBase
             $temp['good_base_buy_price'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->buy_price;
             $temp['stock'] = $good->getStock();
             $temp['code'] = $good->code;
-            if($temp['stock'] == 0)
-                $temp['name'] = '[KOSONG] ' . $good->name;
-            elseif($temp['stock'] < 0)
-                $temp['name'] = '[MINUS] ' . $good->name;
-            else
-                $temp['name'] = $good->name;
+            // if($temp['stock'] == 0)
+            //     $temp['name'] = '[KOSONG] ' . $good->name;
+            // elseif($temp['stock'] < 0)
+            //     $temp['name'] = '[MINUS] ' . $good->name;
+            // else
+            //     $temp['name'] = $good->name;
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;
             $temp['selling_price'] = $unit->selling_price;
