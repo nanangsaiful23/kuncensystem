@@ -124,7 +124,7 @@
                                 @foreach($transaction->details as $detail)
                                     <tr @if($detail->type == 'retur') style="background-color: yellow" @endif>
                                         <td>
-                                            {{ $detail->good_unit->good->code }}
+                                            <a href="{{ url($role . '/good/' . $detail->good_unit->good->id . '/detail') }}" target="_blank()">{{ $detail->good_unit->good->code }}</a>
                                         </td>
                                         <td>
                                             {{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
