@@ -113,6 +113,7 @@ trait InternalTransactionControllerBase
                 $data_detail['type']           = $request->type;
                 $data_detail['quantity']       = $request->quantities[$i];
                 $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
+                $data_detail['last_stock']     = $good_unit->good->getStock();
                 $data_detail['buy_price'] = unformatNumber($request->buy_prices[$i]);
                 $data_detail['selling_price'] = unformatNumber($request->prices[$i]);
                 $data_detail['discount_price'] = unformatNumber($request->discounts[$i]);
