@@ -15,11 +15,15 @@
               <thead>
               <tr>
                 <th>Lokasi</th>
+                <th>Kecamatan</th>
+                <th>Desa</th>
+                <th>RT/RW</th>
                 <th>Biaya</th>
-                <th class="center">Detail</th>
-                <th class="center">Ubah</th>
+                <th>Tanggal Input Biaya</th>
+                <th class="center" width="5%">Detail</th>
+                <th class="center" width="5%">Ubah</th>
                 @if($role == 'admin')
-                  <th class="center">Hapus</th>
+                  <th class="center" width="5%">Hapus</th>
                 @endif
               </tr>
               </thead>
@@ -27,16 +31,20 @@
                 @foreach($fees as $fee)
                   <tr>
                     <td>{{ $fee->location }}</td>
+                    <td>{{ $fee->kecamatan }}</td>
+                    <td>{{ $fee->desa }}</td>
+                    <td>{{ $fee->rt_rw }}</td>
                     <td>{{ showRupiah($fee->fee) }}</td>
-                    <td class="center"><a href="{{ url($role . '/fee/' . $fee->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
-                    <td class="center"><a href="{{ url($role . '/fee/' . $fee->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
+                    <td>{{ displayDate($fee->date_fee) }}</td>
+                    <td class="center"><a href="{{ url($role . '/delivery-fee/' . $fee->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+                    <td class="center"><a href="{{ url($role . '/delivery-fee/' . $fee->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')
                       <td class="center">
                         <button type="button" class="no-btn center" data-toggle="modal" data-target="#modal-danger-{{$fee->id}}"><i class="fa fa-times" aria-hidden="true" style="color: red !important"></i></button>
 
                         @include('layout' . '.delete-modal', ['id' => $fee->id, 'data' => $fee->name, 'formName' => 'delete-form-' . $fee->id])
 
-                        <form id="delete-form-{{$fee->id}}" action="{{ url($role . '/fee/' . $fee->id . '/delete') }}" method="POST" style="display: none;">
+                        <form id="delete-form-{{$fee->id}}" action="{{ url($role . '/delivery-fee/' . $fee->id . '/delete') }}" method="POST" style="display: none;">
                           {{ csrf_field() }}
                           {{ method_field('DELETE') }}
                         </form>

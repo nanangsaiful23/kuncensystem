@@ -9,9 +9,9 @@
             <h3 class="box-title"> {{ $default['page_name'] }}</h3>
           </div>
 
-		      {!! Form::model($fee, array('url' => route($role . '.delivery_fee.update', $fee->id), 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+		      {!! Form::model($fee, array('url' => route($role . '.delivery-fee.update', $fee->id), 'method' => 'POST', 'class' => 'form-horizontal')) !!}
             <div class="box-body">
-              @include('layout' . '.delivery_fee.form', ['SubmitButtonText' => 'Edit'])
+              @include('layout' . '.delivery-fee.form', ['SubmitButtonText' => 'Edit'])
 			        {{ method_field('PUT') }}
             </div>
           {!! Form::close() !!}
