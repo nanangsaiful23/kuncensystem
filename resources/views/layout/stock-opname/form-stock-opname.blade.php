@@ -189,6 +189,7 @@
           function submitForm()
           {
               var isi=true;
+              isi = checkNumber(isi);
               if(total_real_item == 0 )
               {
                   alert('Silahkan pilih barang');
@@ -266,5 +267,19 @@
               });
         }
 
+        function checkNumber(isi) 
+        {
+            for(i = 0; i < total_real_item; i++)
+            {
+                val = $('#new_stock-' + i).val();
+                if($.isNumeric(val) == false && val != null)
+                {
+                    isi = false;
+                    alert('Input hanya berupa angka');
+                }
+            }
+
+            return isi;
+        }
 </script>
 @endsection

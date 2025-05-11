@@ -279,7 +279,10 @@ trait GoodControllerBase
             'price' => array('required', 'regex:/^[\d\s,]*$/'),
             'selling_price' => array('required', 'regex:/^[\d\s,]*$/'),
         ]);
+
         $data = $request->input();
+        if($data['category_id'] == null) 
+            $data['category_id'] = 1;
         $data['price'] = unformatNumber($request->price);
         $data['selling_price'] = unformatNumber($request->selling_price);
 

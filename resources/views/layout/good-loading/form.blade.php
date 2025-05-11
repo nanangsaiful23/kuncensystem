@@ -328,7 +328,7 @@
                 isi=false;
                 alert("silahkan isi harga jual");
               }
-              if(parseInt($("#price").val()) >= parseInt($("#selling_price").val())){
+              if(isi == true && parseInt($("#price").val()) >= parseInt($("#selling_price").val())){
                 isi=true;
                 alert("Perhatian: Harga beli lebih besar/sama dengan harga jual");
               }

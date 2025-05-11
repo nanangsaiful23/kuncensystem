@@ -708,11 +708,18 @@
                   var r = result.good_units;
 
                   for (var i = 0; i < r.length; i++) {
-                    if((i%2) == 0) 
+                    if(r[i].stock == 0) 
                     {
-                        color = '#FFF1CE';
+                        color = '#F79B72';
                     }
-                    else color = "#FDEFF4";
+                    else if(r[i].stock < 0) 
+                    {
+                        color = '#E55050';
+                    }
+                    else
+                    {
+                        color = '#9EBC8A';
+                    }
                     htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
                   }
                   $("#result_good" + type).html(htmlResult);

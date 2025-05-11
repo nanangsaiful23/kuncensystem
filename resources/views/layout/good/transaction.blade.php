@@ -70,7 +70,7 @@
                     <td style="text-align: right;">{{ showRupiah($transaction->selling_price) }}</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->quantity * $transaction->selling_price) }}</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->discount_price) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($transaction->sum_price / $transaction->quantity) }}</td>
+                    <td style="text-align: right;">@if($transaction->sum_price != 0) {{ showRupiah($transaction->sum_price  / $transaction->quantity) }} @else 0 @endif</td>
                     <td style="text-align: right;">{{ showRupiah($transaction->sum_price) }}</td>
                   </tr>
                 @endforeach
