@@ -945,6 +945,13 @@ trait TransactionControllerBase
 
     public function storeMoneyTransactionBase(Request $request)
     {
+        $journal = Journal::where('name', 'Pengambilan uang tanggal ' . date('Y-m-d'))->where('debit', floatval(unformatNumber($request->money)))->first();
+
+        if($journal != null)
+        {
+            return false;
+        }
+
         $data_journal['type']               = 'cash_draw';
         $data_journal['journal_date']       = date('Y-m-d');
         $data_journal['name']               = 'Pengambilan uang tanggal ' . date('Y-m-d');

@@ -142,11 +142,11 @@ class TransactionController extends Controller
 
     public function storeMoney(Request $request)
     {
-        $this->storeMoneyTransactionBase($request);
+        $result = $this->storeMoneyTransactionBase($request);
 
-        session(['alert' => 'add', 'data' => 'pengambilan uang']);
-
-        return redirect('/admin/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d'));
+        return response()->json([
+            "result"  => $result
+        ], 200);
     }
 
     public function edit($transaction_id)

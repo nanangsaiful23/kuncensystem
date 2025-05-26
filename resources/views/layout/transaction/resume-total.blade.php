@@ -80,7 +80,7 @@
             </table>
           </div>
           <div class="box-body">
-            {!! Form::model(old(),array('url' => route($role . '.transaction.storeMoney'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+            {!! Form::model(old(),array('url' => route($role . '.transaction.storeMoney'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'pu-form')) !!}
               <div class="form-group">
                 {!! Form::label('money', 'Pengambilan Uang', array('class' => 'col-sm-12')) !!}
                 <div class="col-sm-5">
@@ -88,7 +88,8 @@
                 </div>
               </div>
               <div class="col-sm-5">
-                {!! Form::submit('Simpan', ['class' => 'btn btn-success btn-flat btn-block form-control col-sm-5'])  !!}
+                <div onclick="event.preventDefault(); checkPu();" class= 'btn btn-success btn-flat btn-block form-control'>Simpan</div>
+                <!-- {!! Form::submit('Simpan', ['class' => 'btn btn-success btn-flat btn-block form-control col-sm-5'])  !!} -->
               </div>
             {!! Form::close() !!}
             <div class="form-group">
@@ -152,6 +153,30 @@
       total_money = '{{ $transactions["cash_account"]->balance + $transactions["cash_in"]->sum('debit') - $transactions["cash_out"]->sum('credit') }}';
       balance = total_money - saldo;
       $("#balance").html("Sisa uang kasir: " + balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'));
+    }
+
+    function checkPu()
+    {
+      $.ajax({
+        url: "{!! url($role . '/transaction/storeMoney/') !!}",
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        data: {
+            money: $("#money").val(),
+        },
+        success: function(result){
+          console.log(result);
+          if(result == true) alert('PU berhasil');
+          else alert("Anda telah melakukan PU dengan nominal yang sama");
+          $("#money").val('');
+        },
+        error: function(){
+          alert("gagal");
+          $("#money").val('');
+        }
+      });
     }
   </script>
 @endsection
