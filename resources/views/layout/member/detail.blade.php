@@ -7,44 +7,41 @@
         <div class="box">
           <div class="box-header">
             <h3 class="box-title"> Detail Member</h3><br>
-            <a href="{{ url($role . '/member/' . $member->id . '/showQrCode') }}" target="_blank()" class="btn btn-warning col-sm-3">QR Code</a>
           </div>
-
-          {!! Form::model($member, array('class' => 'form-horizontal')) !!}
-            <div class="box-body">
-              @include('layout' . '.member.form', ['SubmitButtonText' => 'View'])
+          <div class="box-body">
+            <div class="col-sm-7" style="overflow-x:scroll; overflow-y:scroll; color: black !important">
+              <h3>Barang yang sering dibeli</h3>
+              <table id="example1" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Barang</th>
+                  <th width="10%">Satuan</th>
+                  <th width="10%">Total Pembelian</th>
+                </tr>
+                </thead>
+                <tbody id="table-good">
+                  <?php $i=1; ?>
+                  @foreach($member->getGoodRecords() as $good)
+                    <tr>
+                      <td>{{ $i++ }}</td>
+                      <td>{{ $good->good_name }}</td>
+                      <td>{{ $good->unit_name }}</td>
+                      <td>{{ $good->total }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+              
             </div>
-          {!! Form::close() !!}
-
+            <div class="col-sm-5">
+              {!! Form::model($member, array('class' => 'form-horizontal')) !!}
+                @include('layout' . '.member.form', ['SubmitButtonText' => 'View'])
+              {!! Form::close() !!}
+            </div>
+          </div>
         </div>
       </div>
-      <!-- <div class="col-xs-12">
-        <div class="box">
-          <div class="box-header">
-            <h3 class="box-title">Riwayat transaksi</h3>
-          </div>
-          <div class="box-body" style="overflow-x:scroll; color: black !important">
-            <table id="example1" class="table table-bordered table-striped">
-              <thead>
-              <tr>
-                <th width="30%">Tanggal</th>
-                <th>ID Transaksi</th>
-                <th>Jumlah Transaksi</th>
-                <th>ID Pembayaran</th>
-                <th>Jumlah Pembayaran</th>
-              </tr>
-              </thead>
-              <tbody id="table-good">
-                @foreach($member->getAllRecords() as $date)
-                  <tr>
-                    <td>{{ displayDate($date) }}</td>
-                  </tr>
-                @endforeach
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div> -->
     </div>
   </section>
 </div>

@@ -98,4 +98,19 @@ class Member extends Model
         // }
         return $dates;
     }
+
+    public function getGoodRecords()
+    {
+        $goods = TransactionDetail::join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                  ->join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                  ->join('units', 'units.id', 'good_units.unit_id')
+                                  ->join('goods', 'goods.id', 'good_units.good_id')
+                                  ->select('goods.name as good_name', 'units.name as unit_name', DB::raw('SUM(transaction_details.quantity) as total'))
+                                  ->where('transactions.member_id', $this->id)
+                                  ->groupBy('goods.name', 'units.name')
+                                  ->orderBy('total', 'desc')
+                                  ->get();
+
+        return $goods;
+    }
 }

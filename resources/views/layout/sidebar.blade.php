@@ -153,8 +153,22 @@
             <li class="{{ Request::segment(2) == 'other-payment' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/other-payment/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Biaya Lain</a></li>
         </ul>
       </li>
+      <li class="header">MENU LAIN</li>
+      <li class="treeview {{ (Request::segment(2) == 'member' ) ? 'active' : ''  }}">
+        <a href="#">
+            <i class="fa fa-users"></i><span> Member</span>
+          <span class="pull-right-container">
+            <i class="fa fa-angle-left pull-right"></i>
+          </span>
+        </a>
+        <ul class="treeview-menu">
+          @if(\Auth::user()->email == 'admin')
+            <li class="{{ Request::segment(2) == 'member' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/create') }}"><i class="fa fa-circle-o"></i> Tambah Member</a></li>
+          @endif
+          <li class="{{ Request::segment(2) == 'member' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/2020-01-01/' . date('Y-m-d') . '/name/asc/15') }}"><i class="fa fa-circle-o"></i> Daftar Member</a></li>
+        </ul>
+      </li>
       @if($role == 'admin')
-        <li class="header">MENU LAIN</li>
         <li class="treeview {{ (Request::segment(2) == 'delivery-fee' ) ? 'active' : ''  }}">
           <a href="#">
               <i class="fa fa-car"></i><span> Delivery Fee</span>
@@ -202,18 +216,6 @@
             <ul class="treeview-menu">
                 <li class="{{ Request::segment(2) == 'category' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/create') }}"><i class="fa fa-circle-o"></i> Tambah Kategori</a></li>
                 <li class="{{ Request::segment(2) == 'category' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/15') }}"><i class="fa fa-circle-o"></i> Daftar Kategori</a></li>
-            </ul>
-          </li>
-          <li class="treeview {{ (Request::segment(2) == 'member' ) ? 'active' : ''  }}">
-            <a href="#">
-                <i class="fa fa-users"></i><span> Member</span>
-              <span class="pull-right-container">
-                <i class="fa fa-angle-left pull-right"></i>
-              </span>
-            </a>
-            <ul class="treeview-menu">
-                <li class="{{ Request::segment(2) == 'member' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/create') }}"><i class="fa fa-circle-o"></i> Tambah Member</a></li>
-                <li class="{{ Request::segment(2) == 'member' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/2020-01-01/' . date('Y-m-d') . '/name/asc/15') }}"><i class="fa fa-circle-o"></i> Daftar Member</a></li>
             </ul>
           </li>
           <li class="treeview {{ Request::segment(2) == 'unit' ? 'active' : ''  }}">

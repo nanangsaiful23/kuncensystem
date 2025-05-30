@@ -26,17 +26,21 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                <th>ID</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th>ID</th>
+                @endif
                 <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/name/asc/15') }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/name/desc/15') }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> Nama</th>
                 <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/address/asc/15') }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/address/desc/15') }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> Alamat</th>
                 <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/phone_number/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/phone_number/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> No WA</th>
-                <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_transaction/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_transaction/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Total Transaksi</th>
-                <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_sum_price/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_sum_price/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Riwayat Transaksi</th>
-                <th>Riwayat Pembayaran</th>
-                <th>Sisa Hutang</th>
+                @if(\Auth::user()->email == 'admin')
+                  <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_transaction/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_transaction/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Total Transaksi</th>
+                  <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_sum_price/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_sum_price/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Riwayat Transaksi</th>
+                  <th>Riwayat Pembayaran</th>
+                  <th>Sisa Hutang</th>
+                @endif
                 <th class="center">Detail</th>
-                <th class="center">Ubah</th>
-                @if($role == 'admin')
+                @if(\Auth::user()->email == 'admin')
+                  <th class="center">Ubah</th>
                   <th class="center">Hapus</th>
                 @endif
               </tr>
@@ -44,21 +48,24 @@
               <tbody id="table-good">
                 @foreach($members as $member)
                   <tr>
-                    <td>
-                      {{ $member->id }}<br>
-                      <a href="{{ url($role . '/member/' . $member->id . '/showQrCode') }}" target="_blank()" class="btn btn-warning">QR Code</a>
-                    </td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td>
+                        {{ $member->id }}<br>
+                        <a href="{{ url($role . '/member/' . $member->id . '/showQrCode') }}" target="_blank()" class="btn btn-warning">QR Code</a>
+                      </td>
+                    @endif
                     <td>{{ $member->name }}</td>
                     <td>{{ $member->address }}</td>
                     <td>{{ $member->phone_number }}</td>
-                    <!-- <td><a href="https://wa.me/{{ $member->phone_number }}?text=Selamat%20datang" target="_blank()">WA</td> -->
-                    <td class="center">Jumlah transaksi: {{ $member->total_transaction }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
-                    <td class="center">Total transaksi: {{ showRupiah($member->total_sum_price) }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
-                    <td class="center">Total pembayaran: {{ showRupiah($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price')) }}<br><a href="{{ url($role . '/member/' . $member->id . '/payment/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right green" aria-hidden="true"></i> detail</a></td>
-                    <td>{{ showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - ($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price'))) }}</td>
+                    @if(\Auth::user()->email == 'admin')
+                      <td class="center">Jumlah transaksi: {{ $member->total_transaction }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
+                      <td class="center">Total transaksi: {{ showRupiah($member->total_sum_price) }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
+                      <td class="center">Total pembayaran: {{ showRupiah($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price')) }}<br><a href="{{ url($role . '/member/' . $member->id . '/payment/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right green" aria-hidden="true"></i> detail</a></td>
+                      <td>{{ showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - ($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price'))) }}</td>
+                    @endif
                     <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
-                    <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
-                    @if($role == 'admin')
+                    @if(\Auth::user()->email == 'admin')
+                      <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                       <td class="center">
                         <button type="button" class="no-btn center" data-toggle="modal" data-target="#modal-danger-{{$member->id}}"><i class="fa fa-times" aria-hidden="true" style="color: red !important"></i></button>
 
@@ -121,13 +128,12 @@
       $.ajax({
         url: "{!! url($role . '/member/searchByName/') !!}/" + $("#search-input").val(),
         success: function(result){
-          console.log(result);
-          var htmlResult = '<thead><tr><th>ID</th><th>Nama</th><th>Alamat</th><th>No Telephone</th><th>Riwayat Transaksi</th><th>Riwayat Pembayaran</th><th>Sisa Hutang</th><th class="center">Detail</th><th class="center">Ubah</th>@if($role == "admin")<th class="center">Hapus</th>@endif </tr></thead><tbody>';
+          var htmlResult = '<thead><tr>@if(\Auth::user()->email == "admin")<th>ID</th>@endif<th>Nama</th><th>Alamat</th><th>No Telephone</th>@if(\Auth::user()->email == "admin")<th>Riwayat Transaksi</th><th>Riwayat Pembayaran</th><th>Sisa Hutang</th>@endif<th class="center">Detail</th>@if(\Auth::user()->email == "admin")<th class="center">Ubah</th><th class="center">Hapus</th>@endif</tr></thead><tbody>';
           if(result != null)
           {
             var r = result.members;
             for (var i = 0; i < r.length; i++) {
-              htmlResult += "<tr><td>" + r[i].id + "</td><td>" + r[i].name + "</td><td>" + r[i].address + "</td><td>" + r[i].phone_number + "</td><td class=\"center\">Total transaksi: " + r[i].transaction + "<br><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/transaction/2019-01-01/{{ date('Y-m-d')}}/all\" <i class=\"fa fa-hand-o-right pink\" aria-hidden=\"true\"></i> detail</a></td><td class=\"center\">Total pembayaran: " + r[i].payment + "<br><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/payment/2019-01-01/{{ date('Y-m-d')}}/all\" <i class=\"fa fa-hand-o-right pink\" aria-hidden=\"true\"></i> detail</a></td><td>" + r[i].credit + "</td><td class=\"center\"><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/detail\" <i class=\"fa fa-hand-o-right pink\" aria-hidden=\"true\"></i></a></td><td class=\"center\"><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/edit\" <i class=\"fa fa-file pink\" aria-hidden=\"true\"></i></a></td>@if($role == 'admin')<td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/member/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/member/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td>@endif";
+              htmlResult += "<tr>@if(\Auth::user()->email == 'admin')<td>" + r[i].id + "</td>@endif<td>" + r[i].name + "</td><td>" + r[i].address + "</td><td>" + r[i].phone_number + "</td>@if(\Auth::user()->email == 'admin')<td class=\"center\">Total transaksi: " + r[i].transaction + "<br><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/transaction/2019-01-01/{{ date('Y-m-d')}}/all\" <i class=\"fa fa-hand-o-right pink\" aria-hidden=\"true\"></i> detail</a></td><td class=\"center\">Total pembayaran: " + r[i].payment + "<br><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/payment/2019-01-01/{{ date('Y-m-d')}}/all\" <i class=\"fa fa-hand-o-right pink\" aria-hidden=\"true\"></i> detail</a></td><td>" + r[i].credit + "</td>@endif<td class=\"center\"><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/detail\" <i class=\"fa fa-hand-o-right pink\" aria-hidden=\"true\"></i></a></td>@if(\Auth::user()->email == 'admin')<td class=\"center\"><a href=\"" + window.location.origin + "/{{ $role }}/member/" + r[i].id + "/edit\" <i class=\"fa fa-file pink\" aria-hidden=\"true\"></i></a></td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/member/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/member/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td>@endif";
 
               
               htmlResult += "</tr>";

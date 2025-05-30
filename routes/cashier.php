@@ -40,6 +40,13 @@ Route::group(['prefix' => 'internal-transaction'], function () {
     Route::get('/{transaction_id}/print', 'InternalTransactionController@print');
 });
 
+Route::group(['prefix' => 'member'], function () {
+	Route::get('/search/{member_id}', 'MemberController@search');
+	Route::get('/searchByName/{name}', 'MemberController@searchByName');
+	Route::get('/{member_id}/detail', 'MemberController@detail');
+	Route::get('/{start_date}/{end_date}/{sort}/{order}/{pagination}', 'MemberController@index');
+});
+
 Route::group(['prefix' => 'other-payment'], function () {
 	Route::get('/create', 'OtherPaymentController@create');
 	Route::post('/store', 'OtherPaymentController@store')->name('other-payment.store');

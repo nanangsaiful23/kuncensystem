@@ -18,7 +18,7 @@ class MemberController extends Controller
         $this->middleware('cashier');
     }
 
-    public function index($pagination)
+    public function index($start_date, $end_date, $sort, $order, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,29 +26,9 @@ class MemberController extends Controller
         $default['page'] = 'member';
         $default['section'] = 'all';
 
-        $members = $this->indexMemberBase($pagination);
+        $members = $this->indexMemberBase($start_date, $end_date, $sort, $order, $pagination);
 
-        return view('cashier.layout.page', compact('default', 'members', 'pagination'));
-    }
-
-    public function create()
-    {
-        [$default['type'], $default['color'], $default['data']] = alert();
-
-        $default['page_name'] = 'Tambah Member';
-        $default['page'] = 'member';
-        $default['section'] = 'create';
-
-        return view('cashier.layout.page', compact('default'));
-    }
-
-    public function store(Request $request)
-    {
-        $member = $this->storeMemberBase($request);
-
-        session(['alert' => 'add', 'data' => 'member']);
-
-        return redirect('/cashier/member/' . $member->id . '/detail');
+        return view('cashier.layout.page', compact('default', 'members', 'start_date', 'end_date', 'sort', 'order', 'pagination'));
     }
 
     public function detail($member_id)
@@ -64,48 +44,21 @@ class MemberController extends Controller
         return view('cashier.layout.page', compact('default', 'member'));
     }
 
-    public function transaction($member_id, $start_date, $end_date, $pagination)
+    public function search($member_id)
     {
-        [$default['type'], $default['color'], $default['data']] = alert();
-
-        $default['page_name'] = 'Daftar Transaksi Member';
-        $default['page'] = 'member';
-        $default['section'] = 'transaction';
-
-        $member = Member::find($member_id);
-        $transactions = $this->transactionMemberBase($member_id, $type, $pagination);
-
-        return view('cashier.layout.page', compact('default', 'member', 'transactions', 'start_date', 'end_date', 'pagination'));
-    }
-
-    public function edit($member_id)
-    {
-        [$default['type'], $default['color'], $default['data']] = alert();
-
-        $default['page_name'] = 'Ubah Member';
-        $default['page'] = 'member';
-        $default['section'] = 'edit';
-
         $member = Member::find($member_id);
 
-        return view('cashier.layout.page', compact('default', 'member'));
+        return response()->json([
+            "member"  => $member
+        ], 200);
     }
 
-    public function update($member_id, Request $request)
+    public function searchByName($name)
     {
-        $member = $this->updateMemberBase($member_id, $request);
+        $members = $this->searchByNameMemberBase($name);
 
-        session(['alert' => 'edit', 'data' => 'member barang']);
-
-        return redirect('/cashier/member/' . $member->id . '/detail');
-    }
-
-    public function delete($member_id)
-    {
-        $this->deleteMemberBase($member_id);
-
-        session(['alert' => 'delete', 'data' => 'member']);
-
-        return redirect('/cashier/member/all/10');
+        return response()->json([
+            "members"  => $members
+        ], 200);
     }
 }
