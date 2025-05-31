@@ -32,6 +32,7 @@
                 <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/name/asc/15') }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/name/desc/15') }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> Nama</th>
                 <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/address/asc/15') }}"><i class="fa fa-sort-alpha-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/address/desc/15') }}"><i class="fa fa-sort-alpha-desc" aria-hidden="true"></i></a> Alamat</th>
                 <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/phone_number/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/phone_number/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> No WA</th>
+                <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/last_transaction/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/last_transaction/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Pembelian Terakhir</th>
                 @if(\Auth::user()->email == 'admin')
                   <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_transaction/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_transaction/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Total Transaksi</th>
                   <th><a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_sum_price/asc/15') }}"><i class="fa fa-sort-numeric-asc" aria-hidden="true"></i></a> <a href="{{ url($role . '/member/' . $start_date . '/' . $end_date . '/total_sum_price/desc/15') }}"><i class="fa fa-sort-numeric-desc" aria-hidden="true"></i></a> Riwayat Transaksi</th>
@@ -57,6 +58,7 @@
                     <td>{{ $member->name }}</td>
                     <td>{{ $member->address }}</td>
                     <td>{{ $member->phone_number }}</td>
+                    <td>@if($member->lastTransaction() == null) - @else {{ displayDate($member->lastTransaction()->created_at) }} @endif</td>
                     @if(\Auth::user()->email == 'admin')
                       <td class="center">Jumlah transaksi: {{ $member->total_transaction }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
                       <td class="center">Total transaksi: {{ showRupiah($member->total_sum_price) }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>

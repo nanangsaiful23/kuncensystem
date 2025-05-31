@@ -113,4 +113,11 @@ class Member extends Model
 
         return $goods;
     }
+
+    public function lastTransaction()
+    {
+        return Transaction::whereRaw('(type = "normal" OR type = "retur") AND member_id = ' . $this->id)
+                          ->orderBy('id', 'desc')
+                          ->first();
+    }
 }
