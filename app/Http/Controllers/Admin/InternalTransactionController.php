@@ -93,7 +93,7 @@ class InternalTransactionController extends Controller
 
         session(['alert' => 'edit', 'data' => 'Data transaksi']);
 
-        return redirect('/admin/transaction/' . $transaction->id . '/detail');
+        return redirect('/admin/internal-transaction/' . $transaction->id . '/detail');
     }
 
     public function delete($transaction_id)
@@ -102,6 +102,6 @@ class InternalTransactionController extends Controller
 
         session(['alert' => 'delete', 'data' => 'Transaksi barang']);
 
-        return redirect('/admin/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
+        return redirect('/admin/internal-transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
     }
 }
