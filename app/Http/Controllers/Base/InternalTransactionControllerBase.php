@@ -397,6 +397,8 @@ trait InternalTransactionControllerBase
                 $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
             elseif($transaction->payment == 'transfer')
                 $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
+            elseif($transaction->payment == null)
+                $data_journal['credit_account_id']  = Account::where('code', $transaction->type)->first()->id;
             $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
 
             Journal::create($data_journal);
