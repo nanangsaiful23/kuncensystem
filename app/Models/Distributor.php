@@ -67,7 +67,7 @@ class Distributor extends Model
                                 ->select(DB::raw('SUM(good_loading_details.quantity * good_loading_details.price) AS total'))
                                 ->where('goods.last_distributor_id', $this->id)
                                 ->where('good_loadings.deleted_at', null)
-                                ->where('good_units.deleted_at', null)
+                                // ->where('good_units.deleted_at', null)
                                 ->where('goods.deleted_at', null)
                                 ->get();
     }
@@ -81,7 +81,7 @@ class Distributor extends Model
                                 ->where('goods.last_distributor_id', $this->id)
                                 ->where('transaction_details.type', '!=', 'retur')
                                 ->where('transactions.deleted_at', null)
-                                ->where('good_units.deleted_at', null)
+                                // ->where('good_units.deleted_at', null)
                                 ->where('goods.deleted_at', null)
                                 ->get();
     }
@@ -106,7 +106,7 @@ class Distributor extends Model
                          JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                          JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                          JOIN goods ON goods.id = good_units.good_id
-                         WHERE good_loading_details.deleted_at IS NULL AND good_loadings.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL AND good_loadings.loading_date IS NOT NULL
+                         WHERE good_loading_details.deleted_at IS NULL AND good_loadings.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_loadings.loading_date IS NOT NULL
                          GROUP BY goods.id, good_loadings.loading_date
                          ORDER BY good_loadings.id DESC
                          LIMIT 1) as last_loading ON last_loading.id = goods.id
@@ -115,7 +115,7 @@ class Distributor extends Model
                          JOIN transactions ON transactions.id = transaction_details.transaction_id
                          JOIN good_units ON good_units.id = transaction_details.good_unit_id
                          RIGHT JOIN goods ON goods.id = good_units.good_id
-                         WHERE transaction_details.deleted_at IS NULL AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL AND transaction_details.type != 'retur'
+                         WHERE transaction_details.deleted_at IS NULL AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL AND transaction_details.type != 'retur'
                          GROUP BY goods.id, transaction_details.created_at
                          ORDER BY transaction_details.created_at DESC
                          LIMIT 1) as last_transaction ON last_transaction.id = goods.id
@@ -126,14 +126,14 @@ class Distributor extends Model
                          JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
                          JOIN good_units ON good_units.id = good_loading_details.good_unit_id
                          JOIN goods ON goods.id = good_units.good_id
-                         WHERE good_loading_details.deleted_at IS NULL AND good_loadings.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
+                         WHERE good_loading_details.deleted_at IS NULL AND good_loadings.deleted_at IS NULL AND goods.deleted_at IS NULL 
                          GROUP BY goods.id) as loading ON loading.id = goods.id
                         LEFT JOIN (SELECT goods.id, coalesce(SUM(transaction_details.real_quantity), 0) AS total_transaction
                          FROM transaction_details
                          JOIN transactions ON transactions.id = transaction_details.transaction_id
                          JOIN good_units ON good_units.id = transaction_details.good_unit_id
                          RIGHT JOIN goods ON goods.id = good_units.good_id
-                         WHERE transaction_details.deleted_at IS NULL AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL AND transaction_details.type != 'retur'
+                         WHERE transaction_details.deleted_at IS NULL AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL AND transaction_details.type != 'retur'
                          GROUP BY goods.id) as transaction ON transaction.id = goods.id
                         LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity, good_units.buy_price/units.quantity as real_price
                          FROM good_units
