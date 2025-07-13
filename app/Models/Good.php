@@ -143,7 +143,7 @@ class Good extends Model
     {
         return GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
                                 ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                                ->select('good_loading_details.*')
+                                ->select('good_loading_details.*', 'good_loadings.loading_date as loading_date')
                                 ->where('good_units.good_id', $this->id)
                                 ->where('good_loadings.deleted_at', null)
                                 ->where('good_units.deleted_at', null)
@@ -196,5 +196,18 @@ class Good extends Model
                 return $this->getLastBuy()->good_loading->distributor;
         }
         return Distributor::find($this->last_distributor_id);
+    }
+
+    public function getLastTransaction()
+    {
+        return TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                ->select('transaction_details.*')
+                                ->where('good_units.good_id', $this->id)
+                                ->where('transactions.deleted_at', null)
+                                ->where('good_units.deleted_at', null)
+                                ->where('transaction_details.type', '!=', 'retur')
+                                ->orderBy('transaction_details.id', 'desc')
+                                ->first();
     }
 }

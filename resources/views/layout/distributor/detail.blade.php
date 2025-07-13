@@ -18,7 +18,7 @@
           <div class="col-sm-6 btn btn-warning" onclick="changeView('income')">Pengambilan</div>
           <div class="col-sm-6 btn btn-warning" onclick="changeView('outcome')">Pembayaran</div>
           <div id='asset' style="display: none; margin-top: 20px;">
-            <h3 style="margin-bottom: 30px;">Total Asset: {{ showRupiah($distributor->getAsset()) }}</h3>
+            <h3 style="margin-bottom: 30px;">Total Asset: {{ showRupiah($distributor->getAsset()[0]->total_akhir) }}</h3>
             <table class="table table-bordered table-striped">
               <thead>
               <tr>
