@@ -182,6 +182,7 @@ class Distributor extends Model
                                       FROM good_units
                                       RIGHT JOIN goods ON goods.id = good_units.good_id
                                       JOIN units ON units.id = good_units.unit_id
+                                      WHERE good_units.deleted_at IS NULL
                                       GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
                                      WHERE goods.last_distributor_id = " . $this->id . "
                                      GROUP BY goods.id, goods.name, total_loading, total_transaction, real_price) as recap ON recap.id = goods.id
