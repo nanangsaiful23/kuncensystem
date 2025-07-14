@@ -33,7 +33,7 @@
               </tr>
               </thead>
               <tbody>
-                <?php $i = 1 ?>
+                <?php $i = (20 * (request()->page - 1)) + 1 ?>
                 @foreach($distributor->detailAsset2() as $item)
                   <tr>
                     <td>{{ $i++ }}</td>
@@ -42,8 +42,8 @@
                     <td>{{ $item->good_transactions()->sum('real_quantity') . ' ' . $item->getPcsSellingPrice()->unit->code }}</td>
                     <td>{{ $item->getStock() }}</td>
                     <td style="text-align: right;">{{ showRupiah($item->getStock() * $item->getPcsSellingPrice()->buy_price) }}</td>
-                    <td>{{ displayDate($item->getLastBuy()) }}</td>
-                    <td>{{ displayDate($item->getLastTransaction()) }}</td>
+                    <td>{{ displayDate($item->getLastBuy()->loading_date) }}</td>
+                    <td>{{ displayDate($item->getLastTransaction()->created_at) }}</td>
                   </tr>
                 @endforeach
               </tbody>

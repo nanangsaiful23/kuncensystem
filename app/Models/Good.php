@@ -138,7 +138,7 @@ class Good extends Model
 
         if($good_unit == null)
         {
-            dd($this->id);die;
+            // dd($this->id);die;
         }
 
         return $good_unit;
