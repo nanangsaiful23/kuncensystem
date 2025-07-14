@@ -154,7 +154,7 @@ class Distributor extends Model
 
     public function detailAsset2()
     {
-        $goods = Good::where('last_distributor_id', $this->id)->get();
+        $goods = Good::where('last_distributor_id', $this->id)->paginate(20);
 
         return $goods;
     }
