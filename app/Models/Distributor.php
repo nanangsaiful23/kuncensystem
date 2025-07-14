@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class Distributor extends Model
 {    
@@ -99,9 +100,12 @@ class Distributor extends Model
           return $total;
     }
 
-    public function detailAsset()
+    public function detailAsset($pagination)
     {
-        $result = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock, last_loading.loading_date as loading_date, last_transaction.transaction_date as transaction_date
+          $perPage = 20;
+          $currentPage = request('page', 1);
+
+          $basicQuery = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock, last_loading.loading_date as loading_date, last_transaction.transaction_date as transaction_date
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, good_loadings.loading_date as loading_date
                                       FROM good_loading_details
@@ -148,13 +152,17 @@ class Distributor extends Model
                                  WHERE goods.last_distributor_id = " . $this->id . "
                                  GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price, last_loading.loading_date, last_transaction.transaction_date
                                  ORDER BY money_stock DESC"));
+          $totalCount = sizeof($basicQuery);
+          $results = array_slice($basicQuery, $pagination, $perPage);
 
-        return $result;
+          $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, $totalCount, $perPage, $currentPage, ['path' => url('/admin/distributor/' . $this->id . '/detail')]);
+
+          return $paginator;
     }
 
     public function detailAsset2()
     {
-        $goods = Good::where('last_distributor_id', $this->id)->orderBy('updated_at', 'desc')->paginate(20);
+        $goods = Good::where('last_distributor_id', $this->id)->orderBy('');paginate(20);
 
         return $goods;
     }

@@ -33,22 +33,22 @@
               </tr>
               </thead>
               <tbody>
-                <?php $i = (20 * (request()->page - 1)) + 1 ?>
-                @foreach($distributor->detailAsset2() as $item)
+                <?php if(isset(request()->page)){$i = (20 * (request()->page - 1)) + 1;} else {$i = 1;} ?>
+                @foreach($distributor->detailAsset($i) as $item)
                   <tr>
                     <td>{{ $i++ }}</td>
                     <td><a href="{{ url($role . '/good/' . $item->id . '/detail') }}" style="color: blue" target="_blank()">{{ $item->name }}</a></td>
-                    <td>{{ $item->good_loadings()->sum('real_quantity') . ' ' . $item->getPcsSellingPrice()->unit->code }}</td>
-                    <td>{{ $item->good_transactions()->sum('real_quantity') . ' ' . $item->getPcsSellingPrice()->unit->code }}</td>
-                    <td>{{ $item->getStock() }}</td>
-                    <td style="text-align: right;">{{ showRupiah($item->getStock() * $item->getPcsSellingPrice()->buy_price) }}</td>
-                    <td>{{ displayDate($item->getLastBuy()->loading_date) }}</td>
-                    <td>{{ displayDate($item->getLastTransaction()->created_at) }}</td>
+                    <td>{{ $item->total_loading }}</td>
+                    <td>{{ $item->total_transaction }}</td>
+                    <td>{{ $item->total_real }}</td>
+                    <td style="text-align: right;">{{ showRupiah($item->total_real * $item->real_price) }}</td>
+                    <td>{{ displayDate($item->loading_date) }}</td>
+                    <td>{{ displayDate($item->transaction_date) }}</td>
                   </tr>
                 @endforeach
               </tbody>
             </table>
-            {{ $distributor->detailAsset2()->render() }}
+            {!! $distributor->detailAsset($i)->render() !!}
           </div>
           <div id='income' style="display: none; margin-top: 20px;">
             <h3 style="margin-bottom: 30px;">Total Pengambilan: {{ showRupiah($distributor->totalHutangDagangLoading()->sum('total_item_price')) }}</h3>
