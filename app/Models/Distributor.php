@@ -105,6 +105,8 @@ class Distributor extends Model
           $perPage = 20;
           $currentPage = request('page', 1);
 
+          $totalCount = Good::where('last_distributor_id', $this->id)->count();
+
           $basicQuery = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock, last_loading.loading_date as loading_date, last_transaction.transaction_date as transaction_date
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, good_loadings.loading_date as loading_date
@@ -151,9 +153,10 @@ class Distributor extends Model
                                      GROUP BY goods.id, goods.name, total_loading, total_transaction, real_price) as recap ON recap.id = goods.id
                                  WHERE goods.last_distributor_id = " . $this->id . "
                                  GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price, last_loading.loading_date, last_transaction.transaction_date
-                                 ORDER BY money_stock DESC"));
-          $totalCount = sizeof($basicQuery);
-          $results = array_slice($basicQuery, $pagination, $perPage);
+                                 ORDER BY money_stock DESC
+                                 LIMIT " . $perPage . " OFFSET " . $pagination));
+
+          $results = $basicQuery;
 
           $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, $totalCount, $perPage, $currentPage, ['path' => url('/admin/distributor/' . $this->id . '/detail')]);
 
