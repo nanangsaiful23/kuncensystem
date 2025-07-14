@@ -136,6 +136,11 @@ class Good extends Model
                        ->first();
         }
 
+        if($good_unit == null)
+        {
+            dd($this->id);die;
+        }
+
         return $good_unit;
     }
 

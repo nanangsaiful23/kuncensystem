@@ -64,7 +64,7 @@ class Distributor extends Model
         return GoodLoadingDetail::join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
                                 ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                                 ->join('goods', 'goods.id', 'good_units.good_id')
-                                ->select(DB::raw('SUM(good_loading_details.quantity * good_loading_details.price) AS total'))
+                                ->select(DB::raw('SUM(good_loading_details.quantity) AS total'))
                                 ->where('goods.last_distributor_id', $this->id)
                                 ->where('good_loadings.deleted_at', null)
                                 // ->where('good_units.deleted_at', null)
@@ -77,7 +77,7 @@ class Distributor extends Model
         return TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                 ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                 ->join('goods', 'goods.id', 'good_units.good_id')
-                                ->select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
+                                ->select(DB::raw('SUM(transaction_details.quantity) AS total'))
                                 ->where('goods.last_distributor_id', $this->id)
                                 ->where('transaction_details.type', '!=', 'retur')
                                 ->where('transactions.deleted_at', null)
@@ -88,38 +88,15 @@ class Distributor extends Model
 
     public function getAsset()
     {
-        $result = DB::select(DB::raw("SELECT SUM(money_stock) as total_akhir
-                                        FROM goods 
-                                        LEFT JOIN(
-                                   SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock
-                                 FROM goods 
-                                 LEFT JOIN(SELECT goods.id, COALESCE(loading.total_loading, 0) as total_loading, COALESCE(transaction.total_transaction, 0) as total_transaction, price.real_price
-                                     FROM goods
-                                     LEFT JOIN (SELECT goods.id, coalesce(SUM(good_loading_details.real_quantity), 0) AS total_loading
-                                      FROM good_loading_details
-                                      JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                      JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                      JOIN goods ON goods.id = good_units.good_id
-                                      WHERE good_loading_details.deleted_at IS NULL AND good_loadings.deleted_at IS NULL AND goods.deleted_at IS NULL 
-                                      GROUP BY goods.id) as loading ON loading.id = goods.id
-                                     LEFT JOIN (SELECT goods.id, coalesce(SUM(transaction_details.real_quantity), 0) AS total_transaction
-                                      FROM transaction_details
-                                      JOIN transactions ON transactions.id = transaction_details.transaction_id
-                                      JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                      RIGHT JOIN goods ON goods.id = good_units.good_id
-                                      WHERE transaction_details.deleted_at IS NULL AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL AND transaction_details.type != 'retur'
-                                      GROUP BY goods.id) as transaction ON transaction.id = goods.id
-                                     LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity, good_units.buy_price/units.quantity as real_price
-                                      FROM good_units
-                                      RIGHT JOIN goods ON goods.id = good_units.good_id
-                                      JOIN units ON units.id = good_units.unit_id
-                                      GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
-                                     WHERE goods.last_distributor_id = " . $this->id . "
-                                     GROUP BY goods.id, goods.name, total_loading, total_transaction, real_price) as recap ON recap.id = goods.id
-                                 WHERE goods.last_distributor_id = " . $this->id . "
-                                 GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price) AS akhir ON akhir.id = goods.id"));
+          $goods = Good::where('last_distributor_id', $this->id)->get();
 
-        return $result;
+          $total = 0;
+          foreach($goods as $good)
+          {
+               $total += $good->getStock() * $good->getPcsSellingPrice()->buy_price;
+          }
+
+          return $total;
     }
 
     public function detailAsset()

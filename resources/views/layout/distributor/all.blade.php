@@ -39,7 +39,7 @@
                     <td>{{ $distributor->name }}</td>
                     <td>{{ $distributor->location }}</td>
                     @if(\Auth::user()->email == 'admin')
-                      <td>{{ showRupiah($distributor->getAsset()[0]->total_akhir) }}</td>
+                      <td>{{ showRupiah($distributor->getAsset()) }}</td>
                       <td>{{ showRupiah($distributor->totalHutangDagangLoading()->sum('total_item_price') + $distributor->titipUang()->sum('debit')) }}</td>
                       <td>{{ showRupiah($distributor->totalHutangDagangInternal()->sum('debit') + $distributor->totalPiutangDagangInternal()->sum('debit') + $distributor->totalPiutangDagangLoading()->sum('total_item_price')) }}</td>
                       <td>{{ showRupiah($distributor->totalOutcome()->sum('debit')) }}</td>
