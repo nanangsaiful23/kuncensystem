@@ -24,12 +24,12 @@ class RedirectIfNotCashier
 	    }
 	    $agent = new \Jenssegers\Agent\Agent;
 
-    	$data['role'] 		 = 'cashier';
-    	$data['role_id'] 	 = \Auth::user()->id;
-    	$data['device_type'] = $agent->device() . ';;' . $agent->platform() . ';;' . $agent->browser();
-    	$data['ip_address']  = $request->ip();
+    	// $data['role'] 		 = 'cashier';
+    	// $data['role_id'] 	 = \Auth::user()->id;
+    	// $data['device_type'] = $agent->device() . ';;' . $agent->platform() . ';;' . $agent->browser();
+    	// $data['ip_address']  = $request->ip();
 
-    	LoginHistory::create($data);
+    	// LoginHistory::create($data);
 
     	if($agent->isPhone() && \Auth::user()->email != 'cashier')
     	{

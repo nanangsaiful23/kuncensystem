@@ -25,12 +25,12 @@ class RedirectIfNotAdmin
 	    }
 	    $agent = new \Jenssegers\Agent\Agent;
 
-    	$data['role'] 		 = 'admin';
-    	$data['role_id'] 	 = \Auth::user()->id;
-    	$data['device_type'] = $agent->device() . ';;' . $agent->platform() . ';;' . $agent->browser();
-    	$data['ip_address']  = $request->ip();
+    	// $data['role'] 		 = 'admin';
+    	// $data['role_id'] 	 = \Auth::user()->id;
+    	// $data['device_type'] = $agent->device() . ';;' . $agent->platform() . ';;' . $agent->browser();
+    	// $data['ip_address']  = $request->ip();
 
-    	LoginHistory::create($data);
+    	// LoginHistory::create($data);
 
     	if($agent->isPhone() && \Auth::user()->email != 'admin')
     	{
