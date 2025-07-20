@@ -123,7 +123,12 @@ trait InternalTransactionControllerBase
 
                 TransactionDetail::create($data_detail);
 
-                // $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
+                $good = $good_unit->good;
+
+                $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                $data_good['last_transaction']  = date('Y-m-d');
+                $good->update($data_good);
             }
         }
 
@@ -240,6 +245,13 @@ trait InternalTransactionControllerBase
                     $data_detail['quantity']       = $request->quantities[$i];
                     $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
                     $data_detail['sum_price']      = unformatNumber($request->sum_prices[$i]);
+
+                    $good = $good_unit->good;
+
+                    $data_good['total_transaction'] = $good->total_transaction - round($transaction_detail->real_quantity / $good->base_unit()->unit->quantity, 3) + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                    $data_good['last_transaction']  = date('Y-m-d');
+                    $good->update($data_good);
 
                     $transaction_detail->update($data_detail);
                 }
@@ -379,6 +391,11 @@ trait InternalTransactionControllerBase
             $data_detail['selling_price']   = $detail->selling_price;
 
             GoodLoadingDetail::create($data_detail);
+
+            $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+            $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+            $data_good['last_loading']      = $data_loading['loading_date'];
+            $good->update($data_good);
 
             $total += $data_loading['total_item_price'];
             $data_transaction['type'] = $status;

@@ -89,15 +89,26 @@ class Distributor extends Model
 
     public function getAsset()
     {
-          $goods = Good::where('last_distributor_id', $this->id)->get();
+          $goods = Good::join('good_units', 'good_units.id', 'goods.base_unit_id')
+                       ->selectRaw('SUM(goods.last_stock * good_units.buy_price) as total')
+                       ->where('last_distributor_id', $this->id)
+                       ->get();
 
-          $total = 0;
-          foreach($goods as $good)
-          {
-               $total += $good->getStock() * $good->getPcsSellingPrice()->buy_price;
-          }
+          return $goods[0]->total;
+    }
 
-          return $total;
+    public function detailAssetFromGood($pagination)
+    {
+        $goods = Good::join('good_units', 'good_units.id', 'goods.base_unit_id')
+                     ->selectRaw('SUM(goods.last_stock * good_units.buy_price) as total, goods.id, goods.name, goods.last_loading, goods.last_transaction, goods.total_loading, goods.total_transaction, goods.last_stock')
+                     ->where('last_distributor_id', $this->id)
+                     ->groupBy('goods.id', 'goods.name', 'goods.last_loading', 'goods.last_transaction', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock')
+                     ->orderBy('total', 'desc')
+                     ->orderBy('last_transaction', 'desc')
+                     ->orderBy('last_loading', 'desc')
+                     ->paginate($pagination);
+
+        return $goods;
     }
 
     public function detailAsset($pagination)

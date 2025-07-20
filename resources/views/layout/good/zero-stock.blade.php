@@ -71,21 +71,21 @@
                 @foreach($goods as $good)
                   <tr>
                     @if(\Auth::user()->email == 'admin')
-                      <td>{{ $good->obj->getLastBuy() == null ? "" : $good->obj->getLastBuy()->good_loading->distributor->name }}</td>
+                      <td>{{ $good->getDistributor()->name }}</td>
                     @endif
-                    <td>{{ $good->obj->name }}</td>
+                    <td>{{ $good->name }}</td>
                     @if(\Auth::user()->email == 'admin')
-                      <td style="text-align: center;">{{ $good->obj->getLastBuy() == null ? "" : displayDate($good->obj->getLastBuy()->good_loading->loading_date) }}</td>
-                      <td style="text-align: right;">{{ $good->obj->getLastBuy() == null ? "" : showRupiah($good->obj->getLastBuy()->price) }}</td>
+                      <td style="text-align: center;">{{ $good->getLastBuy() == null ? "" : displayDate($good->getLastBuy()->good_loading->loading_date) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->selling_price) }}</td>
                     @endif
-                    <td style="text-align: center;">{{ $good->obj->getStock() . ' ' . $good->obj->getPcsSellingPrice()->unit->code }}</td>
+                    <td style="text-align: center;">{{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td style="text-align: center;">
-                        <input type="checkbox" name="exports[]" value="{{ $good->obj->id }}" checked="checked">
+                        <input type="checkbox" name="exports[]" value="{{ $good->id }}" checked="checked">
                       </td>
                       <td style="text-align: center;">
-                        @if($good->obj->getStock() == 0)
-                          <input type="checkbox" name="deletes[]" value="{{ $good->obj->id }}">
+                        @if($good->getStock() == 0)
+                          <input type="checkbox" name="deletes[]" value="{{ $good->id }}">
                         @endif
                       </td>
                     @endif

@@ -112,6 +112,12 @@ trait ReturControllerBase
 
                 TransactionDetail::create($data_detail_retur);
 
+                $data_good['total_transaction'] = $good->total_transaction + round($data_detail_retur['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                $data_good['last_transaction']  = date('Y-m-d');
+                $good->update($data_good);
+
+
                 for($j = 0; $j < $data_detail_retur['quantity']; $j++)
                 {
                     $data_retur['good_id'] = $good->id;
@@ -178,6 +184,13 @@ trait ReturControllerBase
             $data_detail['expiry_date']     = null;
 
             GoodLoadingDetail::create($data_detail);
+
+            $good = $item->good;
+
+            $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+            $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+            $data_good['last_loading']      = $data_loading['loading_date'];
+            $good->update($data_good);
 
             $data_journal_loading_retur['type']               = 'good_loading';
             $data_journal_loading_retur['type_id']            = $good_loading->id;

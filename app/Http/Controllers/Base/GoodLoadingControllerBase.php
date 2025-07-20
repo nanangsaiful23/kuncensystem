@@ -140,6 +140,8 @@ trait GoodLoadingControllerBase
                     $data_good['name'] = $data['name_temps'][$i];
 
                     $good = Good::find($data['names'][$i]);
+                    $data_good['total_loading'] = $good->total_loading;
+                    $data_good['total_transaction'] = $good->total_transaction;
 
                     if($type != 'internal')
                     {
@@ -267,6 +269,10 @@ trait GoodLoadingControllerBase
 
                     GoodLoadingDetail::create($data_detail);
 
+                    $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                    $data_good['last_loading']      = $good_loading->loading_date;
+
                     if($type == 'transaction-internal')
                     {
                         $data_detail['good_unit_id']   = $good_unit->id;
@@ -280,8 +286,14 @@ trait GoodLoadingControllerBase
 
                         TransactionDetail::create($data_detail);
 
+                        $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                        $data_good['last_stock']        = $data_good['total_loading'] - $data_good['total_transaction'];
+                        $data_good['last_transaction']  = date('Y-m-d');
+
                         $hpp += $data_detail['sum_price'];
                     }
+
+                    $good->update($data_good);
                 }
             }
 
@@ -436,7 +448,6 @@ trait GoodLoadingControllerBase
 
     public function updateGoodLoadingBase($role, $role_id, $good_loading_id, Request $request)
     {
-        // dd($request);die;
         $data = $request->input();
 
         $request->total_item_price = unformatNumber($request->total_item_price);
@@ -490,10 +501,9 @@ trait GoodLoadingControllerBase
                 $good_unit = $good_loading_detail->good_unit;
 
                 $good = Good::find($good_unit->good_id);
-                // if($good->code != $data['barcodes'][$i])
-                //     $data_good['code'] = $data['barcodes'][$i];
-                // else
                 $data_good['name'] = $data['name_temps'][$j];
+                $data_good['total_loading'] = $good->total_loading;
+                $data_good['total_transaction'] = $good->total_transaction;
 
                 $good->update($data_good);
 
@@ -561,6 +571,12 @@ trait GoodLoadingControllerBase
                 $data_detail['real_quantity']   = $data['quantities'][$j] * $good_unit->unit->quantity;
                 $data_detail['price']           = $data['prices'][$j];
                 $data_detail['selling_price']   = $data['sell_prices'][$j];
+
+
+                $data_good['total_loading']     = $good->total_loading - round($good_loading_detail->real_quantity / $good->base_unit()->unit->quantity, 3) + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                $data_good['last_loading']      = $good_loading->loading_date;
+                $good->update($data_good);
 
                 $good_loading_detail->update($data_detail);
             }

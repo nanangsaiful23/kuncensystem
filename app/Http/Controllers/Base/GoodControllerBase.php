@@ -105,8 +105,8 @@ trait GoodControllerBase
     public function searchByBarcodeGoodBase($barcode)
     {
         $good = Good::where('code', $barcode)->first();
-        $good->getPcsSellingPrice = $good->getPcsSellingPrice();
-        $good->stock = $good->getStock();
+        $good->getPcsSellingPrice = $good->base_unit();
+        $good->stock = $good->last_stock;
 
         return $good;
     }
@@ -125,9 +125,9 @@ trait GoodControllerBase
             $temp['good_unit_id'] = $unit->id;
             $temp['unit_id'] = $unit->unit_id;
             $temp['unit_qty'] = $unit->unit->quantity;
-            $temp['good_base_qty'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->unit->quantity;
-            $temp['good_base_buy_price'] = $good->getPcsSellingPrice() == null ? 1 : $good->getPcsSellingPrice()->buy_price;
-            $temp['stock'] = $good->getStock();
+            $temp['good_base_qty'] = $good->base_unit()->unit->quantity;
+            $temp['good_base_buy_price'] = $good->base_unit()->buy_price;
+            $temp['stock'] = $good->last_stock;
             $temp['code'] = $good->code;
             // if($temp['stock'] == 0)
             //     $temp['name'] = '[KOSONG] ' . $good->name;
@@ -151,7 +151,7 @@ trait GoodControllerBase
 
         $good = Good::find($good_unit->good_id);
         $good->getPcsSellingPrice = $good_unit;
-        $good->stock = $good->getStock();
+        $good->stock = $good->last_stock;
 
         if($good->stock == 0)
             $good->name = '[KOSONG] ' . $good->name;
@@ -177,10 +177,10 @@ trait GoodControllerBase
         {
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;
             $good->last_loading = $good->getLastBuy() == null ? $good->getDistributor()->name : $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
-            $good->stock = $good->getStock();
-            $good->transaction = $good->getPcsSellingPrice() == null ? $good->good_transactions()->sum('real_quantity') :  $good->good_transactions()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
-            $good->loading = $good->getPcsSellingPrice() == null ? $good->good_loadings()->sum('real_quantity') : $good->good_loadings()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity;
-            $good->unit = $good->getPcsSellingPrice() == null ? "" : $good->getPcsSellingPrice()->unit->code;
+            $good->stock = $good->last_stock;
+            $good->transaction = $good->total_transaction;
+            $good->loading = $good->total_loading;
+            $good->unit = $good->base_unit()->unit->code;
 
             foreach($good->good_units as $unit)
             {
@@ -217,7 +217,7 @@ trait GoodControllerBase
                 $temp['unit'] = $unit->unit->name;
                 $temp['buy_price'] = $unit->buy_price;
                 $temp['selling_price'] = $unit->selling_price;
-                $temp['stock'] = $good->getStock();
+                $temp['stock'] = $good->last_stock;
                 if($temp['stock'] == 0)
                     $temp['name'] = '[KOSONG] ' . $good->name;
                 elseif($temp['stock'] < 0)
@@ -470,103 +470,32 @@ trait GoodControllerBase
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
-                                      FROM goods 
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      WHERE goods.deleted_at IS NULL
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::where('last_stock', '<=', $stock)
+                                 ->get();
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
-                                      FROM (SELECT goods.id 
-                                            FROM goods 
-                                            JOIN good_units ON good_units.good_id = goods.id
-                                            JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
-                                            JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            -- JOIN distributors ON distributors.id = good_loadings.distributor_id
-                                            WHERE goods.last_distributor_id = " . $distributor_id . " 
-                                            AND goods.deleted_at IS NULL
-                                            AND good_units.deleted_at IS NULL
-                                            GROUP BY goods.id) as goods
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::where('last_stock', '<=', $stock)
+                                 ->where('last_distributor_id', $distributor_id)
+                                 ->get();
                 }
             }
             else
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
-                                      FROM (SELECT goods.id 
-                                            FROM goods 
-                                            JOIN good_units ON good_units.good_id = goods.id
-                                            JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
-                                            JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = goods.last_distributor_id
-                                            WHERE distributors.location = '" . $location . "' 
-                                            AND good_units.deleted_at IS NULL
-                                            AND goods.deleted_at IS NULL
-                                            GROUP BY goods.id) as goods
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
+                                 ->where('last_stock', '<=', $stock)
+                                 ->where('distributors.location', $location)
+                                 ->get();
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
-                                      FROM (SELECT goods.id
-                                            FROM goods 
-                                            JOIN good_units ON good_units.good_id = goods.id
-                                            JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
-                                            JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = goods.last_distributor_id
-                                            WHERE distributors.location = '" . $location . "' AND 
-                                            distributors.id = " . $distributor_id . " 
-                                            AND good_units.deleted_at IS NULL
-                                            AND goods.deleted_at IS NULL
-                                            GROUP BY goods.id) as goods
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
+                                 ->where('last_stock', '<=', $stock)
+                                 ->where('distributors.location', $location)
+                                 ->where('last_distributor_id', $distributor_id)
+                                 ->get();
                 }
             }
         }
@@ -576,114 +505,38 @@ trait GoodControllerBase
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
-                                      FROM goods 
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      WHERE goods.category_id = " . $category_id . " 
-                                      AND goods.deleted_at IS NULL
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::where('last_stock', '<=', $stock)
+                                 ->where('category_id', $category_id)
+                                 ->get();
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
-                                      FROM (SELECT goods.id 
-                                            FROM goods 
-                                            JOIN good_units ON good_units.good_id = goods.id
-                                            JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
-                                            JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = goods.last_distributor_id
-                                            WHERE distributors.id = " . $distributor_id . " 
-                                            AND goods.category_id = " . $category_id . " 
-                                            AND goods.deleted_at IS NULL 
-                                            AND good_units.deleted_at IS NULL
-                                            GROUP BY goods.id) as goods
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::where('last_stock', '<=', $stock)
+                                 ->where('category_id', $category_id)
+                                 ->where('last_distributor_id', $distributor_id)
+                                 ->get();
                 }
             }
             else
             {
                 if($distributor_id == 'all')
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id
-                                      FROM (SELECT goods.id 
-                                            FROM goods 
-                                            JOIN good_units ON good_units.good_id = goods.id
-                                            JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
-                                            JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = goods.last_distributor_id
-                                            WHERE distributors.location = '" . $location . "'
-                                            AND goods.category_id = " . $category_id . " 
-                                            AND goods.deleted_at IS NULL 
-                                            AND good_units.deleted_at IS NULL
-                                            GROUP BY goods.id) as goods
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
+                                 ->where('last_stock', '<=', $stock)
+                                 ->where('distributors.location', $location)
+                                 ->where('category_id', $category_id)
+                                 ->get();
                 }
                 else
                 {
-                    $goods = DB::select(DB::raw("SELECT loading.quantity as loading, COALESCE(SUM(transaction.quantity), 0) as transaction, goods.id 
-                                      FROM (SELECT goods.id
-                                            FROM goods 
-                                            JOIN good_units ON good_units.good_id = goods.id
-                                            JOIN good_loading_details ON good_units.id = good_loading_details.good_unit_id
-                                            JOIN good_loadings ON good_loadings.id = good_loading_details.good_loading_id
-                                            JOIN distributors ON distributors.id = goods.last_distributor_id
-                                            WHERE distributors.location = '" . $location . "' 
-                                            AND distributors.id = " . $distributor_id . "
-                                            AND goods.category_id = " . $category_id . "
-                                            AND goods.deleted_at IS NULL
-                                            AND good_units.deleted_at IS NULL
-                                            GROUP BY goods.id) as goods
-                                      LEFT JOIN (SELECT COALESCE(SUM(good_loading_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM good_loading_details
-                                                LEFT JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as loading ON loading.good_id = goods.id
-                                      LEFT JOIN (SELECT COALESCE(SUM(transaction_details.real_quantity), 0) as quantity, good_units.good_id
-                                                FROM transaction_details
-                                                LEFT JOIN good_units ON good_units.id = transaction_details.good_unit_id
-                                                WHERE good_units.deleted_at IS NULL
-                                                GROUP BY good_units.good_id) as transaction ON transaction.good_id = goods.id
-                                      GROUP BY goods.id, loading.quantity, transaction.quantity
-                                      HAVING (loading - transaction) <= " . $stock));
+                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
+                                 ->where('last_stock', '<=', $stock)
+                                 ->where('distributors.location', $location)
+                                 ->where('category_id', $category_id)
+                                 ->where('last_distributor_id', $distributor_id)
+                                 ->get();
                 }
             }
-        }
-
-        foreach($goods as $good)
-        {
-            $good->obj = Good::find($good->id);
         }
         
         return $goods;
@@ -906,6 +759,13 @@ trait GoodControllerBase
 
                     GoodLoadingDetail::create($data_detail);
 
+                    $good = Good::find($request->names[$i]);
+
+                    $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                    $data_good['last_loading']      = $data_loading['loading_date'];
+                    $good->update($data_good);
+
                     $data_journal['type']               = 'good_loading';
                     $data_journal['type_id']            = $good_loading->id;
                     $data_journal['journal_date']       = date('Y-m-d');
@@ -951,6 +811,13 @@ trait GoodControllerBase
                     $data_detail['sum_price']      = $data_transaction['total_sum_price'];
 
                     TransactionDetail::create($data_detail);
+
+                    $good = Good::find($request->names[$i]);
+
+                    $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                    $data_good['last_transaction']  = date('Y-m-d');
+                    $good->update($data_good);
 
                     $data_journal['type']               = 'transaction';
                     $data_journal['type_id']            = $transaction->id;
@@ -1152,32 +1019,6 @@ trait GoodControllerBase
 
     public function resumeGoodBase($sort, $order, $pagination)
     {
-        // dd('a');die;
-        // $goods = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock
-        //             FROM goods 
-        //             LEFT JOIN(SELECT goods.id, loading.total_loading as total_loading, transaction.total_transaction as total_transaction, price.real_price
-        //                 FROM goods
-        //                 LEFT JOIN (SELECT goods.id, coalesce(SUM(good_loading_details.real_quantity), 0) AS total_loading
-        //                  FROM good_loading_details
-        //                  JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-        //                  JOIN goods ON goods.id = good_units.good_id
-        //                  WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
-        //                  GROUP BY goods.id) as loading ON loading.id = goods.id
-        //                 LEFT JOIN (SELECT goods.id, coalesce(SUM(transaction_details.real_quantity), 0) AS total_transaction
-        //                  FROM transaction_details
-        //                  JOIN good_units ON good_units.id = transaction_details.good_unit_id
-        //                  RIGHT JOIN goods ON goods.id = good_units.good_id
-        //                  WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL AND transaction_details.type != 'retur'
-        //                  GROUP BY goods.id) as transaction ON transaction.id = goods.id
-        //                 LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity, good_units.buy_price/units.quantity as real_price
-        //                  FROM good_units
-        //                  RIGHT JOIN goods ON goods.id = good_units.good_id
-        //                  JOIN units ON units.id = good_units.unit_id
-        //                  GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
-        //                 GROUP BY goods.id, goods.name, total_loading, total_transaction, real_price) as recap ON recap.id = goods.id
-        //             GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price
-        //             ORDER BY money_stock DESC
-        //             LIMIT 10"));
 
         return $goods;
     }

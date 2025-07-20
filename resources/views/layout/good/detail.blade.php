@@ -24,15 +24,15 @@
                         <div class="col-sm-12">
                             <div class="col-sm-4">
                                 <h4>Total Loading</h4> 
-                                <h3>{{ ($good->good_loadings()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity) . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                                <h3>{{ $good->total_loading . ' ' . $good->base_unit()->unit->code }}</h3>
                             </div>
                             <div class="col-sm-4">
                                 <h4>Total Terjual</h4>
-                                <h3>{{ ($good->good_transactions()->sum('real_quantity') / $good->getPcsSellingPrice()->unit->quantity) . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                                <h3>{{ $good->total_transaction . ' ' . $good->base_unit()->unit->code }}</h3>
                             </div>
                             <div class="col-sm-4">
                                 <h4>Sisa Barang</h4>
-                                <h3>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
+                                <h3>{{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}</h3>
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
                     @if(\Auth::user()->email == 'admin')
                         <div class="row" style="text-align: center; background-color: #A1C2F1;">
                             <h4>Harga Beli</h4>
-                            <h3>@if($good->getLastBuy() != null) {{ $good->getLastBuy()->good_loading->distributor->name . ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif</h3>
+                            <h3>@if($good->getLastBuy() != null) {{ $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif</h3>
                             <div class="col-sm-12">
                                 @foreach($good->good_units as $unit)
                                     <div class="col-sm-4">

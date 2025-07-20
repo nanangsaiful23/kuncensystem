@@ -342,6 +342,13 @@ trait TransactionControllerBase
 
                 TransactionDetail::create($data_detail);
 
+                $good = $good_unit->good;
+
+                $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                $data_good['last_transaction']  = date('Y-m-d');
+                $good->update($data_good);
+
                 $sum += $data_detail['sum_price'];
                 $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
             }
@@ -520,6 +527,13 @@ trait TransactionControllerBase
 
                 TransactionDetail::create($data_detail_retur);
 
+                $good = $good_unit->good;
+
+                $data_good['total_transaction'] = $good->total_transaction + round($data_detail_retur['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                $data_good['last_transaction']  = date('Y-m-d');
+                $good->update($data_good);
+
                 $sum_retur += unformatNumber($request->pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
                 $hpp_retur += $data_detail_retur['buy_price'] * $data_detail_retur['quantity'];
 
@@ -561,6 +575,11 @@ trait TransactionControllerBase
                     $data_detail['expiry_date']     = null;
 
                     GoodLoadingDetail::create($data_detail);
+
+                    $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                    $data_good['last_loading']      = $data_loading['loading_date'];
+                    $good->update($data_good);
                 }
             }
         }
@@ -638,6 +657,11 @@ trait TransactionControllerBase
                 $data_detail['selling_price']   = $detail->selling_price;
 
                 GoodLoadingDetail::create($data_detail);
+
+                $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                $data_good['last_loading']      = $data_loading['loading_date'];
+                $good->update($data_good);
 
                 $total += $data_loading['total_item_price'];
 
@@ -1019,6 +1043,13 @@ trait TransactionControllerBase
                     $sum += $data_detail['sum_price'];
                     $last_hpp += $transaction_detail->buy_price * $transaction_detail->quantity;
                     $hpp += $transaction_detail->buy_price * $data_detail['quantity'];
+
+                    $good = $transaction_detail->good_unit->good;
+
+                    $data_good['total_transaction'] = $good->total_transaction - round($transaction_detail->real_quantity / $good->base_unit()->unit->quantity, 3) + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                    $data_good['last_transaction']  = date('Y-m-d');
+                    $good->update($data_good);
 
                     $transaction_detail->update($data_detail);
                 }

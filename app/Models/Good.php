@@ -13,7 +13,7 @@ class Good extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'category_id', 'brand_id', 'code', 'name', 'last_distributor_id'
+        'category_id', 'brand_id', 'code', 'name', 'last_distributor_id', 'base_unit_id', 'total_loading', 'total_transaction', 'last_stock', 'last_loading', 'last_transaction'
     ];
 
     protected $hidden = [
@@ -42,6 +42,11 @@ class Good extends Model
     public function good_photos()
     {
         return $this->hasMany('App\Models\GoodPhoto');
+    }
+
+    public function base_unit()
+    {
+        return GoodUnit::find($this->base_unit_id);
     }
 
     public function profilePicture()
@@ -154,7 +159,7 @@ class Good extends Model
                                 ->where('good_units.deleted_at', null)
                                 ->where('checker', '!=', 'Created by system')
                                 ->where('checker', '!=', 'Load by sistem')
-                                ->orderBy('good_loading_details.id', 'desc')
+                                ->orderBy('good_loadings.loading_date', 'desc')
                                 ->first();
     }
 

@@ -92,6 +92,13 @@ trait StockOpnameControllerBase
 
                     GoodLoadingDetail::create($data_detail);
 
+                    $good = $good_unit->good;
+
+                    $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                    $data_good['last_loading']      = $data_loading['loading_date'];
+                    $good->update($data_good);
+
                     $data_journal['type']               = 'good_loading';
                     $data_journal['type_id']            = $good_loading->id;
                     $data_journal['journal_date']       = date('Y-m-d');
@@ -137,6 +144,13 @@ trait StockOpnameControllerBase
                     $data_detail['sum_price']      = $data_transaction['total_sum_price'];
 
                     TransactionDetail::create($data_detail);
+
+                    $good = $good_unit->good;
+
+                    $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                    $data_good['last_transaction']  = date('Y-m-d');
+                    $good->update($data_good);
 
                     $data_journal['type']               = 'transaction';
                     $data_journal['type_id']            = $transaction->id;
