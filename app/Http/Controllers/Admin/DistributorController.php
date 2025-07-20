@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Base\DistributorControllerBase;
 
 use App\Models\Distributor;
+use App\Models\Good;
 
 class DistributorController extends Controller
 {
@@ -28,7 +29,14 @@ class DistributorController extends Controller
 
         $distributors = $this->indexDistributorBase($pagination);
 
-        return view('admin.layout.page', compact('default', 'distributors', 'pagination'));
+
+        $total = Good::join('good_units', 'good_units.id', 'goods.base_unit_id')
+                       ->selectRaw('SUM(goods.last_stock * good_units.buy_price) as total')
+                       ->get();
+
+        $total = $total[0]->total;
+
+        return view('admin.layout.page', compact('default', 'distributors', 'total', 'pagination'));
     }
 
     public function search($keyword)

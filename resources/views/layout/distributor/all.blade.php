@@ -11,6 +11,7 @@
             @include('layout.search-form')
           </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
+            <h3>Total seluruh aset: {{ showRupiah($total) }}</h3>
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
