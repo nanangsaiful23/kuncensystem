@@ -46,7 +46,15 @@ class Good extends Model
 
     public function base_unit()
     {
-        return GoodUnit::find($this->base_unit_id);
+        if($this->base_unit_id == null)
+            return $this->getPcsSellingPrice();
+
+        $good_unit = GoodUnit::find($this->base_unit_id);
+
+        if($good_unit == null)
+            return $this->getPcsSellingPrice();
+        
+        return $good_unit;
     }
 
     public function profilePicture()
