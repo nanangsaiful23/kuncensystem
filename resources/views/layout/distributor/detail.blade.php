@@ -27,6 +27,7 @@
                 <th width="10%">Loading</th>
                 <th width="10%">Terjual</th>
                 <th width="10%">Stock</th>
+                <th width="10%">Satuan</th>
                 <th width="10%">Stock Uang</th>
                 <th width="15%">Loading Terakhir</th>
                 <th width="15%">Penjualan Terakhir</th>
@@ -41,6 +42,7 @@
                     <td>{{ $item->total_loading }}</td>
                     <td>{{ $item->total_transaction }}</td>
                     <td>{{ $item->last_stock }}</td>
+                    <td>{{ $item->base_unit()->unit->code }}</td>
                     <td style="text-align: right;">{{ showRupiah($item->total) }}</td>
                     <td>{{ displayDate($item->last_loading) }}</td>
                     <td>{{ displayDate($item->last_transaction) }}</td>
