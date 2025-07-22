@@ -34,6 +34,7 @@
           </div>
           <div class="box-body" style="overflow-x:scroll">
             <h4>Total loading: {{ showRupiah($good_loadings->sum('total_item_price')) }}</h4><br>
+            <h4>Total loading kas di tangan: {{ showRupiah($cash->sum('total_item_price')) }}</h4><br>
           </div>
           <div class="box-body" style="overflow-x:scroll">
             <table id="example1" class="table table-bordered table-striped">

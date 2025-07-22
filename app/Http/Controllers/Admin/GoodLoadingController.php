@@ -26,9 +26,9 @@ class GoodLoadingController extends Controller
         $default['page'] = 'good-loading';
         $default['section'] = 'all';
 
-        $good_loadings = $this->indexGoodLoadingBase($start_date, $end_date, $distributor_id, $pagination);
+        [$good_loadings, $cash] = $this->indexGoodLoadingBase($start_date, $end_date, $distributor_id, $pagination);
 
-        return view('admin.layout.page', compact('default', 'good_loadings', 'start_date', 'end_date', 'distributor_id', 'pagination'));
+        return view('admin.layout.page', compact('default', 'good_loadings', 'cash', 'start_date', 'end_date', 'distributor_id', 'pagination'));
     }
 
     public function create($type)

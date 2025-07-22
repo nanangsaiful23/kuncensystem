@@ -24,33 +24,67 @@ trait GoodLoadingControllerBase
         if($distributor_id == "all")
         {
             if($pagination == 'all')
-            $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
-                                        ->whereDate('good_loadings.created_at', '<=', $end_date) 
-                                        ->orderBy('good_loadings.loading_date','asc')
-                                        ->get();
+            {
+                $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date) 
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->get();
+
+                $cash          = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date) 
+                                            ->where('payment', '1111')
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->get();
+            }
             else
-            $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
-                                        ->whereDate('good_loadings.created_at', '<=', $end_date)
-                                        ->orderBy('good_loadings.loading_date','asc')
-                                        ->paginate($pagination);
+            {
+                $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date)
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->paginate($pagination);
+
+                $cash          = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date)
+                                            ->where('payment', '1111')
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->paginate($pagination);
+            }
         }
         else
         {
             if($pagination == 'all')
-            $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
-                                        ->whereDate('good_loadings.created_at', '<=', $end_date)
-                                        ->where('good_loadings.distributor_id', $distributor_id)
-                                        ->orderBy('good_loadings.loading_date','asc')
-                                        ->get();
+            {
+                $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date)
+                                            ->where('good_loadings.distributor_id', $distributor_id)
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->get(); 
+
+                $cash          = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date)
+                                            ->where('good_loadings.distributor_id', $distributor_id)
+                                            ->where('payment', '1111')
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->get();
+            }
             else
-            $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
-                                        ->whereDate('good_loadings.created_at', '<=', $end_date)
-                                        ->where('good_loadings.distributor_id', $distributor_id)
-                                        ->orderBy('good_loadings.loading_date','asc')
-                                        ->paginate($pagination);
+            {
+                $good_loadings = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date)
+                                            ->where('good_loadings.distributor_id', $distributor_id)
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->paginate($pagination);
+
+                $cash          = GoodLoading::whereDate('good_loadings.created_at', '>=', $start_date)
+                                            ->whereDate('good_loadings.created_at', '<=', $end_date)
+                                            ->where('good_loadings.distributor_id', $distributor_id)
+                                            ->where('payment', '1111')
+                                            ->orderBy('good_loadings.loading_date','asc')
+                                            ->paginate($pagination);
+            }
         }
 
-        return $good_loadings;
+        return [$good_loadings, $cash];
     }
 
     public function storeGoodLoadingBase($role, $role_id, $type, Request $request)
