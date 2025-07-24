@@ -94,6 +94,7 @@ trait StockOpnameControllerBase
 
                     $good = $good_unit->good;
 
+                    $data_good['total_transaction'] = $good->total_transaction;
                     $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
                     $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
                     $data_good['last_loading']      = $data_loading['loading_date'];
@@ -147,6 +148,7 @@ trait StockOpnameControllerBase
 
                     $good = $good_unit->good;
 
+                    $data_good['total_loading']     = $good->total_loading;
                     $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
                     $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
                     $data_good['last_transaction']  = date('Y-m-d');
