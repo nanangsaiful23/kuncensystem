@@ -552,7 +552,11 @@ trait GoodControllerBase
 
         GoodPrice::create($data_price);
 
-        return $good_unit->good;
+        $good = $good_unit->good;
+        $data_good['base_unit_id'] = $good->getPcsSellingPrice()->id;
+        $good->update($data_good);
+
+        return $good;
     }
 
     public function updatePriceGoodBase($role, $role_id, $good_id, Request $request)
@@ -631,6 +635,11 @@ trait GoodControllerBase
     public function deletePriceGoodBase($good_unit_id)
     {
         $good_unit = GoodUnit::find($good_unit_id);
+
+        $good = $good_unit->good;
+        $data_good['base_unit_id'] = $good->getPcsSellingPrice()->id;
+        $good->update($data_good);
+        
         $good_unit->delete();
 
         return true;
