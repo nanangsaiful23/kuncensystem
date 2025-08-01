@@ -295,7 +295,6 @@ trait GoodControllerBase
             if($request->code == null)
             {
                 $data_good['code'] = $good->id;
-                $good->update($data_good);
             } 
 
             $good_unit = GoodUnit::where('good_id', $good->id)
@@ -340,39 +339,13 @@ trait GoodControllerBase
                 GoodPrice::create($data_price);
             }
 
+            $data_good['base_unit_id'] = $good->base_unit()->id;
+            $good->update($data_good);
+
             $good->unit_id = $good_unit->unit_id;
             $good->unit    = $good_unit->unit->name . '(' . $good_unit->unit->code . ')';
             $good->price   = $data['price'];
             $good->selling_price   = $data['selling_price'];
-
-            // /*create good unit with base unit */
-            // $unit_base = Unit::where('quantity', 1)
-            //                  ->where('base', $good_unit->unit->base)
-            //                  ->first();
-
-            // $good_unit_base = GoodUnit::where('good_id', $good->id)
-            //                           ->where('unit_id', $unit_base->id)
-            //                           ->first();
-
-            // if($good_unit_base == null)
-            // {
-            //     $data_unit_base['good_id']       = $good->id;
-            //     $data_unit_base['unit_id']       = $unit_base->id;
-            //     $data_unit_base['buy_price']     = '0';
-            //     $data_unit_base['selling_price'] = '0';
-
-            //     $good_unit_base = GoodUnit::create($data_unit_base);
-
-            //     $data_price_base['role']         = $data['role'];
-            //     $data_price_base['role_id']      = \Auth::user()->id;
-            //     $data_price_base['good_unit_id'] = $good_unit_base->id;
-            //     $data_price_base['old_price']    = $good_unit_base->selling_price;
-            //     $data_price_base['recent_price'] = '0';
-            //     $data_price_base['reason']       = 'Default 0 saat membuat barang baru bukan base unit';
-
-            //     GoodPrice::create($data_price_base);
-            // }
-            // /*end*/
         }
 
         return $good;
