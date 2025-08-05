@@ -76,7 +76,7 @@
                     <td>{{ $good->name }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td style="text-align: center;">{{ $good->getLastBuy() == null ? "" : displayDate($good->getLastBuy()->good_loading->loading_date) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->selling_price) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->buy_price) }}</td>
                     @endif
                     <td style="text-align: center;">{{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}</td>
                     @if(\Auth::user()->email == 'admin')
