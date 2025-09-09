@@ -602,7 +602,8 @@ trait TransactionControllerBase
             $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
             $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
             $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
-            // $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
+            if(sizeof($request->barcodes) == 0)
+                $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
             $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
 
             Journal::create($data_journal_loading_retur);
