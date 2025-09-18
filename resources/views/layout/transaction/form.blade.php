@@ -22,12 +22,6 @@
         <h4><i class="icon fa fa-warning"></i> Barang kosong</h4>
         <div id="empty-item"></div>
     </div>
-    <div class="row" style="background-color: {{ config('app.app_color') }}; margin-top: -10px; margin-bottom: 20px; padding-left: 20px; padding-bottom: 20px;">
-        <h2>Penggunaan Keyboard untuk Mempercepat Proses Transaksi</h2>
-        F2 untuk SCAN barang<br>
-        F4 untuk SEARCH barang<br>
-        F8 untuk BAYAR
-    </div>
     <div class="row">
         <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
             {!! Form::label('all_barcode', 'Cari barcode', array('class' => 'col-sm-4 control-label')) !!}
@@ -59,39 +53,31 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="form-group col-sm-5">
-                {!! Form::label('member_id', 'Member', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
-                    @if($SubmitButtonText == 'View')
-                        {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                    @else
-                        {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
-                        <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
-                            <!-- <div> -->
-                                @foreach(getMembers() as $member)
-                                <option value="{{ $member->id }}">
-                                    {{ $member->name . ' (' . $member->address . ')'}}</option>
-                                @endforeach
-                            <!-- </div> -->
-                        </select>
-                    @endif
+            <div class="col-sm-6">
+                <div class="form-group col-sm-12">
+                    {!! Form::label('member_id', 'Member', array('class' => 'col-sm-3 control-label')) !!}
+                    <div class="col-sm-8">
+                        @if($SubmitButtonText == 'View')
+                            {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                        @else
+                            {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
+                            <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
+                                <!-- <div> -->
+                                    @foreach(getMembers() as $member)
+                                    <option value="{{ $member->id }}">
+                                        {{ $member->name . ' (' . $member->address . ')'}}</option>
+                                    @endforeach
+                                <!-- </div> -->
+                            </select>
+                        @endif
+                    </div>
                 </div>
             </div>
-            <div class="form-group col-sm-7">
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('beras')">Beras</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('ember')">Ember</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('gelas')">Gelas</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('gula')">Gula</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('kompor')">Kompor</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('piring')">Piring</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('sprei')">Sprei</div>
-                <div class="col-sm-1 btn btn-warning" onclick="ajaxButton('tikar')">Tikar</div>
-            </div>
-        </div>
-        <div class="col-sm-12">
-            <div class="form-group col-sm-5">
-                <div class="col-sm-8 col-sm-offset-4 btn btn-warning" onclick="startCamera()">Scan Barcode Member</div>
-                <div class="col-sm-8 col-sm-offset-4 btn btn-warning" onclick="stopCamera()">Berhenti Scan</div>
+            <div class="col-sm-6">
+                <div class="form-group col-sm-12">
+                    <div class="col-sm-4 btn btn-warning" onclick="startCamera()">Scan Barcode Member</div>
+                    <div class="col-sm-4 btn btn-warning" onclick="stopCamera()">Berhenti Scan</div>
+                </div>
             </div>
         </div>
         <div class="form-group col-sm-5">
