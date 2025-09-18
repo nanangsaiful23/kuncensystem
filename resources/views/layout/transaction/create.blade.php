@@ -5,9 +5,6 @@
     <div class="row">
       <div class="col-xs-12">
         <div class="box">
-          <div class="box-header">
-            <h3 class="box-title">{{ $default['page_name'] }}</h3>
-          </div>
 
           {!! Form::model(old(),array('url' => route($role . '.transaction.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'transaction-form')) !!}
             <div class="box-body">

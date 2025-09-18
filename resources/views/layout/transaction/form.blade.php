@@ -147,54 +147,76 @@
                 </tr>
             </tbody>
         </table>
-        <div class="form-group">
-            {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-3">
-                {!! Form::text('total_item_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_item_price')) !!}
+        <div class="col-sm-12">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-5 control-label')) !!}
+                    <div class="col-sm-7">
+                        {!! Form::text('total_item_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_item_price')) !!}
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-5 control-label')) !!}
+                    <div class="col-sm-7">
+                        <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price')">
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="form-group">
-            {!! Form::label('total_discount_items_price', 'Total Potongan Harga Per Barang', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-3">
-                {!! Form::text('total_discount_items_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_discount_items_price')) !!}
+        <div class="col-sm-12">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    {!! Form::label('total_discount_items_price', 'Total Potongan Harga Per Barang', array('class' => 'col-sm-5 control-label')) !!}
+                    <div class="col-sm-7">
+                        {!! Form::text('total_discount_items_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_discount_items_price')) !!}
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    {!! Form::label('voucher', 'Potongan Voucher', array('class' => 'col-sm-5 control-label')) !!}
+                    <div class="col-sm-7">
+                        <input type="text" name="voucher_nominal" class="form-control" id="voucher_nominal">
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" name="voucher" class="form-control" id="voucher"><br>
+                        <div onclick="event.preventDefault(); checkVoucher();" class= 'btn btn-success btn-flat btn-block form-control'>Check Voucher</div>
+                    </div>
+                    <div class="col-sm-2">
+                    </div>
+                    <div class="col-sm-3" id="voucher_result">
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="form-group">
-            {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-3">
-                <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price')">
+        <div class="col-sm-12">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-5 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
+                    <div class="col-sm-7">
+                        {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => "font-size: 40px; height: 40px;")) !!}
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-5 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
+                    <div class="col-sm-7">
+                        <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid')" style="font-size: 40px; height: 40px;">
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="form-group">
-            {!! Form::label('voucher', 'Potongan Voucher', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-3">
-                <input type="text" name="voucher_nominal" class="form-control" id="voucher_nominal">
-            </div>
-            <div class="col-sm-2">
-                <input type="text" name="voucher" class="form-control" id="voucher"><br>
-                <div onclick="event.preventDefault(); checkVoucher();" class= 'btn btn-success btn-flat btn-block form-control'>Check Voucher</div>
-            </div>
-            <div class="col-sm-2">
-            </div>
-            <div class="col-sm-3" id="voucher_result">
-            </div>
-        </div>
-        <div class="form-group">
-            {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-3 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
-            <div class="col-sm-3">
-                {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => "font-size: 40px; height: 40px;")) !!}
-            </div>
-        </div>
-        <div class="form-group">
-            {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-3 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
-            <div class="col-sm-3">
-                <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid')" style="font-size: 40px; height: 40px;">
-            </div>
-        </div>
-        <div class="form-group">
-            {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-3">
-                {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
+        <div class="col-sm-12">
+            <div class="col-sm-6 col-sm-offset-6">
+                <div class="form-group">
+                    {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-5 control-label')) !!}
+                    <div class="col-sm-7">
+                        {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
+                    </div>
+                </div>
             </div>
         </div>
         {{ Form::hidden('type', 'normal') }}
