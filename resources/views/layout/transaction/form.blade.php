@@ -179,14 +179,14 @@
                     {!! Form::label('voucher', 'Potongan Voucher', array('class' => 'col-sm-5 control-label')) !!}
                     <div class="col-sm-7">
                         <input type="text" name="voucher_nominal" class="form-control" id="voucher_nominal">
-                    </div>
-                    <div class="col-sm-2">
-                        <input type="text" name="voucher" class="form-control" id="voucher"><br>
-                        <div onclick="event.preventDefault(); checkVoucher();" class= 'btn btn-success btn-flat btn-block form-control'>Check Voucher</div>
-                    </div>
-                    <div class="col-sm-2">
-                    </div>
-                    <div class="col-sm-3" id="voucher_result">
+                        <div class="col-sm-2">
+                            <input type="text" name="voucher" class="form-control" id="voucher"><br>
+                            <div onclick="event.preventDefault(); checkVoucher();" class= 'btn btn-success btn-flat btn-block form-control'>Check Voucher</div>
+                        </div>
+                        <div class="col-sm-2">
+                        </div>
+                        <div class="col-sm-3" id="voucher_result">
+                        </div>
                     </div>
                 </div>
             </div>

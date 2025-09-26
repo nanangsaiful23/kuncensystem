@@ -15,7 +15,8 @@
 
     table tr td .form-control, .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control
     {
-        font-size: 13px;
+        font-size: 17px;
+        font-weight: 700;
         background-color: white !important;
     }
 
@@ -39,9 +40,10 @@
                     <th style="display: none;">Barcode</th>
                     <th>No</th>
                     <th>Nama</th>
+                    <th>Satuan</th>
                     <th>Qty</th>
                     <th>Harga</th>
-                    <th>Potongan</th>
+                    <!-- <th>Potongan</th> -->
                     <th>Total Harga</th>
                     <th>Total Akhir</th>
                     <th>X</th>
@@ -55,9 +57,12 @@
                         <td width="5%">
                             <input type="text" name="numbers[]" class="form-control" id="no-{{ $i }}" value="{{ $i }}">
                         </td>
-                        <td width="50%">
+                        <td width="44%">
                             {!! Form::text('name_temps[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'name_temp-'.$i)) !!}
                             {!! Form::text('names[]', null, array('id'=>'name-' . $i, 'style' => 'display:none')) !!}
+                        </td>
+                        <td width="8%">
+                            {!! Form::text('satuans[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'satuan-'.$i)) !!}
                         </td>
                         <td width="5%">
                             <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('all_barcode', '{{ $i }}')">
@@ -66,17 +71,17 @@
                             {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
                             {!! Form::text('prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-'.$i, 'style' => 'text-align: right')) !!}
                         </td>
-                        <td width="8%">
+                        <td width="8%" style="display: none;">
                             @if(\Auth::user()->email == 'admin')
                                 <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
                             @else
                                 {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
                             @endif
                         </td>
-                        <td width="9%">
+                        <td width="10%">
                             {!! Form::text('total_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_price-'.$i, 'style' => 'text-align: right')) !!}
                         </td>
-                        <td width="9%">
+                        <td width="10%">
                             {!! Form::text('sums[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum-'.$i, 'style' => 'text-align: right')) !!}
                         </td>
                         <td width="3%"><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('-{{ $i }}')"></i></td>
@@ -198,7 +203,7 @@
             <div class="form-group" style="margin-top: -10px;">
                 {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
-                    {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => 'background-color: #9EDF9C; font-weight: bold')) !!}
+                    {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => 'background-color: #9EDF9C; font-weight: bold; font-size: 24px')) !!}
                 </div>
             </div>
             <div class="form-group" style="margin-top: -10px;">
@@ -284,6 +289,9 @@
                     <td width="30%">
                         {!! Form::text('name_tempsretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'name_temp-retur_s'.$i, 'style' => 'height: 70px')) !!}
                         {!! Form::text('namesretur_s[]', null, array('id'=>'name-retur_s' . $i, 'style' => 'display:none')) !!}
+                    </td>
+                    <td>
+                        {!! Form::text('satuan_retur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'satuan-retur_s'.$i, 'style' => 'height: 70px')) !!}
                     </td>
                     <td>
                         <select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s{{ $i }}">
@@ -400,7 +408,8 @@
                 if(bool == false)
                 {
                     document.getElementById("name-" + type + items).value = good.id;
-                    document.getElementById("name_temp-" + type + items).value = good.name + " " + good.getPcsSellingPrice.name;
+                    document.getElementById("name_temp-" + type + items).value = good.name;
+                    document.getElementById("satuan-" + type + items).value = good.getPcsSellingPrice.name;
                     document.getElementById("barcode-" + type + items).value = good.getPcsSellingPrice.id;
                     document.getElementById("quantity-" + type + items).value = 1;
 
@@ -654,14 +663,14 @@
 
             color = '';
             if(temp1 % 2 == 0)
-                color = 'background-color: #FDDBBB !important;';
+                color = 'background-color: #E7F2EF !important;';
 
-            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"></text><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
+            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input type="text" class="form-control" readonly="readonly" id="satuan-' + type + temp1 + '" name="satuans-' + type + '[]" type="text" style="' + color + '"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
 
             @if(\Auth::user()->email == 'admin')
-                htmlResult += '<td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';
+                htmlResult += '<td style="display: none"><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';
             @else
-                htmlResult += '<td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0" style="text-align: right;"></td>';
+                htmlResult += '<td style="display: none"><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0" style="text-align: right;"></td>';
             @endif
 
             htmlResult += '<td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1+ '" name="total_prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1+'" name="sums' + type + '[]" type="text" style="text-align: right; ' + color + '"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+'" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
@@ -674,12 +683,12 @@
                 if(name == 'all_barcode_retur')
                 {
                     total_item_retur += 1;
-                    $("#table-transaction-retur").prepend(htmlResult);
+                    $("#table-transaction-retur").append(htmlResult);
                 }
                 else
                 {
                     total_item += 1;
-                    $("#table-transaction").prepend(htmlResult);
+                    $("#table-transaction").append(htmlResult);
                 }
 
                 $("#row-data-" + total_item).hide();
@@ -710,17 +719,21 @@
                   for (var i = 0; i < r.length; i++) {
                     if(r[i].stock == 0) 
                     {
-                        color = '#F79B72';
+                        color = '#D1D3D4';
                     }
                     else if(r[i].stock < 0) 
                     {
-                        color = '#E55050';
+                        color = '#D9C4B0';
                     }
                     else
                     {
                         color = '#9EBC8A';
                     }
-                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
+                    if(r[i].status == null)
+                    {
+                        r[i].status = '';
+                    }
+                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].status + ' ' + r[i].name + " " + r[i].unit + "</textarea>";
                   }
                   $("#result_good" + type).html(htmlResult);
                   $('.modal-body').css('height',$( window ).height()*0.5);

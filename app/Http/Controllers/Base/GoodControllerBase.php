@@ -154,11 +154,9 @@ trait GoodControllerBase
         $good->stock = $good->last_stock;
 
         if($good->stock == 0)
-            $good->name = '[KOSONG] ' . $good->name;
+            $good->status = '[KOSONG]';
         elseif($good->stock < 0)
-            $good->name = ' [MINUS] ' . $good->name;
-        else
-            $good->name = ' [READY] ' . $good->name;
+            $good->status = ' [MINUS]';
 
         return $good;
     }
@@ -219,11 +217,10 @@ trait GoodControllerBase
                 $temp['selling_price'] = $unit->selling_price;
                 $temp['stock'] = $good->last_stock;
                 if($temp['stock'] == 0)
-                    $temp['name'] = '[KOSONG] ' . $good->name;
+                    $temp['status'] = '[KOSONG]';
                 elseif($temp['stock'] < 0)
-                    $temp['name'] = '[MINUS] ' . $good->name;
-                else
-                    $temp['name'] = $good->name;
+                    $temp['status'] = '[MINUS]';
+                $temp['name'] = $good->name;
                 array_push($units, $temp);
             }
         }
