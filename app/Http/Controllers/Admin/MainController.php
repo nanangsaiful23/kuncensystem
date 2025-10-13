@@ -160,10 +160,9 @@ class MainController extends Controller
         [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
         [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
         [$payment_ins, $payment_outs] = $this->getPayment('52%');
-        [$other_income_debits, $other_income_credits] = $this->getPayment('6101');
-        [$other_outcome_debits, $other_outcome_credits] = $this->getPayment('6102');
+        [$other_debits, $other_credits] = $this->getPayment('610%');
 
-        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan_debit', 'penjualan_credit', 'hpp_account', 'hpp_debit', 'hpp_credit', 'payment_ins', 'payment_outs', 'other_income_debits', 'other_income_credits', 'other_outcome_debits', 'other_outcome_credits'));
+        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan_debit', 'penjualan_credit', 'hpp_account', 'hpp_debit', 'hpp_credit', 'payment_ins', 'payment_outs', 'other_debits', 'other_credits'));
     }
 
     public function scale($start_date, $end_date)

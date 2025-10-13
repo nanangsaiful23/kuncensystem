@@ -71,30 +71,23 @@
                   <tr>
                     <td colspan="5"></td>
                   </tr>
-                  <!-- <tr style="font-weight: bold;">
-                    <td></td>
-                    <td>Laba Bersih Usaha</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan_account->balance - $hpp_account->balance) - $payment_ins->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah(($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'))) }}</td>
-                  </tr> -->
                   <tr>
                     <td colspan="5"></td>
                   </tr>
-                  <tr style="font-weight: bold;">
-                    <td>6101</td>
-                    <td>Pendapatan lain-lain</td>
-                    <td style="text-align: right;">{{ showRupiah($other_income_debits[0]->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_income_credits->sum('credit') - $other_income_debits->sum('debit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_income_debits[0]->balance + $other_income_credits->sum('credit') - $other_income_debits->sum('debit')) }}</td>
-                  </tr>
-                  <tr style="font-weight: bold;">
-                    <td>6102</td>
-                    <td>Biaya lain-lain</td>
-                    <td style="text-align: right;">{{ showRupiah($other_outcome_debits[0]->balance) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_outcome_debits->sum('debit') - $other_outcome_credits->sum('credit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($other_outcome_debits[0]->balance + $other_outcome_debits->sum('debit') - $other_outcome_credits->sum('credit')) }}</td>
-                  </tr>
+                  @for($i = 0; $i < sizeof($other_debits); $i++)
+                    <tr style="font-weight: bold;">
+                      <td>{{ $other_debits[$i]->code }}</td>
+                      <td>{{ $other_debits[$i]->name }}</td>
+                      <td style="text-align: right;">{{ showRupiah($other_debits[$i]->balance) }}</td>
+                    @if($other_debits[$i]->code == '6101')
+                      <td style="text-align: right;">{{ showRupiah($other_credits[$i]->sum('credit') - $other_debits[$i]->sum('debit')) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($other_debits[$i]->balance + $other_credits[$i]->sum('credit') - $other_debits[$i]->sum('debit')) }}</td>
+                    @else
+                      <td style="text-align: right;">{{ showRupiah($other_debits[$i]->sum('debit') - $other_credits[$i]->sum('credit')) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($other_debits[$i]->balance + $other_debits[$i]->sum('debit') - $other_credits[$i]->sum('credit')) }}</td>
+                    @endif
+                    </tr>
+                  @endfor
                   <tr style="font-weight: bold; background-color: yellow;">
                     <td>-</td>
                     <td>Total Akhir</td>
