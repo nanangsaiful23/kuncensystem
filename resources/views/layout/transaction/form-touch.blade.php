@@ -99,13 +99,13 @@
             <div class="form-group col-sm-12" style="height: 40px!important; font-size: 20px;">
                 {!! Form::label('all_barcode', 'Barcode', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
-                    <input type="text" name="all_barcode" class="form-control" id="all_barcode" onchange="searchByBarcode('all_barcode')" style="background-color: #DCE4C9">
+                    <input type="text" name="all_barcode" class="form-control" id="all_barcode" onchange="searchByBarcode('all_barcode')" onfocus="changeBackColor('all_barcode')" onfocusout="changeBackNorm('all_barcode')">
                 </div>
             </div>
             <div class="form-group col-sm-12" style="height: 40px!important; font-size: 20px; margin-top: -10px;">
                 {!! Form::label('keyword', 'Keyword', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
-                    <input type="text" name="search_good" class="form-control" id="search_good" style="background-color: #F0C1E1">
+                    <input type="text" name="search_good" class="form-control" id="search_good" onfocus="changeBackColor('search_good')" onfocusout="changeBackNorm('search_good')">
                 </div>
                  <div class="modal modal-primary fade" id="modal_search">
                   <div class="modal-dialog">
@@ -131,15 +131,25 @@
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
-                        {!! Form::text('member_name', null, array('class' => 'form-control', 'id' => 'member_name')) !!}
-                        <select class="form-control select2" style="width: 100%;" name="member_id" id="all_member">
-                            <!-- <div> -->
-                                @foreach(getMembers() as $member)
-                                <option value="{{ $member->id }}">
-                                    {{ $member->name . ' (' . $member->address . ')'}}</option>
-                                @endforeach
-                            <!-- </div> -->
-                        </select>
+                        <input type="text" name="search_member" class="form-control" id="search_member" onfocus="changeBackColor('search_member')" onfocusout="changeBackNorm('search_member')">
+                        {!! Form::hidden('member_id', '1', array('id' => 'member_id')) !!}
+                         <div class="modal modal-primary fade" id="modal_member">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span></button>
+                                  <h4 class="modal-title">Hasil Keyword (klik nama member)</h4>
+                              </div>
+                              <div class="modal-body">
+                                <div id="result_member"></div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -183,7 +193,7 @@
             <div class="form-group" style="margin-top: -10px;">
                 {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
-                    <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price')">
+                    <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price'); changeTotal()">
                 </div>
             </div>
             <div class="form-group" style="display: none">
@@ -201,24 +211,6 @@
                 </div>
             </div>
             <div class="form-group" style="margin-top: -10px;">
-                {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
-                    {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => 'background-color: #9EDF9C; font-weight: bold; font-size: 24px')) !!}
-                </div>
-            </div>
-            <div class="form-group" style="margin-top: -10px;">
-                {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
-                    <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid')" style="background-color: #FAB12F">
-                </div>
-            </div>
-            <div class="form-group" style="margin-top: -10px;">
-                {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
-                    {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
-                </div>
-            </div>  
-            <div class="form-group" style="margin-top: -10px;">
                 <div id="div_total_item"></div>
                 Total qty:
             </div>  
@@ -227,17 +219,40 @@
     </div>
 
     <div class="row" style="margin-top: -40px">
-        <hr>
+        <div class="col-sm-2">
+            <div class="form-group">
+                {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
+                <div class="col-sm-12">
+                    {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => 'height: 50px; background-color: #BF092F !important; font-weight: bold; font-size: 25px; color: white')) !!}
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
+                <div class="col-sm-12">
+                    <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid'); changeReturn()" style="height: 50px; background-color: #FFE100; font-size: 25px;">
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="form-group">
+                {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
+                <div class="col-sm-12">
+                    {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned', 'style' => 'height: 50px; font-weight: bold; font-size: 25px')) !!}
+                </div>
+            </div>  
+        </div>
         @if($SubmitButtonText == 'Edit')
             {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control',])  !!}
         @elseif($SubmitButtonText == 'Tambah')
-            <div onclick="event.preventDefault(); submitForm(this);" class= 'btn btn-success btn-flat btn-block form-control' style="height: 40px; font-size: 25px; background-color: #C5D3E8">Proses Transaksi</div>
+            <div onclick="event.preventDefault(); submitForm(this);" class='btn btn-success col-sm-6' style="height: 80px; font-size: 30px; background-color: #08CB00">Proses Transaksi</div>
         @elseif($SubmitButtonText == 'View')
         @endif
         <hr>
     </div>
 
-    <div class="row" style="background-color: yellow;">
+    <div class="row" style="background-color: yellow; display: none;">
         <h3>Transaksi Retur</h3>
         <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
             {!! Form::label('all_barcode_retur', 'Cari barcode', array('class' => 'col-sm-4 control-label')) !!}
@@ -354,6 +369,13 @@
               if(e.keyCode == 13)
               {
                 ajaxFunction("all_barcode_retur");
+              }
+            });
+
+            $("#search_member").keyup( function(e){
+              if(e.keyCode == 13)
+              {
+                searchMember();
               }
             });
         });
@@ -744,6 +766,39 @@
               });
         }
 
+        function searchMember()
+        {            
+            $('#modal_member').modal('show');   
+
+              $.ajax({
+                url: "{!! url($role . '/member/searchByName/') !!}/" + $("#search_member").val(),
+                success: function(result){
+                    htmlResult = '';
+
+                    htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
+                  var r = result.members;
+
+                  for (var i = 0; i < r.length; i++) {
+                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; padding: 5px;' onclick='setMember(\"" + r[i].id + "\",\"" + r[i].name + "\")'>" + r[i].name + " (" + r[i].address + ")</textarea>";
+                  }
+                  $("#result_member").html(htmlResult);
+                  $("#search_member").val('');
+                  $("#member_id").val('1');
+                  $('.modal-body').css('height',$( window ).height()*0.5);
+                },
+                error: function(){
+                    console.log('error');
+                }
+              });
+        }
+
+        function setMember(id, name)
+        {
+            $('#member_id').val(id);
+            $("#search_member").val(name);
+            $('#modal_member').modal('hide');
+        }
+
         function ajaxButton(keyword)
         {
             name = "all_barcode";
@@ -863,6 +918,19 @@
           // let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
             scanner.stop();
             $('#preview').hide();
+        }
+
+        function changeBackColor(id)
+        {
+            $("#" + id).css( "border-color", "#1A2A4F" );
+            $("#" + id).css( "background-color", "#C2E2FA" );
+            $("#" + id).css( "border-width", "4px" );
+        }
+
+        function changeBackNorm(id)
+        {
+            $("#" + id).css( "background-color", "#EEEEEE" );
+            $("#" + id).css( "border-width", "1px" );
         }
     </script>
 @endsection
