@@ -83,7 +83,9 @@ class DistributorController extends Controller
         $distributor->pembayaran_internal = $distributor->totalHutangDagangInternal('all')->sum('debit');
         $distributor->piutang_dagang = $distributor->totalPiutangDagangInternal('all')->sum('debit');
         $distributor->piutang_dagang_loading = $distributor->totalPiutangDagangLoading('all')->sum('debit');
-        $distributor->pembayaran     = $distributor->totalOutcome('all')->sum('debit');
+        $distributor->pembayaran = $distributor->totalOutcome('all')->sum('debit');
+        $distributor->untung     = $distributor->totalUntung('all')->sum('total');
+        $distributor->rugi       = $distributor->totalRugi('all')->sum('total');
 
         if($type == 'aset')
             $items = $distributor->detailAssetFromGood(20);
@@ -99,6 +101,10 @@ class DistributorController extends Controller
             $items = $distributor->totalPiutangDagangLoading(20);
         elseif($type == 'pembayaran')
             $items = $distributor->totalOutcome(20);
+        elseif($type == 'untung')
+            $items = $distributor->totalUntung(20);
+        elseif($type == 'rugi')
+            $items = $distributor->totalRugi(20);
 
         return view('admin.layout.page', compact('default', 'distributor', 'type', 'items'));
     }

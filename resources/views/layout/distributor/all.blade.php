@@ -43,8 +43,8 @@
                     <td>{{ $distributor->location }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ showRupiah($distributor->getAsset()) }}</td>
-                      <td>{{ showRupiah($distributor->totalUntung()) }}</td>
-                      <td>{{ showRupiah($distributor->totalRugi()) }}</td>
+                      <td>{{ showRupiah($distributor->totalUntung('all')->sum('total')) }}</td>
+                      <td>{{ showRupiah($distributor->totalRugi('all')->sum('total')) }}</td>
                       <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/creditPayment') }}"><i class="fa fa-dollar tosca" aria-hidden="true"></i></a></td>
                     @endif
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/aset') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>

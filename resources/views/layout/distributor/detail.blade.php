@@ -70,6 +70,18 @@
                   <td>: </td>
                   <td style="text-align: right;"><b>{{ showRupiah($distributor->pembayaran_internal + $distributor->piutang_dagang + $distributor->pembayaran - $distributor->utang_dagang - $distributor->titip_uang) }}</b></td>
                 </tr>
+                <tr>
+                  <td><b>Total Untung</b></td>
+                  <td>: </td>
+                  <td style="text-align: right;"><b>{{ showRupiah($distributor->untung) }}</b></td>
+                  <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/untung') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Untung</a></td>
+                </tr>
+                <tr>
+                  <td><b>Total Rugi</b></td>
+                  <td>: </td>
+                  <td style="text-align: right;"><b>{{ showRupiah($distributor->rugi) }}</b></td>
+                  <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/rugi') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Rugi</a></td>
+                </tr>
               </table>              
             </div>
             <div class="col-sm-12">
@@ -246,6 +258,44 @@
                     {!! $items->render() !!}
                   </tbody>
                 </table>
+              @elseif($type == 'untung' || $type == 'rugi')
+                <table class="table table-bordered table-striped">
+                  <thead>
+                  <tr>
+                    <th width="5%">Highlight</th>
+                    <th width="10%">Tanggal</th>
+                    <th width="10%">Tipe</th>
+                    <th width="15%">Nama</th>
+                    <th width="15%">Qty</th>
+                    <th width="15%">Satuan</th>
+                    <th width="15%">Harga Beli</th>
+                    @if($type == 'untung')
+                      <th width="15%">Harga Jual</th>
+                    @endif
+                    <th width="15%">Sum</th>
+                  </tr>
+                  </thead>
+                  <tbody id="table-good">
+                    @foreach($items as $item)
+                      <tr id="div-untung-{{ $item->id }}">
+                        <td><input type="checkbox" name="hard-cashes[]" id="untung-{{ $item->id }}" onclick="highlight('untung-{{ $item->id }}')"></td>
+                        <td>{{ displayDate($item->created_at) }}</td>
+                        <td>{{ $item->type }}</td>
+                        <td><a href="{{ url($role . '/transaction/' . $item->id . '/detail') }}" style="color: blue" target="_blank()">{{ $item->name }}</a></td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ $item->code }}</td>
+                        <td>{{ showRupiah($item->buy_price) }}</td>
+                        @if($type == 'untung')
+                          <td>{{ showRupiah($item->selling_price) }}</td>
+                          <td>{{ showRupiah(($item->selling_price - $item->buy_price) * $item->quantity) }}</td>
+                        @else
+                          <td>{{ showRupiah($item->buy_price * $item->quantity) }}</td>
+                        @endif
+                      </tr>
+                    @endforeach
+                    {!! $items->render() !!}
+                  </tbody>
+                </table>
               @endif
               
             </div>
@@ -259,94 +309,7 @@
 @section('js-addon')
   <script type="text/javascript">
     $(document).ready(function(){
-        $('#hutang-history').hide();
-        $('#hutang-internal-history').hide();
-        $('#piutang-internal-history').hide();
-        $('#piutang-history').hide();
-        $('#hard-cash-history').hide();
-        $('#titip-history').hide();
-        $('#income').hide();
     });
-
-    function changeView(name)
-    {
-      if(name == 'asset')
-      {
-        $('#asset').show();
-        $('#income').hide();
-        $('#outcome').hide();
-
-        // document.getElementById("asset").style.overflowX = "auto";
-      }
-      else if(name == 'income')
-      {
-        $('#asset').hide();
-        $('#outcome').hide();
-        $('#income').show();
-        changeView('hutang');
-      }
-      else if(name == 'outcome')
-      {
-        $('#outcome').show();
-        $('#income').hide();
-        $('#asset').hide();
-        changeView('hutang-internal');
-      }
-      else if(name == 'hutang')
-      {
-        $('#hutang-history').show();
-        $('#hutang-internal-history').hide();
-        $('#piutang-history').hide();
-        $('#piutang-internal-history').hide();
-        $('#hard-cash-history').hide();
-        $('#titip-history').hide();
-      }
-      else if(name == 'hutang-internal')
-      {
-        $('#piutang-history').hide();
-        $('#hutang-history').hide();
-        $('#hutang-internal-history').show();
-        $('#piutang-internal-history').hide();
-        $('#hard-cash-history').hide();
-        $('#titip-history').hide();
-      }
-      else if(name == 'piutang-internal')
-      {
-        $('#piutang-history').hide();
-        $('#hutang-history').hide();
-        $('#hutang-internal-history').hide();
-        $('#piutang-internal-history').show();
-        $('#hard-cash-history').hide();
-        $('#titip-history').hide();
-      }
-      else if(name == 'hard-cash')
-      {
-        $('#piutang-history').hide();
-        $('#hutang-history').hide();
-        $('#hutang-internal-history').hide();
-        $('#piutang-internal-history').hide();
-        $('#hard-cash-history').show();
-        $('#titip-history').hide();
-      }
-      else if(name == 'titip')
-      {
-        $('#piutang-history').hide();
-        $('#hutang-history').hide();
-        $('#hutang-internal-history').hide();
-        $('#piutang-internal-history').hide();
-        $('#hard-cash-history').hide();
-        $('#titip-history').show();
-      }
-      else 
-      {
-        $('#piutang-history').show();
-        $('#hutang-history').hide();
-        $('#hutang-internal-history').hide();
-        $('#piutang-internal-history').hide();
-        $('#hard-cash-history').hide();
-        $('#titip-history').hide();
-      }
-    }
 
     function highlight(id)
     {
