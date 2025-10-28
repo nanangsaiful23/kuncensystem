@@ -51,7 +51,7 @@ Route::group(['prefix' => 'distributor'], function () {
 	Route::get('/create', 'DistributorController@create');
 	Route::post('/store', 'DistributorController@store')->name('distributor.store');
 	Route::get('/search/{keyword}', 'DistributorController@search');
-	Route::get('/{distributor_id}/detail', 'DistributorController@detail');
+	Route::get('/{distributor_id}/detail/{type}', 'DistributorController@detail');
 	Route::get('/{distributor_id}/edit', 'DistributorController@edit');
 	Route::put('/{distributor_id}/edit', 'DistributorController@update')->name('distributor.update');
 	Route::get('/{distributor_id}/creditPayment', 'DistributorController@creditPayment');

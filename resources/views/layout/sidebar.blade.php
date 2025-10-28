@@ -203,7 +203,7 @@
             </a>
             <ul class="treeview-menu">
                 <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/create') }}"><i class="fa fa-circle-o"></i> Tambah Distributor</a></li>
-                <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/15') }}"><i class="fa fa-circle-o"></i> Daftar Distributor</a></li>
+                <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/5') }}"><i class="fa fa-circle-o"></i> Daftar Distributor</a></li>
             </ul>
           </li>
           <li class="treeview {{ (Request::segment(2) == 'category' ) ? 'active' : ''  }}">

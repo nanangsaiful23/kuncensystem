@@ -20,10 +20,12 @@
                 <th>Lokasi</th>
                 @if(\Auth::user()->email == 'admin')
                   <th>Total Aset</th>
-                  <th>Total Hutang Dagang</th>
+                  <th>Total Untung</th>
+                  <th>Total Rugi (Penyusutan & SO)</th>
+                  <!-- <th>Total Hutang Dagang</th>
                   <th>Pembayaran Hutang dengan Barang</th>
                   <th>Pembayaran Hutang dengan Uang</th>
-                  <th>Sisa Hutang</th>
+                  <th>Sisa Hutang</th> -->
                   <th class="center">Pembayaran Hutang</th>
                 @endif
                 <th class="center">Detail</th>
@@ -41,13 +43,11 @@
                     <td>{{ $distributor->location }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ showRupiah($distributor->getAsset()) }}</td>
-                      <td>{{ showRupiah($distributor->totalHutangDagangLoading()->sum('total_item_price') + $distributor->titipUang()->sum('debit')) }}</td>
-                      <td>{{ showRupiah($distributor->totalHutangDagangInternal()->sum('debit') + $distributor->totalPiutangDagangInternal()->sum('debit') + $distributor->totalPiutangDagangLoading()->sum('total_item_price')) }}</td>
-                      <td>{{ showRupiah($distributor->totalOutcome()->sum('debit')) }}</td>
-                      <td>{{ showRupiah($distributor->totalHutangDagangLoading()->sum('total_item_price') + $distributor->titipUang()->sum('debit') - $distributor->totalHutangDagangInternal()->sum('debit') - $distributor->totalPiutangDagangInternal()->sum('debit') - $distributor->totalPiutangDagangLoading()->sum('total_item_price') - $distributor->totalOutcome()->sum('debit')) }}</td>
+                      <td>{{ showRupiah($distributor->totalUntung()) }}</td>
+                      <td>{{ showRupiah($distributor->totalRugi()) }}</td>
                       <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/creditPayment') }}"><i class="fa fa-dollar tosca" aria-hidden="true"></i></a></td>
                     @endif
-                    <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
+                    <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/aset') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')
                       <td class="center">

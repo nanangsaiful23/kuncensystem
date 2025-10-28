@@ -68,7 +68,7 @@ class DistributorController extends Controller
         return redirect('/admin/distributor/' . $distributor->id . '/detail');
     }
 
-    public function detail($distributor_id)
+    public function detail($distributor_id, $type)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -78,7 +78,29 @@ class DistributorController extends Controller
 
         $distributor = Distributor::find($distributor_id);
 
-        return view('admin.layout.page', compact('default', 'distributor'));
+        $distributor->utang_dagang = $distributor->totalHutangDagangLoading('all')->sum('total_item_price');
+        $distributor->titip_uang   = $distributor->titipUang('all')->sum('debit');
+        $distributor->pembayaran_internal = $distributor->totalHutangDagangInternal('all')->sum('debit');
+        $distributor->piutang_dagang = $distributor->totalPiutangDagangInternal('all')->sum('debit');
+        $distributor->piutang_dagang_loading = $distributor->totalPiutangDagangLoading('all')->sum('debit');
+        $distributor->pembayaran     = $distributor->totalOutcome('all')->sum('debit');
+
+        if($type == 'aset')
+            $items = $distributor->detailAssetFromGood(20);
+        elseif($type == 'utang_dagang')
+            $items = $distributor->totalHutangDagangLoading(20);
+        elseif($type == 'titip_uang')
+            $items = $distributor->titipUang(20);
+        elseif($type == 'pembayaran_internal')
+            $items = $distributor->totalHutangDagangInternal(20);
+        elseif($type == 'piutang_dagang')
+            $items = $distributor->totalPiutangDagangInternal(20);
+        elseif($type == 'piutang_dagang_loading')
+            $items = $distributor->totalPiutangDagangLoading(20);
+        elseif($type == 'pembayaran')
+            $items = $distributor->totalOutcome(20);
+
+        return view('admin.layout.page', compact('default', 'distributor', 'type', 'items'));
     }
 
     public function edit($distributor_id)

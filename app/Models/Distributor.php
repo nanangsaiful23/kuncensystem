@@ -23,39 +23,60 @@ class Distributor extends Model
         'deleted_at',
     ];
 
-    public function totalHutangDagangInternal()
+    public function totalHutangDagangInternal($pagination)
     {
-        $journals = Journal::where('type', 'hutang dagang ' . $this->id)
-                           ->orderBy('id', 'desc')
-                           ->get();
+        if($pagination == 'all')
+            $journals = Journal::where('type', 'hutang dagang ' . $this->id)
+                               ->orderBy('id', 'desc')
+                               ->get();
+        else
+            $journals = Journal::where('type', 'hutang dagang ' . $this->id)
+                               ->orderBy('id', 'desc')
+                               ->paginate($pagination);
 
         return $journals;
     }
 
-    public function totalHutangDagangLoading()
+    public function totalHutangDagangLoading($pagination)
     {
-        $good_loadings = GoodLoading::where('payment', '2101')
-                                    ->where('distributor_id', $this->id)
-                                    ->orderBy('id', 'desc')
-                                    ->get();
+        if($pagination == 'all')
+            $good_loadings = GoodLoading::where('payment', '2101')
+                                        ->where('distributor_id', $this->id)
+                                        ->orderBy('id', 'desc')
+                                        ->get();
+        else
+            $good_loadings = GoodLoading::where('payment', '2101')
+                                        ->where('distributor_id', $this->id)
+                                        ->orderBy('id', 'desc')
+                                        ->paginate($pagination);
 
         return $good_loadings;
     }
 
-    public function totalPiutangDagangInternal()
+    public function totalPiutangDagangInternal($pagination)
     {
-        $journals = Journal::where('type', 'piutang dagang ' . $this->id)
-                           ->get();
+        if($pagination == 'all')
+            $journals = Journal::where('type', 'piutang dagang ' . $this->id)
+                               ->get();
+        else
+            $journals = Journal::where('type', 'piutang dagang ' . $this->id)
+                               ->paginate($pagination);
 
         return $journals;
     }
 
-    public function totalPiutangDagangLoading()
+    public function totalPiutangDagangLoading($pagination)
     {
-        $good_loadings = GoodLoading::where('payment', '1131')
-                                    ->where('distributor_id', $this->id)
-                                    ->orderBy('id', 'desc')
-                                    ->get();
+        if($pagination == 'all')
+            $good_loadings = GoodLoading::where('payment', '1131')
+                                        ->where('distributor_id', $this->id)
+                                        ->orderBy('id', 'desc')
+                                        ->get();
+        else
+            $good_loadings = GoodLoading::where('payment', '1131')
+                                        ->where('distributor_id', $this->id)
+                                        ->orderBy('id', 'desc')
+                                        ->paginate($pagination);
 
         return $good_loadings;
     }
@@ -190,12 +211,45 @@ class Distributor extends Model
         return $journals;
     }
 
-    public function titipUang()
+    public function titipUang($pagination)
     {
-        $journals = Journal::where('type', 'cash_transaction')
-                           ->where('name', 'like', 'Titipan Uang Pembayaran ' . $this->name . '%')
-                           ->get();
+        if($pagination == 'all')
+            $journals = Journal::where('type', 'cash_transaction')
+                               ->where('name', 'like', 'Titipan Uang Pembayaran ' . $this->name . '%')
+                               ->get();
+        else
+            $journals = Journal::where('type', 'cash_transaction')
+                               ->where('name', 'like', 'Titipan Uang Pembayaran ' . $this->name . '%')
+                               ->paginate($pagination);
 
         return $journals;
+    }
+
+    public function totalUntung()
+    {
+        $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                ->join('goods', 'goods.id', 'good_units.good_id')
+                                ->select(DB::raw('SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total'))
+                                ->where('goods.last_distributor_id', $this->id)
+                                ->where('transaction_details.type', 'normal')
+                                ->where('transactions.deleted_at', null)
+                                // ->where('good_units.deleted_at', null)
+                                ->where('goods.deleted_at', null)
+                                ->get();
+
+        return $transaction[0]->total;
+    }
+
+    public function totalRugi()
+    {
+        $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+                                ->join('goods', 'goods.id', 'good_units.good_id')
+                                ->select(DB::raw('SUM(transaction_details.buy_price * transaction_details.quantity) AS total'))
+                                ->whereRaw('goods.last_distributor_id = ' . $this->id . ' AND (transaction_details.type = "5215" OR transaction_details.type = "stock_opname") AND transactions.deleted_at is NULL AND goods.deleted_at is NULL')
+                                ->get();
+
+        return $transaction[0]->total;
     }
 }

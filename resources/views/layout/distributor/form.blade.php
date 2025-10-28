@@ -2,7 +2,7 @@
     <div class="row">
         <div class="form-group">
             {!! Form::label('name', 'Nama', array('class' => 'col-sm-12')) !!}
-            <div class="col-sm-5">
+            <div class="col-sm-12">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('name', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
@@ -13,7 +13,7 @@
 
         <div class="form-group">
             {!! Form::label('location', 'Lokasi', array('class' => 'col-sm-12')) !!}
-            <div class="col-sm-5">
+            <div class="col-sm-12">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('location', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
@@ -25,7 +25,7 @@
         <div class="form-group">
             {{ csrf_field() }}
 
-            <div class="col-sm-5">
+            <div class="col-sm-12">
                 <hr>
                 @if($SubmitButtonText == 'Edit')
                     {!! Form::submit($SubmitButtonText, ['class' => 'btn form-control'])  !!}
