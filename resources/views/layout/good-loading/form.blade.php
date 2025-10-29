@@ -138,6 +138,11 @@
                       </div>
                     </div>
                 </div>
+                @if(\Auth::user()->role == 'supervisor')
+                    <div class="form-group col-sm-12" style="margin-top: -10px;">
+                        <button type="button" class="btn btn-success col-sm-12" data-toggle="modal" data-target="#modal-good">Tambah barang baru</button>
+                    </div>
+                @endif
                 <div class="form-group col-sm-12" style="margin-top: -10px;">
                     {!! Form::label('distributor_id', 'Distributor', array('class' => 'col-sm-1 left control-label')) !!}
                     <div class="col-sm-12">
@@ -195,63 +200,76 @@
     </div>
 
     @if(\Auth::user()->role == 'supervisor')
-        <h4>Barang Baru</h4>
-        <div class="row">
-            <div class="col-sm-5">
-                <div class="form-group">
-                    {!! Form::label('category_id', 'Kategori', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::select('category_id', getCategories(), null, ['class' => 'form-control select2',
-                        'style'=>'width: 100%', 'id' => 'category_id']) !!}
+        <div class="modal fade" id="modal-good">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span></button>
+                  <h4 class="modal-title">Barang Baru</h4>
+              </div>
+              <div class="modal-body">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        {!! Form::label('category_id', 'Kategori', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::select('category_id', getCategories(), null, ['class' => 'form-control select2',
+                            'style'=>'width: 100%', 'id' => 'category_id']) !!}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    {!! Form::label('code', 'Barcode Barang', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::text('code', null, array('class' => 'form-control', 'id' => 'code')) !!}
-                        {{-- <input name="generate" type="checkbox" checked="checked" id="generate"> Generate code --}}
+                    <div class="form-group">
+                        {!! Form::label('code', 'Barcode Barang', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::text('code', null, array('class' => 'form-control', 'id' => 'code')) !!}
+                            {{-- <input name="generate" type="checkbox" checked="checked" id="generate"> Generate code --}}
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    {!! Form::label('name', 'Nama Barang', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::text('name', null, array('class' => 'form-control','required'=>'required', 'id' => 'name')) !!}
+                    <div class="form-group">
+                        {!! Form::label('name', 'Nama Barang', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::text('name', null, array('class' => 'form-control','required'=>'required', 'id' => 'name')) !!}
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    {!! Form::label('brand_id', 'Brand/Merek', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::select('brand_id', getBrands(), null, ['class' => 'form-control select2',
-                        'style'=>'width: 100%', 'id' => 'brand_id']) !!}
+                    <div class="form-group">
+                        {!! Form::label('brand_id', 'Brand/Merek', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::select('brand_id', getBrands(), null, ['class' => 'form-control select2',
+                            'style'=>'width: 100%', 'id' => 'brand_id']) !!}
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    {!! Form::label('unit_id', 'Satuan', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::select('unit_id', getUnits(), null, ['class' => 'form-control select2',
-                        'style'=>'width: 100%', 'id' => 'unit_id']) !!}
+                    <div class="form-group">
+                        {!! Form::label('unit_id', 'Satuan', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::select('unit_id', getUnits(), null, ['class' => 'form-control select2',
+                            'style'=>'width: 100%', 'id' => 'unit_id']) !!}
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    {!! Form::label('price', 'Harga Beli', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::text('price', null, array('class' => 'form-control','required'=>'required', 'id' => 'price', 'onkeyup' => 'formatNumber("price")')) !!}
+                    <div class="form-group">
+                        {!! Form::label('price', 'Harga Beli', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::text('price', null, array('class' => 'form-control','required'=>'required', 'id' => 'price', 'onkeyup' => 'formatNumber("price")')) !!}
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    {!! Form::label('selling_price', 'Harga Jual', array('class' => 'col-sm-4 control-label')) !!}
-                    <div class="col-sm-8">
-                        {!! Form::text('selling_price', null, array('class' => 'form-control','required'=>'required', 'id' => 'selling_price', 'onkeyup' => 'formatNumber("selling_price")')) !!}
+                    <div class="form-group">
+                        {!! Form::label('selling_price', 'Harga Jual', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::text('selling_price', null, array('class' => 'form-control','required'=>'required', 'id' => 'selling_price', 'onkeyup' => 'formatNumber("selling_price")')) !!}
+                        </div>
                     </div>
                 </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline" onclick="event.preventDefault(); addNewGood();">Tambah Barang Baru</button>
+              </div>
             </div>
+          </div>
         </div>
-        <div onclick="event.preventDefault(); addNewGood()" class='btn btn-success btn-flat btn-block form-control'>Tambah Barang Baru</div>
     @endif
 </div>
 
@@ -413,6 +431,7 @@
                     $("#price").val("");
                     $("#selling_price").val("");
                     $("#expiry_date").val("");
+                    $('#modal-good').modal('hide');
                 },
                 error: function(){
                     alert("Harga beli dan harga jual harus berupa angka & tidak boleh kosong");
