@@ -443,12 +443,14 @@ trait GoodControllerBase
                 if($distributor_id == 'all')
                 {
                     $goods = Good::where('last_stock', '<=', $stock)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
                 else
                 {
                     $goods = Good::where('last_stock', '<=', $stock)
                                  ->where('last_distributor_id', $distributor_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
             }
@@ -459,6 +461,7 @@ trait GoodControllerBase
                     $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
                                  ->where('last_stock', '<=', $stock)
                                  ->where('distributors.location', $location)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
                 else
@@ -467,6 +470,7 @@ trait GoodControllerBase
                                  ->where('last_stock', '<=', $stock)
                                  ->where('distributors.location', $location)
                                  ->where('last_distributor_id', $distributor_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
             }
@@ -479,6 +483,7 @@ trait GoodControllerBase
                 {
                     $goods = Good::where('last_stock', '<=', $stock)
                                  ->where('category_id', $category_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
                 else
@@ -486,6 +491,7 @@ trait GoodControllerBase
                     $goods = Good::where('last_stock', '<=', $stock)
                                  ->where('category_id', $category_id)
                                  ->where('last_distributor_id', $distributor_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
             }
@@ -497,6 +503,7 @@ trait GoodControllerBase
                                  ->where('last_stock', '<=', $stock)
                                  ->where('distributors.location', $location)
                                  ->where('category_id', $category_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
                 else
@@ -506,6 +513,7 @@ trait GoodControllerBase
                                  ->where('distributors.location', $location)
                                  ->where('category_id', $category_id)
                                  ->where('last_distributor_id', $distributor_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->get();
                 }
             }

@@ -237,21 +237,12 @@ class Distributor extends Model
                                     ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                    ->select(DB::raw('SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total, transactions.id, transaction_details.type, transaction_details.created_at, goods.name, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price, units.code'))
+                                    ->select(DB::raw('SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total'))
                                     ->where('goods.last_distributor_id', $this->id)
                                     ->where('transaction_details.type', 'normal')
                                     ->where('transactions.deleted_at', null)
                                     // ->where('good_units.deleted_at', null)
                                     ->where('goods.deleted_at', null)
-                                    ->groupBy('transactions.id')
-                                    ->groupBy('transaction_details.type')
-                                    ->groupBy('transaction_details.created_at')
-                                    ->groupBy('goods.name')
-                                    ->groupBy('transaction_details.quantity')
-                                    ->groupBy('transaction_details.buy_price')
-                                    ->groupBy('transaction_details.selling_price')
-                                    ->groupBy('units.code')
-                                    ->orderBy('transaction_details.created_at', 'desc')
                                     ->get();
         else
              $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
@@ -272,7 +263,7 @@ class Distributor extends Model
                                 ->groupBy('transaction_details.buy_price')
                                 ->groupBy('transaction_details.selling_price')
                                 ->groupBy('units.code')
-                                ->orderBy('transaction_details.created_at', 'desc')
+                                ->orderBy('total', 'desc')
                                 ->paginate($pagination);
 
         return $transaction;
@@ -285,17 +276,8 @@ class Distributor extends Model
                                     ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                    ->select(DB::raw('SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transactions.id, transaction_details.type, transaction_details.created_at, goods.name, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price, units.code'))
+                                    ->select(DB::raw('SUM(transaction_details.buy_price * transaction_details.quantity) AS total'))
                                     ->whereRaw('goods.last_distributor_id = ' . $this->id . ' AND (transaction_details.type = "5215" OR transaction_details.type = "stock_opname") AND transactions.deleted_at is NULL AND goods.deleted_at is NULL')
-                                    ->groupBy('transactions.id')
-                                    ->groupBy('transaction_details.type')
-                                    ->groupBy('transaction_details.created_at')
-                                    ->groupBy('goods.name')
-                                    ->groupBy('transaction_details.quantity')
-                                    ->groupBy('transaction_details.buy_price')
-                                    ->groupBy('transaction_details.selling_price')
-                                    ->groupBy('units.code')
-                                    ->orderBy('transaction_details.created_at', 'desc')
                                     ->get();
         else
             $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
@@ -312,7 +294,7 @@ class Distributor extends Model
                                     ->groupBy('transaction_details.buy_price')
                                     ->groupBy('transaction_details.selling_price')
                                     ->groupBy('units.code')
-                                    ->orderBy('transaction_details.created_at', 'desc')
+                                    ->orderBy('total', 'desc')
                                     ->paginate($pagination);
 
         return $transaction;

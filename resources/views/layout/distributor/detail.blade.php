@@ -84,8 +84,11 @@
                 </tr>
               </table>              
             </div>
+          </div>
+          <div class="box-body" style="border: 2px solid black">
             <div class="col-sm-12">
               @if($type == 'aset')
+                <h3>Detail Aset</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -119,6 +122,7 @@
                   </tbody>
                 </table>
               @elseif($type == 'utang_dagang')
+                <h3>Detail Hutang Dagang</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -141,6 +145,7 @@
                   </tbody>
                 </table>
               @elseif($type == 'titip_uang')
+                <h3>Detail Titipan Uang</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -163,6 +168,7 @@
                   </tbody>
                 </table>
               @elseif($type == 'pembayaran_internal')
+              <h3>Detail Pembayaran Hutang dari Transaksi Internal</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -189,6 +195,7 @@
                   </tbody>
                 </table>
               @elseif($type == 'piutang_dagang')
+              <h3>Detail Piutang Dagang dari Transaksi Internal</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -215,6 +222,7 @@
                   </tbody>
                 </table>
               @elseif($type == 'piutan_dagang_loading')
+              <h3>Detail Piutang Dagang dari Loading Barang</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -237,6 +245,7 @@
                   </tbody>
                 </table>
               @elseif($type == 'pembayaran')
+              <h3>Detail Pembayaran Tunai</h3>
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>
@@ -259,6 +268,11 @@
                   </tbody>
                 </table>
               @elseif($type == 'untung' || $type == 'rugi')
+                @if($type == 'untung')
+                  <h3>Detail Untung</h3>
+                @else
+                  <h3>Detail Rugi</h3>
+                @endif
                 <table class="table table-bordered table-striped">
                   <thead>
                   <tr>

@@ -34,8 +34,8 @@
 
 <div class="panel-body" style="margin-top: -30px;">
     <div class="row">
-        <div class="form-group col-sm-9" style=" height: 65vh !important;">
-            <table class="table table-bordered table-striped" style="overflow-y: auto;">
+        <div class="form-group col-sm-9" style=" height: 65vh !important; overflow-y: auto;">
+            <table class="table table-bordered table-striped">
                 <thead>
                     <th style="display: none;">Barcode</th>
                     <th>No</th>
@@ -618,7 +618,7 @@
             money_returned = parseInt(total) - parseInt(sum);
             money_returned = money_returned.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 
-            document.getElementById("div_money_returned").innerHTML = "Kembali: " + money_returned;
+            document.getElementById("div_money_returned").innerHTML = "PROSES => Kembali: " + money_returned;
             document.getElementById("money_returned").value = money_returned;
         }
 

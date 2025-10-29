@@ -22,6 +22,7 @@
                   <th>Total Aset</th>
                   <th>Total Untung</th>
                   <th>Total Rugi (Penyusutan & SO)</th>
+                  <th>Persentase Rugi</th>
                   <!-- <th>Total Hutang Dagang</th>
                   <th>Pembayaran Hutang dengan Barang</th>
                   <th>Pembayaran Hutang dengan Uang</th>
@@ -43,8 +44,10 @@
                     <td>{{ $distributor->location }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ showRupiah($distributor->getAsset()) }}</td>
-                      <td>{{ showRupiah($distributor->totalUntung('all')->sum('total')) }}</td>
-                      <td>{{ showRupiah($distributor->totalRugi('all')->sum('total')) }}</td>
+                      <?php $a = $distributor->totalUntung('all')[0]->total; $b = $distributor->totalRugi('all')[0]->total; ?>
+                      <td>{{ showRupiah($a) }}</td>
+                      <td>{{ showRupiah($b) }}</td>
+                      <td>@if($a == 0) 0% @else {{ round($b/$a * 100, 2) . '%' }} @endif</td>
                       <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/creditPayment') }}"><i class="fa fa-dollar tosca" aria-hidden="true"></i></a></td>
                     @endif
                     <td class="center"><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/aset') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
