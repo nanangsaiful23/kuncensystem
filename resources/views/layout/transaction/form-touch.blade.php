@@ -32,10 +32,10 @@
 </style>
 <script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
 
-<div class="panel-body" style="margin-top: -30px">
+<div class="panel-body" style="margin-top: -30px;">
     <div class="row">
-        <div class="form-group col-sm-9">
-            <table class="table table-bordered table-striped" style="overflow-x: auto;">
+        <div class="form-group col-sm-9" style=" height: 65vh !important;">
+            <table class="table table-bordered table-striped" style="overflow-y: auto;">
                 <thead>
                     <th style="display: none;">Barcode</th>
                     <th>No</th>
@@ -65,7 +65,7 @@
                             {!! Form::text('satuans[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'satuan-'.$i)) !!}
                         </td>
                         <td width="5%">
-                            <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('all_barcode', '{{ $i }}')">
+                            <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('all_barcode', '{{ $i }}')" onkeyup="checkDiscount('all_barcode', '{{ $i }}')" style="background-color: yellow !important;">
                         </td>
                         <td width="9%">
                             {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
@@ -73,7 +73,7 @@
                         </td>
                         <td width="8%" style="display: none;">
                             @if(\Auth::user()->email == 'admin')
-                                <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
+                                <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeyup="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
                             @else
                                 {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
                             @endif
@@ -190,12 +190,6 @@
                     {!! Form::text('total_discount_items_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_discount_items_price')) !!}
                 </div>
             </div>
-            <div class="form-group" style="margin-top: -10px;">
-                {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
-                    <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price'); changeTotal()">
-                </div>
-            </div>
             <div class="form-group" style="display: none">
                 {!! Form::label('voucher', 'Potongan Voucher', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-3">
@@ -210,43 +204,51 @@
                 <div class="col-sm-3" id="voucher_result">
                 </div>
             </div>
-            <div class="form-group" style="margin-top: -10px;">
-                <div id="div_total_item"></div>
-                Total qty:
-            </div>  
         </div>
         {{ Form::hidden('type', 'normal') }}
     </div>
 
     <div class="row" style="margin-top: -40px">
-        <div class="col-sm-2">
-            <div class="form-group">
-                {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
-                <div class="col-sm-12">
-                    {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => 'height: 50px; background-color: #BF092F !important; font-weight: bold; font-size: 25px; color: white')) !!}
+        <div  class="col-sm-6">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 18px; text-align: left')) !!}
+                    <div class="col-sm-12" style="margin-top: 2px">
+                        <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price'); changeTotal()" style="height: 50px; font-size: 25px;">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="form-group">
+                    {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
+                    <div class="col-sm-12">
+                        {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => 'height: 50px; background-color: #BF092F !important; font-weight: bold; font-size: 25px; color: white')) !!}
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="form-group">
+                    {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
+                    <div class="col-sm-12">
+                        <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid'); changeReturn()" style="height: 50px; background-color: #FFE100; font-size: 25px;">
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-2">
-            <div class="form-group">
-                {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
-                <div class="col-sm-12">
-                    <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid'); changeReturn()" style="height: 50px; background-color: #FFE100; font-size: 25px;">
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-2">
+       <!--  <div class="col-sm-2">
             <div class="form-group">
                 {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 20px; text-align: left')) !!}
                 <div class="col-sm-12">
                     {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned', 'style' => 'height: 50px; font-weight: bold; font-size: 25px')) !!}
                 </div>
             </div>  
-        </div>
+        </div> -->
         @if($SubmitButtonText == 'Edit')
             {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control',])  !!}
         @elseif($SubmitButtonText == 'Tambah')
-            <div onclick="event.preventDefault(); submitForm(this);" class='btn btn-success col-sm-6' style="height: 80px; font-size: 30px; background-color: #08CB00">Proses Transaksi</div>
+            <div onclick="event.preventDefault(); submitForm(this);" class='btn btn-success col-sm-6' style="height: 80px; font-size: 30px; background-color: #08CB00" id="div_money_returned">Proses Transaksi
+            </div>
+            {!! Form::hidden('money_returned', null, array('id' => 'money_returned')) !!}
         @elseif($SubmitButtonText == 'View')
         @endif
         <hr>
@@ -615,8 +617,8 @@
             sum = sum.replace(/,/g,'');
             money_returned = parseInt(total) - parseInt(sum);
 
+            document.getElementById("div_money_returned").innerHTML = "Kembali: " + money_returned;
             document.getElementById("money_returned").value = money_returned;
-            formatNumber("money_returned");
         }
 
         function submitForm(btn)
@@ -687,10 +689,10 @@
             if(temp1 % 2 == 0)
                 color = 'background-color: #E7F2EF !important;';
 
-            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input type="text" class="form-control" readonly="readonly" id="satuan-' + type + temp1 + '" name="satuans-' + type + '[]" type="text" style="' + color + '"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
+            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input type="text" class="form-control" readonly="readonly" id="satuan-' + type + temp1 + '" name="satuans-' + type + '[]" type="text" style="' + color + '"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" style="background-color: yelow !important"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
 
             @if(\Auth::user()->email == 'admin')
-                htmlResult += '<td style="display: none"><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';
+                htmlResult += '<td style="display: none"><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeyup="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';
             @else
                 htmlResult += '<td style="display: none"><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0" style="text-align: right;"></td>';
             @endif

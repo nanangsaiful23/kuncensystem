@@ -76,6 +76,7 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request);die;
         $transaction = $this->storeTransactionBase('admin', \Auth::user()->id, $request);
 
         session(['alert' => 'add', 'data' => 'transaksi']);
