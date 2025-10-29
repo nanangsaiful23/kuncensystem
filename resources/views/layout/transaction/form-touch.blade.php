@@ -616,6 +616,7 @@
             sum = document.getElementById("total_sum_price").value;
             sum = sum.replace(/,/g,'');
             money_returned = parseInt(total) - parseInt(sum);
+            money_returned = money_returned.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 
             document.getElementById("div_money_returned").innerHTML = "Kembali: " + money_returned;
             document.getElementById("money_returned").value = money_returned;
