@@ -472,8 +472,13 @@
             $.ajax({
               url: "{!! url($role . '/good/searchByBarcode/') !!}/" + $("#" + name).val(),
               success: function(result){
+                console.log(result);
                 var good = result.good;
-                fillItem(name, result.good)},
+                if(good != null)
+                {
+                    fillItem(name, result.good)
+                }
+              }, 
               error: function(){
               }
             });
@@ -634,9 +639,10 @@
 
         function deleteItem(index)
         {
-            console.log('masuk delet');
             $("#row-data" + index).remove();
             changeTotal();
+            for (var i = 1; i <= total_item; i++)
+            {}
         }
 
         function editPrice(name, index)
@@ -664,9 +670,9 @@
             changeTotal();
 
             @if(\Auth::user()->email == 'admin')
-                htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeyup="editPrice(\'' + name + '\', \'' + type + temp1 + '\')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1+ '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1+'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+'" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
+                htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td>' + temp1 + '</td><td style="display: none"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeyup="editPrice(\'' + name + '\', \'' + type + temp1 + '\')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1+ '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1+'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+'" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
             @else
-                htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1+ '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1 +'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1 + '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1 +'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+ '" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
+                htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td>' + temp1 + '</td><td style="display: none"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1+ '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1 +'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1 + '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1 +'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+ '" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
             @endif
             htmlResult += "<script>$('#type-" + type + temp1 + "').select2();<\/script>";
            

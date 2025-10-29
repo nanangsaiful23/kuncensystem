@@ -65,7 +65,7 @@
                             {!! Form::text('satuans[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'satuan-'.$i)) !!}
                         </td>
                         <td width="5%">
-                            <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('all_barcode', '{{ $i }}')" onkeyup="checkDiscount('all_barcode', '{{ $i }}')" style="background-color: yellow !important;">
+                            <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('all_barcode', '{{ $i }}')" style="background-color: yellow !important;">
                         </td>
                         <td width="9%">
                             {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
@@ -212,7 +212,7 @@
         <div  class="col-sm-6">
             <div class="col-sm-4">
                 <div class="form-group">
-                    {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 18px; text-align: left')) !!}
+                    {!! Form::label('total_discount_price', 'Potongan Akhir', array('class' => 'col-sm-12 control-label', 'style' => 'font-size: 18px; text-align: left')) !!}
                     <div class="col-sm-12" style="margin-top: 2px">
                         <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price'); changeTotal()" style="height: 50px; font-size: 25px;">
                     </div>
@@ -494,8 +494,13 @@
             $.ajax({
               url: "{!! url($role . '/good/searchByBarcode/') !!}/" + $("#" + name).val(),
               success: function(result){
+                console.log(result);
                 var good = result.good;
-                fillItem(name, result.good)},
+                if(good != null)
+                {
+                    fillItem(name, result.good)
+                }
+              }, 
               error: function(){
               }
             });
@@ -690,7 +695,7 @@
             if(temp1 % 2 == 0)
                 color = 'background-color: #E7F2EF !important;';
 
-            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input type="text" class="form-control" readonly="readonly" id="satuan-' + type + temp1 + '" name="satuans-' + type + '[]" type="text" style="' + color + '"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" style="background-color: yelow !important"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
+            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="30%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input type="text" class="form-control" readonly="readonly" id="satuan-' + type + temp1 + '" name="satuans-' + type + '[]" type="text" style="' + color + '"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" style="background-color: yelow !important"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
 
             @if(\Auth::user()->email == 'admin')
                 htmlResult += '<td style="display: none"><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeyup="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';

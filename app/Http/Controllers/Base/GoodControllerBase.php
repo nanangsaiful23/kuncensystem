@@ -105,10 +105,17 @@ trait GoodControllerBase
     public function searchByBarcodeGoodBase($barcode)
     {
         $good = Good::where('code', $barcode)->first();
-        $good->getPcsSellingPrice = $good->base_unit();
-        $good->stock = $good->last_stock;
+        if($good != null)
+        {
+            $good_unit = $good->base_unit();
+            $good_unit->name = $good_unit->unit->name;
+            $good->getPcsSellingPrice = $good_unit;
+            $good->stock = $good->last_stock;
 
-        return $good;
+            return $good;
+        }
+        else
+            return null;
     }
 
     public function searchByIdGoodBase($good_id)
