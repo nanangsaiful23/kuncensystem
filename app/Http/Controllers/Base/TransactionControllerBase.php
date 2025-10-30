@@ -767,7 +767,7 @@ trait TransactionControllerBase
         return true;
     }
 
-    public function resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date)
+    public function resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date, $pagination)
     {
         if($category_id == 'all' && $distributor_id == 'all')
         {
@@ -779,7 +779,7 @@ trait TransactionControllerBase
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                                     ->where('transaction_details.type', $type)
@@ -793,7 +793,7 @@ trait TransactionControllerBase
                                                     ->groupBy('transaction_details.selling_price')
                                                     ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
-                                                    ->get();
+                                                    ->paginate($pagination);
         }
         else if($category_id == 'all')
         {
@@ -808,7 +808,7 @@ trait TransactionControllerBase
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
                                                     ->where('transaction_details.type', $type)
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
@@ -823,7 +823,7 @@ trait TransactionControllerBase
                                                     ->groupBy('transaction_details.selling_price')
                                                     ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
-                                                    ->get();
+                                                    ->paginate($pagination);
         }
         else if($distributor_id == 'all')
         {
@@ -839,7 +839,7 @@ trait TransactionControllerBase
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
                                                     ->where('transaction_details.type', $type)
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
@@ -855,7 +855,7 @@ trait TransactionControllerBase
                                                     ->groupBy('transaction_details.selling_price')
                                                     ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
-                                                    ->get();
+                                                    ->paginate($pagination);
         }
         else
         {   
@@ -871,7 +871,7 @@ trait TransactionControllerBase
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                                     ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price"))
+                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
                                                     ->where('transaction_details.type', $type)
                                                     ->where('goods.category_id', $category_id)
                                                     ->where('goods.last_distributor_id', $distributor_id)
@@ -887,7 +887,7 @@ trait TransactionControllerBase
                                                     ->groupBy('transaction_details.selling_price')
                                                     ->orderBy('selling_price', 'desc')
                                                     ->orderBy('quantity', 'desc')
-                                                    ->get();
+                                                    ->paginate($pagination);
         }
 
         return [$transaction_details, $total];

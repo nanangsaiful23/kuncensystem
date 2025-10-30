@@ -115,7 +115,7 @@ class TransactionController extends Controller
         return redirect('/admin/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20');
     }
 
-    public function resume($type, $category_id, $distributor_id, $start_date, $end_date)
+    public function resume($type, $category_id, $distributor_id, $start_date, $end_date, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -123,9 +123,9 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'resume';
 
-        [$transaction_details, $total] = $this->resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date);
+        [$transaction_details, $total] = $this->resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date, $pagination);
 
-        return view('admin.layout.page', compact('default', 'transaction_details', 'total', 'type', 'category_id', 'distributor_id', 'start_date', 'end_date'));
+        return view('admin.layout.page', compact('default', 'transaction_details', 'total', 'type', 'category_id', 'distributor_id', 'start_date', 'end_date', 'pagination'));
     }
 
     public function resumeTotal($start_date, $end_date)

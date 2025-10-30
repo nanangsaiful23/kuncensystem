@@ -56,26 +56,22 @@
               </tr>
               </thead>
               <tbody id="table-good">
-                <?php $total = 0; $total_all = 0; ?>
                 @foreach($transaction_details as $detail)
-                  <?php $profit = calculateProfit($detail->buy_price, roundMoney($detail->selling_price)); ?>
-                  <!-- <tr style="background-color: @if($detail->buy_price >= $detail->selling_price || $detail->buy_price == 0) #D21312 @elseif($profit <= 10) #FAE392 @elseif($profit <= 20) #C3EDC0 @elseif($profit <= 30) #F29727 @else #FF6D60 @endif"> -->
                   <tr style="background-color: @if($detail->buy_price >= $detail->selling_price) #F29727 @elseif($detail->buy_price == 0) #D21312 @endif">
                     <td><a href="{{ url($role . '/good/' . $detail->id . '/detail') }}" target="_blank()">{{ $detail->name }}</a></td>
                     <td>{{ $detail->quantity }}</td>
                     <td>{{ $detail->unit_name }}</td>
                     <td @if($detail->last_stock <= 0) style="background-color: red" @endif>{{ $detail->last_stock }}</td>
-                    <td>{{ showRupiah($detail->selling_price - $detail->buy_price) }}<br>{{ $profit }}%</td>
-                    <?php $total = ($detail->selling_price - $detail->buy_price) * $detail->quantity; $total_all += $total; ?>
-                    <td>{{ showRupiah($total) }}</td>
+                    <td>{{ showRupiah($detail->profit) }}<br>{{ round($detail->profit / $detail->buy_price * 100, 2) }}%</td>
+                    <td>{{ showRupiah($detail->profit * $detail->quantity) }}</td>
                     <td>{{ showRupiah($detail->buy_price) }}</td>
                     <td>{{ showRupiah($detail->selling_price) }}</td>
                     <td>{{ showRupiah($detail->selling_price * $detail->quantity) }}</td>
                   </tr>
                 @endforeach
+                {{ $transaction_details->render() }}
               </tbody>
             </table>
-            <h3>Total untung: {{ showRupiah($total_all) }}</h3>
           </div>
         </div>
       </div>
