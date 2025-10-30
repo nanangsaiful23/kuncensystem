@@ -34,7 +34,7 @@
 
 <div class="panel-body" style="margin-top: -30px;">
     <div class="row">
-        <div class="form-group col-sm-9" style=" height: 65vh !important; overflow-y: auto;">
+        <div class="form-group col-sm-9" style=" height: 65vh !important; overflow-y: auto;" id="div-good">
             <table class="table table-bordered table-striped">
                 <thead>
                     <th style="display: none;">Barcode</th>
@@ -97,14 +97,14 @@
                 <div id="empty-item"></div>
             </div>
             <div class="form-group col-sm-12" style="height: 40px!important; font-size: 20px;">
-                {!! Form::label('all_barcode', 'Barcode', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
+                {!! Form::label('all_barcode', 'Barcode', array('class' => 'col-sm-12 control-label', 'style' => ' text-align: left')) !!}
+                <div class="col-sm-12">
                     <input type="text" name="all_barcode" class="form-control" id="all_barcode" onchange="searchByBarcode('all_barcode')" onfocus="changeBackColor('all_barcode')" onfocusout="changeBackNorm('all_barcode')">
                 </div>
             </div>
-            <div class="form-group col-sm-12" style="height: 40px!important; font-size: 20px; margin-top: -10px;">
-                {!! Form::label('keyword', 'Keyword', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
+            <div class="form-group col-sm-12" style="height: 40px!important; font-size: 20px; margin-top: 6px;">
+                {!! Form::label('keyword', 'Keyword', array('class' => 'col-sm-12 control-label', 'style' => ' text-align: left')) !!}
+                <div class="col-sm-12">
                     <input type="text" name="search_good" class="form-control" id="search_good" onfocus="changeBackColor('search_good')" onfocusout="changeBackNorm('search_good')">
                 </div>
                  <div class="modal modal-primary fade" id="modal_search">
@@ -125,9 +125,9 @@
                   </div>
                 </div>
             </div>
-            <div class="form-group col-sm-12" style="margin-top: -10px;">
-                {!! Form::label('member_id', 'Member', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
+            <div class="form-group col-sm-12" style="margin-top: 6px;">
+                {!! Form::label('member_id', 'Member', array('class' => 'col-sm-12 control-label', 'style' => ' text-align: left')) !!}
+                <div class="col-sm-12">
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
@@ -153,13 +153,13 @@
                     @endif
                 </div>
             </div>
-            <div class="form-group col-sm-12" style="margin-top: -10px;">
-                <div class="col-sm-8 col-sm-offset-4 btn btn-warning" onclick="startCamera()">Scan Barcode Member</div>
-                <div class="col-sm-8 col-sm-offset-4 btn btn-warning" onclick="stopCamera()">Berhenti Scan</div>
+            <div class="form-group col-sm-12" style=" margin-top: 6px;">
+                <div class="col-sm-12 btn btn-warning" onclick="startCamera()">Scan Barcode Member</div>
+                <div class="col-sm-12 btn btn-warning" onclick="stopCamera()">Berhenti Scan</div>
             </div>
-            <div class="form-group col-sm-12">
-                {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-4 control-label')) !!}
-                <div class="col-sm-8">
+            <div class="form-group col-sm-12" style=" margin-top: 6px;">
+                {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-12 control-label', 'style' => ' text-align: left')) !!}
+                <div class="col-sm-12">
                     @if($SubmitButtonText == 'View')
                         {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                     @else
@@ -167,9 +167,9 @@
                     @endif
                 </div>
             </div>
-            <div class="form-group col-sm-12" style="margin-top: -10px;">
-                {!! Form::label('payment', 'Pembayaran', array('class' => 'col-sm-4 control-label', 'style' => 'text-align: left')) !!}
-                <div class="col-sm-8">
+            <div class="form-group col-sm-12" style="margin-top: 6px;">
+                {!! Form::label('payment', 'Pembayaran', array('class' => 'col-sm-12 control-label', 'style' => 'text-align: left')) !!}
+                <div class="col-sm-12">
                     <select class="form-control select2" style="width: 100%;" name="payment">
                         <!-- <div> -->
                             <option value="cash">Cash/Uang</option>
@@ -451,6 +451,9 @@
                 }
                 document.getElementById(name).value = '';
                 $("#" + name).focus();
+
+                let scrollableDiv = document.getElementById('div-good');
+                scrollableDiv.scrollTop = scrollableDiv.scrollHeight;
             }
             else
             {
@@ -679,7 +682,6 @@
                 items = total_item_retur;
                 td_rusak = '<td><select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '"><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></select></td>';
             }
-            console.log(name);
 
             document.getElementById("total_price-" + type + index).value = (unFormatNumber(document.getElementById("price-" + type + index).value) * unFormatNumber(document.getElementById("quantity-" + type + index).value));
 
