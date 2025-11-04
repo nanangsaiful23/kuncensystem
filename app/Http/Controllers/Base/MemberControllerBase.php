@@ -19,6 +19,7 @@ trait MemberControllerBase
                             ->whereRaw('(transactions.type = "normal" OR transactions.type = "retur")')
                             ->whereDate('transactions.created_at', '>=', $start_date)
                             ->whereDate('transactions.created_at', '<=', $end_date) 
+                            ->where('members.id', '!=', '1')
                             ->groupBy('members.id', 'members.name', 'members.address', 'members.phone_number')
                             ->orderBy($sort, $order)->get();
         else
@@ -27,6 +28,7 @@ trait MemberControllerBase
                             ->whereRaw('(transactions.type = "normal" OR transactions.type = "retur")')
                             ->whereDate('transactions.created_at', '>=', $start_date)
                             ->whereDate('transactions.created_at', '<=', $end_date) 
+                            ->where('members.id', '!=', '1')
                             ->groupBy('members.id', 'members.name', 'members.address', 'members.phone_number')
                             ->orderBy($sort, $order)->paginate($pagination);
 
