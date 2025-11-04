@@ -106,13 +106,13 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/{{ $role }}/transaction/resume/{{ $type }}/{{ $category_id }}/{{ $distributor_id }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val();
+      window.location = window.location.origin + '/{{ $role }}/transaction/resume/{{ $type }}/{{ $category_id }}/{{ $distributor_id }}/' + $("#datepicker").val() + '/' + $("#datepicker2").val() + '/{{ $pagination }}';
     }
 
     function advanceSearch()
     {
 
-      window.location = window.location.origin + '/{{ $role }}/transaction/resume/' + $('#type').val() + '/'+ $('#category').val() + '/' + $('#distributor').val() + '/{{ $start_date}}/{{ $end_date }}';
+      window.location = window.location.origin + '/{{ $role }}/transaction/resume/' + $('#type').val() + '/'+ $('#category').val() + '/' + $('#distributor').val() + '/{{ $start_date}}/{{ $end_date }}/{{ $pagination }}';
     }
   </script>
 @endsection

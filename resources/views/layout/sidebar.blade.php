@@ -103,7 +103,7 @@
         </a>
         <ul class="treeview-menu">
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi</a></li>
-            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createTouch' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createTouch') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi (touch screen ver)</a></li>
+            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createTouch' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createTouch') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi (tanpa retur)</a></li>
             <!-- <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createNew' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createNew') }}" target="_blank()"><i class="fa fa-circle-o"></i> Tambah Transaksi (new page)</a></li> -->
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'createTouch' && Request::segment(3) != 'resume' && Request::segment(3) != 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>
