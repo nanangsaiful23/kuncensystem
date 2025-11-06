@@ -18,6 +18,20 @@ trait DeliveryFeeControllerBase
         return $fees;
     }
 
+    public function searchDeliveryFeeBase($keyword)
+    {
+        $fees = DeliveryFee::where('location', 'like', '%' . $keyword . '%')
+                            ->get();
+
+        foreach($fees as $fee)
+        {
+            $fee->fee = showRupiah($fee->fee);
+            $fee->date_fee = displayDate($fee->date_fee);
+        }
+
+        return $fees;
+    }
+
     public function storeDeliveryFeeBase(Request $request)
     {
         $data = $request->input();

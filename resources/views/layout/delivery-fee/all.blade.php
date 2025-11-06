@@ -18,6 +18,7 @@
                 <th>Kecamatan</th>
                 <th>Desa</th>
                 <th>RT/RW</th>
+                <th>Jarak</th>
                 <th>Biaya</th>
                 <th>Tanggal Input Biaya</th>
                 <th class="center" width="5%">Detail</th>
@@ -34,6 +35,7 @@
                     <td>{{ $fee->kecamatan }}</td>
                     <td>{{ $fee->desa }}</td>
                     <td>{{ $fee->rt_rw }}</td>
+                    <td>{{ $fee->distance }}</td>
                     <td>{{ showRupiah($fee->fee) }}</td>
                     <td>{{ displayDate($fee->date_fee) }}</td>
                     <td class="center"><a href="{{ url($role . '/delivery-fee/' . $fee->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
@@ -82,5 +84,30 @@
         });
 
     });
+
+    function ajaxFunction()
+    {
+      $.ajax({
+        url: "{!! url($role . '/delivery-fee/search/') !!}/" + $("#search-input").val(),
+        success: function(result){
+          console.log(result);
+          var htmlResult = "<thead><tr><th>Lokasi</th><th>Kecamatan</th><th>Desa</th><th>RT/RW</th><th>Biaya</th><th>Tanggal Input Biaya</th><th class='center'>Detail</th><th class='center'>Ubah</th>@if($role == 'admin')<th class='center'>Hapus</th>@endif</tr></thead><tbody>";
+          if(result != null)
+          {
+            var r = result.fees;
+            for (var i = 0; i < r.length; i++) {
+              htmlResult += "<tr><td>" + r[i].location + "</td><td>" + r[i].kecamatan + "</td><td>" + r[i].desa + "</td><td>" + r[i].rt_rw + "</td><td>" + r[i].distance + "</td><td>" + r[i].fee + "</td><td>" + r[i].date_fee + "</td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/delivery-fee/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right brown\" aria-hidden=\"true\"></i></a></td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/delivery-fee/" + r[i].id + "/edit\"><i class=\"fa fa-file brown\" aria-hidden=\"true\"></i></a></td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/delivery-fee/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/delivery-fee/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td></tr>";
+            }
+          }
+
+          htmlResult += "</tbody>";
+
+          $("#example1").html(htmlResult);
+        },
+        error: function(){
+            console.log('error');
+        }
+      });
+    }
   </script>
 @endsection

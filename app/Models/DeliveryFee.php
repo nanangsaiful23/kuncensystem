@@ -10,7 +10,7 @@ class DeliveryFee extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'provinsi', 'kota_kab', 'kecamatan', 'desa', 'rt_rw', 'date_fee', 'fee', 'location'
+        'provinsi', 'kota_kab', 'kecamatan', 'desa', 'rt_rw', 'distance', 'date_fee', 'fee', 'location'
     ];
 
     protected $hidden = [

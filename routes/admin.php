@@ -155,6 +155,7 @@ Route::group(['prefix' => 'member'], function () {
 Route::group(['prefix' => 'delivery-fee'], function () {
 	Route::get('/create', 'DeliveryFeeController@create');
 	Route::post('/store', 'DeliveryFeeController@store')->name('delivery-fee.store');
+	Route::get('/search/{keyword}', 'DeliveryFeeController@search');
 	Route::get('/{ongkir_id}/detail', 'DeliveryFeeController@detail');
 	Route::get('/{ongkir_id}/edit', 'DeliveryFeeController@edit');
 	Route::put('/{ongkir_id}/edit', 'DeliveryFeeController@update')->name('delivery-fee.update');

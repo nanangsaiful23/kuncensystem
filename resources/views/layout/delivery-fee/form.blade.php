@@ -81,7 +81,7 @@
             {!! Form::label('fee', 'Biaya', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
-                    {!! Form::text('fee', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                    {!! Form::text('fee', showRupiah($fee->fee), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     {!! Form::text('fee', null, array('class' => 'form-control')) !!}
                 @endif
@@ -91,9 +91,13 @@
         <div class="form-group">
             {!! Form::label('date_fee', 'Tanggal Input Biaya', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
-                <div class="input-group date">
-                    <input type="text" class="form-control" required="required" name="date_fee" id="date_fee">
-                </div>
+                @if($SubmitButtonText != 'View')
+                    <div class="input-group date">
+                        <input type="text" class="form-control" required="required" name="date_fee" id="date_fee">
+                    </div>
+                @elseif($SubmitButtonText == 'View')
+                    {!! Form::text('date_fee', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @endif
             </div>
         </div>
         

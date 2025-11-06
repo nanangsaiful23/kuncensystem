@@ -51,6 +51,15 @@ class DeliveryFeeController extends Controller
         return redirect('/admin/delivery-fee/' . $fee->id . '/detail');
     }
 
+    public function search($keyword)
+    {
+        $fees = $this->searchDeliveryFeeBase($keyword);
+
+        return response()->json([
+            "fees"  => $fees
+        ], 200);
+    }
+
     public function detail($fee_id)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
