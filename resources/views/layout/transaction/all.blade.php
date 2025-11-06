@@ -127,5 +127,13 @@
       @endif
       window.location = window.location.origin + '/{{ $role }}/transaction/' + user_id + '/{{ $start_date }}/{{ $end_date }}/' + show;
     }
+
+    function highlight(id)
+    {
+      if($("#" + id).prop('checked') == true)
+        $('#div-' + id).css('background-color', "{{ config('app.app_color') }}");
+      else
+        $('#div-' + id).css('background-color', "white");
+    }
   </script>
 @endsection

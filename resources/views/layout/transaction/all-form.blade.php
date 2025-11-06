@@ -33,7 +33,8 @@
     </thead>
     <tbody id="table-good">
       @foreach($transactions as $transaction)
-        <tr>
+        <tr id="div-transaction-{{ $transaction->id }}">
+          <td><input type="checkbox" name="transactions[]" id="transaction-{{ $transaction->id }}" onclick="highlight('transaction-{{ $transaction->id }}')"></td>
           <td>{{ $transaction->id }}</td>
           <td>{{ $transaction->created_at }}</td>
           @if($role == 'admin')

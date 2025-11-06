@@ -110,6 +110,7 @@
                     <div class="form-group col-sm-12" style="overflow-x:scroll">
                         <table class="table table-bordered table-striped">
                             <thead>
+                                <th>No</th>
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
@@ -121,8 +122,10 @@
                                 <th>Total Akhir</th>
                             </thead>
                             <tbody>
+                                <?php $i = 1; ?>
                                 @foreach($transaction->details as $detail)
                                     <tr @if($detail->type == 'retur') style="background-color: yellow" @endif>
+                                        <td>{{ $i++ }}</td>
                                         <td>
                                             <a href="{{ url($role . '/good/' . $detail->good_unit->good->id . '/detail') }}" target="_blank()">{{ $detail->good_unit->good->code }}</a>
                                         </td>
