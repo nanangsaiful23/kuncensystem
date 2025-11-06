@@ -178,6 +178,9 @@
                     </select>
                 </div>
             </div>
+            <div class="form-group col-sm-12" style="margin-top: 6px;">
+                <input type="checkbox" name="is_credit" id="is_credit" value="1">Hutang
+            </div>
             <div class="form-group" style="display: none;">
                 {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-4 control-label')) !!}
                 <div class="col-sm-8">
@@ -359,6 +362,7 @@
             $("#all_barcode").focus();
             $("#row-data-" + total_item).hide();
             document.getElementById("total_discount_price").value = 0;
+            document.getElementById("is_credit").value = 0;
 
             $("#search_good").keyup( function(e){
               if(e.keyCode == 13)
@@ -634,9 +638,10 @@
         {
             if($('#money_paid').val() != '' && $('#total_discount_price').val() != '')
             {
-                if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#all_member').val() == '1' && $('#member_name').val() == ''))
+                if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#member_id').val() == '1' || $('#is_credit').is(':checked') == false))
                 {
-                    alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member');
+                    console.log($('#is_credit').val());
+                    alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member dan centang tombol hutang');
                 }
                 else
                 {

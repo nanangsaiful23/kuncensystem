@@ -1,4 +1,4 @@
-<div class="box-body" style="overflow-x:scroll; background-color: {{ $color }}">
+<div class="box-body" style="background-color: {{ $color }}">
   <h3>Transaksi {{ $name }}</h3><br>
   <h4>Total transaksi {{ $name }}: {{ showRupiah($total_sum_price) }}</h4>
   <h4>Total potongan: {{ showRupiah($total_discount_price) }}</h4><br>

@@ -34,7 +34,7 @@
               </div>
             </div>
           </div>
-          <div class="box-body" style="overflow-x:scroll; font-size: 16px">
+          <div class="box-body" style="font-size: 16px">
             <table>
               <tr>
                 <td>Total transaksi</td>
