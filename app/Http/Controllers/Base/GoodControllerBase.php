@@ -136,11 +136,6 @@ trait GoodControllerBase
             $temp['good_base_buy_price'] = $good->base_unit()->buy_price;
             $temp['stock'] = $good->last_stock;
             $temp['code'] = $good->code;
-            // if($temp['stock'] == 0)
-            //     $temp['name'] = '[KOSONG] ' . $good->name;
-            // elseif($temp['stock'] < 0)
-            //     $temp['name'] = '[MINUS] ' . $good->name;
-            // else
             $temp['name'] = $good->name;
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;

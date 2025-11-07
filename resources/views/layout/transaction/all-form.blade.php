@@ -7,6 +7,7 @@
   <table id="example1" class="table table-bordered table-striped">
     <thead>
     <tr>
+      <th>Check</th>
       <th>ID</th>
       <th>Waktu</th>
       @if($role == 'admin')
