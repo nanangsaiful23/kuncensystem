@@ -1075,7 +1075,7 @@ trait TransactionControllerBase
             $account = Account::where('code', '1112')->first()->id;
         }
         // dd($transaction);die;
-        $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))) . )
+        $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
                           ->where('type', 'transaction')
                           ->where('debit_account_id', $account)
                           ->first();
