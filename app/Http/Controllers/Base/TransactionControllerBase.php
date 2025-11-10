@@ -710,29 +710,54 @@ trait TransactionControllerBase
 
         if(sizeof($transaction->details) > 0)
         {
-            $data_journal['type']               = 'good_loading';
-            $data_journal['type_id']            = $good_loading->id;
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-            $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
             if($transaction->payment == 'cash')
+            {
                 $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+
+                $old_journal = Journal::where('name', 'Penjualan tanggal ' . displayDate($transaction->created_at))
+                                      ->where('debit_account_id', $data_journal['credit_account_id'])
+                                      ->first();
+
+                $transactions = Transaction::whereDate('created_at', date('Y-m-d', strtotime($transaction->created_at)))
+                                           ->where('payment', $transaction->payment)
+                                           ->where('type', 'normal')
+                                           ->get();
+
+                if(floatval($transactions->sum('total_sum_price')) != floatval($old_journal->debit))
+                    $is_retur = false;
+                else
+                    $is_retur = true;
+
+            }
             elseif($transaction->payment == 'transfer')
+            {
                 $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
-            $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
 
-            Journal::create($data_journal);
+                $is_retur = true;
+            }
 
-            $data_hpp['type']               = 'hpp';
-            $data_hpp['journal_date']       = date('Y-m-d');
-            $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-            $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_hpp['debit']              = unformatNumber($total);
-            $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-            $data_hpp['credit']             = unformatNumber($total);
+            if($is_retur == true)
+            {
+                $data_journal['type']               = 'good_loading';
+                $data_journal['type_id']            = $good_loading->id;
+                $data_journal['journal_date']       = date('Y-m-d');
+                $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
+                $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
+                $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
+                $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
 
-            Journal::create($data_hpp); 
+                Journal::create($data_journal);
+
+                $data_hpp['type']               = 'hpp';
+                $data_hpp['journal_date']       = date('Y-m-d');
+                $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
+                $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
+                $data_hpp['debit']              = unformatNumber($total);
+                $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
+                $data_hpp['credit']             = unformatNumber($total);
+
+                Journal::create($data_hpp);  
+            }
         }
         else
         {  
