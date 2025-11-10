@@ -393,7 +393,7 @@ trait TransactionControllerBase
             $data_journal['type']               = 'transaction';
             $data_journal['type_id']            = $transaction->id;
             $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d')) . ' ID ' . $transaction->id;
             $data_journal['debit']              = $sum;
             $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
             $data_journal['credit']             = $sum;
@@ -1075,13 +1075,14 @@ trait TransactionControllerBase
             $account = Account::where('code', '1112')->first()->id;
         }
         // dd($transaction);die;
-        $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
+        $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))) . )
                           ->where('type', 'transaction')
                           ->where('debit_account_id', $account)
                           ->first();
 
-        $data_journal['debit']              = $journal->debit - $last_sum + $sum;
-        $data_journal['credit']             = $journal->credit - $last_sum + $sum;
+        $data_journal['debit']  = $journal->debit - $last_sum + $sum;
+        $data_journal['credit'] = $journal->credit - $last_sum + $sum;
+        $data_journal['name']   = $journal->name . ' add on ' . $transaction->id;
 
         $journal->update($data_journal);
 
