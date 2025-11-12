@@ -110,15 +110,21 @@
             <div class="col-sm-3" style="width: 20% !important">
                 <div class="form-group col-sm-12" style="margin-top: -40px">
                     {!! Form::label('all_barcode', 'Barcode', array('class' => 'col-sm-1 left control-label')) !!}
-                    <div class="col-sm-12">
-                        <input type="text" name="all_barcode" class="form-control" id="all_barcode"
-                            onchange="searchByBarcode()">
+                    <div class="col-sm-12 input-group">
+                        <input type="text" name="all_barcode" class="form-control" id="all_barcode" onchange="searchByBarcode()">
+                        <span class="input-group-btn">
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat" onclick="event.preventDefault(); searchByBarcode();"><i class="fa fa-search"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="form-group col-sm-12" style="margin-top: -10px;">
                     {!! Form::label('keyword', 'Keyword', array('class' => 'col-sm-1 left control-label')) !!}
-                    <div class="col-sm-12">
+                    <div class="col-sm-12 input-group">
                         <input type="text" name="search_good" class="form-control" id="search_good">
+                        <span class="input-group-btn">
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat" onclick="event.preventDefault(); ajaxFunction();"><i class="fa fa-search"></i>
+                        </button>
+                    </span>
                     </div>
                      <div class="modal modal-primary fade" id="modal_search">
                       <div class="modal-dialog">

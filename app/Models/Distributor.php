@@ -278,6 +278,7 @@ class Distributor extends Model
                                     ->join('units', 'units.id', 'good_units.unit_id')
                                     ->select(DB::raw('SUM(transaction_details.buy_price * transaction_details.quantity) AS total'))
                                     ->whereRaw('goods.last_distributor_id = ' . $this->id . ' AND (transaction_details.type = "5215" OR transaction_details.type = "stock_opname") AND transactions.deleted_at is NULL AND goods.deleted_at is NULL')
+                                    ->where('transactions.deleted_at', null)
                                     ->get();
         else
             $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')

@@ -281,12 +281,8 @@
                     <th width="10%">Tipe</th>
                     <th width="15%">Nama</th>
                     <th width="15%">Qty</th>
-                    <th width="15%">Satuan</th>
                     <th width="15%">Harga Beli</th>
-                    @if($type == 'untung')
-                      <th width="15%">Harga Jual</th>
-                    @endif
-                    <th width="15%">Sum</th>
+                    <th width="15%">Total</th>
                   </tr>
                   </thead>
                   <tbody id="table-good">
@@ -295,16 +291,10 @@
                         <td><input type="checkbox" name="hard-cashes[]" id="untung-{{ $item->id }}" onclick="highlight('untung-{{ $item->id }}')"></td>
                         <td>{{ displayDate($item->created_at) }}</td>
                         <td>{{ $item->type }}</td>
-                        <td><a href="{{ url($role . '/transaction/' . $item->id . '/detail') }}" style="color: blue" target="_blank()">{{ $item->name }}</a></td>
+                        <td>{{ $item->name }}</td>
                         <td>{{ $item->quantity }}</td>
-                        <td>{{ $item->code }}</td>
                         <td>{{ showRupiah($item->buy_price) }}</td>
-                        @if($type == 'untung')
-                          <td>{{ showRupiah($item->selling_price) }}</td>
-                          <td>{{ showRupiah(($item->selling_price - $item->buy_price) * $item->quantity) }}</td>
-                        @else
-                          <td>{{ showRupiah($item->buy_price * $item->quantity) }}</td>
-                        @endif
+                        <td>{{ showRupiah($item->total) }}</td>
                       </tr>
                     @endforeach
                     {!! $items->render() !!}
