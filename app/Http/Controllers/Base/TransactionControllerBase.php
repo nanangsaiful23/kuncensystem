@@ -713,17 +713,22 @@ trait TransactionControllerBase
             if($transaction->payment == 'cash')
             {
                 $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
+                $penjualan_id                       = Account::where('code', '4101')->first()->id;
 
                 $old_journal = Journal::where('name', 'Penjualan tanggal ' . displayDate($transaction->created_at))
                                       ->where('debit_account_id', $data_journal['credit_account_id'])
+                                      ->where('credit_account_id', $penjualan_id)
                                       ->first();
 
-                $transactions = Transaction::whereDate('created_at', date('Y-m-d', strtotime($transaction->created_at)))
-                                           ->where('payment', $transaction->payment)
-                                           ->where('type', 'normal')
+                $transactions = Transaction::whereRaw('date(created_at) = "' . date('Y-m-d', strtotime($transaction->created_at)) . '" AND payment = "' . $transaction->payment . '" AND (type = "normal" OR type = "retur")')
                                            ->get();
 
-                if(floatval($transactions->sum('total_sum_price')) != floatval($old_journal->debit))
+                $returs = Journal::whereDate('created_at', date('Y-m-d', strtotime($transaction->created_at)))
+                                      ->where('credit_account_id', $data_journal['credit_account_id'])
+                                      ->where('debit_account_id', $penjualan_id)
+                                      ->get();
+
+                if(floatval($transactions->sum('total_sum_price')) != (floatval($old_journal->debit) - floatval($returs->sum('debit'))))
                     $is_retur = false;
                 else
                     $is_retur = true;
