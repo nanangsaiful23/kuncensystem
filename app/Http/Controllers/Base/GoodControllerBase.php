@@ -175,14 +175,14 @@ trait GoodControllerBase
 
         foreach($goods as $good)
         {
+            $good->last_loading_date = displayDate($good->last_loading);
+            $good->last_transaction_date = displayDate($good->last_transaction);
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;
             $good->last_loading = $good->getLastBuy() == null ? $good->getDistributor()->name : $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')';
             $good->stock = $good->last_stock;
             $good->transaction = $good->total_transaction;
             $good->loading = $good->total_loading;
             $good->unit = $good->base_unit()->unit->code;
-            $good->last_loading_date = displayDate($good->last_loading);
-            $good->last_transaction_date = displayDate($good->last_transaction);
 
             foreach($good->good_units as $unit)
             {
