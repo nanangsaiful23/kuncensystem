@@ -48,7 +48,7 @@
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'printDisplay' && Request::segment(3) != 'zeroStock' && Request::segment(3) != 'exp' && Request::segment(3) != 'transfer' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
+            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'printDisplay' && Request::segment(3) != 'zeroStock' && Request::segment(3) != 'exp' && Request::segment(3) != 'transfer' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/id/desc/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
             @if(\Auth::user()->role == 'supervisor')
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'transfer'  ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/transfer') }}"><i class="fa fa-circle-o"></i> Transfer Barang</a></li>
             @endif

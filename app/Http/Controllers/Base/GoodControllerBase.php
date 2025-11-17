@@ -181,6 +181,8 @@ trait GoodControllerBase
             $good->transaction = $good->total_transaction;
             $good->loading = $good->total_loading;
             $good->unit = $good->base_unit()->unit->code;
+            $good->last_loading_date = displayDate($good->last_loading);
+            $good->last_transaction_date = displayDate($good->last_transaction);
 
             foreach($good->good_units as $unit)
             {
@@ -485,6 +487,7 @@ trait GoodControllerBase
                 {
                     $goods = Good::where('last_stock', '<=', $stock)
                                  ->where('category_id', $category_id)
+                                 ->orderBy('last_loading', 'desc')
                                  ->orderBy('last_loading', 'desc')
                                  ->get();
                 }

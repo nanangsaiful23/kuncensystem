@@ -423,6 +423,13 @@
         return $types;
     }
 
+    function getGoodSort()
+    {
+        $types = ["goods.id" => "id", "goods.name" => "Nama", "last_loading" => "Tanggal Loading", "last_transaction" => "Tanggal Transaksi", "last_stock" => 'Stok Terakhir'];
+
+        return $types;
+    }
+
     function getMembers()
     {
         $members = Member::all();

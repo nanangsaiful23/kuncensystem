@@ -21,7 +21,7 @@
               @include('layout.search-form')
 
               {!! Form::label('show', 'Show', array('class' => 'col-sm-1 control-label')) !!}
-              <div class="col-sm-2">
+              <div class="col-sm-1">
                 {!! Form::select('show', getPaginations(), $pagination, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
               </div>
               {!! Form::label('category', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
@@ -31,8 +31,16 @@
             </div>
             @if(\Auth::user()->email == 'admin')
               <div class="form-group col-sm-12" style="margin-top: 10px;">
+                {!! Form::label('sort', 'Sort', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-2">
+                  {!! Form::select('sort', getGoodSort(), $sort, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'sort', 'onchange' => 'advanceSearch()']) !!}
+                </div>
+                {!! Form::label('order', 'Order', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-2">
+                  {!! Form::select('order', ['asc' => 'asc', 'desc' => 'desc'], $order, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'order', 'onchange' => 'advanceSearch()']) !!}
+                </div>
                 {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
-                <div class="col-sm-5">
+                <div class="col-sm-4">
                   {!! Form::select('distributor', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
                 </div>
               </div>
@@ -68,15 +76,18 @@
                       @if(\Auth::user()->email == 'admin')
                         <i class="fa fa-truck green" aria-hidden="true"></i> {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
                       @endif
+                      <br>
+                      @if($role == 'admin')
+                        <br>Last loading: {{ displayDate($good->last_loading) }}<br>
+                        <a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
+                      @endif
+                      <br>Last transaction: {{ displayDate($good->last_transaction) }}
+                      <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
                     </td>
                     <td>
                       <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}<br>
                       <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->total_transaction . ' ' . $good->base_unit()->unit->code }}<br>
                       <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->total_loading . ' ' . $good->base_unit()->unit->code }}
-                      @if($role == 'admin')
-                        <br><a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
-                      @endif
-                      <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
                     </td>
                     <td>
                       @foreach($good->good_units as $unit)
@@ -163,10 +174,10 @@
               var role = "{{ $role }}";
               if(username == 'admin')
               {
-                htmlResult += "<br><i class='fa fa-truck green' aria-hidden='true'></i> " + r[i].last_loading + "</td>";
+                htmlResult += "<br><i class='fa fa-truck green' aria-hidden='true'></i> " + r[i].last_loading + "<br>Last loading: " + r[i].last_loading_date + "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat loading</a><br><br>Last transaction: " + r[i].last_transaction_date + "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat penjualan</a></td>";
               }
 
-              htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + " " + r[i].unit + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + " " + r[i].unit + "<br><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat loading</a><br><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat penjualan</a></td><td>";
+              htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + " " + r[i].unit + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + " " + r[i].unit + "<br></td><td>";
 
               for (var j = 0; j < r[i].good_units.length; j++) {
                 htmlResult += "<b>" + r[i].good_units[j].price + " /" + r[i].good_units[j].unit_name + "<br></b>";
@@ -221,9 +232,9 @@
       var username = "{{ \Auth::user()->email }}";
 
       if(username == 'admin')
-        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#distributor').val() + '/' + $('#show').val();
+        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#distributor').val() + '/' + $('#sort').val() + '/' + $('#order').val() + '/' + $('#show').val();
       else
-        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/all/' + $('#show').val();
+        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/all/goods.id/desc/' + $('#show').val();
     }
   </script>
 @endsection
