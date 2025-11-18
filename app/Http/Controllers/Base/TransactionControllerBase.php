@@ -598,7 +598,7 @@ trait TransactionControllerBase
                 $data_journal_loading_retur['credit_account_id']   = Account::where('code', '1112')->first()->id;
             }
 
-            $sum_retur = $sum_retur - checkNull($data_transaction['total_discount_price']) - checkNull($data_transaction['voucher_nominal']);
+            // $sum_retur = $sum_retur - checkNull($data_transaction['total_discount_price']) - checkNull($data_transaction['voucher_nominal']);
 
             $data_journal_loading_retur['type']               = 'good_loading';
             $data_journal_loading_retur['journal_date']       = date('Y-m-d');
