@@ -6,6 +6,9 @@
 </style>
 
 <div class="content-wrapper">
+
+  @include('layout' . '.alert-message', ['type' => $default['type'], 'data' => $default['data'], 'color' => $default['color']])
+  
   @include('layout' . '.error')
 
   <section class="content">
