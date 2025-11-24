@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Base;
 use Illuminate\Http\Request;
 
 use App\Models\Distributor;
+use App\Models\DistributorLedger;
 
 trait DistributorControllerBase 
 {
@@ -55,5 +56,22 @@ trait DistributorControllerBase
     {
         $distributor = Distributor::find($distributor_id);
         $distributor->delete();
+    }
+
+    public function storeLedgerDistributorBase($distributor_id, Request $request)
+    {
+        $data = $request->input();
+
+        $data_ledger['distributor_id'] = $distributor_id;
+
+        for($i = 0; $i < sizeof($data['names']); $i++)
+        {
+            $data_ledger['name'] = $data['names'][$i];
+            $data_ledger['nominal'] = $data['nominals'][$i];
+
+            DistributorLedger::create($data_ledger);
+        }
+
+        return true;
     }
 }

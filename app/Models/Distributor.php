@@ -300,4 +300,12 @@ class Distributor extends Model
 
         return $transaction;
     }
+
+    public function getLedgers($pagination)
+    {
+        $ledgers = DistributorLedger::where('distributor_id', $this->id)
+                                    ->orderBy('created_at', 'DESC')->paginate($pagination);
+
+        return $ledgers;
+    }
 }

@@ -56,6 +56,8 @@ Route::group(['prefix' => 'distributor'], function () {
 	Route::put('/{distributor_id}/edit', 'DistributorController@update')->name('distributor.update');
 	Route::get('/{distributor_id}/creditPayment', 'DistributorController@creditPayment');
 	Route::delete('/{distributor_id}/delete', 'DistributorController@delete')->name('distributor.delete');
+	Route::post('/{distributor_id}/storeLedger', 'DistributorController@storeLedger')->name('distributor.storeLedger');
+	Route::get('/{distributor_id}/ledger/{pagination}', 'DistributorController@ledger');
 	Route::get('/{pagination}', 'DistributorController@index');
 });
 

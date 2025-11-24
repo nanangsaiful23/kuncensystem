@@ -65,7 +65,7 @@ class DistributorController extends Controller
 
         session(['alert' => 'add', 'data' => 'distributor barang']);
 
-        return redirect('/admin/distributor/' . $distributor->id . '/detail');
+        return redirect('/admin/distributor/' . $distributor->id . '/detail/aset');
     }
 
     public function detail($distributor_id, $type)
@@ -128,7 +128,7 @@ class DistributorController extends Controller
 
         session(['alert' => 'edit', 'data' => 'distributor barang']);
 
-        return redirect('/admin/distributor/' . $distributor->id . '/detail');
+        return redirect('/admin/distributor/' . $distributor->id . '/detail/aset');
     }
 
     public function delete($distributor_id)
@@ -151,5 +151,27 @@ class DistributorController extends Controller
         $default['section'] = 'create';
 
         return view('admin.layout.page', compact('default', 'distributor'));
+    }
+
+    public function storeLedger($distributor_id, Request $request)
+    {
+        $this->storeLedgerDistributorBase($distributor_id, $request);
+
+        session(['alert' => 'add', 'data' => 'ledger distributor']);
+
+        return redirect('/admin/distributor/' . $distributor_id . '/detail/aset');
+    }
+
+    public function ledger($distributor_id, $pagination)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Ledger Distributor';
+        $default['page'] = 'distributor';
+        $default['section'] = 'ledger';
+
+        $distributor = Distributor::find($distributor_id);
+
+        return view('admin.layout.page', compact('default', 'distributor', 'pagination'));
     }
 }

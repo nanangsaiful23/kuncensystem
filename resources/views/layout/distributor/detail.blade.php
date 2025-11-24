@@ -20,69 +20,95 @@
               {!! Form::model($distributor, array('class' => 'form-horizontal')) !!}
                 @include('layout' . '.distributor.form', ['SubmitButtonText' => 'View'])
               {!! Form::close() !!}
+              <a href="{{ url($role . '/distributor/' . $distributor->id . '/ledger/20') }}" class="btn">Riwayat Ledger Distributor</a>  
             </div>
             <div class="col-sm-8">
+              {!! Form::model(old(),array('url' => route($role . '.distributor.storeLedger', $distributor->id), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
               <table>
                 <tr>
+                  <?php $asset = $distributor->getAsset(); ?>
+                  {!! Form::hidden('names[]', "Total Aset") !!}
+                  {!! Form::hidden('nominals[]', $asset) !!}
                   <td><b>Total Aset</b></td>
                   <td>: (+)</td>
-                  <td style="text-align: right;"><b>{{ showRupiah($distributor->getAsset()) }}</b></td>
+                  <td style="text-align: right;"><b>{{ showRupiah($asset) }}</b></td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/aset') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Aset</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Hutang Dagang") !!}
+                  {!! Form::hidden('nominals[]', $distributor->utang_dagang) !!}
                   <td>Total Hutang Dagang</td>
                   <td>: (-)</td>
                   <td style="text-align: right;">{{ showRupiah($distributor->utang_dagang) }}</td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/utang_dagang') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Hutang Dagang</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Titipan Uang") !!}
+                  {!! Form::hidden('nominals[]', $distributor->titip_uang) !!}
                   <td>Total Titipan Uang</td>
                   <td>: (-)</td>
                   <td style="text-align: right;">{{ showRupiah($distributor->titip_uang) }}</td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/titip_uang') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Titipan Uang</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Pembayaran (Transaksi Internal)") !!}
+                  {!! Form::hidden('nominals[]', $distributor->pembayaran_internal) !!}
                   <td>Total Pembayaran (Transaksi Internal)</td>
                   <td>: (+)</td>
                   <td style="text-align: right;">{{ showRupiah($distributor->pembayaran_internal) }}</td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/pembayaran_internal') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Transaksi Internal</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Piutang Dagang") !!}
+                  {!! Form::hidden('nominals[]', $distributor->piutang_dagang) !!}
                   <td>Total Piutang Dagang</td>
                   <td>: (+)</td>
                   <td style="text-align: right;">{{ showRupiah($distributor->piutang_dagang) }}</td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/piutang_dagang') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Piutang Dagang</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Piutang Dagang (Loading Barang)") !!}
+                  {!! Form::hidden('nominals[]', $distributor->piutang_dagang_loading) !!}
                   <td>Total Piutang Dagang (Loading Barang)</td>
                   <td>: (+)</td>
                   <td style="text-align: right;">{{ showRupiah($distributor->piutang_dagang_loading) }}</td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/piutang_dagang_loading') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Piutang Dagang (Loading Barang)</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Pembayaran Langsung") !!}
+                  {!! Form::hidden('nominals[]', $distributor->pembayaran) !!}
                   <td>Total Pembayaran Langsung</td>
                   <td>: (+)</td>
                   <td style="text-align: right;">{{ showRupiah($distributor->pembayaran) }}</td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/pembayaran') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Pembayaran</a></td>
                 </tr>
                 <tr>
+                  <?php $total = $distributor->pembayaran_internal + $distributor->piutang_dagang + $distributor->pembayaran - $distributor->utang_dagang - $distributor->titip_uang; ?>
+                  {!! Form::hidden('names[]', "Total Utang") !!}
+                  {!! Form::hidden('nominals[]', $total) !!}
                   <td><b>Total Utang</b></td>
                   <td>: </td>
-                  <td style="text-align: right;"><b>{{ showRupiah($distributor->pembayaran_internal + $distributor->piutang_dagang + $distributor->pembayaran - $distributor->utang_dagang - $distributor->titip_uang) }}</b></td>
+                  <td style="text-align: right;"><b>{{ showRupiah($total) }}</b></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Untung") !!}
+                  {!! Form::hidden('nominals[]', $distributor->untung) !!}
                   <td><b>Total Untung</b></td>
                   <td>: </td>
                   <td style="text-align: right;"><b>{{ showRupiah($distributor->untung) }}</b></td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/untung') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Untung</a></td>
                 </tr>
                 <tr>
+                  {!! Form::hidden('names[]', "Total Rugi") !!}
+                  {!! Form::hidden('nominals[]', $distributor->rugi) !!}
                   <td><b>Total Rugi</b></td>
                   <td>: </td>
                   <td style="text-align: right;"><b>{{ showRupiah($distributor->rugi) }}</b></td>
                   <td><a href="{{ url($role . '/distributor/' . $distributor->id . '/detail/rugi') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i> Detail Rugi</a></td>
                 </tr>
-              </table>              
+              </table>   
+                {!! Form::submit("Simpan Ledger Distributor", ['class' => 'btn form-control'])  !!}
+              {!! Form::close() !!}         
             </div>
           </div>
           <div class="box-body" style="border: 2px solid black">
