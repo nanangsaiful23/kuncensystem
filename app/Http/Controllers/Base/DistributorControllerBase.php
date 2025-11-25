@@ -74,4 +74,20 @@ trait DistributorControllerBase
 
         return true;
     }
+
+    public function ledgerDistributorBase($distributor_id, $type, $start_date, $end_date)
+    {
+        $types = [];
+        foreach (DistributorLedger::select('name')->groupBy('name')->orderBy('name', 'asc')->get() as $data) {
+            $types = array_add($types, $data->name, $data->name);
+        }
+
+        $ledgers = DistributorLedger::whereDate('created_at', '>=', $start_date)
+                            ->whereDate('created_at', '<=', $end_date) 
+                            ->where('name', $type)
+                            ->where('distributor_id', $distributor_id)
+                            ->get();
+
+        return [$ledgers, $types];
+    }
 }

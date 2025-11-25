@@ -4,6 +4,9 @@ Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 Route::get('profit', 'MainController@profit');
 Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
+Route::get('scaleLedger/{start_date}/{end_date}', 'MainController@scaleLedger');
+Route::get('/scaleLedger/{start_date}/{end_date}/{pagination}', 'MainController@scaleLedger');
+Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 
 Route::group(['prefix' => 'account'], function () {
@@ -57,7 +60,7 @@ Route::group(['prefix' => 'distributor'], function () {
 	Route::get('/{distributor_id}/creditPayment', 'DistributorController@creditPayment');
 	Route::delete('/{distributor_id}/delete', 'DistributorController@delete')->name('distributor.delete');
 	Route::post('/{distributor_id}/storeLedger', 'DistributorController@storeLedger')->name('distributor.storeLedger');
-	Route::get('/{distributor_id}/ledger/{pagination}', 'DistributorController@ledger');
+	Route::get('/{distributor_id}/ledger/{type}/{start_date}/{end_date}', 'DistributorController@ledger');
 	Route::get('/{pagination}', 'DistributorController@index');
 });
 

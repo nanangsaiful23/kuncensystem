@@ -7,13 +7,13 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $type }}</h3>
+            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $account->name }}</h3>
             </div>
             <div class="box-body chart-responsive">
 
               {!! Form::label('account_code', 'Jenis', array('class' => 'col-sm-1 control-label')) !!}
               <div class="col-sm-3">
-                {!! Form::select('account_code', $types, $type, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'account_code', 'onchange' => 'advanceSearch()']) !!}
+                {!! Form::select('account_code', getAccountLists(), $account->code, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'account_code', 'onchange' => 'advanceSearch()']) !!}
               </div>
               {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
               <div class="col-sm-2">
@@ -68,19 +68,19 @@
       resize: true,
       data: [
         @for($i = 0; $i < sizeof($ledgers); $i++)
-          {x: '{{ displayDate($ledgers[$i]->created_at) }}', item1: {{ checkNull($ledgers[$i]->nominal) }}},
+          {x: '{{ displayDate($ledgers[$i]->created_at) }}', item1: {{ checkNull($ledgers[$i]->initial) }}, item2: {{ checkNull($ledgers[$i]->ongoing) }}, item3: {{ checkNull($ledgers[$i]->current) }}},
         @endfor
       ],
       xkey: 'x',
-      ykeys: ['item1'],
-      labels: ['Nominal'],
-      lineColors: ['#3c8dbc'],
+      ykeys: ['item1', 'item2', 'item3'],
+      labels: ['Awal', 'Berjalan', 'Akhir'],
+      lineColors: ['#3c8dbc', '#FF6D1F', '#76153C'],
       hideHover: 'auto'
     });
 
     function advanceSearch()
     {
-      window.location = window.location.origin + '/admin/distributor/{{ $distributor->id }}/ledger/' + $('#account_code').val() + '/' +  $('#start_date').val() + '/' + $('#end_date').val();
+      window.location = window.location.origin + '/admin/scaleLedger/' + $('#start_date').val() + '/' + $('#end_date').val() + '/' + $('#account_code').val();
     }
   </script>
 @endsection

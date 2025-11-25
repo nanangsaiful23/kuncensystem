@@ -162,7 +162,7 @@ class DistributorController extends Controller
         return redirect('/admin/distributor/' . $distributor_id . '/detail/aset');
     }
 
-    public function ledger($distributor_id, $pagination)
+    public function ledger($distributor_id, $type, $start_date, $end_date)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -171,7 +171,8 @@ class DistributorController extends Controller
         $default['section'] = 'ledger';
 
         $distributor = Distributor::find($distributor_id);
+        [$ledgers, $types] = $this->ledgerDistributorBase($distributor_id, $type, $start_date, $end_date);
 
-        return view('admin.layout.page', compact('default', 'distributor', 'pagination'));
+        return view('admin.layout.page', compact('default', 'distributor', 'ledgers', 'types', 'type', 'start_date', 'end_date'));
     }
 }

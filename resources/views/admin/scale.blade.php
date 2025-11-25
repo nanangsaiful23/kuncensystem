@@ -32,6 +32,12 @@
               </div>
             </div>
             <div class="box-body" style="overflow-x:scroll; color: black !important">
+              {!! Form::model(old(),array('url' => route('admin.storeScaleLedger', [$start_date, $end_date]), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
+                <div class="col-sm-3">
+                  {!! Form::submit("Simpan Ledger Neraca", ['class' => 'btn form-control'])  !!}<br>
+                </div>
+                <a href="{{ url('admin/scaleLedger/' . $start_date . '/' . $end_date . '/2101') }}" class="btn">Riwayat Ledger Neraca</a>
+                <hr>
               <table id="example1" class="table table-bordered table-striped">
                 <thead>
                 <tr>
@@ -44,20 +50,33 @@
                 </thead>
                 <tbody id="table-good">
                   @for($i = 0; $i < sizeof($activa_debits); $i++)
-                    <tr>
+                    <tr>                  
+                      {!! Form::hidden('account_ids[]', $activa_debits[$i]->id) !!}
+                      {!! Form::hidden('initials[]', $activa_debits[$i]->balance) !!}
+                      <?php $ongoing = $activa_debits[$i]->debit - $activa_credits[$i]->credit;
+                            $current = $activa_debits[$i]->balance + $ongoing; ?>
+                      {!! Form::hidden('ongoings[]', $ongoing) !!}
+                      {!! Form::hidden('currents[]', $current) !!}
                       <td>{{ $activa_debits[$i]->code }}</td>
                       <td>{{ $activa_debits[$i]->name }}</td>
                       <td style="text-align: right;">{{ showRupiah($activa_debits[$i]->balance) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($activa_debits[$i]->debit - $activa_credits[$i]->credit) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($activa_debits[$i]->balance + $activa_debits[$i]->debit - $activa_credits[$i]->credit) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($ongoing) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($current) }}</td>
                     </tr>
                   @endfor
                   <tr style="font-weight: bold;">
                     <td></td>
                     <td></td>
-                    <td style="text-align: right;">{{ showRupiah($activa_debits->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($activa_debits->sum('debit') - $activa_credits->sum('credit')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) }}</td>
+                    {!! Form::hidden('account_ids[]', '-1') !!}
+                    <?php $initial = $activa_debits->sum('balance');
+                          $ongoing = $activa_debits->sum('debit') - $activa_credits->sum('credit');
+                          $current = $activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit'); ?>
+                    {!! Form::hidden('initials[]', $initial) !!}
+                    {!! Form::hidden('ongoings[]', $ongoing) !!}
+                    {!! Form::hidden('currents[]', $current) !!}
+                    <td style="text-align: right;">{{ showRupiah($initial) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($ongoing) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($current) }}</td>
                   </tr>
                   <tr>
                     <td colspan="5"></td>
@@ -77,25 +96,39 @@
                 <tbody id="table-good">
                   @for($i = 0; $i < sizeof($pasiva_debits); $i++)
                     <tr>
+                      {!! Form::hidden('account_ids[]', $pasiva_debits[$i]->id) !!}
+                      {!! Form::hidden('initials[]', $pasiva_debits[$i]->balance) !!}
+                      <?php $ongoing = -1 * ($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit);
+                            $current = $pasiva_debits[$i]->balance + $ongoing; ?>
+                      {!! Form::hidden('ongoings[]', $ongoing) !!}
+                      {!! Form::hidden('currents[]', $current) !!}
                       <td>{{ $pasiva_debits[$i]->code }}</td>
                       <td>{{ $pasiva_debits[$i]->name }}</td>
                       <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance) }}</td>
-                      <td style="text-align: right;">{{ showRupiah(-1 * ($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit)) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance + (-1 * ($pasiva_debits[$i]->debit - $pasiva_credits[$i]->credit))) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($ongoing) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($current) }}</td>
                     </tr>
                   @endfor
                   <tr style="font-weight: bold;">
                     <td></td>
                     <td></td>
-                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance')) }}</td>
-                    <td style="text-align: right;">{{ showRupiah(-1 * ($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit'))) }}</td>
-                    <td style="text-align: right;">{{ showRupiah($pasiva_debits->sum('balance') + (-1 * ($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit')))) }}</td>
+                    {!! Form::hidden('account_ids[]', '-2') !!}
+                    <?php $initial = $pasiva_debits->sum('balance');
+                          $ongoing = -1 * ($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit'));
+                          $current = $pasiva_debits->sum('balance') + $ongoing; ?>
+                    {!! Form::hidden('initials[]', $initial) !!}
+                    {!! Form::hidden('ongoings[]', $ongoing) !!}
+                    {!! Form::hidden('currents[]', $current) !!}
+                    <td style="text-align: right;">{{ showRupiah($initial) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($ongoing) }}</td>
+                    <td style="text-align: right;">{{ showRupiah($current) }}</td>
                   </tr>
                   <tr>
                     <td colspan="5"></td>
                   </tr>
                 </tbody>
               </table>
+              {!! Form::close() !!} 
             </div>
           </div>
         </div>

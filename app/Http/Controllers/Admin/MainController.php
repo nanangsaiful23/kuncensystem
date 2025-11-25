@@ -13,6 +13,7 @@ use App\Models\GoodLoadingDetail;
 use App\Models\GoodPrice;
 use App\Models\Journal;
 use App\Models\ReturItem;
+use App\Models\ScaleLedger;
 use App\Models\Transaction;
 
 class MainController extends Controller
@@ -169,7 +170,7 @@ class MainController extends Controller
     {
         $default['page_name'] = 'Neraca';
 
-        $activa_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $activa_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->where('accounts.deleted_at', null)
@@ -179,7 +180,7 @@ class MainController extends Controller
                         ->orderBy('accounts.code')
                         ->get();
 
-        $activa_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $activa_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'aktiva')
                         ->where('accounts.deleted_at', null)
@@ -189,7 +190,7 @@ class MainController extends Controller
                         ->orderBy('accounts.code')
                         ->get();
 
-        $pasiva_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $pasiva_debits = Journal::select(DB::raw('SUM(journals.debit) as debit'), 'accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->where('accounts.deleted_at', null)
@@ -199,7 +200,7 @@ class MainController extends Controller
                         ->orderBy('accounts.code')
                         ->get();
 
-        $pasiva_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.code', 'accounts.name', 'accounts.balance')
+        $pasiva_credits = Journal::select(DB::raw('SUM(journals.credit) as credit'), 'accounts.id', 'accounts.code', 'accounts.name', 'accounts.balance')
                         ->rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
                         ->where('accounts.activa', 'pasiva')
                         ->where('accounts.deleted_at', null)
@@ -273,5 +274,43 @@ class MainController extends Controller
         }
 
         return view('admin.cash-flow', compact('default', 'journals', 'start_date', 'end_date', 'pagination'));
+    }
+
+    public function storeScaleLedger($start_date, $end_date, Request $request)
+    {
+        $data = $request->input();
+
+        $data_ledger['start_date'] = $start_date;
+        $data_ledger['end_date']   = $end_date;
+
+        for($i = 0; $i < sizeof($data['account_ids']); $i++)
+        {
+            $data_ledger['account_id'] = $data['account_ids'][$i];
+            $data_ledger['initial']    = $data['initials'][$i];
+            $data_ledger['ongoing']    = $data['ongoings'][$i];
+            $data_ledger['current']    = $data['currents'][$i];
+
+            ScaleLedger::create($data_ledger);
+        }
+
+        return redirect('/admin/scale/' . $start_date . '/' . $end_date);
+    }
+
+    public function scaleLedger($start_date, $end_date, $account_code)
+    {
+        $default['page_name'] = 'Riwayat Ledger Neraca';
+
+        $account = Account::where('code', $account_code)->first();
+
+        $ledgers = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
+                            ->select('accounts.*', 'scale_ledgers.*', 'scale_ledgers.created_at as created_at')
+                            ->whereDate('start_date', '>=', $start_date)
+                            ->whereDate('end_date', '<=', $end_date) 
+                            ->where('accounts.code', $account_code)
+                            ->get();
+
+                            // dd($ledgers);die;
+
+        return view('admin.scale-ledger', compact('default', 'ledgers', 'start_date', 'end_date', 'account'));
     }
 }

@@ -23,7 +23,7 @@
               {!! Form::model($distributor, array('class' => 'form-horizontal')) !!}
                 @include('layout' . '.distributor.form', ['SubmitButtonText' => 'View'])
               {!! Form::close() !!}
-              <a href="{{ url($role . '/distributor/' . $distributor->id . '/ledger/20') }}" class="btn">Riwayat Ledger Distributor</a>  
+              <a href="{{ url($role . '/distributor/' . $distributor->id . '/ledger/Total%20Aset/2020-01-01/' . date('Y-m-d')) }}" class="btn">Riwayat Ledger Distributor</a>  
             </div>
             <div class="col-sm-8">
               {!! Form::model(old(),array('url' => route($role . '.distributor.storeLedger', $distributor->id), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
