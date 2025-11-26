@@ -311,8 +311,10 @@ class MainController extends Controller
                                 ->select('accounts.*', 'scale_ledgers.*')
                                 ->whereDate('scale_ledgers.created_at', date('Y-m-d', strtotime($date->date)))
                                 ->paginate(20);
+            $date->date = date('Y-m-d', strtotime($date->date));
         }
 
+        // dd($dates);die;
         return view('admin.scale-ledger', compact('default', 'dates', 'start_date', 'end_date'));
     }
 }

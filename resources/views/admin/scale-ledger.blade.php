@@ -65,9 +65,9 @@ var line = new Morris.Line({
         @for($i = 0; $i < sizeof($dates); $i++)
             <?php $show = ''; ?>
             @for($j = 0; $j < sizeof($dates[$i]->data); $j++)
-              <?php $show .= $dates[$i]->data[$j]->code . ":" . $dates[$i]->data[$j]->current . ","; ?>
+              <?php $show .= $dates[$i]->data[$j]->code . ":" . ($dates[$i]->data[$j]->current/1000) . ","; ?>
             @endfor
-          {x: '{{ displayDate($dates[$i]->date) }}', {{ $show }}},
+          {x: '{{ $dates[$i]->date }}', {{ $show }}},
         @endfor
       ],
       xkey: 'x',
@@ -76,6 +76,7 @@ var line = new Morris.Line({
           "{{ $dates[0]->data[$j]->code }}",
         @endfor
       ],
+      xLabelAngle: 60,
       labels: [
           @for($j = 0; $j < sizeof($dates[0]->data); $j++)
             "{{ $dates[0]->data[$j]->name }}",
@@ -85,7 +86,10 @@ var line = new Morris.Line({
           @for($j = 0; $j < sizeof($dates[0]->data); $j++)
             "{{ $dates[0]->data[$j]->color }}",
           @endfor],
-      hideHover: 'auto'
+      hideHover: 'auto',
+      parseTime: false
+      // ymin: 0,   // Set the minimum Y-axis value
+      // ymax: 100000000
     });
     
 
