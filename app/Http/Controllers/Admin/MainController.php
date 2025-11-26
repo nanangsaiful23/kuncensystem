@@ -300,17 +300,19 @@ class MainController extends Controller
     {
         $default['page_name'] = 'Riwayat Ledger Neraca';
 
-        $account = Account::where('code', $account_code)->first();
+        $dates = ScaleLedger::select(DB::raw('DISTINCT(created_at) as date'))
+                                ->whereDate('start_date', '>=', $start_date)
+                                ->whereDate('end_date', '<=', $end_date) 
+                                ->paginate(20);
 
-        $ledgers = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
-                            ->select('accounts.*', 'scale_ledgers.*', 'scale_ledgers.created_at as created_at')
-                            ->whereDate('start_date', '>=', $start_date)
-                            ->whereDate('end_date', '<=', $end_date) 
-                            ->where('accounts.code', $account_code)
-                            ->get();
+        foreach($dates as $date)
+        {
+            $date->data = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
+                                ->select('accounts.*', 'scale_ledgers.*')
+                                ->whereDate('scale_ledgers.created_at', date('Y-m-d', strtotime($date->date)))
+                                ->paginate(20);
+        }
 
-                            // dd($ledgers);die;
-
-        return view('admin.scale-ledger', compact('default', 'ledgers', 'start_date', 'end_date', 'account'));
+        return view('admin.scale-ledger', compact('default', 'dates', 'start_date', 'end_date'));
     }
 }

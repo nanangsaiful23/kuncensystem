@@ -10,7 +10,7 @@ class Account extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'code', 'name', 'type', 'group', 'activa', 'balance'
+        'code', 'name', 'type', 'group', 'activa', 'balance', 'color'
     ];
 
     protected $hidden = [

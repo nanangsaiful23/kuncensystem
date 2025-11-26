@@ -7,14 +7,10 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $account->name }}</h3>
+            <h3 class="box-title"> {{ $default['page_name'] }}</h3>
             </div>
             <div class="box-body chart-responsive">
 
-              {!! Form::label('account_code', 'Jenis', array('class' => 'col-sm-1 control-label')) !!}
-              <div class="col-sm-3">
-                {!! Form::select('account_code', getAccountLists(), $account->code, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'account_code', 'onchange' => 'advanceSearch()']) !!}
-              </div>
               {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-1 control-label')) !!}
               <div class="col-sm-2">
                 <div class="input-group date">
@@ -27,7 +23,7 @@
                   <input type="text" class="form-control pull-right" name="end_date" value="{{ $end_date }}" id='end_date' onchange="advanceSearch()">
                 </div>
               </div>
-              <div class="chart" id="line-chart" style="height: 300px;"></div>
+              <div class="chart" id="line-chart" style="height: 500px;"></div>
             </div>
           </div>
         </div>
@@ -60,23 +56,38 @@
         $("#search-btn").click(function(){
             ajaxFunction();
         });
-
     });
 
-    var line = new Morris.Line({
+var line = new Morris.Line({
       element: 'line-chart',
       resize: true,
-      data: [
-        @for($i = 0; $i < sizeof($ledgers); $i++)
-          {x: '{{ displayDate($ledgers[$i]->created_at) }}', item1: {{ checkNull($ledgers[$i]->initial) }}, item2: {{ checkNull($ledgers[$i]->ongoing) }}, item3: {{ checkNull($ledgers[$i]->current) }}},
+      data: [ 
+        @for($i = 0; $i < sizeof($dates); $i++)
+            <?php $show = ''; ?>
+            @for($j = 0; $j < sizeof($dates[$i]->data); $j++)
+              <?php $show .= $dates[$i]->data[$j]->code . ":" . $dates[$i]->data[$j]->current . ","; ?>
+            @endfor
+          {x: '{{ displayDate($dates[$i]->date) }}', {{ $show }}},
         @endfor
       ],
       xkey: 'x',
-      ykeys: ['item1', 'item2', 'item3'],
-      labels: ['Awal', 'Berjalan', 'Akhir'],
-      lineColors: ['#3c8dbc', '#FF6D1F', '#76153C'],
+      ykeys: [
+        @for($j = 0; $j < sizeof($dates[0]->data); $j++)
+          "{{ $dates[0]->data[$j]->code }}",
+        @endfor
+      ],
+      labels: [
+          @for($j = 0; $j < sizeof($dates[0]->data); $j++)
+            "{{ $dates[0]->data[$j]->name }}",
+          @endfor
+      ],
+      lineColors: [
+          @for($j = 0; $j < sizeof($dates[0]->data); $j++)
+            "{{ $dates[0]->data[$j]->color }}",
+          @endfor],
       hideHover: 'auto'
     });
+    
 
     function advanceSearch()
     {

@@ -97,6 +97,7 @@ trait DistributorControllerBase
                             ->where('distributor_id', $distributor_id)
                             ->get();
 
+
         return [$ledgers, $types];
     }
 }
