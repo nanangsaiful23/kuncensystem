@@ -26,8 +26,17 @@ trait DistributorControllerBase
 
         foreach($distributors as $distributor)
         {
-            $distributor->hutang = $distributor->totalHutangDagangLoading()->sum('total_item_price') - $distributor->totalHutangDagangInternal()->sum('debit');
-            $distributor->piutang = $distributor->totalPiutangDagangInternal()->sum('debit') - $distributor->totalPiutangDagangLoading()->sum('total_item_price');
+            $distributor->aset   = showRupiah($distributor->getAsset());
+            $distributor->untung = $distributor->totalUntung('all')[0]->total;
+            $distributor->rugi   = $distributor->totalRugi('all')[0]->total;
+
+            if($distributor->untung == 0) 
+                $distributor->percentage = '0%';
+            else 
+                $distributor->percentage = round($distributor->rugi/$distributor->untung * 100, 2) . '%';
+
+            $distributor->untung = showRupiah($distributor->untung);
+            $distributor->rugi   = showRupiah($distributor->rugi);
         }
 
         return $distributors;

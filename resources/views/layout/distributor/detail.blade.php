@@ -306,11 +306,8 @@
                   <thead>
                   <tr>
                     <th width="5%">Highlight</th>
-                    <th width="10%">Tanggal</th>
-                    <th width="10%">Tipe</th>
                     <th width="15%">Nama</th>
                     <th width="15%">Qty</th>
-                    <th width="15%">Harga Beli</th>
                     <th width="15%">Total</th>
                   </tr>
                   </thead>
@@ -318,11 +315,8 @@
                     @foreach($items as $item)
                       <tr id="div-untung-{{ $item->id }}">
                         <td><input type="checkbox" name="hard-cashes[]" id="untung-{{ $item->id }}" onclick="highlight('untung-{{ $item->id }}')"></td>
-                        <td>{{ displayDate($item->created_at) }}</td>
-                        <td>{{ $item->type }}</td>
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->quantity }}</td>
-                        <td>{{ showRupiah($item->buy_price) }}</td>
                         <td>{{ showRupiah($item->total) }}</td>
                       </tr>
                     @endforeach

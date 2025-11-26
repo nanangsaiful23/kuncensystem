@@ -190,7 +190,7 @@ class Distributor extends Model
 
           $results = $basicQuery;
 
-          $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, $totalCount, $perPage, $currentPage, ['path' => url('/admin/distributor/' . $this->id . '/detail')]);
+          $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, $totalCount, $perPage, $currentPage, ['path' => url('/admin/distributor/' . $this->id . '/detail/aset')]);
 
           return $paginator;
     }
@@ -232,8 +232,11 @@ class Distributor extends Model
 
     public function totalUntung($pagination)
     {
+          $perPage = 20;
+          $currentPage = request('page', 1);
+
         if($pagination == 'all')
-            $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+            $paginator = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                     ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                     ->join('units', 'units.id', 'good_units.unit_id')
@@ -245,34 +248,48 @@ class Distributor extends Model
                                     ->where('goods.deleted_at', null)
                                     ->get();
         else
-             $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
-                                ->join('goods', 'goods.id', 'good_units.good_id')
-                                ->join('units', 'units.id', 'good_units.unit_id')
-                                ->select(DB::raw('SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total, transactions.id, transaction_details.type, transaction_details.created_at, goods.name, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price, units.code'))
-                                ->where('goods.last_distributor_id', $this->id)
-                                ->where('transaction_details.type', 'normal')
-                                ->where('transactions.deleted_at', null)
-                                // ->where('good_units.deleted_at', null)
-                                ->where('goods.deleted_at', null)
-                                ->groupBy('transactions.id')
-                                ->groupBy('transaction_details.type')
-                                ->groupBy('transaction_details.created_at')
-                                ->groupBy('goods.name')
-                                ->groupBy('transaction_details.quantity')
-                                ->groupBy('transaction_details.buy_price')
-                                ->groupBy('transaction_details.selling_price')
-                                ->groupBy('units.code')
-                                ->orderBy('total', 'desc')
-                                ->paginate($pagination);
+        {
+            $results = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+                                 FROM goods 
+                                 LEFT JOIN (SELECT goods.id, SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total, transaction_details.quantity as qty
+                                      FROM transaction_details
+                                      JOIN transactions ON transactions.id = transaction_details.transaction_id
+                                      JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                      JOIN goods ON goods.id = good_units.good_id
+                                      WHERE transactions.deleted_at IS NULL AND goods.last_distributor_id = " . $this->id . " AND transaction_details.type = 'normal' AND goods.deleted_at IS NULL
+                                      GROUP BY goods.id, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price) as total_transaction ON total_transaction.id = goods.id
+                                 WHERE goods.id = total_transaction.id
+                                 GROUP BY goods.id, goods.name
+                                 ORDER BY total DESC
+                                 LIMIT " . $perPage . " OFFSET " . (($currentPage - 1) * $perPage)));
 
-        return $transaction;
+            $data = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+                                 FROM goods 
+                                 LEFT JOIN (SELECT goods.id, SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total, transaction_details.quantity as qty
+                                      FROM transaction_details
+                                      JOIN transactions ON transactions.id = transaction_details.transaction_id
+                                      JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                      JOIN goods ON goods.id = good_units.good_id
+                                      WHERE transactions.deleted_at IS NULL AND goods.last_distributor_id = " . $this->id . " AND transaction_details.type = 'normal' AND goods.deleted_at IS NULL
+                                      GROUP BY goods.id, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price) as total_transaction ON total_transaction.id = goods.id
+                                 WHERE goods.id = total_transaction.id
+                                 GROUP BY goods.id, goods.name
+                                 ORDER BY total DESC"));
+
+          $totalCount = sizeof($data);
+
+          $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, $totalCount, $perPage, $currentPage, ['path' => url('/admin/distributor/' . $this->id . '/detail/untung')]);
+      }
+
+        return $paginator;
     }
 
     public function totalRugi($pagination)
     {
-        if($pagination == 'all')
-            $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+      $perPage = 20;
+      $currentPage = request('page', 1);
+
+      $data = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                     ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                     ->join('goods', 'goods.id', 'good_units.good_id')
                                     ->join('units', 'units.id', 'good_units.unit_id')
@@ -280,25 +297,61 @@ class Distributor extends Model
                                     ->whereRaw('goods.last_distributor_id = ' . $this->id . ' AND (transaction_details.type = "5215" OR transaction_details.type = "stock_opname") AND transactions.deleted_at is NULL AND goods.deleted_at is NULL')
                                     ->where('transactions.deleted_at', null)
                                     ->get();
-        else
-            $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                    ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
-                                    ->join('goods', 'goods.id', 'good_units.good_id')
-                                    ->join('units', 'units.id', 'good_units.unit_id')
-                                    ->select(DB::raw('SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transactions.id, transaction_details.type, transaction_details.created_at, goods.name, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price, units.code'))
-                                    ->whereRaw('goods.last_distributor_id = ' . $this->id . ' AND (transaction_details.type = "5215" OR transaction_details.type = "stock_opname") AND transactions.deleted_at is NULL AND goods.deleted_at is NULL')
-                                    ->groupBy('transactions.id')
-                                    ->groupBy('transaction_details.type')
-                                    ->groupBy('transaction_details.created_at')
-                                    ->groupBy('goods.name')
-                                    ->groupBy('transaction_details.quantity')
-                                    ->groupBy('transaction_details.buy_price')
-                                    ->groupBy('transaction_details.selling_price')
-                                    ->groupBy('units.code')
-                                    ->orderBy('total', 'desc')
-                                    ->paginate($pagination);
 
-        return $transaction;
+        if($pagination == 'all')
+            $paginator = $data;
+        else
+        {
+
+            $results = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+                                 FROM goods 
+                                 LEFT JOIN (SELECT goods.id, SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transaction_details.quantity as qty
+                                      FROM transaction_details
+                                      JOIN transactions ON transactions.id = transaction_details.transaction_id
+                                      JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                      JOIN goods ON goods.id = good_units.good_id
+                                      WHERE goods.last_distributor_id = " . $this->id . " AND (transaction_details.type = '5215' OR transaction_details.type = 'stock_opname') AND transactions.deleted_at is NULL AND goods.deleted_at is NULL
+                                      GROUP BY goods.id, transaction_details.quantity, transaction_details.buy_price) as total_transaction ON total_transaction.id = goods.id
+                                 WHERE goods.id = total_transaction.id
+                                 GROUP BY goods.id, goods.name
+                                 ORDER BY total DESC
+                                 LIMIT " . $perPage . " OFFSET " . (($currentPage - 1) * $perPage)));
+
+            $data = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+                                 FROM goods 
+                                 LEFT JOIN (SELECT goods.id, SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transaction_details.quantity as qty
+                                      FROM transaction_details
+                                      JOIN transactions ON transactions.id = transaction_details.transaction_id
+                                      JOIN good_units ON good_units.id = transaction_details.good_unit_id
+                                      JOIN goods ON goods.id = good_units.good_id
+                                      WHERE goods.last_distributor_id = " . $this->id . " AND (transaction_details.type = '5215' OR transaction_details.type = 'stock_opname') AND transactions.deleted_at is NULL AND goods.deleted_at is NULL
+                                      GROUP BY goods.id, transaction_details.quantity, transaction_details.buy_price) as total_transaction ON total_transaction.id = goods.id
+                                 WHERE goods.id = total_transaction.id
+                                 GROUP BY goods.id, goods.name"));
+
+            $totalCount = sizeof($data);
+
+
+          $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, $totalCount, $perPage, $currentPage, ['path' => url('/admin/distributor/' . $this->id . '/detail/untung')]);
+            // $transaction = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+            //                         ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
+            //                         ->join('goods', 'goods.id', 'good_units.good_id')
+            //                         ->join('units', 'units.id', 'good_units.unit_id')
+            //                         ->select(DB::raw('SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transactions.id, transaction_details.type, transaction_details.created_at, goods.name, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price, units.code'))
+            //                         ->whereRaw('goods.last_distributor_id = ' . $this->id . ' AND (transaction_details.type = "5215" OR transaction_details.type = "stock_opname") AND transactions.deleted_at is NULL AND goods.deleted_at is NULL')
+            //                         ->groupBy('transactions.id')
+            //                         ->groupBy('transaction_details.type')
+            //                         ->groupBy('transaction_details.created_at')
+            //                         ->groupBy('goods.name')
+            //                         ->groupBy('transaction_details.quantity')
+            //                         ->groupBy('transaction_details.buy_price')
+            //                         ->groupBy('transaction_details.selling_price')
+            //                         ->groupBy('units.code')
+            //                         ->orderBy('total', 'desc')
+            //                         ->paginate($pagination);
+        }
+
+        return $paginator;
     }
 
     public function getLedgers($pagination)
