@@ -124,10 +124,10 @@
         parseTime: false
       });
 
-      line.options.ykeys.push(ykeysgraph);
-    line.options.labels.push(labelsgraph);
-    line.options.lineColors.push(colorsgraph); // Add a new color
-    line.redraw();
+    //   line.options.ykeys.push(ykeysgraph);
+    // line.options.labels.push(labelsgraph);
+    // line.options.lineColors.push(colorsgraph); // Add a new color
+    // line.redraw();
     }
     function advanceSearch()
     {
