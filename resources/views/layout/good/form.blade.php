@@ -7,7 +7,19 @@
                     {!! Form::text('category', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
                     {!! Form::select('category_id', getCategories(), $good->category_id, ['class' => 'form-control select2',
-                    'style'=>'width: 100%', 'id' => 'brand_id']) !!}
+                    'style'=>'width: 100%', 'id' => 'category_id']) !!}
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group">
+            {!! Form::label('type_id', 'Jenis Barang', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('type', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::select('type_id', getGoodTypes(), $good->type_id, ['class' => 'form-control select2',
+                    'style'=>'width: 100%', 'id' => 'type_id']) !!}
                 @endif
             </div>
         </div>

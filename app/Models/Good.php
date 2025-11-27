@@ -13,7 +13,7 @@ class Good extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'category_id', 'brand_id', 'code', 'name', 'last_distributor_id', 'base_unit_id', 'total_loading', 'total_transaction', 'last_stock', 'last_loading', 'last_transaction'
+        'category_id', 'type_id', 'brand_id', 'code', 'name', 'last_distributor_id', 'base_unit_id', 'total_loading', 'total_transaction', 'last_stock', 'last_loading', 'last_transaction'
     ];
 
     protected $hidden = [
@@ -27,6 +27,11 @@ class Good extends Model
     public function category()
     {
         return $this->belongsTo('App\Models\Category');
+    }
+    
+    public function type()
+    {
+        return $this->belongsTo('App\Models\Type');
     }
     
     public function brand()
@@ -55,6 +60,13 @@ class Good extends Model
             return $this->getPcsSellingPrice();
         
         return $good_unit;
+    }
+
+    public function getType()
+    {
+        if($this->type_id == null)
+            return '-';
+        else return $this->type->name;
     }
 
     public function profilePicture()

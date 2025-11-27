@@ -220,6 +220,16 @@ Route::group(['prefix' => 'transaction'], function () {
     Route::delete('/{transaction_id}/delete', 'TransactionController@delete')->name('transaction.delete');
 });
 
+Route::group(['prefix' => 'type'], function () {
+	Route::get('/create', 'TypeController@create');
+	Route::post('/store', 'TypeController@store')->name('type.store');
+	Route::get('/{type_id}/detail', 'TypeController@detail');
+	Route::get('/{type_id}/edit', 'TypeController@edit');
+	Route::put('/{type_id}/edit', 'TypeController@update')->name('type.update');
+	Route::delete('/{type_id}/delete', 'TypeController@delete')->name('type.delete');
+	Route::get('/{pagination}', 'TypeController@index');
+});
+
 Route::group(['prefix' => 'unit'], function () {
 	Route::get('/create', 'UnitController@create');
 	Route::post('/store', 'UnitController@store')->name('unit.store');

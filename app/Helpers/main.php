@@ -12,6 +12,7 @@
     use App\Models\GoodLoading;
     use App\Models\GoodUnit;
     use App\Models\Member;
+    use App\Models\Type;
     use App\Models\Unit;
 
     use Illuminate\Support\Facades\DB;
@@ -427,6 +428,15 @@
     {
         $types = ["goods.id" => "id", "goods.name" => "Nama", "last_loading" => "Tanggal Loading", "last_transaction" => "Tanggal Transaksi", "last_stock" => 'Stok Terakhir'];
 
+        return $types;
+    }
+
+    function getGoodTypes()
+    {
+        $types = [null => 'Pilih jenis barang', 'all' => 'Seluruh jenis barang'];
+        foreach (Type::orderBy('name', 'asc')->get() as $data) {
+            $types = array_add($types, $data->id, $data->name . ' (' . $data->eng_name . ')');
+        }
         return $types;
     }
 

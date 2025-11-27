@@ -224,6 +224,13 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        {!! Form::label('type_id', 'Jenis Barang', array('class' => 'col-sm-4 control-label')) !!}
+                        <div class="col-sm-8">
+                            {!! Form::select('type_id', getGoodTypes(), null, ['class' => 'form-control select2',
+                            'style'=>'width: 100%', 'id' => 'type_id']) !!}
+                        </div>
+                    </div>
+                    <div class="form-group">
                         {!! Form::label('code', 'Barcode Barang', array('class' => 'col-sm-4 control-label')) !!}
                         <div class="col-sm-8">
                             {!! Form::text('code', null, array('class' => 'form-control', 'id' => 'code')) !!}

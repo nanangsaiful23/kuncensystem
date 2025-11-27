@@ -206,6 +206,18 @@
                 <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/5') }}"><i class="fa fa-circle-o"></i> Daftar Distributor</a></li>
             </ul>
           </li>
+          <li class="treeview {{ (Request::segment(2) == 'type' ) ? 'active' : ''  }}">
+            <a href="#">
+                <i class="fa fa-shopping-cart"></i><span> Jenis Barang</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">
+                <li class="{{ Request::segment(2) == 'type' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/create') }}"><i class="fa fa-circle-o"></i> Tambah Jenis Barang</a></li>
+                <li class="{{ Request::segment(2) == 'type' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/15') }}"><i class="fa fa-circle-o"></i> Daftar Jenis Barang</a></li>
+            </ul>
+          </li>
           <li class="treeview {{ (Request::segment(2) == 'category' ) ? 'active' : ''  }}">
             <a href="#">
                 <i class="fa fa-shopping-cart"></i><span> Kategori</span>
