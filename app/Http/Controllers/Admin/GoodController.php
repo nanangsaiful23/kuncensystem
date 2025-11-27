@@ -23,7 +23,7 @@ class GoodController extends Controller
         // $this->middleware('jwt.auth')->except(['getTransfer']);
     }
 
-    public function index($category_id, $distributor_id, $sort, $order, $pagination)
+    public function index($category_id, $type_id, $distributor_id, $sort, $order, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -31,9 +31,9 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'all';
 
-        $goods = $this->indexGoodBase($category_id, $distributor_id, $sort, $order, $pagination);
+        $goods = $this->indexGoodBase($category_id, $type_id, $distributor_id, $sort, $order, $pagination);
 
-        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'distributor_id', 'sort', 'order', 'pagination'));
+        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'type_id', 'distributor_id', 'sort', 'order', 'pagination'));
     }
 
     public function searchByBarcode($barcode)
@@ -193,7 +193,7 @@ class GoodController extends Controller
 
         session(['alert' => 'delete', 'data' => 'Barang']);
 
-        return redirect('/admin/good/all/all/20');
+        return redirect('/admin/good/all/all/all/id/desc/20');
     }
 
     public function exp()

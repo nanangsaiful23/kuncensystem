@@ -28,6 +28,10 @@
               <div class="col-sm-3">
                 {!! Form::select('category', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
               </div>
+              {!! Form::label('type', 'Jenis Barang', array('class' => 'col-sm-1 control-label')) !!}
+              <div class="col-sm-3">
+                {!! Form::select('type', getGoodTypes(), $type_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'type', 'onchange' => 'advanceSearch()']) !!}
+              </div>
             </div>
             @if(\Auth::user()->email == 'admin')
               <div class="form-group col-sm-12" style="margin-top: 10px;">
@@ -236,9 +240,9 @@
       var username = "{{ \Auth::user()->email }}";
 
       if(username == 'admin')
-        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#distributor').val() + '/' + $('#sort').val() + '/' + $('#order').val() + '/' + $('#show').val();
+        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#type').val() + '/' + $('#distributor').val() + '/' + $('#sort').val() + '/' + $('#order').val() + '/' + $('#show').val();
       else
-        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/all/goods.id/desc/' + $('#show').val();
+        window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#type').val() + '/all/goods.id/desc/' + $('#show').val();
     }
   </script>
 @endsection

@@ -24,30 +24,28 @@ use App\Models\Unit;
 
 trait GoodControllerBase 
 {
-    public function indexGoodBase($category_id, $distributor_id, $sort, $order, $pagination)
+    public function indexGoodBase($category_id, $type_id, $distributor_id, $sort, $order, $pagination)
     {
+        if($category_id == 'all')
+            $whereCategory = '%%';
+        else
+            $whereCategory = $category_id;
+
+        if($type_id == 'all')
+            $whereType = '%%';
+        else
+            $whereType = $type_id;
+
+        if($distributor_id == 'all')
+            $whereDistributor = '%%';
+        else
+            $whereDistributor = $distributor_id;
+
         if($pagination == 'all')
         {
-            if($category_id == 'all' && $distributor_id == 'all')
+            if($category_id == 'all' && $distributor_id == 'all' && $type_id == 'all')
             {
                 $goods = Good::orderBy($sort, $order)->get();
-            }
-            elseif($category_id == 'all')
-            {
-                $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
-                             ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
-                             ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
-                             ->where('goods.last_distributor_id', $distributor_id)
-                             ->orderBy($sort, $order)
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
-                             ->get();
-            }
-            elseif($distributor_id == 'all')
-            {
-                $goods = Good::where('category_id', $category_id)
-                             ->orderBy($sort, $order)
-                             ->get();      
             }
             else
             {
@@ -55,8 +53,7 @@ trait GoodControllerBase
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
-                             ->where('goods.last_distributor_id', $distributor_id)
-                             ->where('goods.category_id', $category_id)
+                             ->whereRaw("coalesce(goods.category_id, '') like ? AND coalesce(goods.type_id, '') like ? AND coalesce(goods.last_distributor_id, '') like ? ", array($whereCategory, $whereType, $whereDistributor))
                              ->orderBy($sort, $order)
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
                              ->get();
@@ -64,26 +61,9 @@ trait GoodControllerBase
         }
         else
         {
-            if($category_id == 'all' && $distributor_id == 'all')
+            if($category_id == 'all' && $distributor_id == 'all' && $type_id == 'all')
             {
                 $goods = Good::orderBy($sort, $order)->paginate($pagination);
-            }
-            elseif($category_id == 'all')
-            {
-                $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
-                             ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
-                             ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
-                             ->where('goods.last_distributor_id', $distributor_id)
-                             ->orderBy($sort, $order)
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
-                             ->paginate($pagination);
-            }
-            elseif($distributor_id == 'all')
-            {
-                $goods = Good::where('category_id', $category_id)
-                             ->orderBy($sort, $order)
-                             ->paginate($pagination);         
             }
             else
             {
@@ -91,8 +71,7 @@ trait GoodControllerBase
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                              ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
-                             ->where('goods.last_distributor_id', $distributor_id)
-                             ->where('goods.category_id', $category_id)
+                             ->whereRaw("coalesce(goods.category_id, '') like ? AND coalesce(goods.type_id, '') like ? AND coalesce(goods.last_distributor_id, '') like ? ", array($whereCategory, $whereType, $whereDistributor))
                              ->orderBy($sort, $order)
                              ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
                              ->paginate($pagination);
