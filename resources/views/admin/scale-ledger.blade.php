@@ -74,18 +74,15 @@
     function changeGraph() 
     {
       // dates = [];
+      console.log("{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val());
       $.ajax({
         url: "{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val(),
         success: function(result){
-          console.log(result);
           dates = result.data;
-          console.log(dates);
             ykeysgraph = [];
             labelsgraph = [];
             colorsgraph = [];
             showall = [];
-            // dates = <?php echo json_encode($dates); ?>;
-            // dates = dates.data;
             for(i = 0; i < dates.length; i++)
             {
                 show = {};
