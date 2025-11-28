@@ -172,7 +172,7 @@
           {
             var r = result.goods;
             for (var i = 0; i < r.length; i++) {
-              htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>[" + r[i].type + '] ' + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
+              htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>[" + r[i].good_type + '] ' + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
 
               var username = "{{ \Auth::user()->email }}";
               var role = "{{ $role }}";
