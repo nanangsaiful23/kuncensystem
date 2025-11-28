@@ -73,61 +73,68 @@
 
     function changeGraph() 
     {
-      ykeysgraph = [];
-      labelsgraph = [];
-      colorsgraph = [];
-      showall = [];
-      dates = <?php echo json_encode($dates); ?>;
-      dates = dates.data;
-      for(i = 0; i < dates.length; i++)
-      {
-          show = {};
-          date = dates[i].data.data;
-          for(j = 0; j < date.length; j++)
-          {
-            data = date[j].code;
-            accounts = $('#account').val();
-            if(accounts.includes(data))
+      // dates = [];
+      $.ajax({
+        url: "{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val(),
+        success: function(result){
+          console.log(result);
+          dates = result.data;
+          console.log(dates);
+            ykeysgraph = [];
+            labelsgraph = [];
+            colorsgraph = [];
+            showall = [];
+            // dates = <?php echo json_encode($dates); ?>;
+            // dates = dates.data;
+            for(i = 0; i < dates.length; i++)
             {
-              show[data] = (date[j].current / 1000); 
+                show = {};
+                date = dates[i].data.data;
+                for(j = 0; j < date.length; j++)
+                {
+                  data = date[j].code;
+                  accounts = $('#account').val();
+                  if(accounts.includes(data))
+                  {
+                    show[data] = date[j].current; 
 
-              if(!ykeysgraph.includes(data))
-                ykeysgraph.push(data);
-              if(!labelsgraph.includes(date[j].name))
-                labelsgraph.push(date[j].name);
-              if(!colorsgraph.includes(date[j].color))
-                colorsgraph.push(date[j].color);
+                    if(!ykeysgraph.includes(data))
+                      ykeysgraph.push(data);
+                    if(!labelsgraph.includes(date[j].name))
+                      labelsgraph.push(date[j].name);
+                    if(!colorsgraph.includes(date[j].color))
+                      colorsgraph.push(date[j].color);
+                  }
+                }
+                if(show != '')
+                {
+                  show['x'] = dates[i].date; 
+                  showall.push(show);
+                }
             }
-          }
-          if(show != '')
-          {
-            show['x'] = dates[i].date; 
-            showall.push(show);
-          }
-      }
 
-      console.log(showall);
-      console.log(ykeysgraph);
-      console.log(labelsgraph);
-      console.log(colorsgraph);
+            var line = new Morris.Line({
+              element: 'line-chart',
+              resize: true,
+              data: showall,
+              xkey: 'x',
+              ykeys: ykeysgraph,
+              xLabelAngle: 60,
+              labels: labelsgraph,
+              lineColors: colorsgraph,
+              hideHover: 'auto',
+              parseTime: false
+            });
 
-      var line = new Morris.Line({
-        element: 'line-chart',
-        resize: true,
-        data: showall,
-        xkey: 'x',
-        ykeys: ykeysgraph,
-        xLabelAngle: 60,
-        labels: labelsgraph,
-        lineColors: colorsgraph,
-        hideHover: 'auto',
-        parseTime: false
+          //   line.options.ykeys.push(ykeysgraph);
+          // line.options.labels.push(labelsgraph);
+          // line.options.lineColors.push(colorsgraph); // Add a new color
+          line.redraw();
+        },
+        error: function(){
+            console.log('error');
+        }
       });
-
-    //   line.options.ykeys.push(ykeysgraph);
-    // line.options.labels.push(labelsgraph);
-    // line.options.lineColors.push(colorsgraph); // Add a new color
-    line.redraw();
     }
     function advanceSearch()
     {

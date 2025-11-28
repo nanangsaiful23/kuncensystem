@@ -299,10 +299,18 @@ class MainController extends Controller
     public function scaleLedger($start_date, $end_date, $account_code)
     {
         $default['page_name'] = 'Riwayat Ledger Neraca';
+        
+        $dates = $this->getScaleLedger($start_date, $end_date, ['1111']);
 
-        $dates = ScaleLedger::select(DB::raw('DISTINCT(created_at) as date'))
-                                ->whereDate('start_date', '>=', $start_date)
-                                ->whereDate('end_date', '<=', $end_date) 
+        return view('admin.scale-ledger', compact('default', 'dates', 'start_date', 'end_date'));
+    }
+
+    public function getScaleLedger($start_date, $end_date, $params)
+    {
+        // dd($params);die;
+        $dates = ScaleLedger::select(DB::raw('DISTINCT(scale_ledgers.created_at) as date'))
+                                ->whereDate('scale_ledgers.start_date', '>=', $start_date)
+                                ->whereDate('scale_ledgers.end_date', '<=', $end_date) 
                                 ->paginate(20);
 
         foreach($dates as $date)
@@ -310,11 +318,12 @@ class MainController extends Controller
             $date->data = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
                                 ->select('accounts.*', 'scale_ledgers.*')
                                 ->whereDate('scale_ledgers.created_at', date('Y-m-d', strtotime($date->date)))
+                                ->whereIn('accounts.code', [$params])
                                 ->paginate(20);
             $date->date = date('Y-m-d', strtotime($date->date));
         }
 
         // dd($dates);die;
-        return view('admin.scale-ledger', compact('default', 'dates', 'start_date', 'end_date'));
+        return $dates;
     }
 }

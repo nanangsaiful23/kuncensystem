@@ -6,6 +6,7 @@ Route::get('profit', 'MainController@profit');
 Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
 Route::get('scaleLedger/{start_date}/{end_date}', 'MainController@scaleLedger');
 Route::get('/scaleLedger/{start_date}/{end_date}/{pagination}', 'MainController@scaleLedger');
+Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@getScaleLedger');
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 
