@@ -309,11 +309,13 @@ class MainController extends Controller
     {
         $data_params = explode(',', $params);
         // dd($data_params);die;
-        $dates = ScaleLedger::select(DB::raw('DISTINCT(scale_ledgers.created_at) as date'))
+        $dates = ScaleLedger::select(DB::raw('DISTINCT(DATE(scale_ledgers.created_at)) as date'))
                                 ->whereDate('scale_ledgers.start_date', '>=', $start_date)
                                 ->whereDate('scale_ledgers.end_date', '<=', $end_date) 
                                 ->paginate(20);
 
+
+        // dd($dates);die;
         foreach($dates as $date)
         {
             $date->data = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
@@ -328,7 +330,7 @@ class MainController extends Controller
                                 ->paginate(20);
             $date->date = date('Y-m-d', strtotime($date->date));
         }
-
+// 
         // dd($dates);die;
         return $dates;
     }

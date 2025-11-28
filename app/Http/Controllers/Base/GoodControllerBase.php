@@ -52,10 +52,11 @@ trait GoodControllerBase
                 $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
+                             ->join('types', 'types.id', 'goods.type_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction', 'types.id as type_id')
                              ->whereRaw("coalesce(goods.category_id, '') like ? AND coalesce(goods.type_id, '') like ? AND coalesce(goods.last_distributor_id, '') like ? ", array($whereCategory, $whereType, $whereDistributor))
                              ->orderBy($sort, $order)
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction', 'types.id')
                              ->get();
             }
         }
@@ -70,10 +71,11 @@ trait GoodControllerBase
                 $goods = Good::join('good_units', 'good_units.good_id', 'goods.id')
                              ->join('good_loading_details', 'good_loading_details.good_unit_id', 'good_units.id')
                              ->join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
-                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
+                             ->join('types', 'types.id', 'goods.type_id')
+                             ->select('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction', 'types.id as type_id')
                              ->whereRaw("coalesce(goods.category_id, '') like ? AND coalesce(goods.type_id, '') like ? AND coalesce(goods.last_distributor_id, '') like ? ", array($whereCategory, $whereType, $whereDistributor))
                              ->orderBy($sort, $order)
-                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction')
+                             ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.category_id', 'goods.last_distributor_id', 'goods.total_loading', 'goods.total_transaction', 'goods.last_stock', 'goods.last_loading', 'goods.last_transaction', 'types.id')
                              ->paginate($pagination);
             }
         }
@@ -139,6 +141,7 @@ trait GoodControllerBase
             $good->status = '[KOSONG]';
         elseif($good->stock < 0)
             $good->status = ' [MINUS]';
+        $good->name = $good->getFullName();
 
         return $good;
     }
@@ -205,7 +208,7 @@ trait GoodControllerBase
                     $temp['status'] = '[KOSONG]';
                 elseif($temp['stock'] < 0)
                     $temp['status'] = '[MINUS]';
-                $temp['name'] = $good->name;
+                $temp['name'] = $good->getFullName();
                 $temp['good_type'] = $good->getType();
                 array_push($units, $temp);
             }

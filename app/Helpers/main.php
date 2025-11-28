@@ -271,9 +271,9 @@
     {
         if(strlen($string) > 30){
             $textLength = strlen($string);
-            $maxChars = 20;
+            $maxChars = 25;
 
-            $string = substr_replace($string, '...', $maxChars/2, $textLength-$maxChars);
+            $string = substr_replace($string, '...', 5, $textLength-$maxChars);
         }
         return ucwords($string);
 

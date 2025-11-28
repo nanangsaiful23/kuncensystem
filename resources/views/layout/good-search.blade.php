@@ -75,18 +75,6 @@
                           </span>
                         </div>
                       </div>
-                      <!-- <div class="col-sm-12" style=" background-color:white !important;">
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('bed cover')">Bed Cover</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('beras')">Beras</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('ember')">Ember</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('gelas')">Gelas</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('gula')">Gula</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('kompor')">Kompor</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('magic com')">Magic Com</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('piring')">Piring</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('sprei')">Sprei</div>
-                        <div class="col-sm-1 btn btn-input btn-warning" onclick="changeInput('tikar')">Tikar</div>
-                      </div> -->
                       <div class="col-sm-12" id="photo-div"> 
                         @foreach($goods as $good)
                           <div class="col-sm-4" style="text-align: center; border: black solid 2px;"> 
@@ -94,7 +82,7 @@
                               <img src="{{ URL::to('image/' . $photo->location) }}" style="width: 200px; display: block; margin: auto;">
                             @endforeach
                             <h3>{{ $good->code }}</h3>
-                            <h3>{{ $good->name }}</h3>
+                            <h3>{{ $good->getFullName() }}</h3>
                             @foreach($good->good_units as $unit)
                               @if($unit->unit != null)
                                 <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
@@ -125,7 +113,7 @@
                             @foreach($goods as $good)
                               <tr @if($i % 2 == 0) style="background-color: #FFD0D0" @endif>
                                 <td>{{ $good->code }}</td>
-                                <td>{{ $good->name }}</td>
+                                <td>{{ $good->getFullName() }}</td>
                                 <td>
                                   @foreach($good->good_units as $unit)
                               @if($unit->unit != null)

@@ -40,7 +40,7 @@
 					<tr>
 						<td style="text-align: left !important;" colspan="2">
 							@if($detail->type == 'retur') Retur: @endif
-							<b>{{ $i++ . '. ' . showShortName($detail->good_unit->good->name) }}</b>
+							<b>{{ $i++ . '. ' . showShortName($detail->good_unit->good->getFullName()) }}</b>
 						</td>
 					</tr>
 					<tr>

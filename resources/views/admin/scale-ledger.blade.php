@@ -109,6 +109,7 @@
                   showall.push(show);
                 }
             }
+            // console.log(showall);
 
             var line = new Morris.Line({
               element: 'line-chart',

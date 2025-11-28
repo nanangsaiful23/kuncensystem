@@ -208,7 +208,7 @@
           </li>
           <li class="treeview {{ (Request::segment(2) == 'type' ) ? 'active' : ''  }}">
             <a href="#">
-                <i class="fa fa-shopping-cart"></i><span> Jenis Barang</span>
+                <i class="fa fa-gift"></i><span> Jenis Barang</span>
               <span class="pull-right-container">
                 <i class="fa fa-angle-left pull-right"></i>
               </span>

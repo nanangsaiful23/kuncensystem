@@ -23,6 +23,15 @@ class Good extends Model
     protected $dates =[
         'deleted_at',
     ];
+
+    public function getFullName()
+    {
+        $name = $this->name;
+        if($this->getType() != '-')
+            $name = strtolower($this->getType()) . ' ' . $this->name;
+
+        return ucfirst($name);
+    }
     
     public function category()
     {

@@ -130,7 +130,7 @@
                                             <a href="{{ url($role . '/good/' . $detail->good_unit->good->id . '/detail') }}" target="_blank()">{{ $detail->good_unit->good->code }}</a>
                                         </td>
                                         <td>
-                                            {{ $detail->good_unit->good->name . ' ' . $detail->good_unit->unit->name }}
+                                            {{ $detail->good_unit->good->getFullName() . ' ' . $detail->good_unit->unit->name }}
                                         </td>
                                         <td>
                                             {{ $detail->quantity }}
