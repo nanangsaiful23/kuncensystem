@@ -75,7 +75,7 @@
                   <tr>
                     <td>{{ $good->category->name }}</td>
                     <td>
-                      <h4>{{ $good->name }}</h4>
+                      <h4>{{ '[' . $good->getType() . '] ' . $good->name }}</h4>
                       @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
                       @if(\Auth::user()->email == 'admin')
                         <i class="fa fa-truck green" aria-hidden="true"></i> {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
@@ -172,7 +172,7 @@
           {
             var r = result.goods;
             for (var i = 0; i < r.length; i++) {
-              htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>" + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
+              htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>[" + r[i].type + '] ' + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
 
               var username = "{{ \Auth::user()->email }}";
               var role = "{{ $role }}";

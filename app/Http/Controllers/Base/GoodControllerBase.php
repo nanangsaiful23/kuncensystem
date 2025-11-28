@@ -116,6 +116,7 @@ trait GoodControllerBase
             $temp['stock'] = $good->last_stock;
             $temp['code'] = $good->code;
             $temp['name'] = $good->name;
+            $temp['type'] = $good->getType();
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;
             $temp['selling_price'] = $unit->selling_price;
@@ -162,6 +163,7 @@ trait GoodControllerBase
             $good->transaction = $good->total_transaction;
             $good->loading = $good->total_loading;
             $good->unit = $good->base_unit()->unit->code;
+            $good->type = $good->getType();
 
             foreach($good->good_units as $unit)
             {
@@ -204,6 +206,7 @@ trait GoodControllerBase
                 elseif($temp['stock'] < 0)
                     $temp['status'] = '[MINUS]';
                 $temp['name'] = $good->name;
+                $temp['type'] = $good->getType();
                 array_push($units, $temp);
             }
         }
