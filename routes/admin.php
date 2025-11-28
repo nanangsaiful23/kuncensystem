@@ -85,6 +85,7 @@ Route::group(['prefix' => 'good'], function () {
     Route::get('/searchByGoodUnit/{good_unit_id}', 'GoodController@searchByGoodUnit');
 	Route::get('/searchByKeyword/{query}', 'GoodController@searchByKeyword');
 	Route::get('/searchByKeywordGoodUnit/{query}', 'GoodController@searchByKeywordGoodUnit');
+	Route::get('/wholesalePrice', 'GoodController@wholesalePrice');
 	Route::get('/transfer', 'GoodController@transfer');
 	Route::post('/transfer', 'GoodController@storeTransfer')->name('good.transfer');
 	Route::get('/zeroStock/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');

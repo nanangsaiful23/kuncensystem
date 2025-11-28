@@ -387,4 +387,17 @@ class GoodController extends Controller
 
         return view('admin.layout.page', compact('default', 'goods', 'pagination'));
     }
+
+    public function wholesalePrice()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Harga Grosir Barang';
+        $default['page'] = 'good';
+        $default['section'] = 'wholesale';
+
+        $goods = $this->wholesalePriceGoodBase();
+
+        return view('admin.layout.page', compact('default', 'goods'));
+    }
 }

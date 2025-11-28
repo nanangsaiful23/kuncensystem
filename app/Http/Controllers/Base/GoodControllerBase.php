@@ -1001,4 +1001,30 @@ trait GoodControllerBase
 
         return $goods;
     }
+
+    public function wholesalePriceGoodBase()
+    {
+          $perPage = 20;
+          $currentPage = request('page', 1);
+
+
+          $query = "FROM goods 
+                     LEFT JOIN good_units ON good_units.good_id = goods.id
+                     LEFT JOIN units ON units.id = good_units.unit_id
+                     LEFT JOIN (SELECT goods.id, goods.name, good_units.selling_price AS base_price, units.quantity
+                        FROM goods 
+                        JOIN good_units ON good_units.id = goods.base_unit_id
+                        JOIN units ON units.id = good_units.unit_id) AS base_price ON base_price.id = goods.id
+                     WHERE good_units.id != goods.base_unit_id AND (base_price * units.quantity) < good_units.selling_price AND base_price.quantity < units.quantity
+                     GROUP BY goods.id, goods.code, goods.name, good_units.selling_price, units.quantity ";
+
+          $totalCount = DB::select(DB::raw("SELECT COUNT(*) as total " . $query));
+
+          $result = DB::select(DB::raw("SELECT goods.id, goods.code, goods.name, base_price.base_price, base_price.quantity as base_qty, good_units.selling_price, units.quantity " . $query . " LIMIT " . $perPage . " OFFSET " . ($currentPage - 1) * $perPage));
+
+          $paginator = new \Illuminate\Pagination\LengthAwarePaginator($result, sizeof($totalCount), $perPage, $currentPage, ['path' => url('/admin/good/wholesalePrice')]);
+          
+          return $paginator;
+        
+    }
 }

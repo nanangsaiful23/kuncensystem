@@ -57,6 +57,7 @@
             @if($role == 'admin')
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'zeroStock' && Request::segment(7) != '-1' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/zeroStock/all/all/1/0') }}"><i class="fa fa-circle-o"></i> Stock Habis</a></li>
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'zeroStock' && Request::segment(7) == '-1' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/zeroStock/all/all/all/-1') }}"><i class="fa fa-circle-o"></i> Stock Minus</a></li>
+              <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'wholesalePrice' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/wholesalePrice') }}"><i class="fa fa-circle-o"></i> Harga Grosir Tidak Sesuai</a></li>
             @endif
             @if(\Auth::user()->role == 'supervisor')
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'resume'  ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/resume/price/desc/20') }}"><i class="fa fa-circle-o"></i> Rangkuman Barang</a></li>
