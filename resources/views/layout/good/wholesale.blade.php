@@ -17,6 +17,7 @@
                 <th>No</th>
                 <th>Kode</th>
                 <th>Nama</th>
+                <th>Stok Terakhir</th>
                 <th>Base Qty</th>
                 <th>Base Price</th>
                 <th>Grosir Qty</th>
@@ -31,6 +32,7 @@
                     <td>{{ $i++ }}</td>
                     <td>{{ $good->code }}</td>
                     <td>{{ $good->name }}</td>
+                    <td>{{ $good->last_stock }}</td>
                     <td>{{ $good->base_qty }}</td>
                     <td>{{ $good->base_price }}</td>
                     <td>{{ $good->quantity }}</td>
