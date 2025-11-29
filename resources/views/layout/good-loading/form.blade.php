@@ -111,10 +111,10 @@
                 <div class="form-group col-sm-12" style="margin-top: -40px">
                     {!! Form::label('all_barcode', 'Barcode', array('class' => 'col-sm-1 left control-label')) !!}
                     <div class="col-sm-12 input-group">
-                        <input type="text" name="all_barcode" class="form-control" id="all_barcode" onchange="searchByBarcode()">
-                        <span class="input-group-btn">
-                            <button type="submit" name="search" id="search-btn" class="btn btn-flat" onclick="event.preventDefault(); searchByBarcode();"><i class="fa fa-search"></i>
-                        </button>
+                        <input type="text" name="all_barcode" class="form-control" id="all_barcode" oninput="searchByBarcode()">
+                        <!-- <span class="input-group-btn">
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat" onclick="event.preventDefault(); searchByBarcode();"><i class="fa fa-search"></i></button>
+                        </span> -->
                     </div>
                 </div>
                 <div class="form-group col-sm-12" style="margin-top: -10px;">
@@ -122,9 +122,8 @@
                     <div class="col-sm-12 input-group">
                         <input type="text" name="search_good" class="form-control" id="search_good">
                         <span class="input-group-btn">
-                            <button type="submit" name="search" id="search-btn" class="btn btn-flat" onclick="event.preventDefault(); ajaxFunction();"><i class="fa fa-search"></i>
-                        </button>
-                    </span>
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat" onclick="event.preventDefault(); ajaxFunction();"><i class="fa fa-search"></i></button>
+                        </span>
                     </div>
                      <div class="modal modal-primary fade" id="modal_search">
                       <div class="modal-dialog">
