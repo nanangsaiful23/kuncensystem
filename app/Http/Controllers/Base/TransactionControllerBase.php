@@ -728,7 +728,7 @@ trait TransactionControllerBase
                                       ->where('debit_account_id', $penjualan_id)
                                       ->get();
 
-                if(floatval($transactions->sum('total_sum_price')) != (floatval($old_journal->debit) - floatval($returs->sum('debit'))))
+                if((floatval($transactions->sum('total_sum_price')) + floatval($returs->sum('debit'))) != (floatval($old_journal->debit) - floatval($returs->sum('debit'))))
                     $is_retur = false;
                 else
                     $is_retur = true;
