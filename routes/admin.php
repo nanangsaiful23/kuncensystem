@@ -229,7 +229,7 @@ Route::group(['prefix' => 'type'], function () {
 	Route::get('/{type_id}/edit', 'TypeController@edit');
 	Route::put('/{type_id}/edit', 'TypeController@update')->name('type.update');
 	Route::delete('/{type_id}/delete', 'TypeController@delete')->name('type.delete');
-	Route::get('/{pagination}', 'TypeController@index');
+	Route::get('/{sort}/{order}/{pagination}', 'TypeController@index');
 });
 
 Route::group(['prefix' => 'unit'], function () {

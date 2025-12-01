@@ -216,7 +216,7 @@
             </a>
             <ul class="treeview-menu">
                 <li class="{{ Request::segment(2) == 'type' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/create') }}"><i class="fa fa-circle-o"></i> Tambah Jenis Barang</a></li>
-                <li class="{{ Request::segment(2) == 'type' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/15') }}"><i class="fa fa-circle-o"></i> Daftar Jenis Barang</a></li>
+                <li class="{{ Request::segment(2) == 'type' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/name/asc/30') }}"><i class="fa fa-circle-o"></i> Daftar Jenis Barang</a></li>
             </ul>
           </li>
           <li class="treeview {{ (Request::segment(2) == 'category' ) ? 'active' : ''  }}">

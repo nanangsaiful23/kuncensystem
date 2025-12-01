@@ -45,18 +45,18 @@
 					</tr>
 					<tr>
 						<td style="text-align: left !important;">
-							{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name . ' @' . printRupiah(checkNull($detail->selling_price)) }}
+							{{ $detail->quantity . ' * ' . $detail->good_unit->unit->name . ' @' . printRupiah(checkNull($detail->selling_price - ($detail->discount_price / $detail->quantity))) }}
 						</td>
 						<td style="text-align: right !important;">
-							@if($detail->type == 'retur') - @endif {{ showRupiah(checkNull($detail->selling_price) * $detail->quantity) }}
+							@if($detail->type == 'retur') - @endif {{ showRupiah(checkNull($detail->selling_price * $detail->quantity - $detail->discount_price)) }}
 						</td>
 					</tr>
-					@if($detail->discount_price != 0) 
+					<!-- @if($detail->discount_price != 0) 
 						<tr>
 							<td style="text-align: right;">Diskon</td>
 							<td style="text-align: right !important;">-{{ printRupiah(checkNull($detail->discount_price)) }}</td>
 						</tr>
-					@endif
+					@endif -->
 				@endforeach
 				<tr style="margin-top: 10px;">
 					<td colspan="2"><hr></td>
@@ -65,25 +65,20 @@
 					<td>Total Harga</td>
 					<td>{{ showRupiah(checkNull($transaction->total_item_price) - checkNull($transaction->details->sum('discount_price'))) }}</td>
 				</tr>
-				<tr>
+				<!-- <tr>
 					<td style="text-align: right !important">
 						Total Diskon per Item
 					</td>
 					<td style="text-align: right !important">
 						-{{ showRupiah(checkNull($transaction->details->sum('discount_price'))) }}
 					</td>
-				</tr>
+				</tr> -->
 				<tr>
 					<td style="text-align: right !important">
 						Potongan Akhir
 					</td>
 					<td style="text-align: right !important">
 						-{{ showRupiah(checkNull($transaction->total_discount_price)) }}
-					</td>
-				</tr>
-				<tr>
-					<td colspan="2" style="text-align: left;">
-						Total item : {{ --$i }} | Total qty  : {{ $transaction->details->sum('quantity') }}
 					</td>
 				</tr>
 				@if($transaction->voucher != null)
@@ -114,6 +109,11 @@
 				<tr style="margin-top: 10px;">
 					<td style="text-align: right !important"><b>Kembali</td>
 					<td style="text-align: right !important"><b>{{ showRupiah(checkNull($transaction->money_returned)) }}</td>
+				</tr>
+				<tr>
+					<td colspan="2" style="text-align: left;">
+						Total item : {{ --$i }} | Total qty  : {{ $transaction->details->sum('quantity') }}
+					</td>
 				</tr>
 			</table>
 		</div>

@@ -8,12 +8,12 @@ use App\Models\Type;
 
 trait TypeControllerBase 
 {
-    public function indexTypeBase($pagination)
+    public function indexTypeBase($sort, $order, $pagination)
     {
         if($pagination == 'all')
-           $types = Type::orderBy('name', 'asc')->get();
+           $types = Type::orderBy($sort, $order)->get();
         else
-           $types = Type::orderBy('name', 'asc')->paginate($pagination);
+           $types = Type::orderBy($sort, $order)->paginate($pagination);
 
         return $types;
     }

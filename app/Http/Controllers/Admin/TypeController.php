@@ -18,7 +18,7 @@ class TypeController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($pagination)
+    public function index($sort, $order, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -26,9 +26,9 @@ class TypeController extends Controller
         $default['page'] = 'type';
         $default['section'] = 'all';
 
-        $types = $this->indexTypeBase($pagination);
+        $types = $this->indexTypeBase($sort, $order, $pagination);
 
-        return view('admin.layout.page', compact('default', 'types', 'pagination'));
+        return view('admin.layout.page', compact('default', 'types', 'sort', 'order', 'pagination'));
     }
 
     public function create()
