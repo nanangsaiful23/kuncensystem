@@ -211,6 +211,21 @@ trait InternalTransactionControllerBase
             Journal::create($data_ud);
         }
 
+        #journal biaya dapur
+        if($request->type == '6104')
+        {
+            $data_op['type']               = 'operasional';
+            $data_op['type_id']            = $transaction->id;
+            $data_op['journal_date']       = date('Y-m-d');
+            $data_op['name']               = 'Biaya dapur & pasar (ID transaksi' . $transaction->id . ')';
+            $data_op['debit_account_id']   = Account::where('code', '6104')->first()->id;
+            $data_op['debit']              = $data_transaction['total_sum_price'];
+            $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
+            $data_op['credit']             = $data_transaction['total_sum_price'];
+
+            Journal::create($data_op);
+        }
+
         return $transaction;
     }
 
@@ -350,6 +365,21 @@ trait InternalTransactionControllerBase
                 $data_ud['credit']             = $data_transaction['total_sum_price'];
 
                 Journal::create($data_ud);
+            }
+
+            #journal biaya dapur
+            if($request->type == '6104')
+            {
+                $data_op['type']               = 'operasional';
+                $data_op['type_id']            = $transaction->id;
+                $data_op['journal_date']       = date('Y-m-d');
+                $data_op['name']               = 'Biaya dapur & pasar (ID transaksi' . $transaction->id . ')';
+                $data_op['debit_account_id']   = Account::where('code', '6104')->first()->id;
+                $data_op['debit']              = $data_transaction['total_sum_price'];
+                $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
+                $data_op['credit']             = $data_transaction['total_sum_price'];
+
+                Journal::create($data_op);
             }
         }
 
