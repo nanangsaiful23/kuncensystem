@@ -225,6 +225,7 @@ Route::group(['prefix' => 'transaction'], function () {
 Route::group(['prefix' => 'type'], function () {
 	Route::get('/create', 'TypeController@create');
 	Route::post('/store', 'TypeController@store')->name('type.store');
+	Route::get('/search/{keyword}', 'TypeController@search');
 	Route::get('/{type_id}/detail', 'TypeController@detail');
 	Route::get('/{type_id}/edit', 'TypeController@edit');
 	Route::put('/{type_id}/edit', 'TypeController@update')->name('type.update');

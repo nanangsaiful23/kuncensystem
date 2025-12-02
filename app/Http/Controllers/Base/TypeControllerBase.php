@@ -18,6 +18,15 @@ trait TypeControllerBase
         return $types;
     }
 
+    public function searchTypeBase($keyword)
+    {
+        $types = Type::where('name', 'like', '%' . $keyword . '%')
+                    ->orWhere('code', 'like', '%' . $keyword . '%')
+                    ->get();
+
+        return $types;
+    }
+
     public function storeTypeBase(Request $request)
     {
         $data = $request->input();

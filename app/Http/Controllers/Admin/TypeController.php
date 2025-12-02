@@ -51,6 +51,15 @@ class TypeController extends Controller
         return redirect('/admin/type/' . $type->id . '/detail');
     }
 
+    public function search($keyword)
+    {
+        $types = $this->searchTypeBase($keyword);
+
+        return response()->json([
+            "types"  => $types
+        ], 200);
+    }
+
     public function detail($type_id)
     {
         [$default['type'], $default['color'], $default['data']] = alert();

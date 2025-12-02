@@ -14,6 +14,7 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
+                <th>ID</th>
                 <th>Kode</th>
                 <th>Nama</th>
                 <th>Eng Name</th>
@@ -27,6 +28,7 @@
               <tbody id="table-good">
                 @foreach($types as $type)
                   <tr>
+                    <td>{{ $type->id }}</td>
                     <td>{{ $type->code }}</td>
                     <td>{{ $type->name }}</td>
                     <td>{{ $type->eng_name }}</td>
@@ -76,5 +78,30 @@
         });
 
     });
+
+    function ajaxFunction()
+    {
+      $.ajax({
+        url: "{!! url($role . '/type/search/') !!}/" + $("#search-input").val(),
+        success: function(result){
+          console.log(result);
+          var htmlResult = "<thead><tr><th>ID</th><th>Kode</th><th>Nama</th><th>Eng Name</th><th class='center'>Detail</th><th class='center'>Ubah</th>@if($role == 'admin')<th class='center'>Hapus</th>@endif</tr></thead><tbody>";
+          if(result != null)
+          {
+            var r = result.types;
+            for (var i = 0; i < r.length; i++) {
+              htmlResult += "<tr><td>" + r[i].id + "</td><td>" + r[i].code + "</td><td>" + r[i].name + "</td><td>" + r[i].eng_name + "</td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/type/" + r[i].id + "/detail\"><i class=\"fa fa-hand-o-right brown\" aria-hidden=\"true\"></i></a></td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/type/" + r[i].id + "/edit\"><i class=\"fa fa-file brown\" aria-hidden=\"true\"></i></a></td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/type/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/type/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td></tr>";
+            }
+          }
+
+          htmlResult += "</tbody>";
+
+          $("#example1").html(htmlResult);
+        },
+        error: function(){
+            console.log('error');
+        }
+      });
+    }
   </script>
 @endsection
