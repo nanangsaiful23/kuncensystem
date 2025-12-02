@@ -276,6 +276,10 @@ trait GoodControllerBase
 
         if($good == null)
         {
+            $data_good['total_loading'] = 0;
+            $data_good['total_transaction'] = 0;
+            $data_good['last_stock'] = 0;
+
             $good = Good::create($data);
 
             if($request->code == null)
