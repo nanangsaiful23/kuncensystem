@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Base;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Imports\ChangeNameImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Account;
 use App\Models\Brand;
@@ -148,10 +150,15 @@ trait GoodControllerBase
 
     public function searchByKeywordGoodBase($query)
     {
-        $goods = Good::where('code', 'like', '%'. $query . '%')
-                     ->orWhere('name', 'like', '%'. $query . '%')
-                     ->where('deleted_at', '=', null)
-                     ->orderBy('name')
+        // $query = '%' . $query . '%';
+        $goods = Good::leftjoin('types', 'goods.type_id', 'types.id')
+                     ->select('goods.*')
+                     // ->whereRaw("goods.code like ? OR goods.name like ? OR types.name like ? ", ['%'. $query . '%', '%'. $query . '%', '%'. $query . '%'])
+                     ->where('goods.code', 'like', '%'. $query . '%')
+                     ->orWhere('goods.name', 'like', '%'. $query . '%')
+                     ->orWhere('types.name', 'like', '%'. $query . '%')
+                     ->where('goods.deleted_at', '=', null)
+                     ->orderBy('goods.name')
                      ->with('category')
                      // ->with('brand')
                      ->get();
@@ -184,10 +191,15 @@ trait GoodControllerBase
 
     public function searchByKeywordGoodUnitGoodBase($query)
     {
-        $goods = Good::where('code', 'like', '%'. $query . '%')
-                     ->orWhere('name', 'like', '%'. $query . '%')
-                     ->where('deleted_at', '=', null)
-                     ->orderBy('name')
+        // $query = '%' . $query . '%';
+        $goods = Good::leftjoin('types', 'goods.type_id', 'types.id')
+                     ->select('goods.*')
+                     // ->whereRaw("goods.code like ? OR goods.name like ? OR types.name like ? ", ['%'. $query . '%', '%'. $query . '%', '%'. $query . '%'])
+                     ->where('goods.code', 'like', '%'. $query . '%')
+                     ->orWhere('goods.name', 'like', '%'. $query . '%')
+                     ->orWhere('types.name', 'like', '%'. $query . '%')
+                     ->where('goods.deleted_at', '=', null)
+                     ->orderBy('goods.name')
                      ->get();
 
         $units = [];
@@ -1031,5 +1043,15 @@ trait GoodControllerBase
           
           return $paginator;
         
+    }
+
+    public function changeNameImportGoodBase(Request $request)
+    {
+        if($request->hasFile('file')) 
+        {
+            Excel::import(new ChangeNameImport(), $request->file('file'));
+        }
+
+        return true;
     }
 }

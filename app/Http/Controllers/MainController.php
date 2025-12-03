@@ -17,9 +17,14 @@ class MainController extends Controller
     {
         $default['page_name'] = 'CARI BARANG';
 
-        $goods = Good::where('name', 'like', '%' . $query . '%')
-                     ->orWhere('code', 'like', '%' . $query . '%')
-                     ->orderBy('name', 'asc')
+        $goods = Good::leftjoin('types', 'goods.type_id', 'types.id')
+                     ->select('goods.*')
+                     // ->whereRaw("goods.code like ? OR goods.name like ? OR types.name like ? ", ['%'. $query . '%', '%'. $query . '%', '%'. $query . '%'])
+                     ->where('goods.code', 'like', '%'. $query . '%')
+                     ->orWhere('goods.name', 'like', '%'. $query . '%')
+                     ->orWhere('types.name', 'like', '%'. $query . '%')
+                     ->where('goods.deleted_at', '=', null)
+                     ->orderBy('goods.name')
                      ->get();
         
         return view('layout.good-search', compact('default', 'goods', 'query'));

@@ -400,4 +400,24 @@ class GoodController extends Controller
 
         return view('admin.layout.page', compact('default', 'goods'));
     }
+
+    public function changeName()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Ganti Nama Barang';
+        $default['page'] = 'good';
+        $default['section'] = 'change-name';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
+    public function changeNameImport(Request $request)
+    {
+        $this->changeNameImportGoodBase($request);
+
+        session(['alert' => 'edit', 'data' => 'Nama Barang']);
+
+        return redirect('/admin/good/all/all/all/id/desc/20');
+    }
 }

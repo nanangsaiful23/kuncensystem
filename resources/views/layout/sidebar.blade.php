@@ -61,6 +61,7 @@
             @endif
             @if(\Auth::user()->role == 'supervisor')
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'resume'  ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/resume/price/desc/20') }}"><i class="fa fa-circle-o"></i> Rangkuman Barang</a></li>
+              <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'changeNameImport'  ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/changeNameImport') }}"><i class="fa fa-circle-o"></i> Ganti Nama Barang</a></li>
             @endif
         </ul>
       </li>
