@@ -24,6 +24,7 @@ class MainController extends Controller
                      ->orWhere('goods.name', 'like', '%'. $query . '%')
                      ->orWhere('types.name', 'like', '%'. $query . '%')
                      ->where('goods.deleted_at', '=', null)
+                     ->orderBy('types.name')
                      ->orderBy('goods.name')
                      ->get();
         
