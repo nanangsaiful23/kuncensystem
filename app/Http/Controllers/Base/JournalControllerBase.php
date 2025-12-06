@@ -11,89 +11,55 @@ trait JournalControllerBase
 {
     public function indexJournalBase($code, $type, $start_date, $end_date, $sort, $order, $pagination)
     {
-      if($code != 'all')
-         $account = Account::where('code', $code)->first();
+        if($code != 'all')
+            $whereAcccount = Account::where('code', $code)->first()->id;
+        else
+            $whereAcccount = '%%';
+
+        if($type == 'all')
+            $whereType = '%%';
+        else
+            $whereType = $type;
+
+        if($sort == 'updated_at')
+            $whereDate = 'journals.updated_at';
+        else
+            $whereDate = 'journals.created_at';
 
         if($pagination == 'all')
         {
-            if($code == 'all')
+            if($code == 'all' && $type == 'all')
             { 
-                if($type == 'all')
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->orderBy($sort, $order)
-                                      ->get(); 
-                }
-                else
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->where('journals.type', $type)
-                                      ->orderBy($sort, $order)
-                                      ->get();
-                }
+               $journals = Journal::whereDate($whereDate, '>=', $start_date)
+                                  ->whereDate($whereDate, '<=', $end_date)
+                                  ->orderBy($sort, $order)
+                                  ->get(); 
             }
             else
             {
-                if($type == 'all')
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
-                                      ->orderBy($sort, $order)
-                                      ->get(); 
-                }
-                else
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->where('journals.type', $type)
-                                      ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
+                $journals = Journal::whereDate($whereDate, '>=', $start_date)
+                                      ->whereDate($whereDate, '<=', $end_date)
+                                      ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? ", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->get();
-                }
             }
         }
         else
-        {
-            if($code == 'all')
+        { 
+            if($code == 'all' && $type == 'all')
             { 
-                if($type == 'all')
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->orderBy($sort, $order)
-                                      ->paginate($pagination);
-                }
-                else
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->where('journals.type', $type)
-                                      ->orderBy($sort, $order)
-                                      ->paginate($pagination);
-                }
+               $journals = Journal::whereDate($whereDate, '>=', $start_date)
+                                  ->whereDate($whereDate, '<=', $end_date)
+                                  ->orderBy($sort, $order)
+                                  ->paginate($pagination); 
             }
             else
             {
-                if($type == 'all')
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
+                $journals = Journal::whereDate($whereDate, '>=', $start_date)
+                                      ->whereDate($whereDate, '<=', $end_date)
+                                      ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? ", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->paginate($pagination);
-                }
-                else
-                {
-                   $journals = Journal::whereDate('journals.created_at', '>=', $start_date)
-                                      ->whereDate('journals.created_at', '<=', $end_date)
-                                      ->where('journals.type', $type)
-                                      ->whereRaw('(journals.debit_account_id = ' . $account->id . ' OR journals.credit_account_id = ' . $account->id . ')')
-                                      ->orderBy($sort, $order)
-                                      ->paginate($pagination);
-                }
             }
         }
 

@@ -31,6 +31,10 @@
              <div class="col-sm-2">
                 {!! Form::select('code', getAccountLists(), $code, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'code', 'onchange' => 'advanceSearch()']) !!}
               </div>
+              {!! Form::label('sort', 'Sort', array('class' => 'col-sm-1 control-label')) !!}
+             <div class="col-sm-2">
+                {!! Form::select('sort', ['id' => 'id', 'created_at' => 'created_at', 'updated_at' => 'updated_at', 'debit' => 'nominal'], $sort, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'sort', 'onchange' => 'advanceSearch()']) !!}
+              </div>
             </div>
             <div class="col-sm-12" style="margin-top: 10px">
               {!! Form::label('start_date', 'Tanggal Awal', array('class' => 'col-sm-2 control-label')) !!}
@@ -57,6 +61,7 @@
                 <th width="10%">@if($order == 'desc')<a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/asc/' . $pagination) }}">@else<a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/id/desc/' . $pagination) }}">@endif <i class="fa fa-sort" aria-hidden="true"></i> Journal ID</a></th>
                 <th width="10%">Tipe ID</th>
                 <th width="10%">Created_at</th>
+                <th width="10%">Updated_at</th>
                 <th width="10%">@if($order == 'desc')<a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/journal_date/asc/' . $pagination) }}">@else<a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/journal_date/desc/' . $pagination) }}">@endif <i class="fa fa-sort" aria-hidden="true"></i> Tanggal</a></th>
                 <th>Nama</th>
                 <th style="background-color: #E5F9DB">@if($order == 'desc')<a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/debit_account_id/asc/' . $pagination) }}">@else<a href="{{ url($role . '/journal/' . $code . '/' . $type . '/' . $start_date . '/' . $end_date . '/debit_account_id/desc/' . $pagination) }}">@endif <i class="fa fa-sort" aria-hidden="true"></i> No Akun</a></th>
@@ -76,6 +81,7 @@
                     <td>{{ $journal->id }}</td>
                     <td>{{ $journal->type_id }}</td>
                     <td>{{ $journal->created_at }}</td>
+                    <td>{{ $journal->updated_at }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
                     <td>@if($journal->type == 'good_loading')
                           <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" style="color: blue;">{{ $journal->name }}</a>
@@ -142,10 +148,7 @@
 
     function advanceSearch()
     {
-      var show        = $('#show').val();
-      var code        = $('#code').val();
-      var type        = $('#journal_type').val();
-      window.location = window.location.origin + '/{{ $role }}/journal/' + code + '/' + type + '/{{ $start_date }}/{{ $end_date }}/{{ $sort }}/{{ $order }}/' + show;
+      window.location = window.location.origin + '/{{ $role }}/journal/' + $('#code').val() + '/' + $('#journal_type').val() + '/{{ $start_date }}/{{ $end_date }}/' + $('#sort').val() + '/{{ $order }}/' + $('#show').val();
     }
 
     function highlight(id)
