@@ -57,7 +57,7 @@ trait JournalControllerBase
             {
                 $journals = Journal::whereDate($whereDate, '>=', $start_date)
                                       ->whereDate($whereDate, '<=', $end_date)
-                                      ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? ", array($whereType, $whereAcccount, $whereAcccount))
+                                      ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->paginate($pagination);
             }
