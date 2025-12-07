@@ -80,8 +80,8 @@
                     <td>{{ $journal->type }}</td>
                     <td>{{ $journal->id }}</td>
                     <td>{{ $journal->type_id }}</td>
-                    <td>{{ $journal->created_at }}</td>
-                    <td>{{ $journal->updated_at }}</td>
+                    <td>{{ displayDateTime($journal->created_at) }}</td>
+                    <td>{{ displayDateTime($journal->updated_at) }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
                     <td>@if($journal->type == 'good_loading')
                           <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" style="color: blue;">{{ $journal->name }}</a>

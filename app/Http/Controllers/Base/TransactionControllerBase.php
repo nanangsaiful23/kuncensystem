@@ -1105,25 +1105,31 @@ trait TransactionControllerBase
             $account = Account::where('code', '1112')->first()->id;
         }
         // dd($transaction);die;
-        $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
-                          ->where('type', 'transaction')
-                          ->where('debit_account_id', $account)
+
+        $journal = Journal::where('type_id', $transaction->id)->first();
+
+        if($journal == null)
+        {
+            $journal = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
+                              ->where('type', 'transaction')
+                              ->where('debit_account_id', $account)
+                              ->first();
+
+            $hpp = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
+                          ->where('type', 'hpp')
                           ->first();
+
+            $data_hpp['debit']              = $hpp->debit - $last_sum + $sum;
+            $data_hpp['credit']             = $hpp->credit - $last_sum + $sum;
+
+            $hpp->update($data_hpp);
+        }
 
         $data_journal['debit']  = $journal->debit - $last_sum + $sum;
         $data_journal['credit'] = $journal->credit - $last_sum + $sum;
         $data_journal['name']   = $journal->name . ' add on ' . $transaction->id;
 
         $journal->update($data_journal);
-
-        $hpp = Journal::where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d', strtotime($transaction->created_at))))
-                      ->where('type', 'hpp')
-                      ->first();
-
-        $data_hpp['debit']              = $hpp->debit - $last_sum + $sum;
-        $data_hpp['credit']             = $hpp->credit - $last_sum + $sum;
-
-        $hpp->update($data_hpp);
 
        return $transaction; 
     }
