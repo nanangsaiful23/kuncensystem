@@ -110,7 +110,7 @@
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create' && Request::segment(3) != 'createTouch' && Request::segment(3) != 'resume' && Request::segment(3) != 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>
             @if(\Auth::user()->email == 'admin')
-              <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resume' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resume/normal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/10') }}"><i class="fa fa-circle-o"></i> Resume Transaksi Per Barang</a></li>
+              <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resume' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resume/normal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/100') }}"><i class="fa fa-circle-o"></i> Resume Transaksi Per Barang</a></li>
             @endif
         </ul>
       </li>
