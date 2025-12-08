@@ -799,6 +799,16 @@ trait TransactionControllerBase
 
     public function resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date, $pagination)
     {
+        if($category_id == 'all')
+            $whereCategory = '%%';
+        else
+            $whereCategory = $category_id;
+
+        if($distributor_id == 'all')
+            $whereDistributor = '%%';
+        else
+            $whereDistributor = $distributor_id;
+
         if($category_id == 'all' && $distributor_id == 'all')
         {
             $total = TransactionDetail::whereDate('transaction_details.created_at', '>=', $start_date)
@@ -813,69 +823,6 @@ trait TransactionControllerBase
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
                                                     ->where('transaction_details.type', $type)
-                                                    ->with('good_unit')
-                                                    ->groupBy('goods.id')
-                                                    ->groupBy('goods.code')
-                                                    ->groupBy('goods.name')
-                                                    ->groupBy('goods.last_stock')
-                                                    ->groupBy('units.name')
-                                                    ->groupBy('transaction_details.buy_price')
-                                                    ->groupBy('transaction_details.selling_price')
-                                                    ->orderBy('selling_price', 'desc')
-                                                    ->orderBy('quantity', 'desc')
-                                                    ->paginate($pagination);
-        }
-        else if($category_id == 'all')
-        {
-            $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                      ->join('goods', 'goods.id', 'good_units.good_id')
-                                      ->where('transaction_details.type', $type)
-                                      ->whereDate('transaction_details.created_at', '>=', $start_date)
-                                      ->whereDate('transaction_details.created_at', '<=', $end_date) 
-                                      ->where('goods.last_distributor_id', $distributor_id)
-                                      ->get();
-
-            $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                                    ->join('goods', 'goods.id', 'good_units.good_id')
-                                                    ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
-                                                    ->where('transaction_details.type', $type)
-                                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
-                                                    ->whereDate('transaction_details.created_at', '<=', $end_date) 
-                                                    ->where('goods.last_distributor_id', $distributor_id)
-                                                    ->with('good_unit')
-                                                    ->groupBy('goods.id')
-                                                    ->groupBy('goods.code')
-                                                    ->groupBy('goods.name')
-                                                    ->groupBy('goods.last_stock')
-                                                    ->groupBy('units.name')
-                                                    ->groupBy('transaction_details.buy_price')
-                                                    ->groupBy('transaction_details.selling_price')
-                                                    ->orderBy('selling_price', 'desc')
-                                                    ->orderBy('quantity', 'desc')
-                                                    ->paginate($pagination);
-        }
-        else if($distributor_id == 'all')
-        {
-            $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                      ->join('goods', 'goods.id', 'good_units.good_id')
-                                      ->where('transaction_details.type', $type)
-                                      ->whereDate('transaction_details.created_at', '>=', $start_date)
-                                      ->whereDate('transaction_details.created_at', '<=', $end_date) 
-                                      // ->where('goods.last_distributor_id', $distributor_id)
-                                      ->where('goods.category_id', $category_id)
-                                      ->get();
-
-            $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                                    ->join('goods', 'goods.id', 'good_units.good_id')
-                                                    ->join('units', 'units.id', 'good_units.unit_id')
-                                                    ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
-                                                    ->where('transaction_details.type', $type)
-                                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
-                                                    ->whereDate('transaction_details.created_at', '<=', $end_date) 
-                                                    ->where('goods.category_id', $category_id)
-                                                    // ->where('goods.last_distributor_id', $distributor_id)
-                                                    ->with('good_unit')
                                                     ->groupBy('goods.id')
                                                     ->groupBy('goods.code')
                                                     ->groupBy('goods.name')
@@ -888,14 +835,13 @@ trait TransactionControllerBase
                                                     ->paginate($pagination);
         }
         else
-        {   
+        {
             $total = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                       ->join('goods', 'goods.id', 'good_units.good_id')
                                       ->where('transaction_details.type', $type)
                                       ->whereDate('transaction_details.created_at', '>=', $start_date)
                                       ->whereDate('transaction_details.created_at', '<=', $end_date) 
-                                      ->where('goods.last_distributor_id', $distributor_id)
-                                      ->where('goods.category_id', $category_id)
+                                      ->whereRaw('goods.last_distributor_id = ? AND goods.category_id = ?', array($whereDistributor, $whereCategory))
                                       ->get();
 
             $transaction_details = TransactionDetail::join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
@@ -903,11 +849,9 @@ trait TransactionControllerBase
                                                     ->join('units', 'units.id', 'good_units.unit_id')
                                                     ->select(DB::raw("goods.id, goods.code, goods.name, goods.last_stock, units.name as unit_name, SUM(transaction_details.quantity) as quantity, transaction_details.buy_price, transaction_details.selling_price, SUM(transaction_details.selling_price - transaction_details.buy_price) as profit"))
                                                     ->where('transaction_details.type', $type)
-                                                    ->where('goods.category_id', $category_id)
-                                                    ->where('goods.last_distributor_id', $distributor_id)
                                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                                     ->whereDate('transaction_details.created_at', '<=', $end_date) 
-                                                    ->with('good_unit')
+                                                    ->whereRaw('goods.last_distributor_id = ? AND goods.category_id = ?', array($whereDistributor, $whereCategory))
                                                     ->groupBy('goods.id')
                                                     ->groupBy('goods.code')
                                                     ->groupBy('goods.name')
