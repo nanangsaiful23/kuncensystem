@@ -58,7 +58,7 @@
               <tbody id="table-good">
                 @foreach($transaction_details as $detail)
                   <tr style="background-color: @if($detail->buy_price >= $detail->selling_price) #F29727 @elseif($detail->buy_price == 0) #D21312 @endif">
-                    <td><a href="{{ url($role . '/good/' . $detail->id . '/detail') }}" target="_blank()">{{ $detail->name }}</a></td>
+                    <td><a href="{{ url($role . '/good/' . $detail->id . '/detail') }}" target="_blank()">@if($detail->type_name != null) {{ $detail->type_name }} @endif {{ $detail->name }}</a></td>
                     <td>{{ $detail->quantity }}</td>
                     <td>{{ $detail->unit_name }}</td>
                     <td @if($detail->last_stock <= 0) style="background-color: red" @endif>{{ $detail->last_stock }}</td>
