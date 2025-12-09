@@ -59,22 +59,22 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
                 <tr>
-                  <th style="width: 5%; text-align: center;">Kategori</th>
-                  <th style="width: 45%; text-align: center;">Nama</th>
-                  <th style="width: 12%; text-align: center;">Stock</th>
-                  <th style="width: 15%; text-align: center;">Harga Jual</th>
-                  <th style="width: 15%; text-align: center;">Kode</th>
+                  <th style="width: 5%; text-align: center;" class="col-cat">Kategori <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-cat', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-cat', 'show')"></i></th>
+                  <th style="width: 35%; text-align: center;" class="col-name">Nama <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-name', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-name', 'show')"></i></th>
+                  <th style="width: 12%; text-align: center;" class="col-stock">Stock <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-stock', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-stock', 'show')"></i></th>
+                  <th style="width: 15%; text-align: center;" class="col-price">Harga Jual <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-price', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-price', 'show')"></i></th>
+                  <th style="width: 15%; text-align: center;" class="col-code">Kode <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-code', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-code', 'show')"></i></th>
                   @if(\Auth::user()->role == 'supervisor')
-                    <th style="width: 10%; text-align: center;">Harga Beli</th>
+                    <th style="width: 10%; text-align: center;" class="col-buy-price">Harga Beli <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-buy-price', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-buy-price', 'show')"></i></th>
                   @endif
-                  <th style="width: 5%; text-align: center;">Action</th>
+                  <th style="width: 15%; text-align: center;" class="col-act">Action <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-cat', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-cat', 'show')"></i></th>
                 </tr>
               </thead>
               <tbody>
                 @foreach($goods as $good)
                   <tr>
-                    <td>{{ $good->category->name }}</td>
-                    <td>
+                    <td class="col-cat">{{ $good->category->name }}</td>
+                    <td class="col-name">
                       <h4>{{ '[' . $good->getType() . '] ' . $good->name }}</h4>
                       @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
                       @if(\Auth::user()->email == 'admin')
@@ -82,18 +82,16 @@
                       @endif
                       <br>
                       @if($role == 'admin')
-                        <br>Last loading: {{ displayDate($good->last_loading) }}<br>
-                        <a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat loading</a><br>
+                        <br>Last loading: {{ displayDate($good->last_loading) }}
                       @endif
                       <br>Last transaction: {{ displayDate($good->last_transaction) }}
-                      <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat penjualan</a><br>
                     </td>
-                    <td>
+                    <td class="col-stock">
                       <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}<br>
                       <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->total_transaction . ' ' . $good->base_unit()->unit->code }}<br>
                       <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->total_loading . ' ' . $good->base_unit()->unit->code }}
                     </td>
-                    <td>
+                    <td class="col-price">
                       @foreach($good->good_units as $unit)
                         <b>{{ showRupiah($unit->selling_price) . ' /' . $unit->unit->name}}</b>
                         @if(\Auth::user()->email == 'admin')
@@ -110,17 +108,16 @@
                           </form><br>
                         @endif
                       @endforeach
-                      <br><a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" class="btn btn-warning" target="_blank()">Riwayat harga jual</a><br>
                     </td>
-                    <td>{{ $good->code }}</td>
+                    <td class="col-code">{{ $good->code }}</td>
                     @if(\Auth::user()->role == 'supervisor')
-                      <td>
+                      <td class="col-buy-price">
                         @foreach($good->good_units as $unit)
                           {{ showRupiah($unit->buy_price) . ' /' . $unit->unit->name}}
                         @endforeach
                       </td>
                     @endif
-                    <td>
+                    <td class="col-act">
                       <a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a><br>
                       <a href="{{ url($role . '/good/' . $good->id . '/edit') }}" target="_blank()"><i class="fa fa-file orange" aria-hidden="true"></i></a><br>
                       @if($good->getStock() == 0)
@@ -132,6 +129,11 @@
                           {{ csrf_field() }}
                           {{ method_field('DELETE') }}
                         </form>
+                      @endif
+                      @if($role == 'admin')
+                        <a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()"><i class="fa fa-truck tosca" aria-hidden="true"></i> Riwayat loading</a><br>
+                        <br><a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()"><i class="fa fa-cart tosca" aria-hidden="true"></i> Riwayat penjualan</a><br>
+                        <br><a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()"><i class="fa fa-dollar tosca" aria-hidden="true"></i> Riwayat harga jual</a><br>
                       @endif
                     </td>
                   </tr>
@@ -243,6 +245,26 @@
         window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#type').val() + '/' + $('#distributor').val() + '/' + $('#sort').val() + '/' + $('#order').val() + '/' + $('#show').val();
       else
         window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#type').val() + '/all/goods.id/desc/' + $('#show').val();
+    }
+
+    function display(name, mode) 
+    {
+      var cols = document.getElementsByClassName(name);
+
+      for (var i = 0; i < cols.length; i ++) {
+        if(mode == 'show')
+        {
+          if(i > 0)
+           cols[i].style.visibility = 'visible';
+         cols[i].style.width = 'auto'; 
+        }
+        else
+        {
+          if(i > 0)
+            cols[i].style.visibility = 'collapse';
+          cols[i].style.width = '1%';
+        }
+      }
     }
   </script>
 @endsection

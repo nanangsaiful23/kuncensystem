@@ -71,7 +71,7 @@
                 @foreach($goods as $good)
                   <tr>
                     @if(\Auth::user()->email == 'admin')
-                      <td>{{ $good->getDistributor()->name }}</td>
+                      <td>{!! Form::select('distributors[]', getDistributorLists(), $good->getDistributor()->id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor-' . $good->id, 'onchange' => 'changeDist(' . $good->id . ')']) !!}</td>
                     @endif
                     <td>{{ $good->name }}</td>
                     @if(\Auth::user()->email == 'admin')
@@ -135,6 +135,24 @@
     function submitForm()
     {     
       $('#export-form').submit();
+    }
+
+    function changeDist(good_id)
+    {
+      $.ajax({
+        url: "{!! url($role . '/good/" + good_id + "/changeDist') !!}",
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        data: {
+            last_distributor_id: $("#distributor-" + good_id).val(),
+        },
+        success: function(result){
+        },
+        error: function(){
+        }
+      });
     }
   </script>
 @endsection

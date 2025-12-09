@@ -1054,4 +1054,19 @@ trait GoodControllerBase
 
         return true;
     }
+
+    public function changeDistGoodBase($good_id, Request $request)
+    {
+        $good = Good::find($good_id);
+
+        if($good != null)
+        {
+            $data['last_distributor_id'] = $request->last_distributor_id;
+            $good->update($data);
+
+            return true;
+        }
+
+        return false;
+    }
 }

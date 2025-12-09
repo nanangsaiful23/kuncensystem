@@ -420,4 +420,13 @@ class GoodController extends Controller
 
         return redirect('/admin/good/all/all/all/id/desc/20');
     }
+
+    public function changeDist($good_id, Request $request)
+    {
+        $result = $this->changeDistGoodBase($good_id, $request);
+
+        return response()->json([
+            "result"  => $result
+        ], 200);
+    }
 }
