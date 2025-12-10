@@ -12,7 +12,7 @@ class Distributor extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'name', 'location'
+        'name', 'location', 'total_aset'
     ];
 
     protected $hidden = [
