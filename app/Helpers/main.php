@@ -11,6 +11,7 @@
     use App\Models\GoodChecking;
     use App\Models\GoodLoading;
     use App\Models\GoodUnit;
+    use App\Models\MainCategory;
     use App\Models\Member;
     use App\Models\Type;
     use App\Models\Unit;
@@ -313,6 +314,15 @@
             $brands = array_add($brands, $data->id, $data->name);
         }
         return $brands;
+    }
+
+    function getMainCategories()
+    {
+        $categories = [null => 'Pilih kategori utama', 'all' => 'Seluruh kategori utama'];
+        foreach (MainCategory::orderBy('name', 'asc')->get() as $data) {
+            $categories = array_add($categories, $data->id, $data->name . ' (' . $data->eng_name . ')');
+        }
+        return $categories;
     }
 
     function getCategories()

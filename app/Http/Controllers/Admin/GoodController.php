@@ -315,7 +315,7 @@ class GoodController extends Controller
             return view('layout.good.print-display-list', compact('role', 'goods'));
     }
 
-    public function zeroStock($category_id, $location, $distributor_id, $stock)
+    public function zeroStock($main_category_id, $category_id, $location, $distributor_id, $stock)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -323,9 +323,9 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'zero-stock';
 
-        $goods = $this->zeroStockGoodBase($category_id, $location, $distributor_id, $stock);
+        $goods = $this->zeroStockGoodBase($main_category_id, $category_id, $location, $distributor_id, $stock, '20');
 
-        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'location', 'distributor_id', 'stock'));
+        return view('admin.layout.page', compact('default', 'goods', 'main_category_id', 'category_id', 'location', 'distributor_id', 'stock'));
     }
 
     public function stockOpname()

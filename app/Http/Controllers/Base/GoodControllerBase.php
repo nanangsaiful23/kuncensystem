@@ -439,91 +439,69 @@ trait GoodControllerBase
         return true;
     }
 
-    public function zeroStockGoodBase($category_id, $location, $distributor_id, $stock)
+    public function zeroStockGoodBase($main_category_id, $category_id, $location, $distributor_id, $stock, $pagination)
     {
+        if($main_category_id == 'all')
+            $whereMainCategory = '%%';
+        else
+            $whereMainCategory = $main_category_id;
+
         if($category_id == 'all')
+            $whereCategory = '%%';
+        else
+            $whereCategory = $category_id;
+
+        if($location == 'all')
+            $whereLocation = '%%';
+        else
+            $whereLocation = $location;
+
+        if($distributor_id == 'all')
+            $whereDistributor = '%%';
+        else
+            $whereDistributor = $distributor_id;
+
+        if($main_category_id == 'all' && $category_id == 'all' && $location == 'all' && $distributor_id == 'all')
         {
-            if($location == 'all')
+            if($pagination == 'all')
             {
-                if($distributor_id == 'all')
-                {
-                    $goods = Good::where('last_stock', '<=', $stock)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
-                else
-                {
-                    $goods = Good::where('last_stock', '<=', $stock)
-                                 ->where('last_distributor_id', $distributor_id)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
+                $goods = Good::where('last_stock', '<=', $stock)
+                             ->orderBy('last_loading', 'desc')
+                             ->get();
             }
             else
             {
-                if($distributor_id == 'all')
-                {
-                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
-                                 ->where('last_stock', '<=', $stock)
-                                 ->where('distributors.location', $location)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
-                else
-                {
-                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
-                                 ->where('last_stock', '<=', $stock)
-                                 ->where('distributors.location', $location)
-                                 ->where('last_distributor_id', $distributor_id)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
+                $goods = Good::where('last_stock', '<=', $stock)
+                             ->orderBy('last_loading', 'desc')
+                             ->paginate($pagination);
             }
         }
         else
         {
-            if($location == 'all')
+            if($pagination == 'all')
             {
-                if($distributor_id == 'all')
-                {
-                    $goods = Good::where('last_stock', '<=', $stock)
-                                 ->where('category_id', $category_id)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
-                else
-                {
-                    $goods = Good::where('last_stock', '<=', $stock)
-                                 ->where('category_id', $category_id)
-                                 ->where('last_distributor_id', $distributor_id)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
+                $goods = Good::join('categories', 'categories.id', 'goods.category_id')
+                             ->join('sub_categories', 'sub_categories.category_id', 'categories.id')
+                             ->leftjoin('distributors', 'distributors.id', 'goods.last_distributor_id')
+                             ->select('goods.*')
+                             ->where('goods.last_stock', '<=', $stock)
+                             ->whereRaw('sub_categories.main_category_id like ? AND goods.category_id like ? AND distributors.location like ? AND goods.last_distributor_id like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
+                             ->orderBy('goods.last_loading', 'desc')
+                             ->get();
             }
             else
             {
-                if($distributor_id == 'all')
-                {
-                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
-                                 ->where('last_stock', '<=', $stock)
-                                 ->where('distributors.location', $location)
-                                 ->where('category_id', $category_id)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
-                else
-                {
-                    $goods = Good::join('distributors', 'distributors.id', 'goods.last_distributor_id')
-                                 ->where('last_stock', '<=', $stock)
-                                 ->where('distributors.location', $location)
-                                 ->where('category_id', $category_id)
-                                 ->where('last_distributor_id', $distributor_id)
-                                 ->orderBy('last_loading', 'desc')
-                                 ->get();
-                }
+                $goods = Good::join('categories', 'categories.id', 'goods.category_id')
+                             ->join('sub_categories', 'sub_categories.category_id', 'categories.id')
+                             ->leftjoin('distributors', 'distributors.id', 'goods.last_distributor_id')
+                             ->select('goods.*')
+                             ->where('goods.last_stock', '<=', $stock)
+                             ->whereRaw('sub_categories.main_category_id like ? AND goods.category_id like ? AND coalesce(distributors.location, "") like ? AND coalesce(goods.last_distributor_id, "") like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
+                             ->orderBy('goods.last_loading', 'desc')
+                             ->paginate($pagination);
             }
         }
+        // dd($goods);die;
         
         return $goods;
     }

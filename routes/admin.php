@@ -90,7 +90,7 @@ Route::group(['prefix' => 'good'], function () {
 	Route::post('/transfer', 'GoodController@storeTransfer')->name('good.transfer');
 	Route::get('/changeNameImport', 'GoodController@changeName');
 	Route::post('/changeNameImport', 'GoodController@changeNameImport')->name('good.changeNameImport');
-	Route::get('/zeroStock/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');
+	Route::get('/zeroStock/{main_category_id}/{category_id}/{location}/{distributor_id}/{stock}', 'GoodController@zeroStock');
 	Route::post('/zeroStock/export', 'GoodController@stockExport')->name('zeroStock.export');
 	Route::delete('/zeroStock/delete', 'GoodController@deleteExport')->name('zeroStock.delete');
 	Route::get('/exp', 'GoodController@exp');

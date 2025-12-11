@@ -20,22 +20,26 @@
             <div class="box-body" style="overflow-x:scroll">
               <div class="form-group col-sm-12" style="margin-top: 10px;">
                 {!! Form::label('location', 'Lokasi', array('class' => 'col-sm-1 control-label')) !!}
-                <div class="col-sm-3">
+                <div class="col-sm-2">
                   {!! Form::select('location', getDistributorLocations(), $location, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'location', 'onchange' => 'advanceSearch()']) !!}
                 </div>
-                {!! Form::label('category_id', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
-                <div class="col-sm-5">
-                  {!! Form::select('category_id', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category_id', 'onchange' => 'advanceSearch()']) !!}
+                {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-4">
+                  {!! Form::select('distributor_id', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor_id', 'onchange' => 'advanceSearch()']) !!}
+                </div>
+                {!! Form::label('stock', 'Stock', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-1">
+                  {!! Form::select('stock', ['0' => '0', '3' => '3', '5' => '5', '10' => '10'], $stock, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'stock', 'onchange' => 'advanceSearch()']) !!}
                 </div>
               </div>
               <div class="form-group col-sm-12" style="margin-top: 10px;">
-                {!! Form::label('stock', 'Stock', array('class' => 'col-sm-1 control-label')) !!}
-                <div class="col-sm-3">
-                  {!! Form::select('stock', ['0' => '0', '3' => '3', '5' => '5', '10' => '10'], $stock, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'stock', 'onchange' => 'advanceSearch()']) !!}
+                {!! Form::label('main_category_id', 'Kategori Utama', array('class' => 'col-sm-2 control-label')) !!}
+                <div class="col-sm-4">
+                  {!! Form::select('main_category_id', getMainCategories(), $main_category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'main_category_id', 'onchange' => 'advanceSearch()']) !!}
                 </div>
-                {!! Form::label('distributor', 'Distributor', array('class' => 'col-sm-1 control-label')) !!}
-                <div class="col-sm-5">
-                  {!! Form::select('distributor_id', getDistributorLists(), $distributor_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor_id', 'onchange' => 'advanceSearch()']) !!}
+                {!! Form::label('category_id', 'Kategori', array('class' => 'col-sm-1 control-label')) !!}
+                <div class="col-sm-4">
+                  {!! Form::select('category_id', getCategories(), $category_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'category_id', 'onchange' => 'advanceSearch()']) !!}
                 </div>
               </div>
             </div>
@@ -73,7 +77,7 @@
                     @if(\Auth::user()->email == 'admin')
                       <td>{!! Form::select('distributors[]', getDistributorLists(), $good->getDistributor()->id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor-' . $good->id, 'onchange' => 'changeDist(' . $good->id . ')']) !!}</td>
                     @endif
-                    <td>{{ $good->name }}</td>
+                    <td><a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()">{{ $good->name }}</a></td>
                     @if(\Auth::user()->email == 'admin')
                       <td style="text-align: center;">{{ $good->getLastBuy() == null ? "" : displayDate($good->getLastBuy()->good_loading->loading_date) }}</td>
                       <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->buy_price) }}</td>
@@ -93,6 +97,7 @@
                 @endforeach
               </tbody>
             </table>
+            {{ $goods->render() }}
           </form>
             @if(\Auth::user()->email == 'admin')  
               {!! Form::close() !!}
@@ -123,7 +128,7 @@
 
     function advanceSearch()
     {
-      window.location = window.location.origin + '/{{ $role }}/good/zeroStock/' + $('#category_id').val() + '/' + $('#location').val() + '/' + $('#distributor_id').val() + '/' + $('#stock').val();
+      window.location = window.location.origin + '/{{ $role }}/good/zeroStock/' + $('#main_category_id').val() + '/' + $('#category_id').val() + '/' + $('#location').val() + '/' + $('#distributor_id').val() + '/' + $('#stock').val();
     }
 
     function changeType()

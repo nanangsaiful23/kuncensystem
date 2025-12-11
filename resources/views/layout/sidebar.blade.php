@@ -55,7 +55,7 @@
             <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'exp' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/exp') }}"><i class="fa fa-circle-o"></i> Daftar Barang Expired</a></li>
             <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'printDisplay' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/printDisplay') }}"><i class="fa fa-circle-o"></i> Print Harga Barang Display</a></li>
             @if($role == 'admin')
-              <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'zeroStock' && Request::segment(7) != '-1' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/zeroStock/all/all/1/0') }}"><i class="fa fa-circle-o"></i> Stock Habis</a></li>
+              <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'zeroStock' && Request::segment(7) != '-1' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/zeroStock/all/all/all/1/0') }}"><i class="fa fa-circle-o"></i> Stock Habis</a></li>
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'zeroStock' && Request::segment(7) == '-1' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/zeroStock/all/all/all/-1') }}"><i class="fa fa-circle-o"></i> Stock Minus</a></li>
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'wholesalePrice' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/wholesalePrice') }}"><i class="fa fa-circle-o"></i> Harga Grosir Tidak Sesuai</a></li>
             @endif
