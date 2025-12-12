@@ -44,7 +44,7 @@
                     <td>{{ $distributor->location }}</td>
                     @if(\Auth::user()->email == 'admin')
                       <td>{{ showRupiah($distributor->total_aset) }}</td>
-                      <?php $a = $distributor->totalUntung('all')[0]->total; $b = $distributor->totalRugi('all')[0]->total; ?>
+                      <?php $a = $distributor->total_profit; $b = $distributor->total_rugi; ?>
                       <td>{{ showRupiah($a) }}</td>
                       <td>{{ showRupiah($b) }}</td>
                       <td>@if($a == 0) 0% @else {{ round($b/$a * 100, 2) . '%' }} @endif</td>

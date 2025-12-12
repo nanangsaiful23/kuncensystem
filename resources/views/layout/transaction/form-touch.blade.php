@@ -73,15 +73,10 @@
                             {!! Form::text('prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-'.$i, 'style' => 'text-align: right')) !!}
                         </td>
                         <td width="8%">
-                            @if(\Auth::user()->email == 'admin')
-                                <input type="text" name="discount_pieces[]" class="form-control" id="discount_piece-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeypress="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
-                            </td>
-                            <td width="8%">
-                                <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeypress="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
-                            @else
-                                {!! Form::text('discount_pieces[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount_piece-'.$i)) !!}
-                                {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
-                            @endif
+                            <input type="text" name="discount_pieces[]" class="form-control" id="discount_piece-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeypress="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
+                        </td>
+                        <td width="8%">
+                            <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeypress="editPrice('all_barcode', '{{ $i }}')" style="text-align: right;">
                         </td>
                         <td width="10%">
                             {!! Form::text('total_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_price-'.$i, 'style' => 'text-align: right')) !!}

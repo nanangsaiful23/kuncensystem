@@ -33,8 +33,8 @@
             </div>
             <div class="box-body" style="overflow-x:scroll; color: black !important">
               {!! Form::model(old(),array('url' => route('admin.storeScaleLedger', [$start_date, $end_date]), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}
-                <div class="col-sm-3">
-                  {!! Form::submit("Simpan Ledger Neraca", ['class' => 'btn form-control'])  !!}<br>
+                <div class="col-sm-6">
+                  {!! Form::submit("Simpan Ledger Neraca & Update Aset Distributor", ['class' => 'btn form-control'])  !!}<br>
                 </div>
                 <a href="{{ url('admin/scaleLedger/' . $start_date . '/' . $end_date . '/2101') }}" class="btn">Riwayat Ledger Neraca</a>
                 <hr>
