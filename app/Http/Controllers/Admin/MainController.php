@@ -281,22 +281,22 @@ class MainController extends Controller
 
     public function storeScaleLedger($start_date, $end_date, Request $request)
     {
-        DB::table(DB::raw("UPDATE distributors 
-            INNER JOIN (SELECT distributors.id as dist_id, distributors.name, COALESCE(SUM(aset.total), 0) as total
+        DB::statement("UPDATE distributors 
+            INNER JOIN (SELECT distributors.id as dist_id, COALESCE(SUM(aset.total), 0) as total
             FROM distributors
             LEFT JOIN (
                 SELECT goods.id, goods.last_distributor_id, SUM(goods.last_stock * good_units.buy_price) AS total
                 FROM goods
                 LEFT JOIN good_units ON good_units.id = goods.base_unit_id 
                 WHERE good_units.deleted_at IS NULL AND goods.deleted_at IS NULL
-                GROUP BY goods.id) AS aset ON aset.last_distributor_id = distributors.id
+                GROUP BY goods.id, goods.last_distributor_id) AS aset ON aset.last_distributor_id = distributors.id
                 GROUP BY distributors.id) AS total_aset ON total_aset.dist_id = distributors.id
             SET distributors.total_aset = total_aset.total
-            WHERE distributors.id = total_aset.dist_id"));
+            WHERE distributors.id = total_aset.dist_id");
 
-         DB::table(DB::raw("UPDATE distributors 
+         DB::statement("UPDATE distributors 
             INNER JOIN ( 
-                SELECT distributors.id, distributors.name, COALESCE(SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity), 0) AS total 
+                SELECT distributors.id, COALESCE(SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity), 0) AS total 
                 FROM transaction_details 
                 JOIN transactions ON transactions.id = transaction_details.transaction_id 
                 JOIN good_units ON transaction_details.good_unit_id = good_units.id 
@@ -305,11 +305,11 @@ class MainController extends Controller
                 WHERE transaction_details.type = 'normal' AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL 
                 GROUP BY distributors.id) as untung ON untung.id = distributors.id 
             SET distributors.total_profit = COALESCE(untung.total, 0) 
-            WHERE distributors.id = untung.id;"));
+            WHERE distributors.id = untung.id;");
 
-         DB::table(DB::raw("UPDATE distributors 
+         DB::statement("UPDATE distributors 
             INNER JOIN ( 
-                SELECT distributors.id, distributors.name, COALESCE(SUM(transaction_details.buy_price * transaction_details.quantity), 0) AS total 
+                SELECT distributors.id, COALESCE(SUM(transaction_details.buy_price * transaction_details.quantity), 0) AS total 
                 FROM transaction_details 
                 JOIN transactions ON transactions.id = transaction_details.transaction_id 
                 JOIN good_units ON transaction_details.good_unit_id = good_units.id 
@@ -318,7 +318,7 @@ class MainController extends Controller
                 WHERE (transaction_details.type = '5215' OR transaction_details.type = 'stock_opname') AND transactions.deleted_at IS NULL AND goods.deleted_at IS NULL 
                 GROUP BY distributors.id) as rugi ON rugi.id = distributors.id 
             SET distributors.total_rugi = COALESCE(rugi.total, 0) 
-            WHERE distributors.id = rugi.id;"));
+            WHERE distributors.id = rugi.id;");
 
         $data = $request->input();
 
