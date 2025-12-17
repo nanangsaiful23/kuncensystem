@@ -77,7 +77,7 @@
                     @if(\Auth::user()->email == 'admin')
                       <td>{!! Form::select('distributors[]', getDistributorLists(), $good->getDistributor()->id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor-' . $good->id, 'onchange' => 'changeDist(' . $good->id . ')']) !!}</td>
                     @endif
-                    <td><a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()">{{ $good->name }}</a></td>
+                    <td><a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()">{{ $good->getFullName() }}</a></td>
                     @if(\Auth::user()->email == 'admin')
                       <td style="text-align: center;">{{ $good->getLastBuy() == null ? "" : displayDate($good->getLastBuy()->good_loading->loading_date) }}</td>
                       <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->buy_price) }}</td>
