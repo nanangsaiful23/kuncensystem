@@ -82,7 +82,7 @@
         </div>
 
         <div class="form-group">
-            {!! Form::label('color', 'Warna Grafik, array('class' => 'col-sm-12')) !!}
+            {!! Form::label('color', 'Warna Grafik', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('color', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
