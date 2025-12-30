@@ -36,7 +36,7 @@
                 <div class="col-sm-6">
                   {!! Form::submit("Simpan Ledger Neraca & Update Aset Distributor", ['class' => 'btn form-control'])  !!}<br>
                 </div>
-                <a href="{{ url('admin/scaleLedger/' . $start_date . '/' . $end_date . '/2101') }}" class="btn">Riwayat Ledger Neraca</a>
+                <a href="{{ url('admin/scaleLedger/' . $start_date . '/' . $end_date . '/2101') }}" class="btn">Riwayat Ledger Neraca (query DB)</a>
                 <hr>
               <table id="example1" class="table table-bordered table-striped">
                 <thead>

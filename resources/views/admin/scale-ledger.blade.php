@@ -31,11 +31,11 @@
                   <input type="text" class="form-control pull-right" name="end_date" value="{{ $end_date }}" id='end_date' onchange="advanceSearch()">
                 </div>
               </div>
-              {!! Form::label('account', 'Jenis', array('class' => 'col-sm-1 control-label')) !!}
+              <!-- {!! Form::label('account', 'Jenis', array('class' => 'col-sm-1 control-label')) !!}
               <div class="col-sm-3">
                 {!! Form::select('account', getAccountLists(), null, ['class' => 'form-control select2', 'multiple' => 'multiple', 'style'=>'width: 100%', 'id' => 'account', 'onchange' => 'changeGraph()']) !!}
-              </div>
-              <div class="chart" id="line-chart" style="height: 500px;"></div>
+              </div> -->
+              <div class="chart" id="bar-chart" style="height: 500px;"></div>
             </div>
           </div>
         </div>
@@ -68,15 +68,17 @@
         $("#search-btn").click(function(){
             ajaxFunction();
         });
+
+        changeGraph();
     });
     
 
     function changeGraph() 
     {
       // dates = [];
-      console.log("{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val());
+      // console.log("{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val());
       $.ajax({
-        url: "{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val(),
+        url: "{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/21,22,24,31,35,41,42,43') !!}",
         success: function(result){
           dates = result.data;
             ykeysgraph = [];
@@ -85,41 +87,38 @@
             showall = [];
             for(i = 0; i < dates.length; i++)
             {
-                show = {};
-                date = dates[i].data.data;
-                for(j = 0; j < date.length; j++)
-                {
-                  data = date[j].code;
-                  accounts = $('#account').val();
-                  if(accounts.includes(data))
-                  {
-                    show[data] = date[j].current; 
+              show = {};
+              date = dates[i].data.data;
+              for(j = 0; j < date.length; j++)
+              {
+                data = date[j].code;
+                show[data] = date[j].debit; 
 
-                    if(!ykeysgraph.includes(data))
-                      ykeysgraph.push(data);
-                    if(!labelsgraph.includes(date[j].name))
-                      labelsgraph.push(date[j].name);
-                    if(!colorsgraph.includes(date[j].color))
-                      colorsgraph.push(date[j].color);
-                  }
-                }
-                if(show != '')
-                {
-                  show['x'] = dates[i].date; 
-                  showall.push(show);
-                }
+                if(!ykeysgraph.includes(data))
+                  ykeysgraph.push(data);
+                if(!labelsgraph.includes(date[j].name))
+                  labelsgraph.push(date[j].name);
+                if(!colorsgraph.includes(date[j].color))
+                  colorsgraph.push(date[j].color);
+              }
+              if(show != '')
+              {
+                show['x'] = dates[i].date; 
+                showall.push(show);
+              }
             }
-            // console.log(showall);
 
-            var line = new Morris.Line({
-              element: 'line-chart',
+            console.log(showall);
+
+            var line = new Morris.Bar({
+              element: 'bar-chart',
               resize: true,
               data: showall,
               xkey: 'x',
               ykeys: ykeysgraph,
               xLabelAngle: 60,
               labels: labelsgraph,
-              lineColors: colorsgraph,
+              barColors: colorsgraph,
               hideHover: 'auto',
               parseTime: false
             });
@@ -133,6 +132,7 @@
             console.log('error');
         }
       });
+
     }
     function advanceSearch()
     {

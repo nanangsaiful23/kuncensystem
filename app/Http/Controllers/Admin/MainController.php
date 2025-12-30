@@ -342,7 +342,7 @@ class MainController extends Controller
     {
         $default['page_name'] = 'Riwayat Ledger Neraca';
         
-        $dates = $this->getScaleLedger($start_date, $end_date, '1111');
+        $dates = $this->getScaleLedger($start_date, $end_date, '21,22,24,31,35,41,42,43');
 
         return view('admin.scale-ledger', compact('default', 'dates', 'start_date', 'end_date'));
     }
@@ -350,30 +350,44 @@ class MainController extends Controller
     public function getScaleLedger($start_date, $end_date, $params)
     {
         $data_params = explode(',', $params);
-        // dd($data_params);die;
-        $dates = ScaleLedger::select(DB::raw('DISTINCT(DATE(scale_ledgers.created_at)) as date'))
-                                ->whereDate('scale_ledgers.start_date', '>=', $start_date)
-                                ->whereDate('scale_ledgers.end_date', '<=', $end_date) 
-                                ->paginate(20);
+        // dd($data_params);
 
+        $dates = Journal::select(DB::raw('DISTINCT YEAR(journals.journal_date) as year, MONTH(journals.journal_date) as month'))
+                        ->whereDate('journals.journal_date', '>=', $start_date)
+                        ->whereDate('journals.journal_date', '<=', $end_date)
+                        ->paginate(20);
 
         // dd($dates);die;
+
         foreach($dates as $date)
         {
-            $date->data = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
-                                ->select('accounts.code', 'accounts.color', 'scale_ledgers.id', 'scale_ledgers.current', 'accounts.name')
-                                ->whereDate('scale_ledgers.created_at', date('Y-m-d', strtotime($date->date)))
-                                ->whereIn('accounts.code', $data_params)
+            // $date->data = ScaleLedger::join('accounts', 'accounts.id', 'scale_ledgers.account_id')
+            //                     ->select('accounts.code', 'accounts.color', 'scale_ledgers.id', 'scale_ledgers.current', 'accounts.name')
+            //                     ->whereDate('scale_ledgers.created_at', date('Y-m-d', strtotime($date->date)))
+            //                     ->whereIn('accounts.code', $data_params)
+            //                     ->groupBy('accounts.code')
+            //                     ->groupBy('accounts.color')
+            //                     ->groupBy('scale_ledgers.id')
+            //                     ->groupBy('scale_ledgers.current')
+            //                     ->groupBy('accounts.name')
+            //                     ->paginate(20);
+
+            $date->data = Journal::rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
+                                ->select('accounts.code', 'accounts.color', DB::raw('COALESCE(SUM(journals.debit), 0) as debit'), 'accounts.name')
+                                ->whereYear('journals.journal_date', $date->year)
+                                ->whereMonth('journals.journal_date', $date->month)
+                                ->whereIn('accounts.id', $data_params)
                                 ->groupBy('accounts.code')
                                 ->groupBy('accounts.color')
-                                ->groupBy('scale_ledgers.id')
-                                ->groupBy('scale_ledgers.current')
                                 ->groupBy('accounts.name')
                                 ->paginate(20);
-            $date->date = date('Y-m-d', strtotime($date->date));
+
+            $date->date = $date->year . '-' . $date->month;
         }
-// 
-        // dd($dates);die;
+
+        // dd($dates[18]);die;
+
+        // $result = Journal::select('')
         return $dates;
     }
 }
