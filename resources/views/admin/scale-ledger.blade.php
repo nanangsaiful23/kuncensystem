@@ -37,6 +37,26 @@
               </div> -->
               <div class="chart" id="bar-chart" style="height: 500px;"></div>
             </div>
+            <div class="box-body">
+              <table class="table table-bordered table-striped">
+                <thead>
+                  <th>Tanggal</th>
+                  <th>Penjualan</th>
+                  <th>Pengeluaran</th>
+                  <th>Untung</th>
+                </thead>
+                <tbody>
+                  @foreach($dates as $date)
+                    <tr>
+                      <td>{{ displayDate($date->date) }}</td>
+                      <td>{{ showRupiah($date->dataplus->sum('debit')) }}</td>
+                      <td>{{ showRupiah($date->data->sum('debit')) }}</td>
+                      <td>{{ showRupiah($date->profit) }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -75,10 +95,8 @@
 
     function changeGraph() 
     {
-      // dates = [];
-      // console.log("{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/') !!}/" + $("#account").val());
       $.ajax({
-        url: "{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/21,22,24,31,35,41,42,43') !!}",
+        url: "{!! url('/admin/getScaleLedger/' . $start_date . '/' . $end_date . '/profit') !!}",
         success: function(result){
           dates = result.data;
             ykeysgraph = [];
@@ -88,7 +106,8 @@
             for(i = 0; i < dates.length; i++)
             {
               show = {};
-              date = dates[i].data.data;
+              date = dates[i].data;
+              
               for(j = 0; j < date.length; j++)
               {
                 data = date[j].code;
@@ -101,6 +120,29 @@
                 if(!colorsgraph.includes(date[j].color))
                   colorsgraph.push(date[j].color);
               }
+
+              date = dates[i].dataplus;
+              for(j = 0; j < date.length; j++)
+              {
+                data = date[j].code;
+                show[data] = date[j].debit; 
+
+                if(!ykeysgraph.includes(data))
+                  ykeysgraph.push(data);
+                if(!labelsgraph.includes(date[j].name))
+                  labelsgraph.push(date[j].name);
+                if(!colorsgraph.includes(date[j].color))
+                  colorsgraph.push(date[j].color);
+              }
+
+              show['untung'] = dates[i].profit;
+              if(!ykeysgraph.includes('untung'))
+                ykeysgraph.push('untung');
+              if(!labelsgraph.includes('untung'))
+                labelsgraph.push('untung');
+              if(!colorsgraph.includes('#05339C'))
+                colorsgraph.push('#05339C');
+
               if(show != '')
               {
                 show['x'] = dates[i].date; 
@@ -123,9 +165,6 @@
               parseTime: false
             });
 
-          //   line.options.ykeys.push(ykeysgraph);
-          // line.options.labels.push(labelsgraph);
-          // line.options.lineColors.push(colorsgraph); // Add a new color
           line.redraw();
         },
         error: function(){
