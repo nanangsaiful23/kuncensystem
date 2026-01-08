@@ -114,10 +114,9 @@ class MainController extends Controller
         [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
         [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
         [$payment_ins, $payment_outs] = $this->getPayment('52%');
-        [$pendapatan_lain, $pendapatan_lain_debit, $pendapatan_lain_credit] = $this->getPenjualanHpp('6101');
-        [$biaya_lain, $biaya_lain_debit, $biaya_lain_credit] = $this->getPenjualanHpp('6102');
+        [$other_debits, $other_credits] = $this->getPayment('610%');
 
-        $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($pendapatan_lain->balance + $pendapatan_lain_debit->sum('debit') - $pendapatan_lain_credit->sum('credit')) - ($biaya_lain->balance + $biaya_lain_debit->sum('debit') - $biaya_lain_credit->sum('credit'));
+        $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($other_debits->sum('balance') + $other_debits->sum('debit') - $other_credits->sum('credit'));
 
         $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) + $utang_dagang->balance - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) + $modal_pemilik->balance - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_di_ins->sum('balance');
 
