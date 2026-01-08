@@ -399,43 +399,9 @@
             });
         }
 
-        function checkDiscount(name_div, index)
+        function checkDiscount(index)
         {
-            console.log(name_div + ' ' + index);
-            // type = '';
-            // if(name_div == 'all_barcode_retur')
-            // {
-            //     type = 'retur_s';
-            // }
-            // console.log(type + ' ' + index);
-            // good_id = document.getElementById("name-" + type + index).value;
-            // name = document.getElementById("name_temp-" + type + index).value;
-            // quantity = document.getElementById("quantity-" + type + index).value;
-            // price = document.getElementById("price-" + type + index).value;
-            // $.ajax({
-            //   url: "{!! url($role . '/good/checkDiscount/') !!}/" + good_id + '/' + quantity + '/' + price,
-            //   success: function(result){
-            //     var discount = result.discount;
-
-            //     document.getElementById("discount-" + type + index).value = discount;
-
-            //     if(discount != '0')
-            //     {
-            //         document.getElementById("row-data-" + type + index).style.background = 'green';
-            //     }
-
-            //     if(result.stock < quantity)
-            //     {
-            //         document.getElementById("message").style.display = "block";
-            //         htmlResult2 = "> " + name + " stock: " + result.stock + "<br>";
-            //         $("#empty-item").append(htmlResult2);
-            //     }
-
-                editPrice(name_div, index);
-            //   },
-            //   error: function(){
-            //   }
-            // });
+            editPrice('', index);
         }
 
         function changeTotal()
@@ -541,9 +507,6 @@
 
         function editPrice(name, index)
         {
-            temp1=parseInt(index)+1
-            var type = '';
-            var items = total_item;
 
             document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) - parseInt(document.getElementById("quantity-" + index).value);
 
@@ -556,6 +519,9 @@
             formatNumber("discount-" + index);
 
             changeTotal();
+            temp1=parseInt(index)+1
+            var type = '';
+            var items = total_item;
 
             color = '';
             if(temp1 % 2 == 0)
