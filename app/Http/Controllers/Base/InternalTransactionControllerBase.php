@@ -212,7 +212,7 @@ trait InternalTransactionControllerBase
         }
 
         #journal biaya dapur
-        if($request->type == '6104')
+        if($request->type == '5225')
         {
             $data_op['type']               = 'operasional';
             $data_op['type_id']            = $transaction->id;
@@ -368,7 +368,7 @@ trait InternalTransactionControllerBase
             }
 
             #journal biaya dapur
-            if($request->type == '6104')
+            if($request->type == '5225')
             {
                 $data_op['type']               = 'operasional';
                 $data_op['type_id']            = $transaction->id;
