@@ -29,14 +29,14 @@ trait OtherPaymentControllerBase
         {
             if($pagination == 'all')
                $other_payments = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
-                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "5223") AND journals.credit_account_id = 1')
+                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "5225") AND journals.credit_account_id = 1')
                                         ->where('journals.type', 'like', '%_payment%')
                                         ->whereDate('journals.journal_date', '>=', $start_date)
                                         ->whereDate('journals.journal_date', '<=', $end_date) 
                                         ->get();
             else
                $other_payments = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
-                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "5223") AND journals.credit_account_id = 1')
+                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "5225") AND journals.credit_account_id = 1')
                                         ->where('journals.type', 'like', '%_payment%')
                                         ->whereDate('journals.journal_date', '>=', $start_date)
                                         ->whereDate('journals.journal_date', '<=', $end_date) 
