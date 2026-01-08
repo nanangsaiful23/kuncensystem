@@ -60,6 +60,7 @@
                                         <option value="2101" @if($transaction->type == '2101') selected @endif>2101 - Utang Dagang</option>
                                         <option value="3001" @if($transaction->type == '3001') selected @endif>3001 - Modal Pemilik</option>
                                         <option value="1131" @if($transaction->type == '1131') selected @endif>1131 - Piutang Dagang</option>
+                                        <option value="1131" @if($transaction->type == '5225') selected @endif>5225 - Biaya dapur & pasar</option>
                                     <!-- </div> -->
                                 </select>
                             </div>
