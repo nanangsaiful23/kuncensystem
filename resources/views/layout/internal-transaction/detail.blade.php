@@ -26,6 +26,12 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            {!! Form::label('type', 'Tipe', array('class' => 'col-sm-2 control-label')) !!}
+                            <div class="col-sm-4">
+                                {!! Form::text('type', $transaction->type_name()->code . ' - ' . $transaction->type_name()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        <div class="form-group">
                             {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-2 control-label')) !!}
                             <div class="col-sm-4">
                                 {!! Form::text('total_item_price', showRupiah($transaction->total_item_price), array('class' => 'form-control', 'readonly' => 'readonly')) !!}

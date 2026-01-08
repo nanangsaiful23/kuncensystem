@@ -67,7 +67,7 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/{{ $role }}/transaction/create';
+      		window.location = window.location.origin + '/{{ $role }}/internal-transaction/create';
 	    }, 5000);
 	</script>
 </html>

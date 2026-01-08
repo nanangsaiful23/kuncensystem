@@ -11,7 +11,7 @@
 
           {!! Form::model(old(),array('url' => route($role . '.internal-transaction.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'transaction-form')) !!}
             <div class="box-body">
-              @include('layout' . '.internal-transaction.form', ['SubmitButtonText' => 'Tambah'])
+              @include('layout' . '.internal-transaction.form-touch', ['SubmitButtonText' => 'Tambah'])
             </div>
           {!! Form::close() !!}
 
