@@ -12,7 +12,7 @@
                         <select class="form-control select2" style="width: 100%;" name="debit_account_id">
                             <!-- <div> -->
                                 <option value="5220">Biaya Operasional Toko</option>
-                                <option value="6104">Biaya dapur & pasar</option>
+                                <option value="5225">Biaya dapur & pasar</option>
                             <!-- </div> -->
                         </select>
                     @endif

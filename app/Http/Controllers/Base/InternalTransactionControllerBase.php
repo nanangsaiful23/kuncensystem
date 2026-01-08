@@ -218,7 +218,7 @@ trait InternalTransactionControllerBase
             $data_op['type_id']            = $transaction->id;
             $data_op['journal_date']       = date('Y-m-d');
             $data_op['name']               = 'Biaya dapur & pasar (ID transaksi' . $transaction->id . ')';
-            $data_op['debit_account_id']   = Account::where('code', '6104')->first()->id;
+            $data_op['debit_account_id']   = Account::where('code', '5225')->first()->id;
             $data_op['debit']              = $data_transaction['total_sum_price'];
             $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
             $data_op['credit']             = $data_transaction['total_sum_price'];
@@ -374,7 +374,7 @@ trait InternalTransactionControllerBase
                 $data_op['type_id']            = $transaction->id;
                 $data_op['journal_date']       = date('Y-m-d');
                 $data_op['name']               = 'Biaya dapur & pasar (ID transaksi' . $transaction->id . ')';
-                $data_op['debit_account_id']   = Account::where('code', '6104')->first()->id;
+                $data_op['debit_account_id']   = Account::where('code', '5225')->first()->id;
                 $data_op['debit']              = $data_transaction['total_sum_price'];
                 $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
                 $data_op['credit']             = $data_transaction['total_sum_price'];
