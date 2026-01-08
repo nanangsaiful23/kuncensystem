@@ -220,39 +220,17 @@ class MainController extends Controller
         [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
         [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
         [$payment_ins, $payment_outs] = $this->getPayment('52%');
-        [$pendapatan_lain, $pendapatan_lain_debit, $pendapatan_lain_credit] = $this->getPenjualanHpp('6101');
-        [$biaya_lain, $biaya_lain_debit, $biaya_lain_credit] = $this->getPenjualanHpp('6102');
+        [$other_debits, $other_credits] = $this->getPayment('610%');
 
-        $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($pendapatan_lain->balance + $pendapatan_lain_debit->sum('debit') - $pendapatan_lain_credit->sum('credit')) - ($biaya_lain->balance + $biaya_lain_debit->sum('debit') - $biaya_lain_credit->sum('credit'));
+        $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($other_debits->sum('balance') + $other_debits->sum('debit') - $other_credits->sum('credit'));
 
         $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) + $utang_dagang->balance - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) + $modal_pemilik->balance - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_di_ins->sum('balance');
 
-        // $real_stock = DB::select(DB::raw("SELECT SUM(final.stock) as stock
-        //                                 FROM (SELECT goods.id, total.total_loading, total.total_transaction, total.total_real, total.buy_price, total.quantity, total.real_price, SUM(total.total_real * total.real_price) as stock
-        //                                         FROM goods 
-        //                                         JOIN (SELECT goods.id, coalesce(loading.total_loading, 0), coalesce(transaction.total_transaction, 0), SUM(loading.total_loading - transaction.total_transaction) as total_real, price.buy_price, price.quantity, SUM(price.buy_price/price.quantity) as real_price
-        //                                             FROM goods
-        //                                             LEFT JOIN (SELECT goods.id, SUM(good_loading_details.real_quantity) AS total_loading
-        //                                                 FROM good_loading_details
-        //                                                 JOIN good_units ON good_units.id = good_loading_details.good_unit_id
-        //                                                 JOIN goods ON goods.id = good_units.good_id
-        //                                                 WHERE good_loading_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
-        //                                                 GROUP BY goods.id) as loading ON loading.id = goods.id
-        //                                             LEFT JOIN (SELECT goods.id, SUM(transaction_details.real_quantity) AS total_transaction
-        //                                                 FROM transaction_details
-        //                                                 JOIN good_units ON good_units.id = transaction_details.good_unit_id
-        //                                                 RIGHT JOIN goods ON goods.id = good_units.good_id
-        //                                                 WHERE transaction_details.deleted_at IS NULL AND goods.deleted_at IS NULL AND good_units.deleted_at IS NULL
-        //                                                 GROUP BY goods.id) as transaction ON transaction.id = goods.id
-        //                                             LEFT JOIN (SELECT goods.id, good_units.buy_price, units.quantity
-        //                                                 FROM good_units
-        //                                                 RIGHT JOIN goods ON goods.id = good_units.good_id
-        //                                                 JOIN units ON units.id = good_units.unit_id
-        //                                                 GROUP BY goods.id, good_units.buy_price, units.quantity) as price ON price.id = goods.id
-        //                                         GROUP BY goods.id) as total ON total.id = goods.id
-        //                                 GROUP BY goods.id) as final"));
+        $laba[0] = ($penjualan_account->balance - $hpp_account->balance) - $payment_ins->sum('balance') + (2 * $other_debits[0]->balance) - $other_debits->sum('balance');
+        $laba[1] = ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($other_debits->sum('debit') - $other_credits->sum('credit'));
+        $laba[2] = ($penjualan_account->balance + $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit'))) - ($other_debits->sum('balance') + $other_debits->sum('debit') - $other_credits->sum('credit'));
 
-        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total', 'start_date', 'end_date'));
+        return view('admin.scale', compact('default', 'activa_debits', 'activa_credits', 'pasiva_debits', 'pasiva_credits', 'total', 'laba', 'start_date', 'end_date'));
     }
 
     public function cashFlow($start_date, $end_date, $pagination)
@@ -351,7 +329,7 @@ class MainController extends Controller
     {
         if($params == 'profit')
             $params = '21,22,24,31,35,41,42,43';
-        
+
         $data_params = explode(',', $params);
 
         $dates = Journal::select(DB::raw('DISTINCT YEAR(journals.journal_date) as year, MONTH(journals.journal_date) as month'))

@@ -104,18 +104,24 @@
                       {!! Form::hidden('currents[]', $current) !!}
                       <td>{{ $pasiva_debits[$i]->code }}</td>
                       <td>{{ $pasiva_debits[$i]->name }}</td>
-                      <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($ongoing) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($current) }}</td>
+                      @if($pasiva_debits[$i]->code == '3002')
+                        <td style="text-align: right;">{{ showRupiah($laba[0]) }}</td>
+                        <td style="text-align: right;">{{ showRupiah($laba[1]) }}</td>
+                        <td style="text-align: right;">{{ showRupiah($laba[2]) }}</td>
+                      @else
+                          <td style="text-align: right;">{{ showRupiah($pasiva_debits[$i]->balance) }}</td>
+                          <td style="text-align: right;">{{ showRupiah($ongoing) }}</td>
+                          <td style="text-align: right;">{{ showRupiah($current) }}</td>
+                      @endif
                     </tr>
                   @endfor
                   <tr style="font-weight: bold;">
                     <td></td>
                     <td></td>
                     {!! Form::hidden('account_ids[]', '-2') !!}
-                    <?php $initial = $pasiva_debits->sum('balance');
-                          $ongoing = -1 * ($pasiva_debits->sum('debit') - $pasiva_credits->sum('credit'));
-                          $current = $pasiva_debits->sum('balance') + $ongoing; ?>
+                    <?php $initial = $pasiva_debits->sum('balance') + $laba[0];
+                          $ongoing = -1 * ($pasiva_debits->sum('debit') - ($pasiva_credits->sum('credit') + $laba[1]));
+                          $current = $initial + $ongoing; ?>
                     {!! Form::hidden('initials[]', $initial) !!}
                     {!! Form::hidden('ongoings[]', $ongoing) !!}
                     {!! Form::hidden('currents[]', $current) !!}
