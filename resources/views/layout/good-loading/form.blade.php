@@ -408,6 +408,7 @@
                 data: {
                     role: '{{ $role }}',
                     category_id: $("#category_id").val(),
+                    type_id: $("#type_id").val(),
                     code: $("#code").val(),
                     name: $("#name").val(),
                     brand_id: $("#brand_id").val(),
