@@ -48,13 +48,21 @@
                 <tbody>
                   @foreach($dates as $date)
                     <tr>
-                      <td>{{ displayDate($date->date) }}</td>
+                      <td>{{ date('F Y', strtotime($date->date)) }}</td>
                       <td>{{ showRupiah($date->dataplus->sum('debit')) }}</td>
-                      <td>{{ showRupiah($date->data->sum('debit')) }}</td>
+                      <td>
+                        <ol>
+                          @foreach($date->data as $data)
+                            <li>{{ $data->name . ' : ' . showRupiah($data->debit) }}</li>
+                          @endforeach
+                        </ol>
+                        <b>Total: {{ showRupiah($date->data->sum('debit')) }}</b>
+                      </td>
                       <td>{{ showRupiah($date->profit) }}</td>
                     </tr>
                   @endforeach
                 </tbody>
+                {{ $dates->render() }}
               </table>
             </div>
           </div>
@@ -150,8 +158,6 @@
               }
             }
 
-            console.log(showall);
-
             var line = new Morris.Bar({
               element: 'bar-chart',
               resize: true,
@@ -175,7 +181,7 @@
     }
     function advanceSearch()
     {
-      window.location = window.location.origin + '/admin/scaleLedger/' + $('#start_date').val() + '/' + $('#end_date').val() + '/' + $('#account_code').val();
+      window.location = window.location.origin + '/admin/scaleLedger/' + $('#start_date').val() + '/' + $('#end_date').val();
     }
   </script>
 @endsection

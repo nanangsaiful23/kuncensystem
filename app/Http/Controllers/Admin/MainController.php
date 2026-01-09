@@ -315,9 +315,9 @@ class MainController extends Controller
         return redirect('/admin/scale/' . $start_date . '/' . $end_date);
     }
 
-    public function scaleLedger($start_date, $end_date, $account_code)
+    public function scaleLedger($start_date, $end_date)
     {
-        $default['page_name'] = 'Riwayat Ledger Neraca';
+        $default['page_name'] = 'Grafik Ledger Neraca';
         
         $dates = $this->getScaleLedger($start_date, $end_date, '21,22,24,31,35,41,42,43');
 
@@ -334,9 +334,10 @@ class MainController extends Controller
         $dates = Journal::select(DB::raw('DISTINCT YEAR(journals.journal_date) as year, MONTH(journals.journal_date) as month'))
                         ->whereDate('journals.journal_date', '>=', $start_date)
                         ->whereDate('journals.journal_date', '<=', $end_date)
+                        ->groupBy(DB::raw('YEAR(journals.journal_date)'))
+                        ->groupBy(DB::raw('MONTH(journals.journal_date)'))
+                        ->orderBy('journals.journal_date', 'desc')
                         ->paginate(20);
-
-        // dd($dates);die;
 
         foreach($dates as $date)
         {
@@ -369,5 +370,54 @@ class MainController extends Controller
         // dd($dates[0]);die;
 
         return $dates;
+    }
+
+    function salesGraph($start_date, $end_date)
+    {
+        $default['page_name'] = 'Grafik Penjualan';
+        
+        $result = $this->getSalesGraph($start_date, $end_date);
+
+        return view('admin.sales-graph', compact('default', 'result', 'start_date', 'end_date'));
+    }
+
+    function getSalesGraph($start_date, $end_date)
+    {
+        $result = TransactionDetail::leftJoin('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                ->leftJoin('goods', 'goods.id', 'good_units.good_id')
+                                ->leftJoin('categories', 'goods.category_id', 'categories.id')
+                                ->select('categories.name', 'categories.color', DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) as qty, COALESCE(SUM(transaction_details.sum_price), 0) as total_price'))
+                                ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                ->whereDate('transaction_details.created_at', '<=', $end_date)
+                                ->groupBy('categories.name')
+                                ->groupBy('categories.color')
+                                ->get();
+
+        // $dates = TransactionDetail::select(DB::raw('DISTINCT YEAR(transaction_details.created_at) as year, MONTH(transaction_details.created_at) as month'))
+        //                 ->whereDate('transaction_details.created_at', '>=', $start_date)
+        //                 ->whereDate('transaction_details.created_at', '<=', $end_date)
+        //                 ->groupBy(DB::raw('YEAR(transaction_details.created_at)'))
+        //                 ->groupBy(DB::raw('MONTH(transaction_details.created_at)'))
+        //                 ->orderBy('transaction_details.created_at', 'desc')
+        //                 ->paginate(20);
+
+        // foreach($dates as $date)
+        // {
+        //     $date->data = TransactionDetail::leftJoin('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+        //                         ->leftJoin('goods', 'goods.id', 'good_units.good_id')
+        //                         ->leftJoin('categories', 'goods.category_id', 'categories.id')
+        //                         ->select('categories.name', 'categories.color', DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) as qty'))
+        //                         ->whereYear('transaction_details.created_at', $date->year)
+        //                         ->whereMonth('transaction_details.created_at', $date->month)
+        //                         ->groupBy('categories.name')
+        //                         ->groupBy('categories.color')
+        //                         ->get();
+
+        //     $date->date = $date->year . '-' . $date->month;
+        // }
+
+        // dd($dates[0]);die;
+                                // dd($result);die;
+        return $result;
     }
 }
