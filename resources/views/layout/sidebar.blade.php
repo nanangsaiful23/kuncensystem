@@ -272,7 +272,17 @@
               <li class="{{ Request::segment(2) == 'account' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/account/15') }}"><i class="fa fa-circle-o"></i> Daftar Akun</a></li>
           </ul>
         </li>
-        <li><a href="{{ url('/' . $role . '/salesGraph/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-bar-chart"></i> Grafik Penjualan</a></li>
+        <li class="treeview {{ (Request::segment(2) == 'salesGraph' ) ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-bar-chart"></i><span> Grafik Penjualan</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+              <li class="{{ Request::segment(2) == 'salesGraph' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Kategori</a></li>
+          </ul>
+        </li>
         <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
         <li class="{{ Request::segment(2) == 'profit' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/profit') }}"><i class="fa fa-arrow-circle-up"></i> Laba Rugi</a></li>
         <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger') ? 'active' : ''  }}">

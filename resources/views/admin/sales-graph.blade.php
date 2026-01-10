@@ -36,16 +36,18 @@
             <div class="box-body">
               <table class="table table-bordered table-striped">
                 <thead>
-                  <th>Kategori</th>
-                  <th>Qty</th>
-                  <th>Total</th>
+                  <th style="text-align: center;">Kategori</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: center;">Total</th>
+                  <th style="text-align: center;">Untung</th>
                 </thead>
                 <tbody>
                   @foreach($result as $data)
-                    <tr>
+                    <tr style="background-color: '{{ $data->color }}'">
                       <td>{{ $data->name }}</td>
                       <td style="text-align: right;">{{ $data->qty }}</td>
                       <td style="text-align: right;">{{ showRupiah($data->total_price) }}</td>
+                      <td style="text-align: right;">{{ showRupiah($data->profit) }}</td>
                     </tr>
                   @endforeach
                 </tbody>
