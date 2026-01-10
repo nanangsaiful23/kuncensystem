@@ -372,26 +372,27 @@ class MainController extends Controller
         return $dates;
     }
 
-    function salesGraph($start_date, $end_date)
+    function salesGraph($type, $start_date, $end_date)
     {
-        $default['page_name'] = 'Grafik Penjualan';
+        $default['page_name'] = 'Grafik Penjualan ' . $type;
         
-        $result = $this->getSalesGraph($start_date, $end_date);
+        $result = $this->getSalesGraph($type, $start_date, $end_date);
 
-        return view('admin.sales-graph', compact('default', 'result', 'start_date', 'end_date'));
+        return view('admin.sales-graph-' . $type, compact('default', 'result', 'start_date', 'end_date'));
     }
 
-    function getSalesGraph($start_date, $end_date)
+    function getSalesGraph($type, $start_date, $end_date)
     {
-        $result = TransactionDetail::leftJoin('good_units', 'good_units.id', 'transaction_details.good_unit_id')
-                                ->leftJoin('goods', 'goods.id', 'good_units.good_id')
-                                ->leftJoin('categories', 'goods.category_id', 'categories.id')
-                                ->select('categories.name', 'categories.color', DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) as qty, COALESCE(SUM(transaction_details.sum_price), 0) as total_price, COALESCE(SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity), 0) as profit'))
-                                ->whereDate('transaction_details.created_at', '>=', $start_date)
-                                ->whereDate('transaction_details.created_at', '<=', $end_date)
-                                ->groupBy('categories.name')
-                                ->groupBy('categories.color')
-                                ->get();
+        if($type == 'category')
+            $result = TransactionDetail::leftJoin('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                    ->leftJoin('goods', 'goods.id', 'good_units.good_id')
+                                    ->leftJoin('categories', 'goods.category_id', 'categories.id')
+                                    ->select('categories.name', 'categories.color', DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) as qty, COALESCE(SUM(transaction_details.sum_price), 0) as total_price, COALESCE(SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity), 0) as profit'))
+                                    ->whereDate('transaction_details.created_at', '>=', $start_date)
+                                    ->whereDate('transaction_details.created_at', '<=', $end_date)
+                                    ->groupBy('categories.name')
+                                    ->groupBy('categories.color')
+                                    ->get();
         return $result;
     }
 }

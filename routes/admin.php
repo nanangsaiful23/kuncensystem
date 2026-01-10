@@ -3,8 +3,8 @@
 Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 Route::get('profit', 'MainController@profit');
-Route::get('salesGraph/{start_date}/{end_date}', 'MainController@salesGraph');
-Route::get('getSalesGraph/{start_date}/{end_date}', 'MainController@getSalesGraph');
+Route::get('salesGraph/{type}/{start_date}/{end_date}', 'MainController@salesGraph');
+Route::get('getSalesGraph/{type}/{start_date}/{end_date}', 'MainController@getSalesGraph');
 Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
 Route::get('scaleLedger/{start_date}/{end_date}', 'MainController@scaleLedger');
 Route::get('/scaleLedger/{start_date}/{end_date}/{pagination}', 'MainController@scaleLedger');

@@ -4,6 +4,17 @@
     background-color: yellow !important;
     color: black !important;
   }
+
+  table tr td 
+  {
+    font-size: 14px;
+  }
+
+  table thead th
+  {
+    font-size: 16px;
+    text-align: center;
+  }
 </style>
 
 @extends('layout.user', ['role' => 'admin', 'title' => 'Admin'])
@@ -31,27 +42,33 @@
                   <input type="text" class="form-control pull-right" name="end_date" value="{{ $end_date }}" id='end_date' onchange="advanceSearch()">
                 </div>
               </div>
-              <canvas id="pieChart" style="height:250px"></canvas>
             </div>
             <div class="box-body">
-              <table class="table table-bordered table-striped">
-                <thead>
-                  <th style="text-align: center;">Kategori</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: center;">Total</th>
-                  <th style="text-align: center;">Untung</th>
-                </thead>
-                <tbody>
-                  @foreach($result as $data)
-                    <tr style="background-color: '{{ $data->color }}'">
-                      <td>{{ $data->name }}</td>
-                      <td style="text-align: right;">{{ $data->qty }}</td>
-                      <td style="text-align: right;">{{ showRupiah($data->total_price) }}</td>
-                      <td style="text-align: right;">{{ showRupiah($data->profit) }}</td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
+              <div class="col-sm-5">
+                <canvas id="pieChart" style="height:300px"></canvas>
+              </div>
+              <div class="col-sm-7">
+                <table class="table table-bordered table-striped" style="height: 500px; display: block; overflow: auto;">
+                  <thead>
+                    <th>Kategori</th>
+                    <th>Qty</th>
+                    <th>Persentase</th>
+                    <th>Total</th>
+                    <th>Untung</th>
+                  </thead>
+                  <tbody>
+                    @foreach($result as $data)
+                      <tr style="background-color: {{ $data->color }}">
+                        <td>{{ $data->name }}</td>
+                        <td style="text-align: right;">{{ $data->qty }}</td>
+                        <td style="text-align: right;">{{ round($data->qty / $result->sum('qty') * 100, 2) }}%</td>
+                        <td style="text-align: right;">{{ showRupiah($data->total_price) }}</td>
+                        <td style="text-align: right;">{{ showRupiah($data->profit) }}</td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -91,7 +108,7 @@
     function changeGraph() 
     {
       $.ajax({
-        url: "{!! url('/admin/getSalesGraph/' . $start_date . '/' . $end_date) !!}",
+        url: "{!! url('/admin/getSalesGraph/category/' . $start_date . '/' . $end_date) !!}",
         success: function(result){
             var pieData = [];
             for(j = 0; j < result.length; j++)

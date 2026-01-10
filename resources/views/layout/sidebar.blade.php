@@ -280,7 +280,8 @@
             </span>
           </a>
           <ul class="treeview-menu">
-              <li class="{{ Request::segment(2) == 'salesGraph' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Kategori</a></li>
+              <li class="{{ Request::segment(2) == 'salesGraph' && Request::segment(3) == 'month' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/month/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Bulan</a></li>
+              <li class="{{ Request::segment(2) == 'salesGraph' && Request::segment(3) == 'category' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/category/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Kategori</a></li>
           </ul>
         </li>
         <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
