@@ -393,6 +393,13 @@ class MainController extends Controller
                                     ->groupBy('categories.name')
                                     ->groupBy('categories.color')
                                     ->get();
+        elseif($type == 'month')
+            $result = Transaction::select(DB::raw('DISTINCT YEAR(transactions.created_at) as year, MONTH(transactions.created_at) as month, COALESCE(SUM(transactions.total_sum_price), 0) as total'))
+                                 ->whereDate('transactions.created_at', '>=', $start_date)
+                                ->whereDate('transactions.created_at', '<=', $end_date)
+                                ->groupBy(DB::raw('YEAR(transactions.created_at)'))
+                                ->groupBy(DB::raw('MONTH(transactions.created_at)'))
+                                ->paginate(20);
         return $result;
     }
 }

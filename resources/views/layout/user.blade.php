@@ -205,6 +205,7 @@
     <script src="{{asset('assets/dist/js/pages/dashboard.js')}}"></script>
     <!-- AdminLTE for demo purposes -->
     <script src="{{asset('assets/dist/js/demo.js')}}"></script>
+    <script src="{{asset('assets/instascan.min.js')}}"></script>
 
     <script type="text/javascript">
       let mybutton = document.getElementById("myBtn");
