@@ -61,9 +61,10 @@
                     <td><a href="{{ url($role . '/good/' . $detail->id . '/detail') }}" target="_blank()">@if($detail->type_name != null) {{ $detail->type_name }} @endif {{ $detail->name }}</a></td>
                     <td>{{ $detail->quantity }}</td>
                     <td>{{ $detail->unit_name }}</td>
+                    <?php $profit = $detail->selling_price - $detail->buy_price; ?>
                     <td @if($detail->last_stock <= 0) style="background-color: red" @endif>{{ $detail->last_stock }}</td>
-                    <td>{{ showRupiah($detail->profit) }}<br>{{ round($detail->profit / $detail->buy_price * 100, 2) }}%</td>
-                    <td>{{ showRupiah($detail->profit * $detail->quantity) }}</td>
+                    <td>{{ showRupiah($profit) }}<br>{{ round($profit / $detail->buy_price * 100, 2) }}%</td>
+                    <td>{{ showRupiah($profit * $detail->quantity) }}</td>
                     <td>{{ showRupiah($detail->buy_price) }}</td>
                     <td>{{ showRupiah($detail->selling_price) }}</td>
                     <td>{{ showRupiah($detail->selling_price * $detail->quantity) }}</td>
