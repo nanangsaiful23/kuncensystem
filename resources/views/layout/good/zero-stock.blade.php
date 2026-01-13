@@ -97,7 +97,6 @@
                 @endforeach
               </tbody>
             </table>
-            {{ $goods->render() }}
           </form>
             @if(\Auth::user()->email == 'admin')  
               {!! Form::close() !!}
