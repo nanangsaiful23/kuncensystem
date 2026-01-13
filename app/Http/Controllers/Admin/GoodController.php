@@ -323,7 +323,7 @@ class GoodController extends Controller
         $default['page'] = 'good';
         $default['section'] = 'zero-stock';
 
-        $goods = $this->zeroStockGoodBase($main_category_id, $category_id, $location, $distributor_id, $stock, '20');
+        $goods = $this->zeroStockGoodBase($main_category_id, $category_id, $location, $distributor_id, $stock, 'all');
 
         return view('admin.layout.page', compact('default', 'goods', 'main_category_id', 'category_id', 'location', 'distributor_id', 'stock'));
     }
