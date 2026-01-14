@@ -385,21 +385,28 @@ class MainController extends Controller
     {
         if($type == 'category')
             $result = TransactionDetail::leftJoin('good_units', 'good_units.id', 'transaction_details.good_unit_id')
+                                    ->leftJoin('transactions', 'transactions.id', 'transaction_details.transaction_id')
                                     ->leftJoin('goods', 'goods.id', 'good_units.good_id')
                                     ->leftJoin('categories', 'goods.category_id', 'categories.id')
                                     ->select('categories.name', 'categories.color', DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) as qty, COALESCE(SUM(transaction_details.sum_price), 0) as total_price, COALESCE(SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity), 0) as profit'))
                                     ->whereDate('transaction_details.created_at', '>=', $start_date)
                                     ->whereDate('transaction_details.created_at', '<=', $end_date)
+                                    ->where('transactions.type', 'normal')
                                     ->groupBy('categories.name')
                                     ->groupBy('categories.color')
+                                    ->orderBy('profit', 'desc')
                                     ->get();
         elseif($type == 'month')
             $result = Transaction::select(DB::raw('DISTINCT YEAR(transactions.created_at) as year, MONTH(transactions.created_at) as month, COALESCE(SUM(transactions.total_sum_price), 0) as total'))
                                  ->whereDate('transactions.created_at', '>=', $start_date)
                                 ->whereDate('transactions.created_at', '<=', $end_date)
+                                ->where('transactions.type', 'normal')
                                 ->groupBy(DB::raw('YEAR(transactions.created_at)'))
                                 ->groupBy(DB::raw('MONTH(transactions.created_at)'))
-                                ->paginate(20);
+                                ->orderBy('transactions.created_at', 'desc')
+                                ->paginate(15);
+
+        // dd($result);die;
         return $result;
     }
 }
