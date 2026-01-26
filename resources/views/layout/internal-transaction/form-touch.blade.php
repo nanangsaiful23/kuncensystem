@@ -79,7 +79,7 @@
                         </td>
                         <td width="9%" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
                             @if(\Auth::user()->email == 'admin')
-                                <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('{{ $i }}')" onkeypress="editPrice('{{ $i }}')">
+                                <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeypress="editPrice('all_barcode', '{{ $i }}')">
                             @else
                                 {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
                             @endif
@@ -401,7 +401,7 @@
 
         function checkDiscount(index)
         {
-            editPrice('', index);
+            editPrice('all_barcode', index);
         }
 
         function changeTotal()
@@ -507,7 +507,9 @@
 
         function editPrice(name, index)
         {
-
+            console.log(index);
+            console.log(name);
+            console.log(document.getElementById("old_stock-" + index).value);
             document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) - parseInt(document.getElementById("quantity-" + index).value);
 
             document.getElementById("total_price-" + index).value = (unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value));
@@ -527,7 +529,7 @@
             if(temp1 % 2 == 0)
                 color = 'background-color: #E7F2EF !important;';
 
-            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="25%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" style="background-color: yelow !important"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
+            htmlResult = '<tr id="row-data' + "-" + type + temp1 + '" style="' + color + '"><td style="display: none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td><input type="text" name="numbers' + type + '[]" class="form-control" id="no-' + type + temp1 + '" value="' + temp1 + '"></td><td width="25%"><input type="text" class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="' + color + '"><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td><td><input class="form-control" readonly="readonly" id="old_stock-' + temp1+'" name="old_stocks[]" type="text"></td><td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + temp1 + '\')" style="background-color: yelow !important"></td><td><input class="form-control" readonly="readonly" id="new_stock-' + temp1+'" name="new_stocks[]" type="text"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text" style="text-align: right; ' + color + '"></td>';
 
             @if(\Auth::user()->email == 'admin')
                 htmlResult += '<td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeypress="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" style="text-align: right;"></td>';
