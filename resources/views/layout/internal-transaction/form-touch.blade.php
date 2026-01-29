@@ -90,7 +90,7 @@
                         <td width="9%" @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
                             {!! Form::text('sums[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum-'.$i)) !!}
                         </td>
-                        <td width="3%"><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('{{ $i }}')"></i></td>
+                        <td width="3%"><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('-{{ $i }}')"></i></td>
                     </tr>
                 </tbody>
             </table>
@@ -504,16 +504,12 @@
 
         function deleteItem(index)
         {
-            console.log('masuk delet');
             $("#row-data" + index).remove();
             changeTotal();
         }
 
         function editPrice(name, index)
         {
-            console.log(index);
-            console.log(name);
-            console.log(document.getElementById("old_stock-" + index).value);
             document.getElementById("new_stock-" + index).value = parseInt(document.getElementById("old_stock-" + index).value) - parseInt(document.getElementById("quantity-" + index).value);
 
             document.getElementById("total_price-" + index).value = (unFormatNumber(document.getElementById("price-" + index).value) * unFormatNumber(document.getElementById("quantity-" + index).value));

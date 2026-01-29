@@ -249,7 +249,7 @@
         @if($SubmitButtonText == 'Edit')
             {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control',])  !!}
         @elseif($SubmitButtonText == 'Tambah')
-            <div onclick="event.preventDefault(); submitForm(this);" class='btn btn-success col-sm-6' style="height: 80px; font-size: 30px; background-color: #08CB00" id="div_money_returned">Proses Transaksi
+            <div onclick="event.preventDefault(); submitForm(this);" class='btn btn-success col-sm-6' style="height: 80px; font-size: 27px; background-color: #08CB00" id="div_money_returned">Proses Transaksi
             </div>
             {!! Form::hidden('money_returned', null, array('id' => 'money_returned')) !!}
         @elseif($SubmitButtonText == 'View')
@@ -356,6 +356,7 @@
     <script type="text/javascript">
         let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
         var total_item = 1;
+        var total_real_item = 0;
         var total_item_retur = 1;
         $(document).ready (function (){
             $('.select2').select2();
@@ -404,6 +405,7 @@
 
         function fillItem(name, good)
         {
+            total_real_item += 1;
             var bool = false;
             var type = '';
             var items = total_item;
@@ -631,7 +633,7 @@
             money_returned = parseInt(total) - parseInt(sum);
             money_returned = money_returned.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 
-            document.getElementById("div_money_returned").innerHTML = "PROSES => Kembali: " + money_returned;
+            document.getElementById("div_money_returned").innerHTML = "PROSES => Kembali: " + money_returned + "<br>Total Item: " + total_real_item;
             document.getElementById("money_returned").value = money_returned;
         }
 
@@ -671,8 +673,8 @@
 
         function deleteItem(index)
         {
-            console.log('masuk delet');
             $("#row-data" + index).remove();
+            total_real_item--;
             changeTotal();
         }
 
