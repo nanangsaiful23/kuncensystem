@@ -473,6 +473,10 @@
                 {
                     alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member dan centang tombol hutang');
                 }
+                else if($('#type').val() == '2101' && $('#distributor_id').val() == 'null')
+                {
+                    alert('Silahkan pilih distributor');
+                }
                 else
                 {
                     btn.disabled = true;
