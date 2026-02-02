@@ -31,7 +31,7 @@
                     <td>{{ $category->code }}</td>
                     <td>{{ $category->name }}</td>
                     <td>{{ $category->eng_name }}</td>
-                    <td>{{ $category->unit }}</td>
+                    <td>{{ $category->unit->code }}</td>
                     <td class="center"><a href="{{ url($role . '/category/' . $category->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/category/' . $category->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                     @if($role == 'admin')
