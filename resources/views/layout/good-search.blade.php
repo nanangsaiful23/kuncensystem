@@ -57,47 +57,6 @@
                       <h1 class="box-title" style="font-size: 30px !important;">CARI BARANG {{ config('app.name') }}</h1>
                     </div>
                     <div class="box-body" style="overflow-x:scroll; color: black !important; background-color: {{ config('app.app_color') }} !important;">
-                      <div class="col-sm-12">
-                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px; background-color:white !important;" onclick="changeView('photo')">Tampilan foto</div>
-                        <div class="btn col-sm-6" style="border: solid black 2px; font-size: 20px; background-color:white !important;" onclick="changeView('list')">Tampilan list</div>
-                      </div>
-                      <div class="col-sm-12" style="margin-top: 20px"> 
-                        <div class="input-group">
-                          <input type="text" name="q" class="form-control" placeholder="Search..." id="search-input" value="{{ $query }}" style="height: 50px; font-size: 30px; border: solid black 2px;">
-                          <span class="input-group-btn">
-                            <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search" style="font-size: 30px"></i></button>
-                          </span>
-                          <span class="input-group-btn">
-                            <div onclick="clearInput()" class="btn btn-flat" style="background-color: red"><i class="fa fa-times" style="font-size: 30px"></i></div>
-                          </span>
-                          <span class="input-group-btn">
-                            <div class="loader" style="display: none;"></div>
-                          </span>
-                        </div>
-                      </div>
-                      <div class="col-sm-12" id="photo-div"> 
-                        @foreach($goods as $good)
-                          <div class="col-sm-4" style="text-align: center; border: black solid 2px;"> 
-                            @foreach($good->good_photos as $photo)
-                              <img src="{{ URL::to('image/' . $photo->location) }}" style="width: 200px; display: block; margin: auto;">
-                            @endforeach
-                            <h3>{{ $good->code }}</h3>
-                            <h3>{{ $good->getFullName() }}</h3>
-                            @foreach($good->good_units as $unit)
-                              @if($unit->unit != null)
-                                <h3>{{ showRupiah($unit->selling_price) . '/' . $unit->unit->name}}</h3>
-                              @else
-                                {{ $unit }}
-                              @endif
-                            @endforeach
-                            @if($good->getPcsSellingPrice() == null)
-                              <h3>0</h3>
-                            @else
-                              <h3>{{ $good->getStock() . ' ' . $good->getPcsSellingPrice()->unit->code }}</h3>
-                            @endif
-                          </div>
-                        @endforeach
-                      </div>
                       <?php $i = 0 ?>
                       <div class="col-sm-12" id="table-div" style="margin-top: 20px">
                         <table class="table table-bordered table-striped" style="font-size: 28px;">
@@ -159,7 +118,6 @@
 
     <script type="text/javascript">
       $(document).ready(function(){
-          $('#photo-div').hide();
           $('.select2').select2();
           $("#search-input").keyup( function(e){
             if(e.keyCode == 13)
@@ -180,20 +138,6 @@
       function changeInput(keyword)
       {
         window.location = window.location.origin + '/search/' + keyword;
-      }
-
-      function changeView(view)
-      {
-        if(view == 'photo')
-        {
-          $('#photo-div').show();
-          $('#table-div').hide();
-        }
-        else
-        {
-          $('#photo-div').hide();
-          $('#table-div').show();
-        }
       }
 
       function clearInput()

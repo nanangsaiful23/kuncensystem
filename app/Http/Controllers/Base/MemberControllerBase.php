@@ -15,7 +15,7 @@ trait MemberControllerBase
     {
         if($pagination == 'all')
            $members = Member::leftjoin('transactions', 'transactions.member_id', 'members.id')
-                            ->select('members.id', 'members.name', 'members.address', 'members.phone_number', DB::raw('SUM(transactions.total_sum_price) as total_sum_price'), DB::raw('COUNT(transactions.id) as total_transaction'))
+                            ->select('members.id', 'members.name', 'members.address', 'members.phone_number', DB::raw('SUM(transactions.total_sum_price) as total_sum_price'), DB::raw('COUNT(transactions.id) as total_transaction'), DB::raw('SUM(transactions.total_discount_price) as discount'))
                             ->whereRaw('(transactions.type = "normal" OR transactions.type = "retur")')
                             ->whereDate('transactions.created_at', '>=', $start_date)
                             ->whereDate('transactions.created_at', '<=', $end_date) 
@@ -24,7 +24,7 @@ trait MemberControllerBase
                             ->orderBy($sort, $order)->get();
         else
            $members = Member::leftjoin('transactions', 'transactions.member_id', 'members.id')
-                            ->select('members.id', 'members.name', 'members.address', 'members.phone_number', DB::raw('SUM(transactions.total_sum_price) as total_sum_price'), DB::raw('COUNT(transactions.id) as total_transaction'))
+                            ->select('members.id', 'members.name', 'members.address', 'members.phone_number', DB::raw('SUM(transactions.total_sum_price) as total_sum_price'), DB::raw('COUNT(transactions.id) as total_transaction'), DB::raw('SUM(transactions.total_discount_price) as discount'))
                             ->whereRaw('(transactions.type = "normal" OR transactions.type = "retur")')
                             ->whereDate('transactions.created_at', '>=', $start_date)
                             ->whereDate('transactions.created_at', '<=', $end_date) 
@@ -44,6 +44,8 @@ trait MemberControllerBase
         foreach($members as $member)
         {
             $member->transaction = showRupiah($member->totalTransactionNormal()->sum('total_sum_price'));
+            $member->discount    = showRupiah($member->totalTransactionNormal()->sum('total_discount_price'));
+            $member->total       = showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - $member->totalTransactionNormal()->sum('total_discount_price'));
             $member->payment     = showRupiah($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price'));
             $member->credit      = showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - ($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price')));
         }
