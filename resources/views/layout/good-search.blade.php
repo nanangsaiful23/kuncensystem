@@ -57,6 +57,20 @@
                       <h1 class="box-title" style="font-size: 30px !important;">CARI BARANG {{ config('app.name') }}</h1>
                     </div>
                     <div class="box-body" style="overflow-x:scroll; color: black !important; background-color: {{ config('app.app_color') }} !important;">
+                      <div class="col-sm-12" style="margin-top: 20px"> 
+                        <div class="input-group">
+                          <input type="text" name="q" class="form-control" placeholder="Search..." id="search-input" value="{{ $query }}" style="height: 50px; font-size: 30px; border: solid black 2px;">
+                          <span class="input-group-btn">
+                            <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search" style="font-size: 30px"></i></button>
+                          </span>
+                          <span class="input-group-btn">
+                            <div onclick="clearInput()" class="btn btn-flat" style="background-color: red"><i class="fa fa-times" style="font-size: 30px"></i></div>
+                          </span>
+                          <span class="input-group-btn">
+                            <div class="loader" style="display: none;"></div>
+                          </span>
+                        </div>
+                      </div>
                       <?php $i = 0 ?>
                       <div class="col-sm-12" id="table-div" style="margin-top: 20px">
                         <table class="table table-bordered table-striped" style="font-size: 28px;">
