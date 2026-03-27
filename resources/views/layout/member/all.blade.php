@@ -64,8 +64,8 @@
                     @if(\Auth::user()->email == 'admin')
                       <td class="center">Jumlah transaksi: {{ $member->total_transaction }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
                       <td class="center">Total transaksi: {{ showRupiah($member->total_sum_price) }}<br><a href="{{ url($role . '/member/' . $member->id . '/transaction/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right pink" aria-hidden="true"></i> detail</a></td>
-                      <td>{{ showRupiah($member->total_discount_price) }}</td>
-                      <td>{{ showRupiah($member->total_sum_price - $member->total_discount_price) }}</td>
+                      <td>{{ showRupiah($member->discount) }}</td>
+                      <td>{{ showRupiah($member->total_sum_price - $member->discount) }}</td>
                       <td class="center">Total pembayaran: {{ showRupiah($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price')) }}<br><a href="{{ url($role . '/member/' . $member->id . '/payment/2019-01-01/' . date('Y-m-d') . '/all') }}"><i class="fa fa-hand-o-right green" aria-hidden="true"></i> detail</a></td>
                       <td>{{ showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - ($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price'))) }}</td>
                     @endif
