@@ -30,15 +30,15 @@ trait JournalControllerBase
         {
             if($code == 'all' && $type == 'all')
             { 
-               $journals = Journal::whereDate($whereDate, '>=', $start_date)
-                                  ->whereDate($whereDate, '<=', $end_date)
+               $journals = Journal::whereDate('journals.updated_at', '>=', $start_date)
+                                  ->whereDate('journals.updated_at', '<=', $end_date)
                                   ->orderBy($sort, $order)
                                   ->get(); 
             }
             else
             {
-                $journals = Journal::whereDate($whereDate, '>=', $start_date)
-                                      ->whereDate($whereDate, '<=', $end_date)
+                $journals = Journal::whereDate('journals.updated_at', '>=', $start_date)
+                                      ->whereDate('journals.updated_at', '<=', $end_date)
                                       ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? ", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->get();
@@ -48,15 +48,15 @@ trait JournalControllerBase
         { 
             if($code == 'all' && $type == 'all')
             { 
-               $journals = Journal::whereDate($whereDate, '>=', $start_date)
-                                  ->whereDate($whereDate, '<=', $end_date)
+               $journals = Journal::whereDate('journals.updated_at', '>=', $start_date)
+                                  ->whereDate('journals.updated_at', '<=', $end_date)
                                   ->orderBy($sort, $order)
                                   ->paginate($pagination); 
             }
             else
             {
-                $journals = Journal::whereDate($whereDate, '>=', $start_date)
-                                      ->whereDate($whereDate, '<=', $end_date)
+                $journals = Journal::whereDate('journals.updated_at', '>=', $start_date)
+                                      ->whereDate('journals.updated_at', '<=', $end_date)
                                       ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->paginate($pagination);
