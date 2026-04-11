@@ -179,7 +179,8 @@
                 </div>
             </div>
             <div class="form-group col-sm-12" style="margin-top: 6px;">
-                <input type="checkbox" name="is_credit" id="is_credit" value="1">Hutang
+                <input type="checkbox" name="is_credit" id="is_credit" value="1"> Hutang
+                <input type="checkbox" name="is_promo" id="is_promo" value="1"> Promo
             </div>
             <div class="form-group" style="display: none;">
                 {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-4 control-label')) !!}

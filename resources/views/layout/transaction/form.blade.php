@@ -112,6 +112,9 @@
                 </select>
             </div>
         </div>
+        <div class="form-group col-sm-5" style="font-size: 16px">
+            <input type="checkbox" name="is_promo" value="1"> Promo
+        </div>
         <table class="table table-bordered table-striped" style="overflow-x: auto;">
             <thead>
                 <th style="display: none;">Barcode</th>
