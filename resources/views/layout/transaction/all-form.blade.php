@@ -34,7 +34,7 @@
     </thead>
     <tbody id="table-good">
       @foreach($transactions as $transaction)
-        <tr id="div-transaction-{{ $transaction->id }}">
+        <tr id="div-transaction-{{ $transaction->id }}" @if($transaction->is_promo == 1) style="background-color: #FCB7C7" @endif>
           <td><input type="checkbox" name="transactions[]" id="transaction-{{ $transaction->id }}" onclick="highlight('transaction-{{ $transaction->id }}')"></td>
           <td>{{ $transaction->id }}</td>
           <td>{{ $transaction->created_at }}</td>

@@ -56,6 +56,14 @@ class TransactionController extends Controller
         return view('cashier.layout.page', compact('default'));
     }
 
+    public function createGpt()
+    {
+        $role = 'cashier';
+        $role_id = \Auth::user()->id;
+
+        return view('layout.transaction.form-touch-gpt', compact('role', 'role_id'));
+    }
+
     public function store(Request $request)
     {
         $transaction = $this->storeTransactionBase('cashier', \Auth::user()->id, $request);

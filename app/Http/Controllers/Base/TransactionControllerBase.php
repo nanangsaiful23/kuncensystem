@@ -298,7 +298,7 @@ trait TransactionControllerBase
         }
 
         #tabel transaction
-        if(sizeof($request->barcodesretur_s) > 1)
+        if(isset($request->barcodesretur_s) && sizeof($request->barcodesretur_s) > 1)
         {
             $data_transaction['type'] = 'retur'; 
         }
@@ -319,6 +319,7 @@ trait TransactionControllerBase
         $data_transaction['store']   = 'ntn getasan';
         $data_transaction['payment'] = $request->payment;
         $data_transaction['note']    = $request->note;
+        $data_transaction['is_promo']= $request->is_promo;
 
         $transaction = Transaction::create($data_transaction);
 
@@ -511,80 +512,83 @@ trait TransactionControllerBase
         $sum_retur = 0;
         $hpp_retur = 0;
 
-        for ($i = 0; $i < sizeof($request->barcodesretur_s); $i++) 
-        { 
-            if($request->barcodesretur_s[$i] != null)
-            {
-                $good_unit_retur = GoodUnit::find($request->barcodesretur_s[$i]);
-                $data_detail_retur['good_unit_id']   = $request->barcodesretur_s[$i];
-                $data_detail_retur['type']           = $data_transaction['type'];
-                $data_detail_retur['quantity']       = $request->quantitiesretur_s[$i];
-                $data_detail_retur['real_quantity']  = $request->quantitiesretur_s[$i] * $good_unit_retur->unit->quantity;
-                $data_detail_retur['last_stock']     = $good_unit_retur->good->getStock();
-                $data_detail_retur['buy_price']      = unformatNumber($request->buy_pricesretur_s[$i]);
-                $data_detail_retur['selling_price']  = unformatNumber($request->pricesretur_s[$i]);
-                $data_detail_retur['discount_price'] = unformatNumber($request->discountsretur_s[$i]);
-                $data_detail_retur['sum_price']      = unformatNumber($request->sumsretur_s[$i]);
-
-                TransactionDetail::create($data_detail_retur);
-
-                $good = $good_unit->good;
-
-                $data_good['total_loading']     = $good->total_loading;
-                $data_good['total_transaction'] = $good->total_transaction + round($data_detail_retur['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-                $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
-                $data_good['last_transaction']  = date('Y-m-d');
-                $good->update($data_good);
-
-                $sum_retur += unformatNumber($request->pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
-                $hpp_retur += $data_detail_retur['buy_price'] * $data_detail_retur['quantity'];
-
-                $is_retur = true;
-
-                $good = Good::find($request->namesretur_s[$i]);
-
-                if($request->conditionsretur_s[$i] == 'rusak') #barang rusak
+        if(isset($request->barcodesretur_s))
+        {
+            for ($i = 0; $i < sizeof($request->barcodesretur_s); $i++) 
+            { 
+                if($request->barcodesretur_s[$i] != null)
                 {
-                    for($j = 0; $j < $data_detail_retur['quantity']; $j++)
-                    {
-                        $data_retur['good_id'] = $request->namesretur_s[$i];
-                        $data_retur['good_unit_id']   = $request->barcodesretur_s[$i];
-                        $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
+                    $good_unit_retur = GoodUnit::find($request->barcodesretur_s[$i]);
+                    $data_detail_retur['good_unit_id']   = $request->barcodesretur_s[$i];
+                    $data_detail_retur['type']           = $data_transaction['type'];
+                    $data_detail_retur['quantity']       = $request->quantitiesretur_s[$i];
+                    $data_detail_retur['real_quantity']  = $request->quantitiesretur_s[$i] * $good_unit_retur->unit->quantity;
+                    $data_detail_retur['last_stock']     = $good_unit_retur->good->getStock();
+                    $data_detail_retur['buy_price']      = unformatNumber($request->buy_pricesretur_s[$i]);
+                    $data_detail_retur['selling_price']  = unformatNumber($request->pricesretur_s[$i]);
+                    $data_detail_retur['discount_price'] = unformatNumber($request->discountsretur_s[$i]);
+                    $data_detail_retur['sum_price']      = unformatNumber($request->sumsretur_s[$i]);
 
-                        ReturItem::create($data_retur);
+                    TransactionDetail::create($data_detail_retur);
+
+                    $good = $good_unit->good;
+
+                    $data_good['total_loading']     = $good->total_loading;
+                    $data_good['total_transaction'] = $good->total_transaction + round($data_detail_retur['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                    $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
+                    $data_good['last_transaction']  = date('Y-m-d');
+                    $good->update($data_good);
+
+                    $sum_retur += unformatNumber($request->pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
+                    $hpp_retur += $data_detail_retur['buy_price'] * $data_detail_retur['quantity'];
+
+                    $is_retur = true;
+
+                    $good = Good::find($request->namesretur_s[$i]);
+
+                    if($request->conditionsretur_s[$i] == 'rusak') #barang rusak
+                    {
+                        for($j = 0; $j < $data_detail_retur['quantity']; $j++)
+                        {
+                            $data_retur['good_id'] = $request->namesretur_s[$i];
+                            $data_retur['good_unit_id']   = $request->barcodesretur_s[$i];
+                            $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
+
+                            ReturItem::create($data_retur);
+                        }
+                    }
+                    else #barang gak rusak
+                    {
+                        $data_loading['role']         = $role;
+                        $data_loading['role_id']      = $role_id;
+                        $data_loading['checker']      = 'Load by sistem';
+                        $data_loading['loading_date'] = date('Y-m-d');
+                        $data_loading['distributor_id']   = $good->last_distributor_id;
+                        $data_loading['total_item_price'] = unformatNumber($request->buy_pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
+                        $data_loading['note']             = 'Loading barang retur';
+                        $data_loading['payment']          = $request->payment;
+
+                        $good_loading = GoodLoading::create($data_loading);
+
+                        $data_detail['good_loading_id'] = $good_loading->id;
+                        $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->id;
+                        $data_detail['last_stock']      = $good->getStock();
+                        $data_detail['quantity']        = $request->quantitiesretur_s[$i];
+                        $data_detail['real_quantity']   = $data_detail_retur['real_quantity'];
+                        $data_detail['price']           = unformatNumber($request->buy_pricesretur_s[$i]);
+                        $data_detail['selling_price']   = unformatNumber($request->pricesretur_s[$i]);
+                        $data_detail['expiry_date']     = null;
+
+                        GoodLoadingDetail::create($data_detail);
+
+                        $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
+                        $data_good['total_transaction'] = $good->total_transaction;
+                        $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
+                        $data_good['last_loading']      = $data_loading['loading_date'];
+                        $good->update($data_good);
                     }
                 }
-                else #barang gak rusak
-                {
-                    $data_loading['role']         = $role;
-                    $data_loading['role_id']      = $role_id;
-                    $data_loading['checker']      = 'Load by sistem';
-                    $data_loading['loading_date'] = date('Y-m-d');
-                    $data_loading['distributor_id']   = $good->last_distributor_id;
-                    $data_loading['total_item_price'] = unformatNumber($request->buy_pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
-                    $data_loading['note']             = 'Loading barang retur';
-                    $data_loading['payment']          = $request->payment;
-
-                    $good_loading = GoodLoading::create($data_loading);
-
-                    $data_detail['good_loading_id'] = $good_loading->id;
-                    $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->id;
-                    $data_detail['last_stock']      = $good->getStock();
-                    $data_detail['quantity']        = $request->quantitiesretur_s[$i];
-                    $data_detail['real_quantity']   = $data_detail_retur['real_quantity'];
-                    $data_detail['price']           = unformatNumber($request->buy_pricesretur_s[$i]);
-                    $data_detail['selling_price']   = unformatNumber($request->pricesretur_s[$i]);
-                    $data_detail['expiry_date']     = null;
-
-                    GoodLoadingDetail::create($data_detail);
-
-                    $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-                    $data_good['total_transaction'] = $good->total_transaction;
-                    $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
-                    $data_good['last_loading']      = $data_loading['loading_date'];
-                    $good->update($data_good);
-                }
-            }
+            }  
         }
 
         if($is_retur)

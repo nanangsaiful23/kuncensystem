@@ -132,7 +132,8 @@
         }); 
 
 	    window.setTimeout(function(){
-      		window.location = window.location.origin + '/{{ $role }}/transaction/createTouch';
+      		// window.location = window.location.origin + '/{{ $role }}/transaction/createTouch';
+      		window.location = document.referrer;
 	    }, 5000);
 	</script>
 </html>

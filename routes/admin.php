@@ -213,7 +213,7 @@ Route::group(['prefix' => 'stock-opname'], function () {
 Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/create', 'TransactionController@create');
 	Route::get('/createTouch', 'TransactionController@createTouch');
-	Route::get('/createNew', 'TransactionController@createNew');
+	Route::get('/createGpt', 'TransactionController@createGpt');
     Route::post('/store', 'TransactionController@store')->name('transaction.store');
     Route::post('/storeMoney', 'TransactionController@storeMoney')->name('transaction.storeMoney');
     Route::get('/resume/{type}/{category_id}/{distributor_id}/{start_date}/{end_date}/{pagination}', 'TransactionController@resume');

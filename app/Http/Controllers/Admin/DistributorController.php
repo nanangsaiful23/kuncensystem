@@ -32,6 +32,7 @@ class DistributorController extends Controller
 
         $total = Good::join('good_units', 'good_units.id', 'goods.base_unit_id')
                        ->selectRaw('SUM(goods.last_stock * good_units.buy_price) as total')
+                       ->where('good_units.deleted_at', null)
                        ->get();
 
         $total = $total[0]->total;
