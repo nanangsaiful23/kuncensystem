@@ -64,7 +64,7 @@ Route::group(['prefix' => 'distributor'], function () {
 	Route::delete('/{distributor_id}/delete', 'DistributorController@delete')->name('distributor.delete');
 	Route::post('/{distributor_id}/storeLedger', 'DistributorController@storeLedger')->name('distributor.storeLedger');
 	Route::get('/{distributor_id}/ledger/{type}/{start_date}/{end_date}', 'DistributorController@ledger');
-	Route::get('/{pagination}', 'DistributorController@index');
+	Route::get('/{order}/{sort}/{pagination}', 'DistributorController@index');
 });
 
 Route::group(['prefix' => 'good'], function () {

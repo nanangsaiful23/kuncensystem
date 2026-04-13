@@ -9,12 +9,12 @@ use App\Models\DistributorLedger;
 
 trait DistributorControllerBase 
 {
-    public function indexDistributorBase($pagination)
+    public function indexDistributorBase($order, $sort, $pagination)
     {
         if($pagination == 'all')
-           $distributors = Distributor::orderBy('name', 'asc')->get();
+           $distributors = Distributor::orderBy($order, $sort)->get();
         else
-           $distributors = Distributor::orderBy('name', 'asc')->paginate($pagination);
+           $distributors = Distributor::orderBy($order, $sort)->paginate($pagination);
 
         return $distributors;
     }

@@ -19,7 +19,7 @@ class DistributorController extends Controller
         $this->middleware('admin');
     }
 
-    public function index($pagination)
+    public function index($order, $sort, $pagination)
     {
         [$default['type'], $default['color'], $default['data']] = alert();
 
@@ -27,7 +27,7 @@ class DistributorController extends Controller
         $default['page'] = 'distributor';
         $default['section'] = 'all';
 
-        $distributors = $this->indexDistributorBase($pagination);
+        $distributors = $this->indexDistributorBase($order, $sort, $pagination);
 
 
         $total = Good::join('good_units', 'good_units.id', 'goods.base_unit_id')
@@ -37,7 +37,7 @@ class DistributorController extends Controller
 
         $total = $total[0]->total;
 
-        return view('admin.layout.page', compact('default', 'distributors', 'total', 'pagination'));
+        return view('admin.layout.page', compact('default', 'distributors', 'total', 'order', 'sort', 'pagination'));
     }
 
     public function search($keyword)

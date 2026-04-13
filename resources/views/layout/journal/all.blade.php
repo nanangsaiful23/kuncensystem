@@ -84,9 +84,9 @@
                     <td>{{ displayDateTime($journal->updated_at) }}</td>
                     <td>{{ displayDate($journal->journal_date) }}</td>
                     <td>@if($journal->type == 'good_loading')
-                          <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" style="color: blue;">{{ $journal->name }}</a>
-                        @elseif($journal->type == 'transaction' || $journal->type == 'penyusutan' || $journal->type == 'operasional')
-                          <a href="{{ url($role . '/transaction/' . $journal->type_id . '/detail') }}" style="color: blue;">{{ $journal->name }}</a>
+                          <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" style="color: blue;" target="_blank()">{{ $journal->name }}</a>
+                        @elseif($journal->type == 'transaction' || $journal->type == 'penyusutan' || $journal->type == 'operasional' || strpos($journal->type, "hutang dagang") !== false)
+                          <a href="{{ url($role . '/transaction/' . $journal->type_id . '/detail') }}" style="color: blue;" target="_blank()">{{ $journal->name }}</a>
                         @else
                           {{ $journal->name }}
                         @endif

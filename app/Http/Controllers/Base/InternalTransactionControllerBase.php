@@ -87,12 +87,13 @@ trait InternalTransactionControllerBase
 
     public function storeInternalTransactionBase($role, $role_id, Request $request)
     {
+        $request->total_sum_price = unformatNumber($request->total_sum_price);
+
         #tabel transaction
         $data_transaction['type'] = $request->type;
         $data_transaction['role'] = $role;
         $data_transaction['role_id'] = $role_id;
         $data_transaction['member_id'] = 1;
-        $data_transaction['total_item_price'] = unformatNumber($request->total_item_price);
         $data_transaction['total_discount_price'] = unformatNumber($request->total_discount_price);
         $data_transaction['total_sum_price'] = unformatNumber($request->total_sum_price);
         $data_transaction['money_paid'] = unformatNumber($request->money_paid);
@@ -100,6 +101,22 @@ trait InternalTransactionControllerBase
         $data_transaction['store']   = config('app.name');
         $data_transaction['payment'] = $request->payment;
         $data_transaction['note']    = $request->note;
+
+        if($data_transaction['payment'] != '1112')
+        {
+            if($request->total_sum_price % 1000 > 0 && $request->total_sum_price % 1000 <= 500 && $request->total_sum_price > 1000)
+            {
+                $data_transaction['total_sum_price'] = intval($request->total_sum_price / 1000) * 1000 + 500;
+                $data_transaction['note'] .= " (pembulatan dari " . $request->total_sum_price . ")";
+            }
+            elseif($request->total_sum_price % 1000 > 500 && $request->total_sum_price > 1000)
+            {
+                $data_transaction['total_sum_price'] = intval($request->total_sum_price / 1000) * 1000 + 1000;
+                $data_transaction['note'] .= " (pembulatan dari " . $request->total_sum_price . ")";
+            }
+        }
+
+        $data_transaction['total_item_price'] = $data_transaction['total_sum_price'];
 
         $transaction = Transaction::create($data_transaction);
 
