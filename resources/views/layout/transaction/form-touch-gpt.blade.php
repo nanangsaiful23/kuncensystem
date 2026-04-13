@@ -8,21 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --surface3: #2a2f47;
+    --bg: #f0f2f7; /*0f1117;*/
+    --surface: #ffffff; /*#1a1d27;*/
+    --surface2: #f5f6fa; /*#22263a;*/
+    --surface3: #eaecf4;
     --border: #2e3450;
-    --accent: #00e5a0;
-    --accent-dim: #00e5a020;
+    --accent: #A47251; /*#00e5a0;*/
+    --accent-dim: #FFC193; /*#00e5a020;*/
     --accent2: #4f9eff;
     --accent2-dim: #4f9eff18;
     --danger: #ff4f6e;
     --danger-dim: #ff4f6e18;
-    --muted: #ffffff;
+    --muted: #000000;
     --warn: #ffc13d;
     --warn-dim: #ffc13d18;
-    --text: #e8ecf4;
+    --text: #000000;
     --text-muted: #7a839a;
     --text-faint: #444c68;
     --mono: 'IBM Plex Mono', monospace;
@@ -258,7 +258,7 @@
     cursor: default;
   }
   .td-input.qty-input {
-    background: #1e2b14;
+    background: var(--accent-dim);
     border-color: #3a5a28;
     color: var(--accent);
     text-align: center;
@@ -267,13 +267,13 @@
     width: 70px;
   }
   .td-input.qty-input:focus {
-    border-color: var(--accent);
-    background: var(--accent-dim);
+    border-color: var(--accent-dim);
+    background: var(--bg);
   }
   .td-input.disc-input {
     text-align: right;
-    width: 80px;
-    color: var(--warn);
+    width: 100px;
+    color: var(--text);
     font-family: var(--mono);
   }
   .td-input.price-ro {
@@ -298,13 +298,13 @@
   }
   .unit-badge {
     display: inline-block;
-    font-size: 10px;
+    font-size: 12px;
     font-family: var(--mono);
-    background: var(--surface3);
+    background: var(--surface);
     border: 1px solid var(--border);
     padding: 1px 6px;
     border-radius: 4px;
-    color: var(--text-muted);
+    color: var(--text);
   }
 
   .delete-btn {
@@ -613,8 +613,8 @@
     width: 100%;
   }
   .tc-value-input:focus {
-    border-color: var(--warn);
-    background: var(--warn-dim);
+    border-color: var(--accent);
+    background: var(--accent-dim);
   }
   .total-card.highlight {
     background: rgba(108,99,255,0.1);
@@ -729,15 +729,15 @@
     transition: all 0.12s;
   }
   .modal-item:hover { background: var(--surface2); border-color: var(--accent2); }
-  .modal-item.out-of-stock { opacity: 0.45; }
-  .modal-item .item-iname { font-size: 13px; font-weight: 600; color: var(--text); }
-  .modal-item .item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .modal-item.out-of-stock { font-size: 14px; opacity: 1; color: var(--text);}
+  .modal-item.item-iname { font-size: 14px; font-weight: 600; color: var(--text); }
+  .modal-item.item-meta { font-size: 14px; color: var(--text); margin-top: 2px; }
   .stock-chip {
     font-size: 10px; font-family: var(--mono); font-weight: 700;
     padding: 2px 8px; border-radius: 20px;
   }
-  .stock-chip.good { background: rgba(0,229,160,0.15); color: var(--accent); }
-  .stock-chip.low  { background: rgba(255,193,61,0.15); color: var(--warn); }
+  .stock-chip.good { background: #FFB090; color: var(--accent); font-size: 13px}
+  .stock-chip.low  { background: rgba(255,193,61,0.15); color: #4B2E2B; }
   .stock-chip.empty { background: rgba(255,79,110,0.15); color: var(--danger); }
 
   /* camera preview */
@@ -779,12 +779,12 @@
 
   /* ── QUICK DEMO INTERACTIONS ─────────────── */
   .demo-notice {
-    background: var(--warn-dim);
+    background: linear-gradient(135deg, #00e5a0, #00b87a);
     border: 1px solid var(--warn);
     border-radius: 7px;
     padding: 8px 12px;
     font-size: 20px;
-    color: var(--warn);
+    color: var(--text);
     font-family: var(--mono);
     text-align: center;
     margin-bottom: 8px;
@@ -921,9 +921,17 @@
             <input type="radio" name="payment" value="transfer"> 🏦 Transfer
           </label>
         </div>
+        <div class="payment-toggle" style="margin-top: 8px">
+          <label class="pay-opt" id="is_credit" onclick="setPaymentAddon('credit', this)">
+            <input type="checkbox" name="is_credit" value="1"> Catat sebagai Hutang
+          </label>
+          <label class="pay-opt" id="is_promo" onclick="setPaymentAddon('promo', this)">
+            <input type="checkbox" name="is_promo" value="1"> Promo
+          </label>
+        </div>
       </div>
 
-      <label class="check-row">
+      <!-- <label class="check-row">
         <input type="checkbox" name="is_credit" id="is_credit" value="1">
         Catat sebagai Hutang
       </label>
@@ -931,7 +939,7 @@
       <label class="check-row">
         <input type="checkbox" name="is_promo" id="is_promo" value="1">
         Promo
-      </label>
+      </label> -->
     </div>
 
     <!-- VOUCHER -->
@@ -956,11 +964,11 @@
       </div>
       <div class="summary-row">
         <span class="s-label">Total Potongan Item</span>
-        <span class="s-val" id="summary-disc-items" style="color:var(--warn)">– Rp 0</span>
+        <span class="s-val" id="summary-disc-items" style="color:var(--text-muted)">– Rp 0</span>
       </div>
       <div class="summary-row">
         <span class="s-label">Total Potongan Akhir</span>
-        <span class="s-val" id="summary-disc-tot" style="color:var(--warn)">– Rp 0</span>
+        <span class="s-val" id="summary-disc-tot" style="color:var(--text-muted)">– Rp 0</span>
       </div>
       <div class="summary-row divider total-row">
         <span class="s-label">Total Akhir</span>
@@ -1093,7 +1101,7 @@ function fillItemDirect(good) {
 }
 
 function buildRowHtml(type, idx, good) {
-  const evenBg = (idx % 2 === 0) ? 'background:#131620' : '';
+  const evenBg = (idx % 2 === 0) ? 'background:#F2EAE0' : '';
   return `
   <tr id="row-data-${type}${idx}" style="${evenBg}">
     <td class="num" style="font-size:12px">${idx}</td>
@@ -1305,7 +1313,22 @@ function formatRp(n) {
 
 // ── PAYMENT ───────────────────────────────────────────
 function setPayment(val, el) {
-  document.querySelectorAll('.pay-opt').forEach(o => o.classList.remove('active'));
+  // document.querySelectorAll('.pay-opt').forEach(o => o.classList.remove('active'));
+  if(val == 'cash')
+  {
+    document.getElementById('opt-transfer').classList.remove('active');
+    el.classList.add('active');
+  }
+  else if(val == 'transfer')
+  {
+    document.getElementById('opt-cash').classList.remove('active');
+    el.classList.add('active');
+  }
+}
+
+// ── PAYMENT ADDON ──────────────────────────────────────
+function setPaymentAddon(val, el) {
+  // document.querySelectorAll('.pay-opt').forEach(o => o.classList.remove('active'));
   el.classList.add('active');
 }
 
@@ -1365,11 +1388,11 @@ function ajaxFunction(name) {
         }
         else if(r[i].stock < 0) 
         {
-            htmlResult += "item-iname'";
+            htmlResult += "item-meta'";
         }
         else
         {
-            htmlResult += "item-meta'";
+            htmlResult += "item-iname'";
         }
 
         htmlResult += " onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>";
