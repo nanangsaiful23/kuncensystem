@@ -217,7 +217,7 @@
     border-bottom: 1px solid var(--border);
     transition: background 0.15s;
   }
-  tbody tr:nth-child(even) { background: #131620; }
+  tbody tr:nth-child(even) { background: #F2EAE0; }
   tbody tr:hover { background: var(--surface2); }
   tbody tr.row-highlight { background: #162a23 !important; }
 
@@ -811,7 +811,7 @@
 <div class="main">
 
   <!-- ITEMS PANEL -->
-  <div class="items-panel">
+  <div class="items-panel" style=" height: 90vh !important; overflow-y: auto;">
 
     <!-- Search row -->
     <div class="search-row" style="margin-top: 10px; margin-bottom: 10px;">
