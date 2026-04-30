@@ -242,7 +242,7 @@
     border-radius: 6px;
     color: var(--text);
     font-family: var(--sans);
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 600;
     width: 100%;
     padding: 5px 7px;
@@ -291,7 +291,7 @@
   .item-name {
     font-weight: 600;
     color: var(--text);
-    font-size: 16px;
+    font-size: 20px;
     /*white-space: nowrap;*/
     overflow: hidden;
     text-overflow: ellipsis;
@@ -819,7 +819,7 @@
         <label>Barcode</label>
         <div class="input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="2" height="16"/><rect x="7" y="4" width="1" height="16"/><rect x="10" y="4" width="2" height="16"/><rect x="14" y="4" width="1" height="16"/><rect x="17" y="4" width="2" height="16"/></svg>
-          <input type="text" id="all_barcode" placeholder="Scan atau ketik barcode…" oninput="searchByBarcode('all_barcode')">
+          <input type="text" id="all_barcode" placeholder="Scan atau ketik barcode…" onkeyup="searchByBarcode('all_barcode')">
         </div>
       </div>
       <div class="input-group">
