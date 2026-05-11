@@ -67,8 +67,8 @@
   input[type="text"] {
     width: 100%; background: var(--surface);
     border: 1px solid var(--border); color: var(--text);
-    font-family: 'DM Mono', monospace; font-size: 13px;
-    padding: 10px 12px 10px 36px;
+    font-family: 'DM Mono', monospace; font-size: 14px;
+    padding: 10px 12px 10px 30px;
     border-radius: var(--radius); outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
@@ -298,7 +298,7 @@
   }
   .unit-badge {
     display: inline-block;
-    font-size: 12px;
+    font-size: 16px;
     font-family: var(--mono);
     background: var(--surface);
     border: 1px solid var(--border);
@@ -819,7 +819,7 @@
         <label>Barcode</label>
         <div class="input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="2" height="16"/><rect x="7" y="4" width="1" height="16"/><rect x="10" y="4" width="2" height="16"/><rect x="14" y="4" width="1" height="16"/><rect x="17" y="4" width="2" height="16"/></svg>
-          <input type="text" id="all_barcode" placeholder="Scan atau ketik barcode…" onkeyup="searchByBarcode('all_barcode')">
+          <input type="text" id="all_barcode" placeholder="Scan atau ketik barcode…">
         </div>
       </div>
       <div class="input-group">
@@ -1039,6 +1039,8 @@ setInterval(updateClock, 1000); updateClock();
 let total_item = 1;
 let total_real_item = 0;
 let total_item_retur = 1;
+let barcode = '';
+let interval;
 
 // ── INIT ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -1055,8 +1057,32 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('search_member').addEventListener('keyup', e => {
     if (e.key === 'Enter') searchMember();
   });
-  // demo: add sample items on load for illustration
-  // loadDemoItems();
+
+  document.getElementById('all_barcode').addEventListener('keydown', (e) => {
+      // 1. Reset timer on each keypress
+      if (interval) clearInterval(interval);
+
+      // 2. Handle the "Enter" key (often the scanner's default suffix)
+      barcode = document.getElementById('all_barcode').value;
+      if (e.key === 'Enter') {
+          if (barcode) {
+              console.log('Barcode Scanned:', barcode);
+              searchByBarcode('all_barcode');
+          }
+          barcode = '';
+          return;
+      }
+
+      // 3. Append character if it's not a modifier (like Shift/Ctrl)
+      if (e.key.length === 1) {
+          barcode += e.key;
+      }
+
+      // 4. Timeout to clear partial scans (e.g., if a user types manually)
+      interval = setInterval(() => {
+          barcode = '';
+      }, 700); // Scanners type much faster than humans
+    });
 });
 
 document.addEventListener('keydown', e => {
