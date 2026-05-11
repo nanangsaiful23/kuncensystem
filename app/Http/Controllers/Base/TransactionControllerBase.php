@@ -21,39 +21,30 @@ trait TransactionControllerBase
 {
     public function indexTransactionBase($role, $role_id, $start_date, $end_date, $pagination)
     {
-        $transactions = [];
-        if($role != 'all')
-        {
-            $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                        ->whereDate('transactions.created_at', '<=', $end_date) 
-                                        ->where('type', 'normal')
-                                        ->where('role', $role)
-                                        ->where('role_id', $role_id)
-                                        ->orderBy('transactions.created_at','desc')
-                                        ->get();
-
-            $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                        ->whereDate('transactions.created_at', '<=', $end_date) 
-                                        ->where('type', 'retur')
-                                        ->where('role', $role)
-                                        ->where('role_id', $role_id)
-                                        ->orderBy('transactions.created_at','desc')
-                                        ->get();
-        }
+        if($role == 'all')
+            $whereRole = '%%';
         else
-        {
-            $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                        ->whereDate('transactions.created_at', '<=', $end_date) 
-                                        ->where('type', 'normal')
-                                        ->orderBy('transactions.created_at','desc')
-                                        ->get();
+            $whereRole = $role;
 
-            $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                        ->whereDate('transactions.created_at', '<=', $end_date) 
-                                        ->where('type', 'retur')
-                                        ->orderBy('transactions.created_at','desc')
-                                        ->get();
-        }
+        if($role_id == 'all')
+            $whereRoleId = '%%';
+        else
+            $whereRoleId = $role_id;
+
+        $transactions = [];
+        $all_normal = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                    ->where('type', 'normal')
+                                    ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                    ->orderBy('transactions.created_at','desc')
+                                    ->get();
+
+        $all_retur = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                    ->whereDate('transactions.created_at', '<=', $end_date) 
+                                    ->where('type', 'retur')
+                                    ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                    ->orderBy('transactions.created_at','desc')
+                                    ->get();
 
         $hpp_normal = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity * transaction_details.buy_price) AS total'))
                                         ->join('transactions', 'transactions.id', 'transaction_details.transaction_id')
@@ -81,196 +72,93 @@ trait TransactionControllerBase
 
         if($pagination == 'all')
         {
-            if($role_id == 'all')
-            {
-                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
+            $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('payment', 'cash')
+                                                ->whereRaw('money_paid >= total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->get();
 
-                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
+            $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('payment', 'cash')
+                                                ->whereRaw('money_paid < total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->get();
 
-                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
+            $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('payment', 'transfer')
+                                                ->whereRaw('money_paid >= total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->get();
 
-                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
+            $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('payment', 'transfer')
+                                                ->whereRaw('money_paid < total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->get();
 
-                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('type', 'retur')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
-            }
-            else
-            {
-                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
-
-                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
-
-                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
-
-                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
-
-                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('type', 'retur')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->get();
-            }
+            $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('type', 'retur')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->get();
         }
         else
         {
-            if($role_id == 'all')
-            {
-                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date)
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
+            $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date)
+                                                ->where('payment', 'cash')
+                                                ->whereRaw('money_paid >= total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->paginate($pagination);
 
-                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date)
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-                                                    
-                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date)
-                                                    ->where('payment', 'transfer')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
+            $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date)
+                                                ->where('payment', 'cash')
+                                                ->whereRaw('money_paid < total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->paginate($pagination);
 
-                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
+            $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('payment', 'transfer')
+                                                ->whereRaw('money_paid >= total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->paginate($pagination);
 
-                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
+            $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('payment', 'transfer')
+                                                ->whereRaw('money_paid < total_sum_price')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->where('type', 'normal')
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->paginate($pagination);
 
-                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('type', 'retur')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-            }
-            else
-            {
-                $transactions['cash'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date)
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-
-                $transactions['credit'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date)
-                                                    ->where('payment', 'cash')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-
-                $transactions['transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid >= total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-
-                $transactions['credit_transfer'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('payment', 'transfer')
-                                                    ->whereRaw('money_paid < total_sum_price')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->where('type', 'normal')
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-
-                $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
-                                                    ->whereDate('transactions.created_at', '<=', $end_date) 
-                                                    ->where('type', 'retur')
-                                                    ->where('role', $role)
-                                                    ->where('role_id', $role_id)
-                                                    ->orderBy('transactions.created_at','desc')
-                                                    ->paginate($pagination);
-            }
+            $transactions['retur'] = Transaction::whereDate('transactions.created_at', '>=', $start_date)
+                                                ->whereDate('transactions.created_at', '<=', $end_date) 
+                                                ->where('type', 'retur')
+                                                ->whereRaw("coalesce(transactions.role, '') like ? AND coalesce(transactions.role_id, '') like ? ", array($whereRole, $whereRoleId))
+                                                ->orderBy('transactions.created_at','desc')
+                                                ->paginate($pagination);
         }
 
         return [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur, $hpp_retur_normal];

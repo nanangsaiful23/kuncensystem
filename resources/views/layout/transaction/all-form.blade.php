@@ -1,7 +1,9 @@
+<?php $discount_price = $transactions->sum(function ($item) { return $item->details->sum('discount_price'); }); ?>
+
 <div class="box-body" style="background-color: {{ $color }}">
   <h3>Transaksi {{ $name }}</h3><br>
   <h4>Total transaksi {{ $name }}: {{ showRupiah($total_sum_price) }}</h4>
-  <h4>Total potongan: {{ showRupiah($total_discount_price) }}</h4><br>
+  <h4>Total potongan & diskon: {{ showRupiah($total_discount_price + $discount_price) }}</h4><br>
 </div>
 <div class="box-body" style="overflow-x:scroll; background-color: {{ $color }}">
   <table id="example1" class="table table-bordered table-striped">

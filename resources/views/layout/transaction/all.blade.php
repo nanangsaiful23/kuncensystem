@@ -66,19 +66,19 @@
             </table>
           </div>
 
-          @include('layout.transaction.all-form', ['name' => 'Lunas', 'transactions' => $transactions['cash'], 'color' => '#E5F9DB', 'total_sum_price' => $transactions['cash']->sum('total_sum_price'), 'total_discount_price' => $transactions['cash']->sum('total_discount_price'), 'discount_price' => $transactions['cash']->sum('discount_price')])
+          @include('layout.transaction.all-form', ['name' => 'Lunas', 'transactions' => $transactions['cash'], 'color' => '#E5F9DB', 'total_sum_price' => $transactions['cash']->sum('total_sum_price'), 'total_discount_price' => $transactions['cash']->sum('total_discount_price')])
 
           @if(sizeof($transactions['credit']) > 0)
-           @include('layout.transaction.all-form', ['name' => 'Hutang', 'transactions' => $transactions['credit'], 'color' => '#FFD0D0', 'total_sum_price' => $transactions['credit']->sum('total_sum_price'), 'total_discount_price' => $transactions['credit']->sum('total_discount_price'), 'discount_price' => $transactions['credit']->sum('discount_price')])
+           @include('layout.transaction.all-form', ['name' => 'Hutang', 'transactions' => $transactions['credit'], 'color' => '#FFD0D0', 'total_sum_price' => $transactions['credit']->sum('total_sum_price'), 'total_discount_price' => $transactions['credit']->sum('total_discount_price')])
           @endif
           @if(sizeof($transactions['transfer']) > 0)
-           @include('layout.transaction.all-form', ['name' => 'Transfer', 'transactions' => $transactions['transfer'], 'color' => '#9AC5F4', 'total_sum_price' => $transactions['transfer']->sum('total_sum_price'), 'total_discount_price' => $transactions['transfer']->sum('total_discount_price'), 'discount_price' => $transactions['transfer']->sum('discount_price')])
+           @include('layout.transaction.all-form', ['name' => 'Transfer', 'transactions' => $transactions['transfer'], 'color' => '#9AC5F4', 'total_sum_price' => $transactions['transfer']->sum('total_sum_price'), 'total_discount_price' => $transactions['transfer']->sum('total_discount_price')])
           @endif
           @if(sizeof($transactions['credit_transfer']) > 0)
-           @include('layout.transaction.all-form', ['name' => 'Hutang Transfer', 'transactions' => $transactions['credit_transfer'], 'color' => '#EA906C', 'total_sum_price' => $transactions['credit_transfer']->sum('total_sum_price'), 'total_discount_price' => $transactions['credit_transfer']->sum('total_discount_price'), 'discount_price' => $transactions['credit_transfer']->sum('discount_price')])
+           @include('layout.transaction.all-form', ['name' => 'Hutang Transfer', 'transactions' => $transactions['credit_transfer'], 'color' => '#EA906C', 'total_sum_price' => $transactions['credit_transfer']->sum('total_sum_price'), 'total_discount_price' => $transactions['credit_transfer']->sum('total_discount_price')])
           @endif
           @if(sizeof($transactions['retur']) > 0)
-           @include('layout.transaction.all-form', ['name' => 'Retur', 'transactions' => $transactions['retur'], 'color' => '#FFF3E2', 'total_sum_price' => $transactions['retur']->sum('total_sum_price'), 'total_discount_price' => $transactions['retur']->sum('total_discount_price'), 'discount_price' => $transactions['retur']->sum('discount_price')])
+           @include('layout.transaction.all-form', ['name' => 'Retur', 'transactions' => $transactions['retur'], 'color' => '#FFF3E2', 'total_sum_price' => $transactions['retur']->sum('total_sum_price'), 'total_discount_price' => $transactions['retur']->sum('total_discount_price')])
           @endif
         </div>
       </div>
