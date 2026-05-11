@@ -218,6 +218,7 @@
           {
             //change all buy price
             changeLists(index);
+            total_item = parseInt('{{ sizeof($good_loading->detailsWithDeleted()) }}');
             // if(document.getElementById("base_qty-" + index) != null)
             // {
                 good_id = document.getElementById("barcode-" + index).value;
