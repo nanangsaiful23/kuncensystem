@@ -218,7 +218,7 @@
             //change all buy price
             changeLists(index);
             // if(document.getElementById("base_qty-" + index) != null)
-            {
+            // {
                 good_id = document.getElementById("barcode-" + index).value;
                 base_buy_price = document.getElementById("price-" + index).value / document.getElementById("base_qty-" + index).value;
                 for(i = 1; i <= total_item; i++)
