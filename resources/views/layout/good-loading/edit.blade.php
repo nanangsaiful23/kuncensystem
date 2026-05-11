@@ -65,6 +65,7 @@
                                 <input type="hidden" name="change" id="change">
                                 @foreach($good_loading->detailsWithDeleted() as $detail)
                                     <tr id="row-data-{{ $i }}">
+                                        <input type="hidden" name="base_qtys[]" id="base_qty-{{ $i}}" value="{{ $detail->good_unit->unit->quantity }}">
                                         <td>{{ $i }}</td>
                                         <td>
                                             <input type="hidden" name="ids[]" id="id-{{ $i }}" value="{{ $detail->id }}">
