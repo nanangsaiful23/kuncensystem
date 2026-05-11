@@ -217,7 +217,7 @@
           {
             //change all buy price
             changeLists(index);
-            if(document.getElementById("base_qty-" + index) != null)
+            // if(document.getElementById("base_qty-" + index) != null)
             {
                 good_id = document.getElementById("barcode-" + index).value;
                 base_buy_price = document.getElementById("price-" + index).value / document.getElementById("base_qty-" + index).value;
@@ -226,9 +226,10 @@
                     if(document.getElementById("barcode-" + i).value == good_id && i != index)
                     {
                         document.getElementById("price-" + i).value = document.getElementById("base_qty-" + i).value * base_buy_price;
+                        document.getElementById("total_price-" + i).value = document.getElementById("price-" + i).value * document.getElementById("quantity-" + i).value;
                     }
                 }
-            }
+            // }
 
             editPrice(index);
           }
