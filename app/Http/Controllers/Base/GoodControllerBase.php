@@ -485,7 +485,7 @@ trait GoodControllerBase
                              ->leftjoin('distributors', 'distributors.id', 'goods.last_distributor_id')
                              ->select('goods.*')
                              ->where('goods.last_stock', '<=', $stock)
-                             ->whereRaw('sub_categories.main_category_id like ? AND goods.category_id like ? AND distributors.location like ? AND goods.last_distributor_id like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
+                             ->whereRaw('sub_categories.main_category_id like ? AND goods.category_id like ? AND coalesce(distributors.location, "") like ? AND coalesce(goods.last_distributor_id, "") like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
                              ->orderBy('goods.last_loading', 'desc')
                              ->get();
             }
@@ -501,7 +501,6 @@ trait GoodControllerBase
                              ->paginate($pagination);
             }
         }
-        // dd($goods);die;
         
         return $goods;
     }
