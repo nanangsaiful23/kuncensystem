@@ -28,7 +28,7 @@ class MainController extends Controller
                      ->orderBy('goods.name')
                      ->get();
         
-        return view('layout.good-search', compact('default', 'goods', 'query'));
+        return view('layout.good-search-gpt', compact('default', 'goods', 'query'));
     }
 
     public function getImage($directory, $url)

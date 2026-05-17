@@ -50,7 +50,7 @@ class Good extends Model
     
     public function good_units()
     {
-        return $this->hasMany('App\Models\GoodUnit');
+        return $this->hasMany('App\Models\GoodUnit')->orderBy('selling_price', 'asc');
     }
     
     public function good_photos()
