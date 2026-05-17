@@ -58,7 +58,7 @@
   .logo-mark {
     width: 38px;
     height: 38px;
-    background: var(--accent);
+    border-color: var(--accent);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -199,7 +199,7 @@
 
   .product-card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 2px solid #000000;
     border-radius: var(--radius);
     padding: 18px 20px;
     display: grid;
@@ -372,7 +372,8 @@
 <header>
   <div class="header-top">
     <div class="logo-mark">
-      <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg>
+      <img src="{{asset('assets/icon/education.png')}}">
+      <!-- <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg> -->
     </div>
     <div class="logo-text">
       <h1>{{ config('app.name') }}</h1>
@@ -415,8 +416,9 @@
 
   @if(sizeof($goods) > 0)
     <div class="product-grid" id="productGrid">
+      <?php $i = 0 ?>
       @foreach($goods as $good)
-        <div class="product-card">
+        <div class="product-card" @if($i % 2 == 0) style="background-color: {{ config('app.app_color') }}" @endif>
           <div class="card-code">{{ $good->code }}</div>
             <div class="card-body">
               <div class="card-name">{{ $good->getFullName() }}</div>
@@ -463,6 +465,7 @@
             </div>
           </div>
         </div>
+        <?php $i++ ?>
       @endforeach
     </div>
   @else
