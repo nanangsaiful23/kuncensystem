@@ -36,6 +36,7 @@
                 <th width="10%">Tanggal</th>
                 <th>Transaksi</th>
                 <th>Jumlah</th>
+                <th>Print</th>
               </tr>
               </thead>
               <tbody id="table-good">
@@ -44,6 +45,7 @@
                     <td>{{ displayDate($transaction->journal_date) }}</td>
                     <td>{{ $transaction->name }}</td>
                     <td>{{ showRupiah($transaction->debit) }}</td>
+                    <td><a href="{{ url($role . '/other-transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
                   </tr>
                 @endforeach
               </tbody>

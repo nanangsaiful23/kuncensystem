@@ -58,6 +58,7 @@ Route::group(['prefix' => 'other-transaction'], function () {
 	Route::get('/create', 'OtherTransactionController@create');
 	Route::post('/store', 'OtherTransactionController@store')->name('other-transaction.store');
 	Route::get('/{other-transaction_id}/detail', 'OtherTransactionController@detail');
+	Route::get('/{other_transaction_id}/print', 'OtherTransactionController@print');
 	Route::get('/{start_date}/{end_date}/{pagination}', 'OtherTransactionController@index');
 });
 
