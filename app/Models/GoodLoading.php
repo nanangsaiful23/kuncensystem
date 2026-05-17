@@ -73,4 +73,9 @@ class GoodLoading extends Model
         else
             return $this->payment;
     }   
+
+    public function getPayment()
+    {
+        return Account::where('code', $this->payment)->first();
+    }
 }

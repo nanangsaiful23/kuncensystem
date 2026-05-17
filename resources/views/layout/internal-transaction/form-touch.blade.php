@@ -136,6 +136,7 @@
                 <div class="col-sm-12">
                     <select class="form-control select2" style="width: 100%;" name="type" id="type">
                         <!-- <div> -->
+                            <option value="null">Silahkan Pilih Jenis Transaksi</option>
                             <option value="5215">5215 - Biaya Penyusutan Barang</option>
                             <option value="5220">5220 - Biaya Perlengkapan Kantor</option>
                             <option value="2101">2101 - Utang Dagang</option>
@@ -467,7 +468,7 @@
 
         function submitForm(btn)
         {
-            if($('#money_paid').val() != '' && $('#total_discount_price').val() != '')
+            if($('#money_paid').val() != '' && $('#total_discount_price').val() != '' && $('#type').val() != 'null')
             {
                 if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#member_id').val() == '1'))
                 {
@@ -486,7 +487,7 @@
             }
             else
             {
-                alert('Silahkan masukkan jumlah uang dan potongan toko');
+                alert('Silahkan pilih jenis transaksi');
             }
         }
 
