@@ -305,7 +305,7 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: .07em;
-    color: var(--text-muted);
+    color: var(--text-primary);
     font-weight: 600;
   }
   .stock-val {
