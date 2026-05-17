@@ -222,11 +222,11 @@
   }
 
   .card-code {
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
     letter-spacing: .07em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--text-primary);
     background: var(--tag-bg);
     padding: 4px 8px;
     border-radius: 6px;
@@ -237,7 +237,7 @@
   .card-body { min-width: 0; }
 
   .card-name {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-primary);
     line-height: 1.4;
@@ -256,8 +256,8 @@
     flex-wrap: wrap;
   }
   .variant-tag {
-    font-size: 11.5px;
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: var(--text-primary);
     background: var(--tag-bg);
     padding: 3px 8px;
     border-radius: 20px;
@@ -279,15 +279,15 @@
     white-space: nowrap;
   }
   .price-unit {
-    font-size: 11px;
-    color: var(--text-muted);
+    font-size: 14px;
+    color: var(--text-primary);
     background: var(--tag-bg);
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: 500;
   }
   .price-val {
-    font-size: 13.5px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
   }
@@ -308,7 +308,7 @@
     font-weight: 600;
   }
   .stock-val {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
   }
   .stock-val.in  { color: var(--green); }
