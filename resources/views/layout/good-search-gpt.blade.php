@@ -199,7 +199,7 @@
 
   .product-card {
     background: var(--surface);
-    border: 2px solid #000000;
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 18px 20px;
     display: grid;
@@ -372,7 +372,7 @@
 <header>
   <div class="header-top">
     <div class="logo-mark">
-      <img src="{{asset('assets/icon/education.png')}}">
+      <img src="{{asset('assets/icon/education.png')}}" style="width: 130%">
       <!-- <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg> -->
     </div>
     <div class="logo-text">
