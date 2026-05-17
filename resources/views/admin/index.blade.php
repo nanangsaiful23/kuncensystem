@@ -110,7 +110,7 @@
             <tbody>
               @foreach($good_prices as $price)
                 <tr>
-                  <td>{{ $price->good_unit->good->name . ' ' . $price->good_unit->unit->name}}</td>
+                  <td>{{ $price->good_unit->good->getFullName() . ' ' . $price->good_unit->unit->name}}</td>
                   <td>{{ showRupiah($price->old_price) }}</td>
                   <td>{{ showRupiah($price->recent_price) }}</td>
                   <td>{{ displayDate($price->created_at) }}</td>
