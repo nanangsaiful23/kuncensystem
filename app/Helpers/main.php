@@ -186,7 +186,7 @@
 
     function getPaginations()
     {
-        $paginations = ['all' => 'all', '5' => '5', '10' => '10', '15' => '15', '20' => '20', '200' => '200'];
+        $paginations = ['all' => 'all', '5' => '5 per halaman', '10' => '10 per halaman', '15' => '15 per halaman', '20' => '20 per halaman', '200' => '200 per halaman'];
 
         return $paginations;
     }
@@ -436,7 +436,7 @@
 
     function getGoodSort()
     {
-        $types = ["goods.id" => "id", "goods.name" => "Nama", "last_loading" => "Tanggal Loading", "last_transaction" => "Tanggal Transaksi", "last_stock" => 'Stok Terakhir'];
+        $types = ["goods.id" => "ID", "goods.name" => "Nama", "last_loading" => "Tanggal Loading", "last_transaction" => "Tanggal Transaksi", "last_stock" => 'Stok Terakhir'];
 
         return $types;
     }

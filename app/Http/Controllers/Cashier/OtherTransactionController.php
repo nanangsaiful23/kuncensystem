@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Controllers\Base\OtherTransactionControllerBase;
 
+use App\Models\Journal;
 use App\Models\OtherTransaction;
 
 class OtherTransactionController extends Controller
