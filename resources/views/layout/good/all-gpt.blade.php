@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/gif" href="{{asset('assets/icon/education.png')}}" />
 <title>Inventaris Barang</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -59,6 +60,8 @@
     font-size: 17px;
     letter-spacing: -0.4px;
     color: var(--text-primary);
+    margin-left: -80px;
+    text-align: right;
   }
   .logo span { color: var(--accent); }
   .breadcrumb {
@@ -646,7 +649,7 @@
 <!-- TOP BAR -->
 <header class="topbar">
   <div class="topbar-left">
-    <div class="logo"><img src="{{asset('assets/icon/education.png')}}" style="width: 130%"></div>
+    <div class="logo"><img src="{{asset('assets/icon/education.png')}}" style="width: 30%"></div>
     <div class="breadcrumb">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <a href="{{ url('/' . $default['role']) }}" style="color: var(--text-primary)">Beranda</a>
