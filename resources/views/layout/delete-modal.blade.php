@@ -2,7 +2,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal('modal-danger-{{ $id }}')">
           <span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title">Hapus {{ $data }}</h4>
       </div>
@@ -10,8 +10,8 @@
           <p>Anda yakin ingin menghapus {{ $data }}?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-outline" onclick="event.preventDefault(); document.getElementById('{{ $formName }}').submit();">Hapus</button>
+        <button type="button" class="btn btn-outline pull-left action-btn primary" data-dismiss="modal" onclick="closeModal('modal-danger-{{ $id }}')">Close</button>
+        <button type="button" class="btn btn-outline action-btn danger" onclick="event.preventDefault(); document.getElementById('{{ $formName }}').submit();">Hapus</button>
       </div>
     </div>
   </div>

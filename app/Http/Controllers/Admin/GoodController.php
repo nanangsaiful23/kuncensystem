@@ -28,12 +28,14 @@ class GoodController extends Controller
         [$default['type'], $default['color'], $default['data']] = alert();
 
         $default['page_name'] = 'Daftar Barang';
-        $default['page'] = 'good';
-        $default['section'] = 'all';
+        $default['page']      = 'good';
+        $default['section']   = 'all-gpt';
+        $default['role']      = 'admin';
+        $default['role_id']   = \Auth::user()->id;
 
         $goods = $this->indexGoodBase($category_id, $type_id, $distributor_id, $sort, $order, $pagination);
 
-        return view('admin.layout.page', compact('default', 'goods', 'category_id', 'type_id', 'distributor_id', 'sort', 'order', 'pagination'));
+        return view('layout.good.all-gpt', compact('default', 'goods', 'category_id', 'type_id', 'distributor_id', 'sort', 'order', 'pagination'));
     }
 
     public function searchByBarcode($barcode)
