@@ -40,7 +40,11 @@
                         <div class="form-group">
                             {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-2 left control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('payment', $good_loading->getPayment()->code . ' - ' . $good_loading->getPayment()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                @if($good_loading->payment == cash)
+                                    {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                @else
+                                    {!! Form::text('payment', $good_loading->getPayment()->code . ' - ' . $good_loading->getPayment()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                @endif
                             </div>
                         </div>
                         <div class="form-group">

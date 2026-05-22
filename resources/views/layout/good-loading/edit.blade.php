@@ -28,7 +28,11 @@
                         <div class="form-group">
                             {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-2 left control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::select('payment', getLoadingPaymentType(), $good_loading->payment, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'payment']) !!}
+                                @if($good_loading->payment == cash)
+                                    {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                @else
+                                    {!! Form::select('payment', getLoadingPaymentType(), $good_loading->payment, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'payment']) !!}
+                                @endif
                             </div>
                         </div>
                         <div class="form-group">
