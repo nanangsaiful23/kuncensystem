@@ -1,6 +1,7 @@
 <?php
 
 Route::get('/search/{query}', 'MainController@search');
+Route::get('/searchGuzzle/{query}', 'MainController@searchGuzzle');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
 
 Route::group(['prefix' => 'admin'], function () {

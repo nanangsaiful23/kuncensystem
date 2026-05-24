@@ -47,4 +47,20 @@ class MainController extends Controller
 
         return $response;
     }
+
+    public function searchGuzzle($query)
+    {
+        $goods = Good::leftjoin('types', 'goods.type_id', 'types.id')
+                     ->select('goods.*')
+                     // ->whereRaw("goods.code like ? OR goods.name like ? OR types.name like ? ", ['%'. $query . '%', '%'. $query . '%', '%'. $query . '%'])
+                     ->where('goods.code', 'like', '%'. $query . '%')
+                     ->orWhere('goods.name', 'like', '%'. $query . '%')
+                     ->orWhere('types.name', 'like', '%'. $query . '%')
+                     ->where('goods.deleted_at', '=', null)
+                     ->orderBy('types.name')
+                     ->orderBy('goods.name')
+                     ->get();
+
+       return api_response("success", "ok", 200, $goods);
+    }
 }
