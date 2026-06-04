@@ -1,32 +1,45 @@
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   :root {
-    --bg-base: #F4F6FB;
-    --bg-card: #FFFFFF;
-    --bg-sidebar: #1A1F2E;
-    --accent: #3B6FE8;
-    --accent-light: #EEF3FD;
-    --debit-bg: #EDFAF3;
-    --debit-border: #A3E6C4;
-    --debit-text: #1A7A4A;
-    --credit-bg: #FFF0F0;
-    --credit-border: #FFC2C2;
-    --credit-text: #C0392B;
-    --text-primary: #1C2233;
-    --text-secondary: #6B7694;
-    --text-muted: #9BA3BB;
-    --border: #E4E9F4;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,.08);
-    --radius: 14px;
-    --radius-sm: 8px;
+    /* Selaraskan dengan sidebar merah AdminLTE NTN Mart */
+    --brand:        #ff7b54;
+    --brand-dark:   #c0392b;
+    --brand-light:  #fdf2f2;
+    --brand-mid:    #fce4e4;
+
+    --bg-base:      #f5f6fa;
+    --bg-card:      #ffffff;
+
+    --debit-bg:     #f0faf4;
+    --debit-border: #86d8a8;
+    --debit-text:   #1a6e3c;
+    --credit-bg:    #fff5f5;
+    --credit-border:#f5a3a3;
+    --credit-text:  #b91c1c;
+
+    --text-primary:   #1a1d23;
+    --text-secondary: #5a5f73;
+    --text-muted:     #9499ad;
+    --border:         #e2e6f0;
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.07);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+    --radius:    12px;
+    --radius-sm: 7px;
+
+    /* Typography scale — semua naik ~1 step */
+    --fs-xs:   0.78rem;   /* 12.5px */
+    --fs-sm:   0.875rem;  /* 14px   */
+    --fs-base: 0.9375rem; /* 15px   */
+    --fs-md:   1rem;      /* 16px   */
+    --fs-lg:   1.0625rem; /* 17px — uang & kode akun */
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   .journal-wrapper {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     background: var(--bg-base);
     min-height: calc(100vh - 50px);
     padding: 20px;
@@ -42,38 +55,38 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   .journal-header__title {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    letter-spacing: -.02em;
+    letter-spacing: -.01em;
     color: var(--text-primary);
   }
   .journal-header__title span {
-    color: var(--accent);
+    color: var(--brand);
   }
   .btn-add {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
-    background: var(--accent);
+    padding: 10px 22px;
+    background: var(--brand);
     color: #fff;
     border: none;
     border-radius: var(--radius-sm);
     font-family: inherit;
-    font-size: .875rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
     transition: background .18s, transform .12s, box-shadow .18s;
-    box-shadow: 0 2px 8px rgba(59,111,232,.3);
+    box-shadow: 0 2px 8px rgba(231,76,60,.35);
   }
   .btn-add:hover {
-    background: #2d5fd4;
+    background: var(--brand-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(59,111,232,.38);
+    box-shadow: 0 4px 14px rgba(231,76,60,.42);
     color: #fff;
   }
   .btn-add svg { flex-shrink: 0; }
@@ -83,27 +96,29 @@
     background: var(--bg-card);
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    border-top: 3px solid var(--brand);
     box-shadow: var(--shadow-sm);
-    padding: 20px 24px;
-    margin-bottom: 20px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
   }
   .filter-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px 20px;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 12px 18px;
     align-items: end;
   }
   .filter-group { display: flex; flex-direction: column; gap: 5px; }
   .filter-label {
-    font-size: .75rem;
-    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--fs-xs);
+    font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .07em;
   }
   .filter-control {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: .875rem;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--fs-sm);
     padding: 8px 12px;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
@@ -113,7 +128,7 @@
     transition: border-color .18s, box-shadow .18s;
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7694' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a5f73' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
     padding-right: 28px;
@@ -124,13 +139,13 @@
   }
   .filter-control:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59,111,232,.12);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(231,76,60,.12);
   }
   .filter-divider {
     height: 1px;
     background: var(--border);
-    margin: 16px 0;
+    margin: 14px 0;
   }
   .filter-search {
     display: flex;
@@ -142,28 +157,28 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 14px;
-    background: var(--accent);
+    padding: 8px 16px;
+    background: var(--brand);
     color: #fff;
     border: none;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background .18s;
   }
-  .btn-search:hover { background: #2d5fd4; }
+  .btn-search:hover { background: var(--brand-dark); }
   .btn-clear {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 8px 12px;
-    background: #FFF0F0;
-    color: var(--credit-text);
+    background: var(--brand-light);
+    color: var(--brand-dark);
     border: 1.5px solid var(--credit-border);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background .18s;
   }
-  .btn-clear:hover { background: var(--credit-bg); }
+  .btn-clear:hover { background: var(--brand-mid); }
 
   /* ── Table Card ── */
   .table-card {
@@ -178,20 +193,21 @@
   .journal-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: .82rem;
+    font-size: var(--fs-sm);
+    font-family: 'Inter', sans-serif;
   }
   .journal-table thead tr {
-    background: #F8FAFF;
+    background: #fafbfd;
     border-bottom: 2px solid var(--border);
   }
   .journal-table th {
-    padding: 12px 14px;
-    font-weight: 600;
+    padding: 13px 15px;
+    font-weight: 700;
     color: var(--text-secondary);
     text-align: left;
-    font-size: 1rem;
+    font-size: var(--fs-xs);
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .06em;
     white-space: nowrap;
     border-bottom: 2px solid var(--border);
   }
@@ -203,73 +219,136 @@
     gap: 5px;
     transition: color .15s;
   }
-  .journal-table th a:hover { color: var(--accent); }
-  .journal-table th.th-debit { background: #EDFAF3; color: var(--debit-text); }
-  .journal-table th.th-credit { background: #FFF0F0; color: var(--credit-text); }
+  .journal-table th a:hover { color: var(--brand); }
+  
+  /* Grouping Columns */
+  .th-debit, .td-debit { border-left: 2px solid var(--debit-border) !important; }
+  .th-credit, .td-credit { border-left: 2px solid var(--credit-border) !important; }
+
+  .journal-table th.th-debit { background: #ebfaf2; color: var(--debit-text); border-bottom-color: var(--debit-border); }
+  .journal-table th.th-credit { background: #fff0f0; color: var(--credit-text); border-bottom-color: var(--credit-border); }
 
   .journal-table tbody tr {
     border-bottom: 1px solid var(--border);
-    transition: background .15s;
+    transition: background .12s;
   }
-  .journal-table tbody tr:hover { background: #F8FAFF; }
-  .journal-table tbody tr.highlighted { background: #EEF3FD !important; }
+  .journal-table tbody tr:hover { background: #fdf8f8; }
+  .journal-table tbody tr.highlighted { background: var(--brand-mid) !important; }
   .journal-table tbody tr:last-child { border-bottom: none; }
 
   .journal-table td {
-    padding: 12px 14px;
+    padding: 14px 15px;
     color: var(--text-primary);
     vertical-align: middle;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
   }
   .td-debit { background: var(--debit-bg); }
   .td-credit { background: var(--credit-bg); }
 
+  /* Badge tipe */
   .badge-type {
     display: inline-block;
-    padding: 3px 9px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: .72rem;
-    font-weight: 600;
-    background: var(--accent-light);
-    color: var(--accent);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    background: var(--brand-light);
+    color: var(--brand-dark);
     white-space: nowrap;
+    border: 1px solid var(--brand-mid);
   }
-  .badge-type.loading { background: #FFF8E7; color: #B45309; }
-  .badge-type.transaction { background: #EDF9FF; color: #0369A1; }
-  .badge-type.penyusutan { background: #F3F0FF; color: #6D28D9; }
-  .badge-type.operasional { background: #ECFDF5; color: #065F46; }
+  .badge-type.loading     { background: #fff8e7; color: #92400e; border-color: #fde68a; }
+  .badge-type.transaction { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+  .badge-type.penyusutan  { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
+  .badge-type.operasional { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
 
-  .amount {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .8rem;
+  /* ── Typography data cells — lebih besar & mudah dibaca ── */
+
+  /* ID jurnal */
+  .text-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
     font-weight: 500;
-    white-space: nowrap;
+    letter-spacing: -.01em;
   }
-  .amount.debit { color: var(--debit-text); }
+
+  /* Tipe ID — angka referensi */
+  .text-type-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-base);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -.01em;
+  }
+
+  /* Tanggal */
+  .text-date {
+    font-size: var(--fs-base);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text-primary);
+  }
+
+  /* Nama akun */
+  .text-account-name {
+    font-size: var(--fs-base);
+    line-height: 1.35;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* Kode akun (1141, 1113, dll) */
+  .text-account-code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-md);
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+
+  /* Nominal uang — paling mencolok */
+  .amount {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    white-space: nowrap;
+    display: block;
+    text-align: right;
+    letter-spacing: -.01em;
+  }
+  .amount.debit  { color: var(--debit-text); }
   .amount.credit { color: var(--credit-text); }
 
   .journal-link {
-    color: var(--accent);
+    color: var(--brand);
     text-decoration: none;
     font-weight: 500;
-    font-size: .82rem;
-    line-height: 1.4;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
     transition: color .15s;
   }
-  .journal-link:hover { color: #2d5fd4; text-decoration: underline; }
+  .journal-link:hover { color: var(--brand-dark); text-decoration: underline; }
 
   .btn-edit {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    background: var(--accent-light);
-    color: var(--accent);
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    background: var(--brand-light);
+    color: var(--brand);
     text-decoration: none;
-    transition: background .15s, transform .12s;
+    border: 1px solid var(--brand-mid);
+    transition: background .15s, transform .12s, border-color .15s;
   }
-  .btn-edit:hover { background: var(--accent); color: #fff; transform: scale(1.08); }
+  .btn-edit:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    transform: scale(1.08);
+  }
 
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -285,33 +364,34 @@
   }
   .journal-card:last-child { margin-bottom: 0; }
   .journal-card:hover { box-shadow: var(--shadow-md); }
-  .journal-card.highlighted { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,111,232,.2); }
+  .journal-card.highlighted { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(231,76,60,.18); }
 
   .jcard-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px;
-    background: #F8FAFF;
-    border-bottom: 1px solid var(--border);
+    padding: 11px 14px;
+    background: var(--brand-light);
+    border-bottom: 1px solid var(--brand-mid);
     gap: 8px;
   }
   .jcard-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .jcard-id {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .8rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-sm);
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .jcard-date {
-    font-size: .78rem;
-    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    color: var(--text-primary);
+    font-weight: 600;
   }
   .jcard-actions { display: flex; align-items: center; gap: 8px; }
 
-  .jcard-body { padding: 12px 14px; }
+  .jcard-body { padding: 13px 14px; }
   .jcard-name {
-    font-size: .88rem;
+    font-size: var(--fs-base);
     font-weight: 600;
     margin-bottom: 10px;
     line-height: 1.4;
@@ -326,44 +406,42 @@
     border-radius: var(--radius-sm);
     padding: 10px 12px;
   }
-  .jcard-amount-box.debit { background: var(--debit-bg); border: 1px solid var(--debit-border); }
+  .jcard-amount-box.debit  { background: var(--debit-bg);  border: 1px solid var(--debit-border); }
   .jcard-amount-box.credit { background: var(--credit-bg); border: 1px solid var(--credit-border); }
   .jcard-amount-label {
-    font-size: .7rem;
-    font-weight: 700;
+    font-size: var(--fs-xs);
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .07em;
-    margin-bottom: 2px;
+    letter-spacing: .08em;
+    margin-bottom: 3px;
   }
-  .jcard-amount-box.debit .jcard-amount-label { color: var(--debit-text); }
+  .jcard-amount-box.debit  .jcard-amount-label { color: var(--debit-text); }
   .jcard-amount-box.credit .jcard-amount-label { color: var(--credit-text); }
   .jcard-amount-code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .72rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-md);
+    font-weight: 700;
     color: var(--text-secondary);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
   }
   .jcard-amount-name {
-    font-size: .78rem;
+    font-size: 20px;
     color: var(--text-primary);
     font-weight: 500;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
   .jcard-amount-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .85rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
     font-weight: 700;
+    letter-spacing: -.01em;
   }
-  .jcard-amount-box.debit .jcard-amount-val { color: var(--debit-text); }
+  .jcard-amount-box.debit  .jcard-amount-val { color: var(--debit-text); }
   .jcard-amount-box.credit .jcard-amount-val { color: var(--credit-text); }
 
-  .jcard-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
+  .jcard-meta { display: flex; flex-wrap: wrap; gap: 6px; }
   .jcard-meta-item {
-    font-size: .72rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
     background: var(--bg-base);
     padding: 3px 8px;
@@ -373,25 +451,37 @@
 
   /* ── Pagination ── */
   .pagination-wrapper {
-    padding: 16px 20px;
+    padding: 14px 20px;
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 8px;
+    background: #fafbfd;
   }
   .pagination-wrapper .pagination { margin: 0; }
+  /* Warnai tombol pagination aktif sesuai brand */
+  .pagination-wrapper .pagination > .active > a,
+  .pagination-wrapper .pagination > .active > span {
+    background-color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: #fff !important;
+  }
+  .pagination-wrapper .pagination > li > a:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+  }
 
   /* ── Checkbox ── */
   .custom-check {
     width: 16px; height: 16px;
     cursor: pointer;
-    accent-color: var(--accent);
+    accent-color: var(--brand);
   }
 
   /* ── Sort icon ── */
-  .sort-icon { opacity: .5; }
+  .sort-icon { opacity: .45; }
 
   /* ── Responsive ── */
   @media (max-width: 900px) {
@@ -400,7 +490,7 @@
     .filter-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 520px) {
-    .journal-wrapper { padding: 16px 12px 40px; }
+    .journal-wrapper { padding: 14px 10px 40px; }
     .filter-grid { grid-template-columns: 1fr; }
     .journal-header { flex-direction: column; align-items: flex-start; }
     .jcard-amounts { grid-template-columns: 1fr; }
@@ -549,25 +639,25 @@
             <td style="text-align:center;">
               <input type="checkbox" class="custom-check" name="journals[]" id="journal-{{ $journal->id }}" onclick="highlight('journal-{{ $journal->id }}')">
             </td>
-            <td><span class="badge-type {{ $typeClass }}" style="font-size:1rem;">{{ $journal->type }}</span></td>
-            <td style="font-family:'JetBrains Mono',monospace; font-size:.8rem; color:var(--text-secondary);">{{ $journal->id }}</td>
-            <td style="font-size:.82rem; color:var(--text-secondary);">{{ $journal->type_id }}</td>
-            <td style="font-size:1rem; white-space:nowrap;">{{ displayDate($journal->journal_date) }}</td>
+            <td><span class="badge-type {{ $typeClass }}">{{ $journal->type }}</span></td>
+            <td class="text-id">{{ $journal->id }}</td>
+            <td class="text-type-id">{{ $journal->type_id }}</td>
+            <td class="text-date">{{ displayDate($journal->journal_date) }}</td>
             <td style="max-width:200px;">
               @if($journal->type == 'good_loading')
                 <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
               @elseif($journal->type == 'transaction' || $journal->type == 'penyusutan' || $journal->type == 'operasional' || strpos($journal->type, "hutang dagang") !== false)
                 <a href="{{ url($role . '/transaction/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
               @else
-                <span style="font-size:1rem;">{{ $journal->name }}</span>
+                <span class="text-account-name">{{ $journal->name }}</span>
               @endif
             </td>
-            <td class="td-debit" style="font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:600; color:var(--debit-text);">{{ $journal->debit_account()->code }}</td>
-            <td class="td-debit" style="font-size:1rem;">{{ $journal->debit_account()->name }}</td>
-            <td class="td-debit"  ><span class="amount debit" style="font-size:1.5rem;">{{ showRupiah($journal->debit) }}</span></td>
-            <td class="td-credit" style="font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:600; color:var(--credit-text);">{{ $journal->credit_account()->code }}</td>
-            <td class="td-credit" style="font-size:1rem;">{{ $journal->credit_account()->name }}</td>
-            <td class="td-credit"  ><span class="amount credit" style="font-size:1.5rem;">{{ showRupiah($journal->credit) }}</span></td>
+            <td class="td-debit text-account-code" style="color:var(--debit-text);">{{ $journal->debit_account()->code }}</td>
+            <td class="td-debit text-account-name">{{ $journal->debit_account()->name }}</td>
+            <td class="td-debit"><span class="amount debit">{{ showRupiah($journal->debit) }}</span></td>
+            <td class="td-credit text-account-code" style="color:var(--credit-text);">{{ $journal->credit_account()->code }}</td>
+            <td class="td-credit text-account-name">{{ $journal->credit_account()->name }}</td>
+            <td class="td-credit"><span class="amount credit">{{ showRupiah($journal->credit) }}</span></td>
             <td>
               <a href="{{ url($role . '/journal/' . $journal->id . '/edit') }}" class="btn-edit" title="Edit">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.414-9.414a2 2 0 1 1 2.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
