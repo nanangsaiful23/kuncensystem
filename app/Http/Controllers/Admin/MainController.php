@@ -319,7 +319,7 @@ class MainController extends Controller
     {
         $default['page_name'] = 'Grafik Ledger Neraca';
         
-        $dates = $this->getScaleLedger($start_date, $end_date, '21,22,24,31,35,41,42,43');
+        $dates = $this->getScaleLedger($start_date, $end_date, '21,22,24,26,31,32,35,41,42,43');
 
         return view('admin.scale-ledger', compact('default', 'dates', 'start_date', 'end_date'));
     }
@@ -327,7 +327,7 @@ class MainController extends Controller
     public function getScaleLedger($start_date, $end_date, $params)
     {
         if($params == 'profit')
-            $params = '21,22,24,31,35,41,42,43';
+            $params = '21,22,24,26,31,32,35,41,42,43';
 
         $data_params = explode(',', $params);
 
