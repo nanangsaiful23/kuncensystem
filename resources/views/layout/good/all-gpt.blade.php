@@ -1,11 +1,3 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/gif" href="{{asset('assets/icon/education.png')}}" />
-<title>Inventaris Barang</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f5f4f0;
@@ -599,7 +591,7 @@
     display: none; /* Hidden by default */
     position: fixed;  /* Stay in place */
     z-index: 1; /* Sit on top */
-    padding-top: 20px;
+    /*padding-top: 20px;*/
     left: 0;
     top: 0;
     width: 100%; 
@@ -613,11 +605,11 @@
 
   /* Modal Content */
   .modal-content {
-    background-color: #fefefe;
+    /*background-color: #fefefe;*/
     margin: auto;
-    padding: 20px;
+    /*padding: 20px;*/
     border: 1px solid #888;
-    width: 50%;
+    width: 100%;
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
   }
@@ -632,6 +624,11 @@
     text-align: center;
   }
 
+  .modal-backdrop
+  {
+    z-index: -1;
+  }
+
   .alert-delete
   {
     background-color: #dc2626;
@@ -643,250 +640,218 @@
   ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 </style>
-</head>
-<body>
 
-<!-- TOP BAR -->
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="logo"><img src="{{asset('assets/icon/education.png')}}" style="width: 30%"></div>
-    <div class="breadcrumb">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <a href="{{ url('/' . $default['role']) }}" style="color: var(--text-primary)">Beranda</a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      <strong>Inventaris Barang</strong>
+<div class="content-wrapper">
 
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <span style="font-size:13px;color:var(--text-muted);">{{ $default['role'] }}</span>
-    <div style="width:92px;height:42px;border-radius:50%;background:{{ \Auth::user()->color }};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">{{ \Auth::user()->name }}</div>
-  </div>
-</header>
+  @include('layout' . '.alert-message', ['type' => $default['type'], 'data' => $default['data'], 'color' => $default['color']])
 
-<div class="page-wrapper">
+  <section class="content">
+    <div class="row">
+      <div class="filters-panel">
+        <div class="filters-top">
 
-  <!-- PAGE HEADER -->
-  <div class="page-header">
-    <div class="page-title">
-      <h1>Inventaris Barang</h1>
-      @include('layout' . '.alert-message', ['type' => $default['type'], 'data' => $default['data'], 'color' => $default['color']])
-    </div>
-  </div>
-
-  <!-- FILTERS -->
-  <div class="filters-panel">
-    <div class="filters-top">
-
-      <div class="search-wrap">
-        <div class="search-box">
-          <span class="search-icon">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </span>
-          <input id="searchInput" placeholder="Cari nama atau kode barang…" autocomplete="off" spellcheck="false">
-          <button class="btn-search" id="btnSearch" title="Cari barang" onclick="ajaxFunction()">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </button>
-          <button class="btn-clear" id="btnClear" title="Hapus pencarian" onclick="clearInput()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="filters-bottom">
-
-      {!! Form::select('category', getCategories(), $category_id, ['class' => 'filter-select', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
-      {!! Form::select('type', getGoodTypes(), $type_id, ['class' => 'filter-select', 'id' => 'type', 'onchange' => 'advanceSearch()']) !!}
-      @if(\Auth::user()->email == 'admin')
-        {!! Form::select('distributor', getDistributorLists(), $distributor_id, ['class' => 'filter-select', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
-      @endif
-  </div>
-
-  <!-- TABLE TOOLBAR -->
-  <div class="table-toolbar">
-    <div class="sort-controls">
-      <span>Urutkan:</span>
-      @foreach(getGoodSort() as $key => $value)
-        <button class="sort-btn @if($sort == $key) active @endif" onclick="advanceSearch('{{ $key }}')">{{ $value }} @if($order == 'asc') ↑ @else ↓ @endif</button>
-      @endforeach
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      {!! Form::select('show', getPaginations(), $pagination, ['class' => 'filter-select', 'style'=>'min-width:unset;width:auto;', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
-    </div>
-  </div>
-
-  <!-- PRODUCT LIST -->
-  <div class="product-list" id="productList">
-
-    @foreach($goods as $good)
-      <div class="product-card">
-        <input type="checkbox" class="product-checkbox">
-        <div class="product-info">
-          <div class="product-name">[ {{ $good->getType() }}] {{ $good->name }}</div>
-          <div class="product-meta">
-            <span class="category-badge" style="background-color: @if($good->category->color == null) #ede8ff @else {{ $good->category->color }} @endif">
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-              {{ $good->category->name }}
-            </span>
-            @if($good->brand != null) 
-              <span class="category-badge plastik">
-                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                Brand: {{ $good->brand->name }}
+          <div class="search-wrap">
+            <div class="search-box">
+              <span class="search-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
               </span>
-            @endif
-            <span class="product-code">{{ $good->code }}</span>
-            @if(\Auth::user()->email == 'admin')
-              <span class="distributor-info">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
-              </span>
-            @endif
-          </div>
-        </div>
-        <div class="stock-col">
-          <div class="stock-main @if($good->last_stock == 0) zero @elseif($good->last_stock <= 10) low @else in @endif">{{ $good->last_stock }}</div>
-          <div class="stock-unit">{{ $good->base_unit()->unit->code }}</div>
-          <div class="stock-breakdown">
-            <span class="stock-pill" data-tip="Loading">
-              <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>  -->
-              L: {{ checkNull($good->total_loading) }}
-            </span>
-            <span class="stock-pill" data-tip="Transaksi">
-              <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg> -->
-              T: {{ $good->total_transaction }}
-            </span>
-          </div>
-        </div>
-        <div class="price-col">
-          <!-- <div class="price-label">HARGA JUAL</div> -->
-          @foreach($good->good_units as $unit)
-            <div class="price-sell">{{ showRupiah($unit->selling_price) . ' / ' . $unit->unit->name }}</div>
-            <div class="price-buy">Beli: {{ showRupiah($unit->buy_price) }}</div>
-            <div class="profit-badge">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              {{ showRupiah($unit->selling_price - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, $unit->selling_price) }}%)
+              <input id="searchInput" placeholder="Cari nama atau kode barang…" autocomplete="off" spellcheck="false">
+              <button class="btn-search" id="btnSearch" title="Cari barang" onclick="ajaxFunction()">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </button>
+              <button class="btn-clear" id="btnClear" title="Hapus pencarian" onclick="clearInput()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
-            @if(\Auth::user()->email == 'admin')
-              <div class="price-buy">
-                <button type="button" class="action-btn danger" id="delete-unit-modal-{{ $unit->id }}" onclick="openModal('modal-danger-unit-{{$unit->id}}')">Hapus harga</button>
+          </div>
+        </div>
+        <div class="filters-bottom">
+
+          {!! Form::select('category', getCategories(), $category_id, ['class' => 'filter-select select2', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
+          {!! Form::select('type', getGoodTypes(), $type_id, ['class' => 'filter-select select2', 'id' => 'type', 'onchange' => 'advanceSearch()']) !!}
+          @if(\Auth::user()->email == 'admin')
+            {!! Form::select('distributor', getDistributorLists(), $distributor_id, ['class' => 'filter-select select2', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
+          @endif
+        </div>
+
+        <!-- TABLE TOOLBAR -->
+        <div class="table-toolbar">
+          <div class="sort-controls">
+            <span>Urutkan:</span>
+            @foreach(getGoodSort() as $key => $value)
+              <button class="sort-btn @if($sort == $key) active @endif" onclick="advanceSearch('{{ $key }}')">{{ $value }} @if($order == 'asc') ↑ @else ↓ @endif</button>
+            @endforeach
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            {!! Form::select('show', getPaginations(), $pagination, ['class' => 'filter-select', 'style'=>'min-width:unset;width:auto;', 'id' => 'show', 'onchange' => 'advanceSearch()']) !!}
+          </div>
+        </div>
+
+        <!-- PRODUCT LIST -->
+        <div class="product-list" id="productList">
+
+          @foreach($goods as $good)
+            <div class="product-card">
+              <input type="checkbox" class="product-checkbox">
+              <div class="product-info">
+                <div class="product-name">[ {{ $good->getType() }}] {{ $good->name }}</div>
+                <div class="product-meta">
+                  <span class="category-badge" style="background-color: @if($good->category->color == null) #ede8ff @else {{ $good->category->color }} @endif">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                    {{ $good->category->name }}
+                  </span>
+                  @if($good->brand != null) 
+                    <span class="category-badge plastik">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                      Brand: {{ $good->brand->name }}
+                    </span>
+                  @endif
+                  <span class="product-code">{{ $good->code }}</span>
+                  @if(\Auth::user()->email == 'admin')
+                    <span class="distributor-info">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
+                    </span>
+                  @endif
+                </div>
               </div>
+              <div class="stock-col">
+                <div class="stock-main @if($good->last_stock == 0) zero @elseif($good->last_stock <= 10) low @else in @endif">{{ $good->last_stock }}</div>
+                <div class="stock-unit">{{ $good->base_unit()->unit->code }}</div>
+                <div class="stock-breakdown">
+                  <span class="stock-pill" data-tip="Loading">
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>  -->
+                    <a href="{{ url($role . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">L: {{ checkNull($good->total_loading) }}</a>
+                  </span>
+                  <span class="stock-pill" data-tip="Transaksi">
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg> -->
+                    <a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">T: {{ $good->total_transaction }}</a>
+                  </span>
+                </div>
+              </div>
+              <div class="price-col">
+                <!-- <div class="price-label">HARGA JUAL</div> -->
+                @foreach($good->good_units as $unit)
+                  <div class="price-sell">{{ showRupiah($unit->selling_price) . ' / ' . $unit->unit->name }}</div>
+                  @if(\Auth::user()->email == 'admin')
+                    <div class="price-buy">Beli: {{ showRupiah($unit->buy_price) }}</div>
+                    <div class="profit-badge">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                      {{ showRupiah($unit->selling_price - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, $unit->selling_price) }}%)
+                    </div>
+                    
+                      <div class="price-buy">
+                        <button type="button" class="action-btn danger" data-toggle="modal" data-target="#modal-danger-unit-{{$unit->id}}">Hapus harga</button>
+                      </div>
 
-              @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->name . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
+                      @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->name . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
 
-              <form id="delete-unit-{{$unit->id}}" action="{{ url($default['role'] . '/good/' . $good->id . '/deletePrice/' . $unit->id) }}" method="POST" style="display: none;">
-                {{ csrf_field() }}
-                {{ method_field('DELETE') }}
-              </form><br>
-            @endif
-          @endforeach   
-          <div class="price-buy">
-            <a href="{{ url($default['role'] . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">
-              <button class="action-btn primary" style="font-size:11.5px;">Riwayat harga jual</button>
-            </a>    
-          </div>   
-        </div>
-        <div class="activity-col">
-          <span class="never-tag">
-            @if($good->last_loading == null)
-              Belum pernah loading
-            @else
-              Load: {{ displayDate($good->last_loading) }}
-            @endif
-            <br>
-            @if($good->last_transaction == null)
-              Belum ada transaksi
-            @else
-              Trx: {{ displayDate($good->last_transaction) }}
-            @endif
-          </span>
-        </div>
-        <div class="actions-col">
-          <div class="action-row">
-            <a href="{{ url($default['role'] . '/good/' . $good->id . '/edit') }}" target="_blank()">
-              <button class="action-btn primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Edit
-              </button>
-            </a>
-            <a href="{{ url($default['role'] . '/good/' . $good->id . '/detail') }}" target="_blank()">
-              <button class="action-btn ghost">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                Detail
-              </button>
-            </a>
-            @if($good->last_stock == 0 && $default['role'] == 'admin')
-              <button class="action-btn danger icon-only" data-tip="Hapus" onclick="openModal('modal-danger-{{$good->id}}')">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              </button>
-              @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
+                      <form id="delete-unit-{{$unit->id}}" action="{{ url($role . '/good/' . $good->id . '/deletePrice/' . $unit->id) }}" method="POST" style="display: none;">
+                        {{ csrf_field() }}
+                        {{ method_field('DELETE') }}
+                      </form><br>
+                  @endif
+                @endforeach   
+                <div class="price-buy">
+                  <a href="{{ url($role . '/good/' . $good->id . '/price/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">
+                    <button class="action-btn primary" style="font-size:11.5px;">Riwayat harga jual</button>
+                  </a>    
+                </div>   
+              </div>
+              <div class="activity-col">
+                <span class="never-tag">
+                  @if($good->last_loading == null)
+                    Belum pernah loading
+                  @else
+                    Load: {{ displayDate($good->last_loading) }}
+                  @endif
+                  <br>
+                  @if($good->last_transaction == null)
+                    Belum ada transaksi
+                  @else
+                    Trx: {{ displayDate($good->last_transaction) }}
+                  @endif
+                </span>
+              </div>
+              <div class="actions-col">
+                <div class="action-row">
+                  <a href="{{ url($role . '/good/' . $good->id . '/edit') }}" target="_blank()">
+                    <button class="action-btn primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Edit
+                    </button>
+                  </a>
+                  <a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()">
+                    <button class="action-btn ghost">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      Detail
+                    </button>
+                  </a>
+                  @if($good->last_stock == 0 && $role == 'admin')
+                    <button class="action-btn danger icon-only" data-tip="Hapus" data-toggle="modal" data-target="#modal-danger-{{$good->id}}">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    </button>
+                    @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
 
-              <form id="delete-form-{{$good->id}}" action="{{ url($default['role'] . '/good/' . $good->id . '/delete') }}" method="POST" style="display: none;">
-                {{ csrf_field() }}
-                {{ method_field('DELETE') }}
-              </form>
-            @endif
+                    <form id="delete-form-{{$good->id}}" action="{{ url($role . '/good/' . $good->id . '/delete') }}" method="POST" style="display: none;">
+                      {{ csrf_field() }}
+                      {{ method_field('DELETE') }}
+                    </form>
+                  @endif
+                </div>
+              </div>
+            </div>
+          @endforeach
+          <!-- CARD 1 -->
+
+        </div><!-- /product-list -->
+        <!-- PAGINATION -->
+        <div class="pagination-wrap">
+          <div class="pagination-info">
+            Halaman <strong>{{ $goods->currentPage() }}</strong> dari <strong>{{ $goods->lastPage() }}</strong> · Total <strong>{{ $goods->total() }}</strong> produk
           </div>
-          <div class="action-row">
-            <a href="{{ url($default['role'] . '/good/' . $good->id . '/loading/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">
-              <button class="action-btn ghost" style="font-size:11.5px;">📥 Riwayat loading</button>
-            </a>
-            <a href="{{ url($default['role'] . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">
-              <button class="action-btn ghost" style="font-size:11.5px;">📊 Riwayat penjualan</button>
-            </a>
-          </div>
+
+          @if($pagination != 'all')
+            {{ $goods->render() }}
+          @endif
         </div>
       </div>
-    @endforeach
-    <!-- CARD 1 -->
-
-  </div><!-- /product-list -->
-  <!-- PAGINATION -->
-  <div class="pagination-wrap">
-    <div class="pagination-info">
-      Halaman <strong>{{ $goods->currentPage() }}</strong> dari <strong>{{ $goods->lastPage() }}</strong> · Total <strong>{{ $goods->total() }}</strong> produk
     </div>
+  </section>
+</div>
 
-    @if($pagination != 'all')
-      {{ $goods->render() }}
-    @endif
-  </div>
+@section('js-addon')
+  <script type="text/javascript">
+    $(document).ready(function(){
+        $('.select2').select2();
+        $("#searchInput").keyup( function(e){
+          if(e.keyCode == 13)
+          {
+            ajaxFunction();
+          }
+        });
 
-</div><!-- /page-wrapper -->
-
-<script src="{{asset('assets/bower_components/jquery/dist/jquery.min.js')}}"></script>
-<!-- jQuery UI 1.11.4 -->
-<script src="{{asset('assets/bower_components/jquery-ui/jquery-ui.min.js')}}"></script>
-<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-<script>
-  $(document).ready(function(){
-      $("#searchInput").keyup( function(e){
-        if(e.keyCode == 13)
-        {
-          ajaxFunction();
-        }
-      });
-
-      $("#search-btn").click(function(){
-          ajaxFunction();
-      });
-  });
+        $("#btnSearch").click(function(){
+            ajaxFunction();
+        });
+    });
 
   function ajaxFunction()
   {
     $.ajax({
-      url: "{!! url($default['role'] . '/good/searchByKeyword/') !!}/" + $("#searchInput").val(),
+      url: "{!! url($role . '/good/searchByKeyword/') !!}/" + $("#searchInput").val(),
       success: function(result){
         if(result != null)
         {
           var r = result.goods;
           var username = "{{ \Auth::user()->email }}";
-          var role = "{{ $default['role'] }}";
+          var role = "{{ $role }}";
           var htmlResult = '';
           for (var i = 0; i < r.length; i++) 
           {
@@ -920,22 +885,22 @@
             else
               htmlResult += 'in';
             
-            htmlResult += '">' + r[i].stock + '</div><div class="stock-unit">' + r[i].unit + '</div><div class="stock-breakdown"><span class="stock-pill" data-tip="Loading">L: ' + r[i].loading + '</span><span class="stock-pill" data-tip="Transaksi">T: ' + r[i].transaction + '</span></div></div><div class="price-col">';
+            htmlResult += '">' + r[i].stock + '</div><div class="stock-unit">' + r[i].unit + '</div><div class="stock-breakdown"><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" target=\"_blank()\"><span class=\"stock-pill\" data-tip=\"Loading\">L: " + r[i].loading + '</span></a><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" target=\"_blank()\"><span class=\"stock-pill\" data-tip=\"Transaksi\">T: " + r[i].transaction + '</span></a></div></div><div class="price-col">';
 
             for (var j = 0; j < r[i].good_units.length; j++) {
-              htmlResult += '<div class="price-sell">' + r[i].good_units[j].price + " /" + r[i].good_units[j].unit_name + '</div><div class="price-buy">Beli: ' + r[i].good_units[j].buy_price + '</div><div class="profit-badge"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' + r[i].good_units[j].profit + ' (' + r[i].good_units[j].percentage + '%)</div>';
+              htmlResult += '<div class="price-sell">' + r[i].good_units[j].price + " /" + r[i].good_units[j].unit_name + '</div>';
 
               if(username == 'admin')
               {
-                htmlResult += "<div class='price-buy'><button type='button' class='action-btn danger' id='delete-unit-modal-" + r[i].good_units[j].id + "' onclick='openModal(\"modal-danger-unit-" + r[i].good_units[j].id + "\")'>Hapus harga</button></div>";
+                htmlResult += "<div class='price-buy'>Beli: " + r[i].good_units[j].buy_price + '</div><div class="profit-badge"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' + r[i].good_units[j].profit + ' (' + r[i].good_units[j].percentage + '%)</div><div class="price-buy"><button type="button" class="action-btn danger" data-toggle="modal" data-target="#modal-danger-unit-' + r[i].good_units[j].id + '\">Hapus harga</button></div>';
 
-                htmlResult += "<div class=\"modal modal-danger fade\" id=\"modal-danger-unit-" + r[i].good_units[j].id + "\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" onclick=\"closeModal('modal-danger-unit-" + r[i].good_units[j].id + "')\"><span aria-hidden=\"true\">&times;</span></button><h4 class=\"modal-title\">Hapus harga " + r[i].name + ' ' + r[i].good_units[j].unit_name + "</h4></div><div class=\"modal-body\"><p>Anda yakin ingin menghapus harga " + r[i].name + ' ' + r[i].good_units[j].unit_name + "?</p></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-outline pull-left action-btn primary\" data-dismiss=\"modal\" onclick=\"closeModal('modal-danger-unit-" + r[i].good_units[j].id + "')\">Close</button><button type=\"button\" class=\"btn btn-outline action-btn danger\" onclick=\"event.preventDefault(); document.getElementById('delete-unit-" + r[i].good_units[j].id + "').submit();\">Hapus</button></div></div></div></div>";
+                htmlResult += "<div class=\"modal modal-danger fade\" id=\"#modal-danger-unit-" + r[i].good_units[j].id + "\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button><h4 class=\"modal-title\">Hapus harga " + r[i].name + ' ' + r[i].good_units[j].unit_name + "</h4></div><div class=\"modal-body\"><p>Anda yakin ingin menghapus harga " + r[i].name + ' ' + r[i].good_units[j].unit_name + "?</p></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-outline pull-left\" data-dismiss=\"modal\">Close</button><button type=\"button\" class=\"btn btn-outline\" onclick=\"event.preventDefault(); document.getElementById('delete-unit-" + r[i].good_units[j].id + "').submit();\">Hapus</button></div></div></div></div>";
 
                 htmlResult += '<form id="delete-unit-' + r[i].good_units[j].id + '" action=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + '/deletePrice/' + r[i].good_units[j].id + '\" method="POST" style="display: none;">{{ csrf_field() }}<input type="hidden" name="_method" value="DELETE"></form><br>';
               }
             }
 
-            htmlResult += '<div class="price-buy"><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/price/2023-01-01/" + "{{ date('Y-m-d') }}" + '/10\" class=\"btn btn-warning\" target=\"_blank()\"><button class="action-btn primary" style="font-size:11.5px;">Riwayat harga jual</button></a></div></div><div class="activity-col"><span class="never-tag">';
+            htmlResult += '<div class="price-buy"><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/price/2023-01-01/" + "{{ date('Y-m-d') }}" + '/10\" target=\"_blank()\"><button class="action-btn primary" style="font-size:11.5px;">Riwayat harga jual</button></a></div></div><div class="activity-col"><span class="never-tag">';
 
             if(r[i].last_loading_date == null)
               htmlResult += 'Belum pernah loading';
@@ -949,17 +914,17 @@
             else
               htmlResult += 'Trx: ' + r[i].last_transaction_date;
 
-            htmlResult += "</span></div><div class='actions-col'><div class='action-row'><a href=\"" + window.location.origin + "/" + role + "/good/" + r[i].id +"/edit\" class=\"btn btn-warning\" target=\"_blank()\"><button class='action-btn primary'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>Edit</button></a><a href=\"" + window.location.origin + "/" + role + "/good/" + r[i].id + "/detail\" class=\"btn btn-warning\" target=\"_blank()\"><button class='action-btn ghost'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/></svg>Detail</button></a>";
+            htmlResult += "</span></div><div class='actions-col'><div class='action-row'><a href=\"" + window.location.origin + "/" + role + "/good/" + r[i].id +"/edit\" target=\"_blank()\"><button class='action-btn primary'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>Edit</button></a><a href=\"" + window.location.origin + "/" + role + "/good/" + r[i].id + "/detail\" target=\"_blank()\"><button class='action-btn ghost'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/></svg>Detail</button></a>";
 
             if(role == 'admin' && r[i].stock == 0)
             {
-              htmlResult += "<button class='action-btn danger icon-only' data-tip='Hapus' onclick='openModal(\"modal-danger-" + r[i].id + "\")'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><polyline points='3 6 5 6 21 6'/><path d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6'/><path d='M10 11v6M14 11v6'/><path d='M9 6V4h6v2'/></svg></button>";
+              htmlResult += "<button class='action-btn danger icon-only' data-tip='Hapus' data-toggle='modal' data-target='#modal-danger-" + r[i].id + "'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><polyline points='3 6 5 6 21 6'/><path d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6'/><path d='M10 11v6M14 11v6'/><path d='M9 6V4h6v2'/></svg></button>";
 
-              htmlResult += "<div class=\"modal modal-danger fade\" id=\"modal-danger-" + r[i].id + "\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" onclick=\"closeModal('modal-danger-" + r[i].id + "')\"><span aria-hidden=\"true\">&times;</span></button><h4 class=\"modal-title\">Hapus barang " + r[i].name + "</h4></div><div class=\"modal-body\"><p>Anda yakin ingin menghapus barang " + r[i].name + "?</p></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-outline pull-left action-btn primary\" data-dismiss=\"modal\" onclick=\"closeModal('modal-danger-" + r[i].id + "')\">Close</button><button type=\"button\" class=\"btn btn-outline action-btn danger\" onclick=\"event.preventDefault(); document.getElementById('delete-" + r[i].id + "').submit();\">Hapus</button></div></div></div></div>";
+              htmlResult += "<div class=\"modal modal-danger fade\" id=\"modal-danger-" + r[i].id + "\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button><h4 class=\"modal-title\">Hapus barang " + r[i].name + "</h4></div><div class=\"modal-body\"><p>Anda yakin ingin menghapus barang " + r[i].name + "?</p></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-outline pull-left\" data-dismiss=\"modal\">Close</button><button type=\"button\" class=\"btn btn-outline\" onclick=\"event.preventDefault(); document.getElementById('delete-" + r[i].id + "').submit();\">Hapus</button></div></div></div></div>";
 
               htmlResult += '<form id="delete-' + r[i].id + '" action=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + '/delete\" method="POST" style="display: none;">{{ csrf_field() }}<input type="hidden" name="_method" value="DELETE"></form><br>';
             }
-            htmlResult += "</div><div class='action-row'><a href=\"" + window.location.origin + "/" + role + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\"><button class='action-btn ghost' style='font-size:11.5px;'>📥 Riwayat loading</button></a><a href=\"" + window.location.origin + "/" + role + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\"><button class='action-btn ghost' style='font-size:11.5px;'>📊 Riwayat penjualan</button></a></div></div></div>";
+            htmlResult += "</div></div></div>";
           }
 
           if(htmlResult == '')
@@ -992,9 +957,9 @@
     var username = "{{ \Auth::user()->email }}";
 
     if(username == 'admin')
-      window.location = window.location.origin + '/{{ $default["role"] }}/good/' + $('#category').val() + '/' + $('#type').val() + '/' + $('#distributor').val() + '/' + key_sort + '/' + key_ord + '/' + $('#show').val();
+      window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#type').val() + '/' + $('#distributor').val() + '/' + key_sort + '/' + key_ord + '/' + $('#show').val();
     else
-      window.location = window.location.origin + '/{{ $default["role"] }}/good/' + $('#category').val() + '/' + $('#type').val() + '/all/goods.id/desc/' + $('#show').val();
+      window.location = window.location.origin + '/{{ $role }}/good/' + $('#category').val() + '/' + $('#type').val() + '/all/goods.id/desc/' + $('#show').val();
   }
 
   function clearInput()
@@ -1002,16 +967,5 @@
     document.getElementById("searchInput").value = "";
     $("#searchInput").focus();
   }
-
-  function openModal(modal)
-  {
-    document.getElementById(modal).style.display = 'block';
-  }
-
-  function closeModal(modal)
-  {
-    document.getElementById(modal).style.display = 'none';
-  }
-</script>
-</body>
-</html>
+  </script>
+@endsection
