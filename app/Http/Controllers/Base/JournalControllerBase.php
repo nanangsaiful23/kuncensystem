@@ -36,8 +36,7 @@ trait JournalControllerBase
             }
             else
             {
-                $journals = Journal::whereRaw('(DATE(journals.created_at) >= "' . $start_date . '" AND DATE(journals.created_at) <= "' . $end_date . '") OR (DATE(journals.updated_at) >= "' . $start_date . '" AND DATE(journals.updated_at) <= "' . $end_date . '")')
-                                      ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? ", array($whereType, $whereAcccount, $whereAcccount))
+                $journals = Journal::whereRaw("((DATE(journals.created_at) >= '" . $start_date . "' AND DATE(journals.created_at) <= '" . $end_date . "') OR (DATE(journals.updated_at) >= '" . $start_date . "' AND DATE(journals.updated_at) <= '" . $end_date . "')) AND coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->get();
             }
@@ -52,8 +51,7 @@ trait JournalControllerBase
             }
             else
             {
-                $journals = Journal::whereRaw('(DATE(journals.created_at) >= "' . $start_date . '" AND DATE(journals.created_at) <= "' . $end_date . '") OR (DATE(journals.updated_at) >= "' . $start_date . '" AND DATE(journals.updated_at) <= "' . $end_date . '")')
-                                      ->whereRaw("coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
+                $journals = Journal::whereRaw("((DATE(journals.created_at) >= '" . $start_date . "' AND DATE(journals.created_at) <= '" . $end_date . "') OR (DATE(journals.updated_at) >= '" . $start_date . "' AND DATE(journals.updated_at) <= '" . $end_date . "')) AND coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
                                       ->orderBy($sort, $order)
                                       ->paginate($pagination);
             }
