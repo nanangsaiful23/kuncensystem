@@ -25,7 +25,7 @@ class GoodController extends Controller
 
         $default['page_name'] = 'Daftar Barang';
         $default['page'] = 'good';
-        $default['section'] = 'all';
+        $default['section'] = 'all-gpt';
 
         $goods = $this->indexGoodBase($category_id, $type_id, $distributor_id, $sort, $order, $pagination);
 
