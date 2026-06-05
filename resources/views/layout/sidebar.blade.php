@@ -48,7 +48,7 @@
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'printDisplay' && Request::segment(3) != 'zeroStock' && Request::segment(3) != 'exp' && Request::segment(3) != 'transfer' && Request::segment(3) != 'wholesalePrice' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/all/id/desc/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
+            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'printDisplay' && Request::segment(3) != 'zeroStock' && Request::segment(3) != 'exp' && Request::segment(3) != 'transfer' && Request::segment(3) != 'wholesalePrice' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/all/goods.id/desc/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
             @if(\Auth::user()->role == 'supervisor')
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'transfer'  ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/transfer') }}"><i class="fa fa-circle-o"></i> Transfer Barang</a></li>
             @endif
@@ -285,6 +285,8 @@
           </ul>
         </li>
         <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
+        <li><a href="{{ route('admin.reports.sales') }}" ><i class="fa fa-calculator"></i> report new</a></li>
+        
         <li class="{{ Request::segment(2) == 'profit' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/profit') }}"><i class="fa fa-arrow-circle-up"></i> Laba Rugi</a></li>
         <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger') ? 'active' : ''  }}">
           <a href="#">

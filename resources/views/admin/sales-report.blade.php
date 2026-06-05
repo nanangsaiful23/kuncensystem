@@ -114,6 +114,7 @@
 
 <div class="content-wrapper report-wrapper">
     <section class="content">
+    
     {{-- Header --}}
     <div class="report-header">
         <h1>📊 Laporan Penjualan &amp; Keuangan</h1>
@@ -146,7 +147,7 @@
     {{-- ── Tab Navigation ──────────────────────────────────────────── --}}
     <div class="tab-nav">
         <button class="tab-btn active" onclick="showTab('penjualan', this)">📦 Penjualan</button>
-        <button class="tab-btn " onclick="showTab('produk', this)">🛒 Produk</button>
+        <button class="tab-btn" onclick="showTab('produk', this)">🛒 Produk</button>
         <button class="tab-btn" onclick="showTab('pelanggan', this)">👥 Pelanggan</button>
         <button class="tab-btn" onclick="showTab('pembelian', this)">🚚 Pembelian &amp; Stok</button>
         <button class="tab-btn" onclick="showTab('keuangan', this)">💰 Keuangan</button>
@@ -200,7 +201,7 @@
                 <span style="font-size:.8125rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap tbl-scroll-v">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -235,7 +236,7 @@
                 <span class="card-title">📅 Trend Penjualan Bulanan — {{ $year }}</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -249,7 +250,6 @@
                         <tbody>
                             @php
                                 $namaBulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-                                $grandOmzet = $monthlyTrend->sum('omzet');
                             @endphp
                             @forelse($monthlyTrend as $row)
                             @php $omzetBersih = $row->omzet - $row->total_diskon; @endphp
@@ -267,10 +267,10 @@
                         <tfoot>
                             <tr style="font-weight:700;background:#f8fafc;">
                                 <td>TOTAL</td>
-                                <td class="text-right">Rp {{ number_format($monthlyTrend->sum('omzet'), 0, ',', '.') }}</td>
-                                <td class="text-right">Rp {{ number_format($monthlyTrend->sum('total_diskon'), 0, ',', '.') }}</td>
-                                <td class="text-right">Rp {{ number_format($monthlyTrend->sum('omzet') - $monthlyTrend->sum('total_diskon'), 0, ',', '.') }}</td>
-                                <td class="text-right">{{ number_format($monthlyTrend->sum('jumlah_transaksi')) }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['monthly_omzet'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['monthly_diskon'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['monthly_bersih'], 0, ',', '.') }}</td>
+                                <td class="text-right">{{ number_format($totals['monthly_transaksi']) }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -284,8 +284,8 @@
                 <span class="card-title">💳 Metode Pembayaran</span>
             </div>
             <div class="card-body">
-                @php $totalOmzetBayar = $paymentMethods->sum('total_omzet'); @endphp
-                <div class="tbl-wrap">
+                @php $totalOmzetBayar = $totals['payment_omzet']; @endphp
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -328,21 +328,35 @@
     ================================================================ --}}
     <div id="tab-produk" class="tab-pane">
 
-        {{-- Top 10 Produk --}}
+        {{-- Penjelasan logika unit --}}
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.6rem;padding:.875rem 1.1rem;margin-bottom:1.25rem;font-size:.8125rem;color:#1e40af;line-height:1.6;">
+            <strong>ℹ️ Catatan Perhitungan:</strong>
+            Tabel <em>"Terlaris per Satuan"</em> mengelompokkan data per <strong>produk + satuan</strong>
+            (mis. Indomie/Pcs dan Indomie/Dus adalah baris terpisah) agar qty, omzet, dan laba
+            dihitung dalam satuan yang konsisten dan tidak campur aduk.
+            Tabel <em>"Ringkasan per Produk"</em> menggabungkan semua satuan dengan mengonversi
+            qty ke satuan terkecil (<code>qty × units.quantity</code>).
+        </div>
+
+        {{-- Top 10 per Satuan (getTopSellingGoods) --}}
         <div class="card">
             <div class="card-header">
-                <span class="card-title">🏆 10 Produk Terlaris</span>
+                <span class="card-title">🏆 Top Terlaris — per Produk &amp; Satuan</span>
+                <span style="font-size:.8rem;color:var(--muted);">Setiap baris = 1 kombinasi produk + satuan</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap tbl-scroll-v">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Produk</th>
+                                <th>Satuan</th>
                                 <th>Kategori</th>
                                 <th>Merek</th>
-                                <th class="text-right">Qty Terjual</th>
+                                <th class="text-right">Qty Terjual<br><small style="font-weight:400">(dlm satuan ini)</small></th>
+                                <th class="text-right">Harga Jual Rata²</th>
+                                <th class="text-right">Harga Beli Rata²</th>
                                 <th class="text-right">Total Omzet</th>
                                 <th class="text-right">Total Laba</th>
                                 <th class="text-right">Margin</th>
@@ -350,25 +364,105 @@
                         </thead>
                         <tbody>
                             @forelse($topGoods as $i => $good)
-                            @php
-                                $margin = $good->total_omzet > 0 ? $good->total_laba / $good->total_omzet * 100 : 0;
-                            @endphp
                             <tr>
                                 <td><strong>{{ $i + 1 }}</strong></td>
-                                <td>{{ $good->nama_produk }}<br><small style="color:var(--muted)">{{ $good->satuan }}</small></td>
-                                <td>{{ $good->kategori ?? '-' }}</td>
-                                <td>{{ $good->merk ?? '-' }}</td>
-                                <td class="text-right">{{ number_format($good->total_qty) }}</td>
+                                <td>
+                                    {{ $good->nama_produk }}
+                                    @if($good->kode_produk && $good->kode_produk !== '-')
+                                        <br><small style="color:var(--muted)">{{ $good->kode_produk }}</small>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-blue">{{ $good->satuan }}</span>
+                                    @if($good->unit_qty_konversi > 1)
+                                        <br><small style="color:var(--muted)">= {{ $good->unit_qty_konversi }} satuan dasar</small>
+                                    @endif
+                                </td>
+                                <td>{{ $good->kategori }}</td>
+                                <td>{{ $good->merk }}</td>
+                                <td class="text-right">{{ number_format($good->total_qty, 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($good->harga_jual_rata, 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($good->harga_beli_rata, 0, ',', '.') }}</td>
                                 <td class="text-right">Rp {{ number_format($good->total_omzet, 0, ',', '.') }}</td>
                                 <td class="text-right">Rp {{ number_format($good->total_laba, 0, ',', '.') }}</td>
                                 <td class="text-right">
-                                    <span class="badge {{ $margin >= 20 ? 'badge-green' : ($margin >= 10 ? 'badge-blue' : 'badge-orange') }}">
-                                        {{ number_format($margin, 1) }}%
+                                    <span class="badge {{ $good->margin_pct >= 20 ? 'badge-green' : ($good->margin_pct >= 10 ? 'badge-blue' : 'badge-orange') }}">
+                                        {{ number_format($good->margin_pct, 1) }}%
                                     </span>
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="8" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data.</td></tr>
+                            <tr><td colspan="11" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data.</td></tr>
+                            @endforelse
+                        </tbody>
+                        @if($topGoods->count())
+                        <tfoot>
+                            <tr style="font-weight:700;background:#f8fafc;">
+                                <td colspan="8">TOTAL</td>
+                                <td class="text-right">Rp {{ number_format($totals['topgoods_omzet'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['topgoods_laba'], 0, ',', '.') }}</td>
+                                <td class="text-right">{{ number_format($totals['topgoods_margin'], 1) }}%</td>
+                            </tr>
+                        </tfoot>
+                        @endif
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- Ringkasan per Produk (getSalesPerGood) — qty dikonversi ke satuan dasar --}}
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📋 Ringkasan per Produk</span>
+                <span style="font-size:.8rem;color:var(--muted);">Qty dikonversi ke satuan terkecil — semua unit digabung</span>
+            </div>
+            <div class="card-body">
+                <div class=" tbl-wrap tbl-scroll-v">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Kode</th>
+                                <th>Produk</th>
+                                <th>Kategori</th>
+                                <th>Merek</th>
+                                <th class="text-right">Total Qty<br><small style="font-weight:400">(satuan dasar)</small></th>
+                                <th class="text-right">Satuan Dasar</th>
+                                <th class="text-right">Varian Unit</th>
+                                <th class="text-right">Total Omzet</th>
+                                <th class="text-right">Total Laba</th>
+                                <th class="text-right">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($salesPerGood as $i => $sg)
+                            <tr>
+                                <td><strong>{{ $i + 1 }}</strong></td>
+                                <td><code style="font-size:.75rem;">{{ $sg->kode_produk }}</code></td>
+                                <td>{{ $sg->nama_produk }}</td>
+                                <td>{{ $sg->kategori }}</td>
+                                <td>{{ $sg->merk }}</td>
+                                <td class="text-right">{{ number_format($sg->total_qty_dasar, 0, ',', '.') }}</td>
+                                <td class="text-center">
+                                    <span class="badge badge-blue">{{ $sg->satuan_dasar }}</span>
+                                </td>
+                                <td class="text-center">
+                                    @if($sg->jumlah_varian_unit > 1)
+                                        <span class="badge badge-orange">{{ $sg->jumlah_varian_unit }} unit</span>
+                                    @else
+                                        <span class="badge badge-green">1 unit</span>
+                                    @endif
+                                </td>
+                                <td class="text-right">Rp {{ number_format($sg->total_omzet, 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($sg->total_laba, 0, ',', '.') }}</td>
+                                <td class="text-right">
+                                    <span class="badge {{ $sg->margin_pct >= 20 ? 'badge-green' : ($sg->margin_pct >= 10 ? 'badge-blue' : 'badge-orange') }}">
+                                        {{ number_format($sg->margin_pct, 1) }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="11" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -383,7 +477,8 @@
                     <span class="card-title">📂 Penjualan per Kategori</span>
                 </div>
                 <div class="card-body">
-                    <div class="tbl-wrap">
+                    @php $totalCat = $totals['cat_omzet']; @endphp
+                    <div class=" tbl-wrap tbl-scroll-v">
                         <table>
                             <thead>
                                 <tr>
@@ -415,7 +510,8 @@
                     <span class="card-title">🏷️ Penjualan per Merek</span>
                 </div>
                 <div class="card-body">
-                    <div class="tbl-wrap">
+                    @php $totalBrand = $totals['brand_omzet']; @endphp
+                    <div class=" tbl-wrap tbl-scroll-v">
                         <table>
                             <thead>
                                 <tr>
@@ -450,7 +546,7 @@
                 <span class="card-title">🎟️ Efektivitas Voucher</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -491,7 +587,7 @@
                 <span class="card-title">⭐ 10 Member Paling Aktif</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -532,7 +628,7 @@
                 <span class="card-title">📋 Rekap Piutang Member</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -565,7 +661,17 @@
                             <tr><td colspan="6" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data piutang.</td></tr>
                             @endforelse
                         </tbody>
-                        
+                        @if($memberReceivables->count() > 0)
+                        <tfoot>
+                            <tr style="font-weight:700;background:#f8fafc;">
+                                <td colspan="2">TOTAL</td>
+                                <td class="text-right">Rp {{ number_format($totals['recv_tagihan'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['recv_dibayar'], 0, ',', '.') }}</td>
+                                <td class="text-right" style="color:var(--danger);">Rp {{ number_format(max($totals['recv_sisa'], 0), 0, ',', '.') }}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -585,7 +691,7 @@
                 <span class="card-title">🚚 Pembelian per Distributor</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -611,8 +717,8 @@
                         <tfoot>
                             <tr style="font-weight:700;background:#f8fafc;">
                                 <td colspan="2">TOTAL</td>
-                                <td class="text-right">{{ number_format($purchaseByDistributor->sum('jumlah_loading')) }}</td>
-                                <td class="text-right">Rp {{ number_format($purchaseByDistributor->sum('total_pembelian'), 0, ',', '.') }}</td>
+                                <td class="text-right">{{ number_format($totals['dist_loading']) }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['dist_pembelian'], 0, ',', '.') }}</td>
                             </tr>
                         </tfoot>
                         @endif
@@ -627,7 +733,7 @@
                 <span class="card-title">↩️ Retur Barang ke Distributor</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -663,13 +769,19 @@
             <div class="card-header">
                 <span class="card-title">📦 Valuasi Stok Saat Ini</span>
                 <span style="font-size:.8125rem;color:var(--muted);">
-                    Total Nilai HPP: Rp {{ number_format($stockValuation->sum('nilai_hpp'), 0, ',', '.') }}
+                    HPP: Rp {{ number_format($totals['stock_nilai_hpp'], 0, ',', '.') }}
                     &nbsp;|&nbsp;
-                    Nilai Jual: Rp {{ number_format($stockValuation->sum('nilai_jual'), 0, ',', '.') }}
+                    Nilai Jual: Rp {{ number_format($totals['stock_nilai_jual'], 0, ',', '.') }}
+                    &nbsp;|&nbsp;
+                    Potensi Laba: Rp {{ number_format($totals['stock_potensi_laba'], 0, ',', '.') }}
                 </span>
             </div>
-            <div class="card-body tbl-scroll-v">
-                <div class="tbl-wrap">
+            <div class="card-body">
+                <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.7rem 1rem;margin-bottom:1rem;font-size:.8rem;color:#1e40af;">
+                    ℹ️ Stok &amp; harga menggunakan <strong>satuan terkecil</strong> (sesuai nilai <code>goods.last_stock</code>).
+                    Kolom <em>Stok</em> menunjukkan jumlah dalam satuan tersebut.
+                </div>
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -677,34 +789,59 @@
                                 <th>Barang</th>
                                 <th>Kategori</th>
                                 <th>Merek</th>
-                                <th>Satuan</th>
-                                <th class="text-right">Stok</th>
-                                <th class="text-right">Harga Beli</th>
+                                <th>Satuan Dasar</th>
+                                <th class="text-right">Stok<br><small style="font-weight:400">(satuan dasar)</small></th>
+                                <th class="text-right">Harga Beli/satuan</th>
+                                <th class="text-right">Harga Jual/satuan</th>
                                 <th class="text-right">Nilai HPP</th>
                                 <th class="text-right">Nilai Jual</th>
+                                <th class="text-right">Potensi Laba</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($stockValuation as $s)
+                            @php
+                                $marginStok = ($s->nilai_jual > 0)
+                                    ? ($s->potensi_laba / $s->nilai_jual * 100)
+                                    : 0;
+                            @endphp
                             <tr>
                                 <td><code style="font-size:.75rem;">{{ $s->kode }}</code></td>
                                 <td>{{ $s->nama_barang }}</td>
                                 <td>{{ $s->kategori ?? '-' }}</td>
                                 <td>{{ $s->merk ?? '-' }}</td>
-                                <td>{{ $s->satuan }}</td>
+                                <td>
+                                    <span class="badge badge-blue">{{ $s->satuan }}</span>
+                                </td>
                                 <td class="text-right">
                                     <span class="{{ $s->stok_akhir <= 0 ? 'badge badge-red' : ($s->stok_akhir <= 5 ? 'badge badge-orange' : '') }}">
-                                        {{ number_format($s->stok_akhir) }}
+                                        {{ number_format($s->stok_akhir, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="text-right">Rp {{ number_format($s->harga_beli, 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($s->harga_jual, 0, ',', '.') }}</td>
                                 <td class="text-right">Rp {{ number_format($s->nilai_hpp, 0, ',', '.') }}</td>
                                 <td class="text-right">Rp {{ number_format($s->nilai_jual, 0, ',', '.') }}</td>
+                                <td class="text-right">
+                                    <span class="badge {{ $marginStok >= 20 ? 'badge-green' : ($marginStok >= 10 ? 'badge-blue' : 'badge-orange') }}">
+                                        Rp {{ number_format($s->potensi_laba, 0, ',', '.') }}
+                                    </span>
+                                </td>
                             </tr>
                             @empty
-                            <tr><td colspan="9" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data stok.</td></tr>
+                            <tr><td colspan="11" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data stok.</td></tr>
                             @endforelse
                         </tbody>
+                        @if($stockValuation->count() > 0)
+                        <tfoot>
+                            <tr style="font-weight:700;background:#f8fafc;">
+                                <td colspan="8">TOTAL</td>
+                                <td class="text-right">Rp {{ number_format($totals['stock_nilai_hpp'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['stock_nilai_jual'], 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['stock_potensi_laba'], 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -719,7 +856,7 @@
     <div id="tab-keuangan" class="tab-pane">
 
         {{-- Laba Rugi --}}
-        <div class="grid-3">
+        <div class="grid-2">
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">📊 Ringkasan Laba Rugi</span>
@@ -772,7 +909,7 @@
                     <span class="card-title">⚖️ Neraca Saldo</span>
                 </div>
                 <div class="card-body">
-                    <div class="tbl-wrap tbl-scroll-v">
+                    <div class=" tbl-wrap tbl-scroll-v">
                         <table>
                             <thead>
                                 <tr>
@@ -810,8 +947,8 @@
                 <span class="card-title">📒 Jurnal Umum</span>
                 <span style="font-size:.8125rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
             </div>
-            <div class="card-body tbl-scroll-v">
-                <div class="tbl-wrap">
+            <div class="card-body">
+                <div class=" tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -845,9 +982,9 @@
                         <tfoot>
                             <tr style="font-weight:700;background:#f8fafc;">
                                 <td colspan="5">TOTAL</td>
-                                <td class="text-right">Rp {{ number_format($generalJournal->sum('debit'), 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['journal_debit'], 0, ',', '.') }}</td>
                                 <td></td>
-                                <td class="text-right">Rp {{ number_format($generalJournal->sum('credit'), 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($totals['journal_credit'], 0, ',', '.') }}</td>
                             </tr>
                         </tfoot>
                         @endif
@@ -857,7 +994,6 @@
         </div>
 
     </div>{{-- end tab-keuangan --}}
-
     </section>
 </div>
 @section('js-addon')
