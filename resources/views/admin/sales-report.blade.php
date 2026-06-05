@@ -58,7 +58,7 @@
                          margin-bottom: 1.25rem; overflow: hidden; }
     .card-header       { padding: .875rem 1.25rem; border-bottom: 1px solid var(--border);
                          display: flex; align-items: center; justify-content: space-between; }
-    .card-title        { font-size: .9375rem; font-weight: 700; color: #1e293b; margin: 0; }
+    .card-title        { font-size: 2rem; font-weight: 700; color: #1e293b; margin: 0; }
     .card-body         { padding: 1.25rem; }
 
     /* ── Table ──────────────────────────────── */
@@ -67,7 +67,7 @@
     /* Membuat header tetap di atas saat scroll vertikal */
     .tbl-scroll-v thead th { position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--border); }
 
-    table              { width: 100%; border-collapse: collapse; font-size: .8125rem; }
+    table              { width: 100%; border-collapse: collapse; font-size: 1.5rem; }
     thead th           { background: var(--surface); padding: .6rem .875rem; text-align: left;
                          font-weight: 700; color: #475569; border-bottom: 2px solid var(--border);
                          white-space: nowrap; }
@@ -86,7 +86,12 @@
     .badge-red         { background: #fee2e2; color: #b91c1c; }
 
     /* ── 2-col Grid ─────────────────────────── */
-    .grid-2            { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
+    .grid-2, .grid-3   { display: grid; gap: 1.25rem; width: 100%; margin-bottom: 1.25rem; }
+    .grid-2            { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+    .grid-3            { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    
+    /* Menghilangkan margin bawah card di dalam grid agar tidak double spacing */
+    .grid-2 > .card, .grid-3 > .card { margin-bottom: 0; }
 
     /* ── Progress bars ──────────────────────── */
     .progress-wrap     { width: 100%; background: #e2e8f0; border-radius: 9999px; height: 6px; }
@@ -140,8 +145,8 @@
 
     {{-- ── Tab Navigation ──────────────────────────────────────────── --}}
     <div class="tab-nav">
-        <button class="tab-btn " onclick="showTab('penjualan', this)">📦 Penjualan</button>
-        <button class="tab-btn active" onclick="showTab('produk', this)">🛒 Produk</button>
+        <button class="tab-btn active" onclick="showTab('penjualan', this)">📦 Penjualan</button>
+        <button class="tab-btn " onclick="showTab('produk', this)">🛒 Produk</button>
         <button class="tab-btn" onclick="showTab('pelanggan', this)">👥 Pelanggan</button>
         <button class="tab-btn" onclick="showTab('pembelian', this)">🚚 Pembelian &amp; Stok</button>
         <button class="tab-btn" onclick="showTab('keuangan', this)">💰 Keuangan</button>
@@ -195,7 +200,7 @@
                 <span style="font-size:.8125rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
             </div>
             <div class="card-body">
-                <div class="tbl-wrap">
+                <div class="tbl-wrap tbl-scroll-v">
                     <table>
                         <thead>
                             <tr>
@@ -714,7 +719,7 @@
     <div id="tab-keuangan" class="tab-pane">
 
         {{-- Laba Rugi --}}
-        <div class="grid-2">
+        <div class="grid-3">
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">📊 Ringkasan Laba Rugi</span>
@@ -767,7 +772,7 @@
                     <span class="card-title">⚖️ Neraca Saldo</span>
                 </div>
                 <div class="card-body">
-                    <div class="tbl-wrap">
+                    <div class="tbl-wrap tbl-scroll-v">
                         <table>
                             <thead>
                                 <tr>
