@@ -12,6 +12,7 @@ Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@ge
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
+Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
 Route::group(['prefix' => 'account'], function () {
 	Route::get('/create', 'AccountController@create');
 	Route::post('/store', 'AccountController@store')->name('account.store');
