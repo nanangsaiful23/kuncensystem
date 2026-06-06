@@ -119,7 +119,7 @@ trait GoodControllerBase
             $temp['good_base_buy_price'] = $good->base_unit()->buy_price;
             $temp['stock'] = $good->last_stock;
             $temp['code'] = $good->code;
-            $temp['name'] = $good->name;
+            $temp['name'] = $good->getFullName();
             $temp['good_type'] = $good->getType();
             $temp['unit'] = $unit->unit->name;
             $temp['buy_price'] = $unit->buy_price;
