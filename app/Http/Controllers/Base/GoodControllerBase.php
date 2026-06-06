@@ -174,6 +174,7 @@ trait GoodControllerBase
             $good->loading = $good->total_loading;
             $good->unit = $good->base_unit()->unit->code;
             $good->good_type = $good->getType();
+            $good->name = $good->getFullName();
 
             foreach($good->good_units as $unit)
             {
