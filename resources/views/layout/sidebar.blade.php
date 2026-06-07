@@ -286,6 +286,7 @@
         </li>
         <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
         <li><a href="{{ route('admin.reports.sales') }}" ><i class="fa fa-calculator"></i> report new</a></li>
+        <li><a href="{{ route('admin.reports.moevement') }}" ><i class="fa fa-calculator"></i> report movement</a></li>
         
         <li class="{{ Request::segment(2) == 'profit' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/profit') }}"><i class="fa fa-arrow-circle-up"></i> Laba Rugi</a></li>
         <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger') ? 'active' : ''  }}">

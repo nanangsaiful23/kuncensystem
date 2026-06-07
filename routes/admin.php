@@ -13,6 +13,11 @@ Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLe
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
+// Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
+ 
+Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
+ 
+Route::post('reports/movement/{id}/restore','GoodMovementController@restore')->name('reports.movement.restore');
 Route::group(['prefix' => 'account'], function () {
 	Route::get('/create', 'AccountController@create');
 	Route::post('/store', 'AccountController@store')->name('account.store');

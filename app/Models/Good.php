@@ -13,7 +13,7 @@ class Good extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'category_id', 'type_id', 'brand_id', 'code', 'name', 'last_distributor_id', 'base_unit_id', 'total_loading', 'total_transaction', 'last_stock', 'last_loading', 'last_transaction'
+        'category_id', 'type_id', 'brand_id', 'code', 'name', 'last_distributor_id', 'base_unit_id', 'total_loading', 'total_transaction', 'last_stock', 'last_loading', 'last_transaction','is_discontinued', 'discontinued_at', 'discontinued_reason', 'discontinued_by',
     ];
 
     protected $hidden = [
