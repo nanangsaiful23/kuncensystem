@@ -155,7 +155,7 @@
   }
   /* ── Search Bar ── */
   .search-wrap {
-    min-width: 400px;
+    min-width: 300px;
     /*margin: 18px auto 0;*/
     padding-bottom: 16px;
   }
@@ -363,7 +363,7 @@
   }
 
   /* product info */
-  .product-info { min-width: 0; }
+  .product-info { min-width: 90px; }
   .product-name {
     font-size: 15px;
     font-weight: 600;
@@ -682,7 +682,7 @@
 
         <!-- TABLE TOOLBAR -->
         <div class="table-toolbar">
-          <div class="sort-controls">
+          <div class="sort-controls" style="overflow-x: auto">
             <span>Urutkan:</span>
             @foreach(getGoodSort() as $key => $value)
               <button class="sort-btn @if($sort == $key) active @endif" onclick="advanceSearch('{{ $key }}')">{{ $value }} @if($order == 'asc') ↑ @else ↓ @endif</button>
@@ -700,7 +700,7 @@
             <div class="product-card">
               <input type="checkbox" class="product-checkbox">
               <div class="product-info">
-                <div class="product-name">[ {{ $good->getType() }}] {{ $good->name }}</div>
+                <div class="product-name">[{{ $good->getType() }}] {{ $good->name }}</div>
                 <div class="product-meta">
                   <span class="category-badge" style="background-color: @if($good->category->color == null) #ede8ff @else {{ $good->category->color }} @endif">
                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>

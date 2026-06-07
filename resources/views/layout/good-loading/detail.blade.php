@@ -93,7 +93,7 @@
                                             {{ $detail->good->code }}</a>
                                         </td>
                                         <td>
-                                            {{ $detail->good->name }}
+                                            {{ $detail->good->getFullName() }}
                                         </td>
                                         <td>
                                             {{ $detail->expiry_date }}
