@@ -120,40 +120,31 @@
                display:flex; align-items:center; justify-content:space-between; }
 .gm-tbl-head h2 { font-size:.875rem; font-weight:700; color:var(--ink); margin:0; }
 .gm-tbl-cnt { font-size:.775rem; color:var(--ink3); }
-.gm-tbl-wrap { overflow-x:auto; max-height:540px; overflow-y:auto; }
-.gm-tbl-wrap table { width:100%; border-collapse:collapse; font-size:1.375rem;
-                     table-layout:fixed; }
+.gm-tbl-wrap { overflow-x:auto; max-height:580px; overflow-y:auto; }
+.gm-tbl-wrap table { width:100%; border-collapse:collapse; font-size:1rem;
+                     table-layout:auto; min-width:900px; }
 .gm-tbl-wrap thead th { position:sticky; top:0; z-index:2;
-    background:var(--surf); padding:.55rem .75rem; text-align:left;
+    background:var(--surf); padding:.65rem .8rem; text-align:left;
     font-weight:700; color:var(--ink2); border-bottom:2px solid var(--bdr);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.gm-tbl-wrap tbody td { padding:.6rem .75rem; border-bottom:1px solid var(--bdr2);
+.gm-tbl-wrap tbody td { padding:.7rem .8rem; border-bottom:1px solid var(--bdr2);
                         color:var(--ink); vertical-align:middle;
                         overflow:hidden; text-overflow:ellipsis; }
 .gm-tbl-wrap tbody tr:last-child td { border-bottom:none; }
-.gm-tbl-wrap tbody tr:hover td { background:#f8fafc; }
-.gm-tbl-wrap tbody tr.row-dead td { background:#fff9f9; }
+.gm-tbl-wrap tbody tr:nth-child(even) td { background:#f8fafc; }
+.gm-tbl-wrap tbody tr:nth-child(odd) td { background:#fff; }
+.gm-tbl-wrap tbody tr:hover td { background:#eff6ff !important; }
+.gm-tbl-wrap tbody tr.row-dead:nth-child(even) td { background:#fff5f5; }
+.gm-tbl-wrap tbody tr.row-dead:nth-child(odd) td { background:#fff9f9; }
+.gm-tbl-wrap tbody tr.row-dead:hover td { background:#fee2e2 !important; }
 .tr { text-align:right; } .tc { text-align:center; }
 
 /* Column widths — fixed agar tidak melebar */
-.col-no   { width:40px; }
-.col-nama { width:220px; }
-.col-kat  { width:110px; }
-.col-stat { width:120px; }
-.col-trx  { width:80px; }
-.col-qty  { width:100px; }
-.col-omz  { width:125px; }
-.col-laba { width:125px; }
-.col-mgn  { width:72px; }
-.col-stok { width:88px; }
-.col-dos  { width:100px; }
-.col-sjl  { width:88px; }
-.col-rek  { width:130px; }
-.col-aksi { width:105px; }
+
 
 /* Badges */
 .gm-badge-tag { display:inline-flex; align-items:center; gap:.2rem; padding:.18rem .55rem;
-                border-radius:9999px; font-size:1.275rem; font-weight:700; white-space:nowrap; }
+                border-radius:9999px; font-size:.875rem; font-weight:700; white-space:nowrap; }
 .b-fast { background:var(--fast-bg); color:var(--fast); border:1px solid var(--fast-b); }
 .b-slow { background:var(--slow-bg); color:var(--slow); border:1px solid var(--slow-b); }
 .b-dead { background:var(--dead-bg); color:var(--dead); border:1px solid var(--dead-b); }
@@ -182,15 +173,15 @@
 .dos-w { display:flex; align-items:center; gap:.25rem; }
 .dos-b { flex:1; height:4px; background:var(--bdr); border-radius:9999px; overflow:hidden; min-width:30px; }
 .dos-f { height:4px; border-radius:9999px; }
-.dos-t { font-size:1.275rem; white-space:nowrap; }
+.dos-t { font-size:.875rem; white-space:nowrap; }
 
 /* Action buttons */
 .btn-disc { padding:.22rem .6rem; background:var(--disc-bg); color:var(--disc);
-            border:1px solid var(--disc-b); border-radius:.35rem; font-size:1.275rem;
+            border:1px solid var(--disc-b); border-radius:.35rem; font-size:.875rem;
             font-weight:700; cursor:pointer; white-space:nowrap; display:inline-block; }
 .btn-disc:hover { background:var(--disc); color:#fff; }
 .btn-restore { padding:.22rem .6rem; background:var(--fast-bg); color:#15803d;
-               border:1px solid var(--fast-b); border-radius:.35rem; font-size:1.275rem;
+               border:1px solid var(--fast-b); border-radius:.35rem; font-size:.875rem;
                font-weight:700; cursor:pointer; white-space:nowrap; }
 .btn-restore:hover { background:#15803d; color:#fff; }
 
@@ -213,6 +204,25 @@
 /* Empty */
 .gm-empty { text-align:center; padding:2.5rem 1rem; color:var(--ink3); }
 .gm-empty .ei { font-size:2rem; margin-bottom:.5rem; }
+
+/* Pagination */
+.gm-pagi { display:flex; align-items:center; justify-content:space-between;
+           flex-wrap:wrap; gap:.5rem; padding:.75rem 1rem;
+           border-top:1px solid var(--bdr); background:var(--surf); }
+.gm-pagi-info { font-size:.875rem; color:var(--ink2); }
+.gm-pagi-info strong { color:var(--ink); }
+.gm-pagi-ctrl { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; }
+.gm-pagi-btn  { min-width:34px; height:34px; padding:0 .6rem; border:1px solid var(--bdr);
+                background:#fff; color:var(--ink2); border-radius:.4rem;
+                font-size:.875rem; cursor:pointer; display:inline-flex;
+                align-items:center; justify-content:center; transition:.15s; }
+.gm-pagi-btn:hover:not(:disabled)  { background:var(--blue-bg); border-color:var(--blue); color:var(--blue); }
+.gm-pagi-btn.active { background:var(--blue); border-color:var(--blue); color:#fff; font-weight:700; }
+.gm-pagi-btn:disabled { opacity:.4; cursor:not-allowed; }
+.gm-pagi-sep  { color:var(--ink3); font-size:.875rem; padding:0 .15rem; }
+.gm-perpage   { display:flex; align-items:center; gap:.4rem; font-size:.875rem; color:var(--ink2); }
+.gm-perpage select { padding:.3rem .5rem; border:1px solid var(--bdr); border-radius:.4rem;
+                     font-size:.875rem; background:#fff; color:var(--ink); cursor:pointer; }
 
 /* Tooltip */
 [data-gm-tip] { position:relative; cursor:help; }
@@ -408,48 +418,77 @@
 
 {{-- ── TABEL ─────────────────────────────────────────────────────── --}}
 <div class="gm-tbl-card">
+
+    {{-- Header card: judul + per-page selector --}}
     <div class="gm-tbl-head">
         <h2>{{ $isDiscTab ? '🗑️ Barang Discontinued' : '📋 Detail Pergerakan Barang' }}</h2>
-        <span class="gm-tbl-cnt">{{ $goods->count() }} barang</span>
+        <div class="gm-perpage">
+            <span>Tampilkan</span>
+            <select id="gmPerPage" onchange="gmChangePerPage(this.value)">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="99999">Semua</option>
+            </select>
+            <span>per halaman</span>
+        </div>
     </div>
-    <div class="gm-tbl-wrap">
 
     @if($isDiscTab)
-    {{-- Tabel Discontinued --}}
-    <table>
+    {{-- ════════════════════════════════════════════════════════════ --}}
+    {{-- TABEL DISCONTINUED — 8 kolom                               --}}
+    {{-- ════════════════════════════════════════════════════════════ --}}
+    <div class="gm-tbl-wrap">
+    <table id="gmTblDisc">
         <colgroup>
-            <col class="col-no"><col style="width:210px"><col style="width:100px">
-            <col style="width:70px"><col style="width:auto"><col style="width:100px">
-            <col style="width:90px"><col style="width:105px">
+            <col style="width:38px">   {{-- # --}}
+            <col style="width:200px">  {{-- Barang --}}
+            <col style="width:110px">  {{-- Kategori --}}
+            <col style="width:75px">   {{-- Stok --}}
+            <col>                      {{-- Alasan (flex) --}}
+            <col style="width:105px">  {{-- Tanggal --}}
+            <col style="width:95px">   {{-- Oleh --}}
+            <col style="width:95px">   {{-- Aksi --}}
         </colgroup>
-        <thead><tr>
-            <th>#</th><th>Barang</th><th>Kategori</th>
-            <th class="tr">Stok</th><th>Alasan</th>
-            <th>Tanggal</th><th>Oleh</th><th class="tc">Aksi</th>
-        </tr></thead>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Barang</th>
+                <th>Kategori</th>
+                <th class="tr">Stok</th>
+                <th>Alasan Discontinue</th>
+                <th>Tanggal</th>
+                <th>Oleh</th>
+                <th class="tc">Aksi</th>
+            </tr>
+        </thead>
         <tbody>
         @forelse($goods as $i => $g)
         <tr>
-            <td style="color:var(--ink3)">{{ $i+1 }}</td>
-            <td>
-                <div style="font-weight:600;font-size:1.3rem;white-space:normal">{{ $g->nama }}</div>
-                <div style="font-size:1.18rem;color:var(--ink3)">{{ $g->kode ?? '' }}@if($g->merk&&$g->merk!=='-') · {{ $g->merk }}@endif</div>
+            <td style="color:var(--ink3)">{{ $i + 1 }}</td>
+            <td title="{{ $g->nama }}">
+                <div style="font-weight:600">{{ $g->nama }}</div>
+                <div style="font-size:.8rem;color:var(--ink3)">
+                    {{ $g->kode ?? '' }}@if($g->merk && $g->merk !== '-') · {{ $g->merk }}@endif
+                </div>
             </td>
-            <td style="font-size:1.25rem;color:var(--ink2)">{{ $g->kategori }}</td>
+            <td title="{{ $g->kategori }}">{{ $g->kategori }}</td>
             <td class="tr">
-                <span class="{{ $g->stok_sekarang>0?'s-warn':'s-zero' }}">
-                    {{ $g->stok_sekarang>0 ? number_format($g->stok_sekarang,0,',','.') : 'Kosong' }}
+                <span class="{{ $g->stok_sekarang > 0 ? 's-warn' : 's-zero' }}">
+                    {{ $g->stok_sekarang > 0 ? number_format($g->stok_sekarang, 0, ',', '.') : 'Kosong' }}
                 </span>
             </td>
-            <td style="font-size:1.25rem;color:var(--ink2);white-space:normal">
+            <td title="{{ $g->discontinued_reason !== '-' ? $g->discontinued_reason : '' }}">
                 {{ $g->discontinued_reason !== '-' ? $g->discontinued_reason : '—' }}
             </td>
-            <td style="font-size:1.22rem;color:var(--ink2);white-space:nowrap">
+            <td style="white-space:nowrap">
                 {{ $g->discontinued_at ? \Carbon\Carbon::parse($g->discontinued_at)->isoFormat('D MMM Y') : '—' }}
             </td>
-            <td style="font-size:1.22rem;color:var(--ink2)">{{ $g->discontinued_by }}</td>
+            <td>{{ $g->discontinued_by }}</td>
             <td class="tc">
-                <form method="POST" action="{{ route('admin.reports.movement.restore', $g->good_id) }}"
+                <form method="POST"
+                      action="{{ route('admin.reports.movement.restore', $g->good_id) }}"
                       onsubmit="return confirm('Aktifkan kembali barang ini?')">
                     @csrf
                     <button type="submit" class="btn-restore">♻️ Aktifkan</button>
@@ -457,131 +496,197 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="8"><div class="gm-empty"><div class="ei">🎉</div><p>Tidak ada barang discontinued.</p></div></td></tr>
+        <tr>
+            <td colspan="8">
+                <div class="gm-empty"><div class="ei">🎉</div><p>Tidak ada barang discontinued.</p></div>
+            </td>
+        </tr>
         @endforelse
         </tbody>
     </table>
+    </div>
 
     @else
-    {{-- Tabel Movement Normal --}}
-    <table>
+    {{-- ════════════════════════════════════════════════════════════ --}}
+    {{-- TABEL MOVEMENT — 11 kolom                                  --}}
+    {{-- ════════════════════════════════════════════════════════════ --}}
+    <div class="gm-tbl-wrap">
+    <table id="gmTblMain">
+        {{--
+            KOLOM (11):
+            1. Aksi       90px
+            2. #          38px
+            3. Barang     190px
+            4. Kategori   105px
+            5. Status     115px
+            6. Trx/Qty     90px
+            7. Omzet      120px
+            8. Laba/Margin 125px
+            9. Stok        90px
+           10. Hr Stok/Sjk 125px
+           11. Rekomendasi 115px
+        --}}
         <colgroup>
-            <col class="col-no"><col class="col-nama"><col class="col-kat">
-            <col class="col-stat"><col class="col-trx"><col class="col-qty">
-            <col class="col-omz"><col class="col-laba"><col class="col-mgn">
-            <col class="col-stok"><col class="col-dos"><col class="col-sjl">
-            <col class="col-rek"><col class="col-aksi">
+            <col style="width:90px">
+            <col style="width:38px">
+            <col style="width:190px">
+            <col style="width:105px">
+            <col style="width:115px">
+            <col style="width:90px">
+            <col style="width:120px">
+            <col style="width:125px">
+            <col style="width:90px">
+            <col style="width:125px">
+            <col style="width:115px">
         </colgroup>
-        <thead><tr>
-            <th class="col-no">#</th>
-            <th class="col-nama">Barang</th>
-            <th class="col-kat">Kategori</th>
-            <th class="col-stat">Status</th>
-            <th class="col-trx tr" data-gm-tip="Jml transaksi periode ini">Trx</th>
-            <th class="col-qty tr" data-gm-tip="Qty terjual (satuan terkecil)">Qty</th>
-            <th class="col-omz tr">Omzet</th>
-            <th class="col-laba tr">Laba</th>
-            <th class="col-mgn tr" data-gm-tip="(jual-beli)/jual × 100">Mgn</th>
-            <th class="col-stok tr" data-gm-tip="Stok saat ini (satuan terkecil)">Stok</th>
-            <th class="col-dos tr" data-gm-tip="Estimasi hari stok habis">Hari Stok</th>
-            <th class="col-sjl tr" data-gm-tip="Hari sejak transaksi terakhir">Sjk Jual</th>
-            <th class="col-rek">Rekomendasi</th>
-            <th class="col-aksi tc">Aksi</th>
-        </tr></thead>
-        <tbody>
+        <thead>
+            <tr>
+                <th class="tc">Aksi</th>
+                <th>#</th>
+                <th>Barang</th>
+                <th>Kategori</th>
+                <th>Status</th>
+                <th class="tr">Trx / Qty</th>
+                <th class="tr">Omzet</th>
+                <th class="tr">Laba / Margin</th>
+                <th class="tr">Stok</th>
+                <th class="tr">Hr Stok / Sjk Jual</th>
+                <th>Rekomendasi</th>
+            </tr>
+        </thead>
+        <tbody id="gmTblBody">
         @forelse($goods as $i => $g)
         @php
-            if ($g->days_of_stock<=7)        $dc='#dc2626';
-            elseif($g->days_of_stock<=14)    $dc='#d97706';
-            elseif($g->days_of_stock<=30)    $dc='#ca8a04';
-            elseif($g->days_of_stock>=9999)  $dc='#94a3b8';
-            else                             $dc='#16a34a';
-            $dp = $g->days_of_stock>=9999 ? 100 : min(100,($g->days_of_stock/90)*100);
+            if      ($g->days_of_stock <=    7) $dc = '#dc2626';
+            elseif  ($g->days_of_stock <=   14) $dc = '#d97706';
+            elseif  ($g->days_of_stock <=   30) $dc = '#ca8a04';
+            elseif  ($g->days_of_stock >= 9999) $dc = '#94a3b8';
+            else                                $dc = '#16a34a';
+            $dp = $g->days_of_stock >= 9999 ? 100 : min(100, ($g->days_of_stock / 90) * 100);
 
-            if($g->stok_sekarang<=0)      $sc='s-zero';
-            elseif($g->stok_sekarang<=5)  $sc='s-crit';
-            elseif($g->stok_sekarang<=20) $sc='s-warn';
-            else                          $sc='s-ok';
+            if      ($g->stok_sekarang <=  0) $sc = 's-zero';
+            elseif  ($g->stok_sekarang <=  5) $sc = 's-crit';
+            elseif  ($g->stok_sekarang <= 20) $sc = 's-warn';
+            else                              $sc = 's-ok';
 
-            $sb = $g->status_color==='orange'?'b-slow':($g->status_color==='red'?'b-dead':'b-fast');
-            $isDead = ($g->status==='dead');
+            $sb     = $g->status_color === 'orange' ? 'b-slow'
+                    : ($g->status_color === 'red'    ? 'b-dead' : 'b-fast');
+            $isDead = ($g->status === 'dead');
         @endphp
-        <tr class="{{ $isDead?'row-dead':'' }}">
-            <td style="color:var(--ink3)">{{ $i+1 }}</td>
-            <td>
-                <div style="font-weight:600;font-size:1.375rem;white-space:normal;line-height:1.35">{{ $g->nama }}</div>
-                <div style="font-size:1.275rem;color:var(--ink3)">
-                    {{ $g->kode??'' }}@if($g->merk&&$g->merk!=='-') · {{ $g->merk }}@endif · {{ $g->satuan }}
-                </div>
-            </td>
-            <td style="font-size:1.22rem;color:var(--ink2)">{{ $g->kategori }}</td>
-            <td>
-                <span class="gm-badge-tag {{ $sb }}">
-                    {{ $g->status==='fast'?'🚀':($g->status==='slow'?'🐢':'💀') }}
-                    {{ $g->status_label }}
-                </span>
-            </td>
-            <td class="tr">
-                <strong>{{ number_format($g->total_transaksi) }}</strong>
-                <div style="font-size:1.15rem;color:var(--ink3)">~{{ number_format($g->avg_qty_per_day,1) }}/hr</div>
-            </td>
-            <td class="tr" style="font-size:1.375rem">{{ number_format($g->total_qty,0,',','.') }}</td>
-            <td class="tr" style="font-size:1.375rem">Rp {{ number_format($g->total_omzet,0,',','.') }}</td>
-            <td class="tr" style="font-size:1.375rem;color:{{ $g->total_laba>=0?'var(--fast)':'var(--dead)' }}">
-                Rp {{ number_format($g->total_laba,0,',','.') }}
-            </td>
-            <td class="tr">
-                @if($g->margin_pct>=20)<span class="gm-badge-tag b-grn">{{ $g->margin_pct }}%</span>
-                @elseif($g->margin_pct>=10)<span class="gm-badge-tag b-blue">{{ $g->margin_pct }}%</span>
-                @elseif($g->margin_pct>0)<span class="gm-badge-tag b-org">{{ $g->margin_pct }}%</span>
-                @else<span class="gm-badge-tag b-gry">-</span>@endif
-            </td>
-            <td class="tr">
-                <span class="{{ $sc }}">{{ $g->stok_sekarang<=0?'Habis':number_format($g->stok_sekarang,0,',','.') }}</span>
-                @if($g->stok_sekarang>0)<div style="font-size:1.15rem;color:var(--ink3)">Rp{{ number_format($g->nilai_stok/1000,0) }}rb</div>@endif
-            </td>
-            <td class="tr">
-                @if($g->stok_sekarang<=0)<span style="color:var(--ink3)">—</span>
-                @elseif($g->days_of_stock>=9999)<span style="color:var(--ink3)">∞</span>
-                @else
-                <div class="dos-w">
-                    <div class="dos-b"><div class="dos-f" style="width:{{ $dp }}%;background:{{ $dc }}"></div></div>
-                    <span class="dos-t" style="color:{{ $dc }}">{{ $g->days_of_stock }}h</span>
-                </div>
-                @endif
-            </td>
-            <td class="tr">
-                @if($g->days_since_trx>=999)<span class="gm-badge-tag b-gry">Tdk pernah</span>
-                @elseif($g->days_since_trx>=90)<span class="gm-badge-tag b-dead">{{ $g->days_since_trx }}h</span>
-                @elseif($g->days_since_trx>=30)<span class="gm-badge-tag b-slow">{{ $g->days_since_trx }}h</span>
-                @else<span class="gm-badge-tag b-fast">{{ $g->days_since_trx }}h</span>@endif
-            </td>
-            <td><span class="gm-badge-tag rec-{{ $g->recommendation }}">{{ $g->rec_icon }} {{ $g->rec_label }}</span></td>
+        <tr class="gm-row{{ $isDead ? ' row-dead' : '' }}" data-idx="{{ $i }}">
+
+            {{-- 1. Aksi --}}
             <td class="tc">
                 @if($isDead)
-                {{-- ✅ Tombol hanya untuk dead stock --}}
                 <button type="button" class="btn-disc"
                     onclick="gmOpenModal(
                         {{ $g->good_id }},
                         '{{ addslashes($g->nama) }}',
-                        '{{ addslashes($g->kategori) }}'
-                    )">🗑️ Disc.</button>
+                        '{{ addslashes($g->kategori) }}')">
+                    🗑️ Disc.
+                </button>
                 @else
-                <span style="color:var(--ink3);font-size:.7rem">—</span>
+                <span style="color:var(--ink3)">—</span>
                 @endif
             </td>
+
+            {{-- 2. # --}}
+            <td style="color:var(--ink3)">{{ $i + 1 }}</td>
+
+            {{-- 3. Barang --}}
+            <td title="{{ $g->nama }}">
+                <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">{{ $g->nama }}</div>
+                <div style="font-size:.8rem;color:var(--ink3);overflow:hidden;text-overflow:ellipsis">
+                    @if($g->kode){{ $g->kode }} · @endif{{ $g->satuan }}@if($g->merk && $g->merk !== '-') · {{ $g->merk }}@endif
+                </div>
+            </td>
+
+            {{-- 4. Kategori --}}
+            <td title="{{ $g->kategori }}">{{ $g->kategori }}</td>
+
+            {{-- 5. Status --}}
+            <td>
+                <span class="gm-badge-tag {{ $sb }}">
+                    {{ $g->status === 'fast' ? '🚀' : ($g->status === 'slow' ? '🐢' : '💀') }}
+                    {{ $g->status_label }}
+                </span>
+            </td>
+
+            {{-- 6. Trx / Qty per hari --}}
+            <td class="tr">
+                <div style="font-weight:700">{{ number_format($g->total_transaksi) }}</div>
+                <div style="font-size:.8rem;color:var(--ink3)">{{ number_format($g->avg_qty_per_day, 1) }}/hr</div>
+            </td>
+
+            {{-- 7. Omzet --}}
+            <td class="tr">Rp {{ number_format($g->total_omzet, 0, ',', '.') }}</td>
+
+            {{-- 8. Laba / Margin --}}
+            <td class="tr">
+                <div style="color:{{ $g->total_laba >= 0 ? 'var(--fast)' : 'var(--dead)' }}">
+                    Rp {{ number_format($g->total_laba, 0, ',', '.') }}
+                </div>
+                <div style="margin-top:.1rem">
+                    @if($g->margin_pct >= 20)     <span class="gm-badge-tag b-grn">{{ $g->margin_pct }}%</span>
+                    @elseif($g->margin_pct >= 10) <span class="gm-badge-tag b-blue">{{ $g->margin_pct }}%</span>
+                    @elseif($g->margin_pct > 0)   <span class="gm-badge-tag b-org">{{ $g->margin_pct }}%</span>
+                    @else                         <span class="gm-badge-tag b-gry">-</span>
+                    @endif
+                </div>
+            </td>
+
+            {{-- 9. Stok --}}
+            <td class="tr">
+                <div class="{{ $sc }}">{{ $g->stok_sekarang <= 0 ? 'Habis' : number_format($g->stok_sekarang, 0, ',', '.') }}</div>
+                @if($g->stok_sekarang > 0)
+                <div style="font-size:.8rem;color:var(--ink3)">Rp{{ number_format($g->nilai_stok / 1000, 0) }}rb</div>
+                @endif
+            </td>
+
+            {{-- 10. Hr Stok / Sjk Jual --}}
+            <td class="tr">
+                @if($g->stok_sekarang <= 0)
+                    <span style="color:var(--ink3)">—</span>
+                @elseif($g->days_of_stock >= 9999)
+                    <span style="color:var(--ink3)">∞</span>
+                @else
+                    <div style="display:flex;align-items:center;gap:.3rem;justify-content:flex-end">
+                        <div style="width:40px;height:5px;background:var(--bdr);border-radius:9999px;overflow:hidden">
+                            <div style="height:5px;width:{{ $dp }}%;background:{{ $dc }};border-radius:9999px"></div>
+                        </div>
+                        <span style="color:{{ $dc }};white-space:nowrap">{{ $g->days_of_stock }}h</span>
+                    </div>
+                @endif
+                <div style="margin-top:.1rem">
+                    @if($g->days_since_trx >= 999)    <span class="gm-badge-tag b-gry"  style="font-size:.775rem">Tdk pernah</span>
+                    @elseif($g->days_since_trx >= 90) <span class="gm-badge-tag b-dead" style="font-size:.775rem">{{ $g->days_since_trx }}h lalu</span>
+                    @elseif($g->days_since_trx >= 30) <span class="gm-badge-tag b-slow" style="font-size:.775rem">{{ $g->days_since_trx }}h lalu</span>
+                    @else                             <span class="gm-badge-tag b-fast" style="font-size:.775rem">{{ $g->days_since_trx }}h lalu</span>
+                    @endif
+                </div>
+            </td>
+
+            {{-- 11. Rekomendasi --}}
+            <td>
+                <span class="gm-badge-tag rec-{{ $g->recommendation }}">
+                    {{ $g->rec_icon }} {{ $g->rec_label }}
+                </span>
+            </td>
+
         </tr>
         @empty
-        <tr><td colspan="14"><div class="gm-empty"><div class="ei">🔍</div><p>Tidak ada barang sesuai filter.</p></div></td></tr>
+        <tr>
+            <td colspan="11" style="text-align:center;padding:2.5rem;color:var(--ink3)">
+                <div style="font-size:1.5rem;margin-bottom:.5rem">🔍</div>
+                <div>Tidak ada barang sesuai filter.</div>
+            </td>
+        </tr>
         @endforelse
         </tbody>
     </table>
-    @endif
-
-    </div>{{-- end tbl-wrap --}}
+    </div>
 
     {{-- Legend --}}
-    @if(!$isDiscTab)
     <div class="gm-legend">
         <span class="gm-legend-lbl">LEGENDA:</span>
         <span class="gm-badge-tag rec-maintain">✅ Pertahankan</span>
@@ -591,9 +696,16 @@
         <span class="gm-badge-tag rec-reduce_order">📉 Kurangi Order</span>
         <span class="gm-badge-tag rec-review">⚠️ Review</span>
         <span class="gm-badge-tag rec-clearance">🏷️ Obral</span>
-        <span class="gm-badge-tag rec-discontinue">🗑️ Discontinue</span>
+        <span class="gm-badge-tag rec-discontinue">🗑️ Disc.</span>
     </div>
     @endif
+
+    {{-- Pagination --}}
+    <div class="gm-pagi" id="gmPagiBar">
+        <div class="gm-pagi-info" id="gmPagiInfo">—</div>
+        <div class="gm-pagi-ctrl" id="gmPagiCtrl"></div>
+    </div>
+
 </div>{{-- end tbl-card --}}
 
 {{-- Distribusi --}}
@@ -656,9 +768,138 @@
 
 <script>
 (function () {
+    /* ── State ─────────────────────────────────────────────────── */
     var _goodId  = null;
     var _baseUrl = '{{ url("admin/reports/movement") }}';
+    var _perPage = 50;
+    var _curPage = 1;
+    var _allRows = [];
 
+    /* ── Inisialisasi pagination ────────────────────────────────── */
+    function gmInitPagi() {
+        var tbody = document.getElementById('gmTblBody');
+        if (!tbody) { hidePagi(); return; }
+        _allRows = Array.prototype.slice.call(tbody.querySelectorAll('tr.gm-row'));
+        if (_allRows.length === 0) { hidePagi(); return; }
+
+        // Ambil nilai per-page dari select
+        var sel = document.getElementById('gmPerPage');
+        if (sel) _perPage = parseInt(sel.value) || 50;
+
+        gmRenderPage(1);
+    }
+
+    function hidePagi() {
+        var bar = document.getElementById('gmPagiBar');
+        if (bar) bar.style.display = 'none';
+    }
+
+    function gmRenderPage(page) {
+        var total    = _allRows.length;
+        var perPage  = _perPage >= 99999 ? total : _perPage;
+        var pages    = perPage >= total ? 1 : Math.ceil(total / perPage);
+
+        page = Math.max(1, Math.min(page, pages));
+        _curPage = page;
+
+        var start = (page - 1) * perPage;
+        var end   = Math.min(start + perPage, total);
+
+        // Tampilkan/sembunyikan baris
+        for (var i = 0; i < total; i++) {
+            _allRows[i].style.display = (i >= start && i < end) ? '' : 'none';
+        }
+
+        // Update nomor urut per halaman
+        for (var j = start; j < end; j++) {
+            var numCell = _allRows[j].querySelector('td:nth-child(2)');
+            if (numCell) numCell.textContent = j + 1;
+        }
+
+        // Update zebra (karena sebagian baris disembunyikan, nth-child tidak bisa diandalkan)
+        var visible = 0;
+        for (var k = start; k < end; k++) {
+            var tds = _allRows[k].querySelectorAll('td');
+            var isDead = _allRows[k].classList.contains('row-dead');
+            var bg = (visible % 2 === 0)
+                ? (isDead ? '#fff9f9' : '#ffffff')
+                : (isDead ? '#fff5f5' : '#f8fafc');
+            for (var t = 0; t < tds.length; t++) tds[t].style.background = bg;
+            visible++;
+        }
+
+        // Info
+        var infoEl = document.getElementById('gmPagiInfo');
+        if (infoEl) {
+            infoEl.innerHTML = 'Menampilkan <strong>' + (start + 1) + '–' + end + '</strong> dari <strong>' + total + '</strong> barang';
+        }
+
+        // Tombol halaman
+        var ctrlEl = document.getElementById('gmPagiCtrl');
+        if (!ctrlEl) return;
+        ctrlEl.innerHTML = '';
+
+        if (pages <= 1) { hidePagi(); return; }
+        document.getElementById('gmPagiBar').style.display = '';
+
+        // Prev
+        var prev = mkBtn('‹', page <= 1, function() { gmRenderPage(_curPage - 1); });
+        ctrlEl.appendChild(prev);
+
+        // Halaman
+        var range = buildRange(page, pages);
+        for (var r = 0; r < range.length; r++) {
+            if (range[r] === '…') {
+                var sep = document.createElement('span');
+                sep.className = 'gm-pagi-sep';
+                sep.textContent = '…';
+                ctrlEl.appendChild(sep);
+            } else {
+                ctrlEl.appendChild(mkPageBtn(range[r], page));
+            }
+        }
+
+        // Next
+        var next = mkBtn('›', page >= pages, function() { gmRenderPage(_curPage + 1); });
+        ctrlEl.appendChild(next);
+    }
+
+    function buildRange(cur, total) {
+        if (total <= 7) {
+            var a = []; for (var i = 1; i <= total; i++) a.push(i); return a;
+        }
+        var out = [1];
+        if (cur > 3)            out.push('…');
+        for (var i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) out.push(i);
+        if (cur < total - 2)    out.push('…');
+        out.push(total);
+        return out;
+    }
+
+    function mkBtn(label, disabled, fn) {
+        var b = document.createElement('button');
+        b.className = 'gm-pagi-btn';
+        b.textContent = label;
+        b.disabled = disabled;
+        if (!disabled) b.addEventListener('click', fn);
+        return b;
+    }
+
+    function mkPageBtn(num, cur) {
+        var b = document.createElement('button');
+        b.className = 'gm-pagi-btn' + (num === cur ? ' active' : '');
+        b.textContent = num;
+        b.addEventListener('click', function() { gmRenderPage(num); });
+        return b;
+    }
+
+    /* ── Per-page change ────────────────────────────────────────── */
+    window.gmChangePerPage = function(val) {
+        _perPage = parseInt(val) || 50;
+        gmRenderPage(1);
+    };
+
+    /* ── Modal discontinue ──────────────────────────────────────── */
     window.gmOpenModal = function (goodId, name, kat) {
         _goodId = goodId;
         document.getElementById('gmModalName').textContent = name;
@@ -688,20 +929,22 @@
         form.submit();
     };
 
+    /* ── Pill status ────────────────────────────────────────────── */
     window.gmSetStatus = function (val) {
         document.getElementById('gmStatusInput').value = val;
         document.getElementById('gmFilterForm').submit();
     };
 
-    /* Tutup saat klik overlay */
+    /* ── Event listeners ────────────────────────────────────────── */
     document.getElementById('gmDiscModal').addEventListener('click', function (e) {
         if (e.target === this) gmCloseModal();
     });
-
-    /* Tutup dengan ESC */
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') gmCloseModal();
     });
+
+    /* ── Boot ───────────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', gmInitPagi);
 }());
 </script>
 @endsection

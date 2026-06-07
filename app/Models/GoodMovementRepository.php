@@ -53,11 +53,12 @@ class GoodMovementRepository
         }
 
         // ── TAHAP 1: Agregasi transaksi per good_id dalam periode ─────────────
+        // Hanya type='normal' — retur, void, dan tipe lain DIKECUALIKAN
         $salesAgg = TransactionDetail::join(
                 'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
             )
             ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->where('transactions.type', 'normal')
+            ->where('transactions.type', 'normal')          // ← hanya transaksi normal
             ->whereNull('transactions.deleted_at')
             ->whereNull('transaction_details.deleted_at')
             ->whereBetween('transactions.created_at', [$start, $end])
@@ -71,6 +72,25 @@ class GoodMovementRepository
                             * transaction_details.quantity
                          ), 0)                                                  AS total_laba'),
                 DB::raw('MAX(transactions.created_at)                           AS last_transaction_at')
+            )
+            ->groupBy('good_units.good_id')
+            ->get()
+            ->keyBy('good_id');
+
+        // ── TAHAP 1b: Last normal transaction per good (ALL TIME) ────────────
+        // Digunakan sebagai fallback daysSinceTrx untuk barang yang tidak ada
+        // di periode filter. Tidak menggunakan goods.last_transaction karena
+        // field itu diisi dari SEMUA tipe (termasuk retur) sehingga tidak akurat.
+        $lastNormalTrx = TransactionDetail::join(
+                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
+            )
+            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
+            ->where('transactions.type', 'normal')          // ← hanya transaksi normal
+            ->whereNull('transactions.deleted_at')
+            ->whereNull('transaction_details.deleted_at')
+            ->select(
+                'good_units.good_id',
+                DB::raw('MAX(transactions.created_at) AS last_normal_at')
             )
             ->groupBy('good_units.good_id')
             ->get()
@@ -134,7 +154,13 @@ class GoodMovementRepository
             $totalQty   = $agg ? (float) $agg->total_qty_terjual  : 0;
             $totalOmzet = $agg ? (float) $agg->total_omzet        : 0;
             $totalLaba  = $agg ? (float) $agg->total_laba         : 0;
-            $lastTrxAt  = $agg ? $agg->last_transaction_at        : $good->last_transaction_goods;
+
+            // Fallback: last normal transaction all-time (bukan goods.last_transaction
+            // yang bisa terisi dari tipe retur/void)
+            $lastNormal = $lastNormalTrx->get($gid);
+            $lastTrxAt  = $agg
+                ? $agg->last_transaction_at
+                : ($lastNormal ? $lastNormal->last_normal_at : null);
             $stok       = (float) $good->stok_sekarang;
             $hargaBeli  = (float) ($good->harga_beli  ?? 0);
             $hargaJual  = (float) ($good->harga_jual  ?? 0);
