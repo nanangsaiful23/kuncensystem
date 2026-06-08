@@ -76,10 +76,13 @@ class TransactionController extends Controller
 
     public function createGpt()
     {
-        $role = 'admin';
-        $role_id = \Auth::user()->id;
+         [$default['type'], $default['color'], $default['data']] = alert();
 
-        return view('layout.transaction.form-touch-gpt', compact('role', 'role_id'));
+        $default['page_name'] = 'Tambah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'create-touchnew';
+
+        return view('admin.layout.page', compact('default'));
     }
 
     public function store(Request $request)
