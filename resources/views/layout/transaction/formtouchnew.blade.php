@@ -113,16 +113,16 @@
   text-align: left;
 }
 #pos-items-table thead th.right { text-align: right; }
-#pos-items-table tbody tr { border-bottom: 1px solid #eef0f6; transition: background .1s; }
-#pos-items-table tbody tr:nth-child(even) { background: #fafbfd; }
+#pos-items-table tbody tr { border-bottom: 1px solid #e2e8f0; transition: background .1s; }
+#pos-items-table tbody tr:nth-child(even) { background: #f8fafc; }
 #pos-items-table tbody tr:hover { background: #fef8f8; }
-#pos-items-table td { padding: 4px 6px !important; vertical-align: middle; }
+#pos-items-table td { padding: 2px 4px !important; vertical-align: middle; }
 
 /* ── Input dalam tabel ── */
 #pos-items-table .form-control,
 #pos-items-table input[type="text"] {
-  height: var(--touch) !important;
-  min-height: var(--touch);
+  height: 38px !important;
+  min-height: 38px;
   font-size: 15px !important;
   font-weight: 600 !important;
   border: 1.5px solid var(--border) !important;
@@ -168,8 +168,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   background: #fee2e2;
   color: var(--brand);
@@ -323,6 +323,19 @@
 /* ═══════════════════════════════════════════════════
    STICKY BOTTOM BAR
 ═══════════════════════════════════════════════════ */
+.pos-up {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.pos-up .sc-label { margin-bottom: 0; white-space: nowrap; }
+.pos-up-group { display: flex; flex-direction: column; gap: 6px; }
+.pos-up-row { display: flex; gap: 8px; width: 100%; }
 .pos-bottom {
   flex-shrink: 0;
   background: var(--surface);
@@ -470,6 +483,7 @@
 
 /* Mobile */
 @media (max-width: 640px) {
+  .pos-up { grid-template-columns: 1fr; gap: 12px; padding: 10px 12px; }
   .pos-body { padding: 8px; gap: 8px; }
   .pos-bottom { padding: 8px; gap: 7px; }
   .pb-input { height: 54px; font-size: 20px; }
@@ -492,25 +506,40 @@
 
 <div class="pos-root">
 <div class="pos-layout">
-
-  {{-- ══════════════════════════════════════════
-       BODY: tabel kiri + sidebar kanan
-  ══════════════════════════════════════════ --}}
-  <div class="pos-body">
-
-    {{-- ── Panel kiri: Tabel barang ── --}}
-    <div class="pos-table-panel">
-       {{-- Keyword barang --}}
-      <div class="sc">
-        <div class="sc-label">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-          Cari Barang <span class="kbd">F4</span>
+    {{-- Barcode & Keyword --}}
+    <div class="pos-up">
+        {{-- Group: Barcode --}}
+        <div class="pos-up-group">
+            <div class="sc-label">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="2" height="16"/><rect x="7" y="4" width="1" height="16"/><rect x="10" y="4" width="2" height="16"/><rect x="14" y="4" width="1" height="16"/><rect x="17" y="4" width="2" height="16"/></svg>
+                Barcode <span class="kbd">F2</span>
+            </div>
+            <input type="text" name="all_barcode" class="pos-inp" id="all_barcode"
+                onchange="searchByBarcode('all_barcode')"
+                onfocus="changeBackColor('all_barcode')"
+                onfocusout="changeBackNorm('all_barcode')"
+                placeholder="Scan / ketik barcode…"
+                autocomplete="off">
         </div>
-        <input type="text" name="search_good" class="pos-inp" id="search_good"
-          onfocus="changeBackColor('search_good')"
-          onfocusout="changeBackNorm('search_good')"
-          placeholder="Ketik nama barang + Enter…"
-          autocomplete="off">
+
+        {{-- Group: Cari Nama Barang --}}
+        <div class="pos-up-group">
+            <div class="sc-label">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                Cari Barang <span class="kbd">F4</span>
+            </div>
+            <div class="pos-up-row">
+                <input type="text" name="search_good" class="pos-inp" id="search_good"
+                    onfocus="changeBackColor('search_good')"
+                    onfocusout="changeBackNorm('search_good')"
+                    placeholder="Nama barang…"
+                    autocomplete="off">
+                <button type="button" class="pos-btn pos-btn-warn" onclick="ajaxFunction('all_barcode')" style="width: auto; padding: 0 16px; white-space: nowrap;">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                    Cari
+                </button>
+            </div>
+        </div>
 
         {{-- Modal hasil barang --}}
         <div class="modal modal-primary fade" id="modal_search">
@@ -529,6 +558,14 @@
         </div>
       </div>
 
+  {{-- ══════════════════════════════════════════
+       BODY: tabel kiri + sidebar kanan
+  ══════════════════════════════════════════ --}}
+  <div class="pos-body">
+
+    {{-- ── Panel kiri: Tabel barang ── --}}
+    <div class="pos-table-panel">
+     
       <div class="pos-table-panel__head">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
         Daftar Barang Transaksi
@@ -552,7 +589,7 @@
           </thead>
           <tbody id="table-transaction">
             <?php $i = 1; ?>
-            <tr id="row-data-{{ $i }}" @if($i % 2 == 0) style="background:#fafbfd" @endif>
+            <tr id="row-data-{{ $i }}" @if($i % 2 == 0) style="background:#f8fafc" @endif>
               <td style="display:none;">
                 {!! Form::text('barcodes[]', null, ['class'=>'form-control','readonly'=>'readonly','id'=>'barcode-'.$i]) !!}
               </td>
@@ -604,20 +641,6 @@
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <strong><i class="fa fa-warning"></i> Stok Habis</strong>
         <div id="empty-item" style="font-size:13px;margin-top:3px;"></div>
-      </div>
-
-      {{-- Barcode --}}
-      <div class="sc">
-        <div class="sc-label">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 5v4M7 5v4M11 5v4M3 11v8M7 11v8M11 11v8M15 5v14M19 5v4M23 5v4M19 11v8M23 11v8"/></svg>
-          Barcode <span class="kbd">F2</span>
-        </div>
-        <input type="text" name="all_barcode" class="pos-inp" id="all_barcode"
-          onchange="searchByBarcode('all_barcode')"
-          onfocus="changeBackColor('all_barcode')"
-          onfocusout="changeBackNorm('all_barcode')"
-          placeholder="Scan / ketik barcode…"
-          autocomplete="off">
       </div>
 
      
@@ -915,7 +938,7 @@
     var items  = (name == 'all_barcode_retur') ? total_item_retur : total_item;
     var td_rusak = '';
     if (name == 'all_barcode_retur') {
-      td_rusak = '<td><select class="form-control" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '" style="height:52px;font-size:15px;font-weight:600;"><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></select></td>';
+      td_rusak = '<td><select class="form-control" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '" style="height:38px;font-size:15px;font-weight:600;"><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></select></td>';
     }
 
     var dp  = parseFloat(unFormatNumber(document.getElementById('discount_piece-' + type + index).value) || 0);
@@ -929,8 +952,8 @@
     formatNumber('discount-' + type + index);
     changeTotal();
 
-    var rowBg = (temp1 % 2 == 0) ? 'background:#fafbfd;' : '';
-    var inpStyle = 'height:52px!important;font-size:15px!important;font-weight:600!important;border:1.5px solid #e2e6f0!important;border-radius:7px!important;';
+    var rowBg = (temp1 % 2 == 0) ? 'background:#f8fafc;' : '';
+    var inpStyle = 'height:38px!important;font-size:15px!important;font-weight:600!important;border:1.5px solid #e2e6f0!important;border-radius:7px!important;';
 
     var h = '<tr id="row-data-' + type + temp1 + '" style="' + rowBg + '">'
       + '<td style="display:none;"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly style="' + inpStyle + '"></td>'
