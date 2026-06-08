@@ -36,7 +36,7 @@
   .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 0 28px;
+    padding: 0 clamp(12px, 3vw, 28px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -45,14 +45,14 @@
     top: 0;
     z-index: 100;
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
-  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
   .logo {
     font-weight: 700;
     font-size: 17px;
     letter-spacing: -0.4px;
     color: var(--text-primary);
-    margin-left: -80px;
     text-align: right;
   }
   .logo span { color: var(--accent); }
@@ -62,11 +62,15 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
   .breadcrumb strong { color: var(--text-secondary); font-weight: 500; }
 
   /* ─── LAYOUT ─── */
-  .page-wrapper { max-width: 1400px; margin: 0 auto; padding: 28px 28px 60px; }
+  .page-wrapper { max-width: 1400px; margin: 0 auto; padding: clamp(14px, 3vw, 28px) clamp(12px, 3vw, 28px) 60px; }
 
   /* ─── PAGE HEADER ─── */
   .page-header {
@@ -146,6 +150,8 @@
     padding: 18px 20px;
     margin-bottom: 20px;
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    min-width: 0;
   }
   .filters-top {
     display: flex;
@@ -155,9 +161,9 @@
   }
   /* ── Search Bar ── */
   .search-wrap {
-    min-width: 300px;
-    /*margin: 18px auto 0;*/
+    min-width: min(300px, 100%);
     padding-bottom: 16px;
+    flex: 1;
   }
 
   .search-box {
@@ -236,7 +242,8 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239e9889' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
-    min-width: 150px;
+    min-width: min(150px, 100%);
+    max-width: 100%;
     transition: border-color 0.15s;
   }
   .filter-select:focus { border-color: var(--accent); background-color: white; }
@@ -318,15 +325,15 @@
     border-radius: var(--radius);
     padding: 18px 22px;
     display: grid;
-    grid-template-columns: 48px 1fr auto auto auto auto;
+    grid-template-columns: 36px minmax(0,1fr) auto auto auto auto;
     gap: 16px 20px;
     align-items: center;
     box-shadow: var(--shadow-sm);
     transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
     cursor: pointer;
     animation: fadeSlideIn 0.3s ease both;
+    min-width: 0;
   }
-  .product-card:hover {
     border-color: #cfc9be;
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
@@ -363,18 +370,19 @@
   }
 
   /* product info */
-  .product-info { min-width: 90px; }
+  .product-info { min-width: 0; overflow: hidden; }
   .product-name {
     font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
     letter-spacing: -0.2px;
-    /*white-space: nowrap;*/
     overflow: hidden;
     text-overflow: ellipsis;
+    word-break: break-word;
+    overflow-wrap: break-word;
     margin-bottom: 5px;
   }
-  .product-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .product-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; row-gap: 5px; }
   .category-badge {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 3px 9px;
@@ -403,7 +411,7 @@
   }
 
   /* stock */
-  .stock-col { text-align: center; min-width: 90px; }
+  .stock-col { text-align: center; min-width: 0; }
   .stock-main {
     font-size: 18px;
     font-weight: 700;
@@ -414,7 +422,7 @@
   .stock-main.good { color: var(--green); }
   .stock-unit { font-size: 11.5px; color: var(--text-primary); font-weight: 500; margin-top: 1px; }
   .stock-breakdown {
-    display: flex; gap: 4px; justify-content: center; margin-top: 5px;
+    display: flex; gap: 4px; justify-content: center; margin-top: 5px; flex-wrap: wrap;
   }
   .stock-pill {
     display: inline-flex; align-items: center; gap: 3px;
@@ -429,20 +437,21 @@
   .stock-pill svg { width: 9px; height: 9px; }
 
   /* price */
-  .price-col { text-align: right; min-width: 130px; }
+  .price-col { text-align: right; min-width: 0; }
   .price-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 3px; }
   .price-sell {
     font-size: 16px;
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.3px;
-    white-space: nowrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
   .price-buy {
     font-size: 12px;
     color: var(--text-secondary);
     margin-top: 2px;
-    white-space: nowrap;
+    word-break: break-word;
   }
   .profit-badge {
     display: inline-flex; align-items: center; gap: 3px;
@@ -457,7 +466,7 @@
   .profit-badge svg { width: 11px; height: 11px; }
 
   /* last activity */
-  .activity-col { min-width: 120px; text-align: center; }
+  .activity-col { min-width: 0; text-align: center; }
   .activity-date { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
   .activity-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
   .never-tag {
@@ -557,15 +566,108 @@
   .empty-state svg { width: 18%; height: 18%; margin-bottom: 14px; opacity: 0.3; }
   .empty-state p { font-size: 15px; color: var(--text-secondary); }
 
-  /* ─── RESPONSIVE ─── */
-  @media (max-width: 900px) {
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  /* ══════════════════════════════════════
+     RESPONSIVE — semua breakpoint
+  ══════════════════════════════════════ */
+
+  /* ── Tablet lebar (≤ 1100px) ── */
+  @media (max-width: 1100px) {
     .product-card {
-      grid-template-columns: 1fr;
-      gap: 12px;
+      /* Kurangi jadi 5 kolom: buang activity-col ke baris bawah */
+      grid-template-columns: 36px 1fr auto auto auto;
+      grid-template-rows: auto auto;
     }
-    .price-col, .activity-col { text-align: left; }
-    .actions-col { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+    /* Pindah activity ke bawah info, span penuh */
+    .activity-col {
+      grid-column: 2 / -1;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .activity-col .never-tag { display: inline-flex; gap: 12px; }
+  }
+
+  /* ── Tablet (≤ 900px) ── */
+  @media (max-width: 900px) {
+    .page-wrapper { padding: 16px 14px 48px; }
+
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    /* Filter area */
+    .filters-top    { flex-direction: column; align-items: stretch; }
+    .search-wrap    { min-width: unset; width: 100%; }
+    .filters-bottom { flex-direction: column; align-items: stretch; gap: 8px; }
+    .filter-select  { min-width: unset; width: 100%; }
+
+    /* Sort controls — scroll horizontal, tidak bertumpuk */
+    .sort-controls { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    .sort-controls::-webkit-scrollbar { height: 3px; }
+    .sort-btn      { white-space: nowrap; flex-shrink: 0; }
+
+    /* Product card: 2 kolom utama (checkbox+info | actions) */
+    .product-card {
+      grid-template-columns: 36px 1fr;
+      grid-template-rows: auto auto auto auto;
+      gap: 10px 12px;
+      padding: 14px 16px;
+    }
+    /* Urutan manual via grid-area */
+    .product-card > input[type="checkbox"] { grid-column: 1; grid-row: 1; align-self: start; margin-top: 3px; }
+    .product-info    { grid-column: 2; grid-row: 1; }
+    .stock-col       { grid-column: 1 / -1; grid-row: 2; text-align: left; display: flex; align-items: center; gap: 12px; }
+    .stock-col .stock-unit { display: inline; }
+    .stock-breakdown { margin-top: 0; }
+    .price-col       { grid-column: 1 / -1; grid-row: 3; text-align: left; min-width: unset; }
+    .activity-col    { grid-column: 1 / -1; grid-row: 4; text-align: left; min-width: unset; }
+    .actions-col     { grid-column: 1 / -1; grid-row: 5; align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .action-row      { flex-wrap: wrap; gap: 6px; }
+  }
+
+  /* ── Mobile (≤ 600px) ── */
+  @media (max-width: 600px) {
+    .page-wrapper { padding: 12px 10px 48px; }
+
+    /* Stats: 1 kolom */
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 12px 14px; gap: 10px; }
+    .stat-value { font-size: 18px; }
+
+    /* Filter */
+    .filters-panel { padding: 12px 14px; }
+    #searchInput { font-size: 14px; }
+
+    /* Sort scroll-horizontal, tidak wrap */
+    .table-toolbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+    /* Product card: full-width single flow */
+    .product-card {
+      grid-template-columns: 28px 1fr;
+      gap: 8px 10px;
+      padding: 12px 14px;
+    }
+
+    /* Harga jual — bisa wrap */
+    .price-sell { font-size: 14px; white-space: normal; word-break: break-word; }
+    .price-buy  { white-space: normal; }
+
+    /* action buttons kecil */
+    .action-btn { font-size: 11.5px; padding: 5px 9px; }
+
+    /* never-tag block */
+    .activity-col .never-tag { display: block; }
+
+    /* Pagination */
+    .pagination-wrap { flex-direction: column; align-items: flex-start; gap: 10px; }
+    nav .pagination  { flex-wrap: wrap; }
+  }
+
+  /* ── Mobile kecil (≤ 400px) ── */
+  @media (max-width: 400px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .stat-card { padding: 10px 12px; }
+    .action-btn { font-size: 11px; padding: 5px 8px; }
+    .product-card { padding: 10px 12px; }
   }
 
   /* ─── TOOLTIP ─── */
