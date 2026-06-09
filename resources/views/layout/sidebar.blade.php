@@ -259,7 +259,23 @@
         @endif
       @endif
       @if(\Auth::user()->email == 'admin')
-        <li class="header">LAPORAN KEUANGAN</li>
+        <li class="header">LAPORAN </li>
+         <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger') ? 'active' : ''  }}">
+          <a href="#">
+              <i class="fa fa-balance-scale"></i><span> laporan financial</span>
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
+        
+            <li><a href="{{ route('admin.reports.financial') }}" ><i class="fa fa-calculator"></i> report keuangan</a></li>
+        
+              <li class="{{ Request::segment(2) == 'scale' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scale/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Detail Neraca</a></li>
+              <li class="{{ Request::segment(2) == 'scaleLedger' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scaleLedger/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Grafik Ledger Neraca</a></li>
+          </ul>
+        </li>
         <li class="treeview {{ (Request::segment(2) == 'account' ) ? 'active' : ''  }}">
           <a href="#">
               <i class="fa fa-book"></i><span> Akun</span>
@@ -284,23 +300,11 @@
               <li class="{{ Request::segment(2) == 'salesGraph' && Request::segment(3) == 'category' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/category/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Kategori</a></li>
           </ul>
         </li>
-        <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
         <li><a href="{{ route('admin.reports.sales') }}" ><i class="fa fa-calculator"></i> report new</a></li>
         <li><a href="{{ route('admin.reports.movement') }}" ><i class="fa fa-calculator"></i> report movement</a></li>
         
         <li class="{{ Request::segment(2) == 'profit' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/profit') }}"><i class="fa fa-arrow-circle-up"></i> Laba Rugi</a></li>
-        <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger') ? 'active' : ''  }}">
-          <a href="#">
-              <i class="fa fa-balance-scale"></i><span> Neraca</span>
-            <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-          </a>
-          <ul class="treeview-menu">
-              <li class="{{ Request::segment(2) == 'scale' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scale/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Detail Neraca</a></li>
-              <li class="{{ Request::segment(2) == 'scaleLedger' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scaleLedger/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Grafik Ledger Neraca</a></li>
-          </ul>
-        </li>
+       
       @endif
     </ul>
   </section>

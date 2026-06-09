@@ -14,7 +14,7 @@ Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cash
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
- 
+ Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
  
 Route::post('reports/movement/{id}/restore','GoodMovementController@restore')->name('reports.movement.restore');
