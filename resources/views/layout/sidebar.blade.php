@@ -300,6 +300,7 @@
               <li class="{{ Request::segment(2) == 'salesGraph' && Request::segment(3) == 'category' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/category/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Kategori</a></li>
           </ul>
         </li>
+        <li class="{{ Request::segment(2) == 'store-health' ? 'active' : ''  }}"><a href="{{ route('admin.store-health') }}" ><i class="fa fa-heartbeat"></i> Kondisi Toko</a></li>
         <li><a href="{{ route('admin.reports.sales') }}" ><i class="fa fa-calculator"></i> report new</a></li>
         <li><a href="{{ route('admin.reports.movement') }}" ><i class="fa fa-calculator"></i> report movement</a></li>
         
