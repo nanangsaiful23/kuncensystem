@@ -261,37 +261,52 @@ class ChatbotGoodService
     //     Contoh: "produk di bawah 10 ribu"
     // ══════════════════════════════════════════════════════════
 
-    public function filterByPrice($min = null, $max = null, $limit = 12)
+    public function filterByPrice($keyword = null, $unitName = null, $min = null, $max = null, $limit = 400)
     {
         $query = Good::whereNull('goods.deleted_at')
             ->join('good_units as gu', 'gu.good_id', '=', 'goods.id')
+            ->join('units as u', 'u.id', '=', 'gu.unit_id')
             ->whereNull('gu.deleted_at')
-            ->where('goods.last_stock', '>', 0)
+            // ->where('goods.last_stock', '>', 0)
             ->select(
                 'goods.id', 'goods.name', 'goods.code',
-                'goods.last_stock', 'goods.category_id'
+                'goods.last_stock', 'goods.category_id',
+                'u.name as unit_name'
             )
             ->selectRaw('MIN(CAST(gu.selling_price AS DECIMAL)) as harga_min')
             ->selectRaw('MAX(CAST(gu.selling_price AS DECIMAL)) as harga_max')
             ->with([
                 'category'     => function ($q) { $q->select('id', 'name'); },
             ])
-            ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.last_stock', 'goods.category_id')
-            ->orderBy('harga_min');
+            ->groupBy('goods.id', 'goods.name', 'goods.code', 'goods.last_stock', 'goods.category_id', 'u.name')
+            ->orderBy('harga_min')
+            ;
+
+        if ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('goods.name', 'like', '%' . $keyword . '%')
+                  ->orWhere('goods.code', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        if ($unitName) {
+            $query->where('u.name', 'like', '%' . $unitName . '%');
+        }
 
         if ($min !== null) {
-            $query->having('harga_min', '>=', $min);
+            $query->having('harga_max', '>=', $min);
         }
         if ($max !== null) {
-            $query->having('harga_min', '<=', $max);
+            $query->having('harga_max', '<=', $max);
         }
 
-        $goods = $query->limit($limit)->get();
+        $goods = $query->get();
 
         return $goods->map(function ($g) {
             return [
                 'id'          => $g->id,
                 'nama'        => $g->name,
+                'satuan'      => $g->unit_name,
                 'kategori'    => optional($g->category)->name,
                 'harga_min'   => $g->harga_min,
                 'harga_max'   => $g->harga_max,

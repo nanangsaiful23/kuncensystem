@@ -87,8 +87,11 @@ class ChatbotController extends Controller
         return response()->json([
             'type'   => 'filter_price',
             'barang' => $this->goodService->filterByPrice(
+                $request->get('q'),
+                $request->get('unit'),
                 $request->has('min') ? (float) $request->get('min') : null,
-                $request->has('max') ? (float) $request->get('max') : null
+                $request->has('max') ? (float) $request->get('max') : null,
+                (int) $request->get('limit', 12)
             ),
         ]);
     }
