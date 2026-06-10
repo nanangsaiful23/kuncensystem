@@ -517,7 +517,7 @@ class SalesReportRepository
             ->whereIn('type', ['normal', 'retur'])
             ->whereNull('deleted_at')
             ->where(function ($q) {
-                $q->where('payment', '!=', 'cash')
+                $q->whereNotIn('payment', ['cash', 'transfer'])
                   ->orWhereRaw('COALESCE(money_paid, 0) < total_sum_price');
             })
             ->select(
