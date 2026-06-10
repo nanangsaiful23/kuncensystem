@@ -43,7 +43,7 @@
                                 @if($good_loading->payment == 'cash')
                                     {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                                 @else
-                                    {!! Form::text('payment', if($good_loading->getPayment() == null) '-' else $good_loading->getPayment()->code . ' - ' . $good_loading->getPayment()->name endif, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    {!! Form::text('payment', @if($good_loading->getPayment() == null) '-' @else $good_loading->getPayment()->code . ' - ' . $good_loading->getPayment()->name @endif, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                                 @endif
                             </div>
                         </div>
