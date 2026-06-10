@@ -42,8 +42,13 @@
                             <div class="col-sm-4">
                                 @if($good_loading->payment == 'cash')
                                     {!! Form::text('payment', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    ini
                                 @else
-                                    {!! Form::text('payment', @if($good_loading->getPayment() == null) '-' @else $good_loading->getPayment()->code . ' - ' . $good_loading->getPayment()->name @endif, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    @if($good_loading->getPayment() == null)
+                                        {!! Form::text('payment', '-', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    @else
+                                        {!! Form::text('payment', $good_loading->getPayment()->code . ' - ' . $good_loading->getPayment()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                    @endif
                                 @endif
                             </div>
                         </div>
