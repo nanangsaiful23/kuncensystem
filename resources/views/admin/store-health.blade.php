@@ -195,7 +195,12 @@
             <div class="sh-card">
                 <div class="sh-title">
                     <h2>Barang Prioritas</h2>
-                    <small>Reorder, clearance, review</small>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <a href="{{ route('admin.store-health.export', request()->query()) }}" class="sh-btn" style="background:var(--green); text-decoration:none; display:flex; align-items:center; gap:5px; font-size:0.75rem; height:28px;">
+                            <span>📥 Export CSV</span>
+                        </a>
+                        <small>Reorder, clearance, review</small>
+                    </div>
                 </div>
                 <div class="sh-table-wrap">
                     <table class="sh-table">

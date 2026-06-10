@@ -47,4 +47,24 @@ class StoreHealthController extends Controller
 
         return view('admin.store-health', compact('health', 'startDate', 'endDate'));
     }
+
+
+        public function exportCsv(Request $request)
+        {
+            // Mengambil filter tanggal dari request (sama seperti di method index)
+            $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
+            $endDate   = $request->get('end_date', Carbon::now()->toDateString());
+
+            // Memanggil fungsi export dari repository yang sudah kita buat sebelumnya
+            $csvData = $this->repo->getCriticalGoodsCsv($startDate, $endDate);
+
+            // Mengembalikan response berupa file download
+            return response($csvData['content'], 200, [
+                'Content-Type'        => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $csvData['filename'] . '"',
+                'Pragma'              => 'no-cache',
+                'Expires'             => '0',
+            ]);
+}
+
 }

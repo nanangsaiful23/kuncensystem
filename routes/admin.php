@@ -17,7 +17,9 @@ Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.m
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
  Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
- 
+// Tambahkan baris ini di bagian rute admin
+Route::get('admin/store-health/export', 'StoreHealthController@exportCsv')->name('store-health.export');
+
 Route::post('reports/movement/{id}/restore','GoodMovementController@restore')->name('reports.movement.restore');
 Route::group(['prefix' => 'account'], function () {
 	Route::get('/create', 'AccountController@create');

@@ -516,4 +516,50 @@ class StoreHealthRepository
         if ($score >= 60) return 'orange';
         return 'red';
     }
+
+    /**
+     * Menghasilkan konten CSV untuk data Barang Prioritas.
+     */
+    public function getCriticalGoodsCsv($startDate, $endDate): array
+    {
+        $data = $this->getHealthData($startDate, $endDate);
+        $goods = $data['critical_goods'];
+
+        $filename = "barang_prioritas_" . Carbon::now()->format('Ymd_His') . ".csv";
+        
+        $handle = fopen('php://temp', 'w+');
+        // Tambahkan BOM untuk kompatibilitas Excel (UTF-8)
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Header Tabel
+        fputcsv($handle, [
+            'Nama Barang', 'Kategori', 'Merk', 'Status', 'Rekomendasi', 
+            'Stok Sekarang', 'Satuan', 'Hari Stok (DoS)', 'Omzet', 'Laba', 'Transaksi'
+        ]);
+
+        foreach ($goods as $g) {
+            fputcsv($handle, [
+                $g->nama,
+                $g->kategori,
+                $g->merk,
+                $g->status_label,
+                $g->rec_label,
+                $g->stok_sekarang,
+                $g->satuan,
+                $g->days_of_stock >= 9999 ? 'Aman' : $g->days_of_stock,
+                $g->total_omzet,
+                $g->total_laba,
+                $g->total_transaksi
+            ]);
+        }
+
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        return [
+            'content'  => $content,
+            'filename' => $filename
+        ];
+    }
 }
