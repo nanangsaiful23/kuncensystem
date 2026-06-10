@@ -327,22 +327,28 @@
   flex-shrink: 0;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
+  padding: 6px 16px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: start;
+  gap: 15px;
+  align-items: center;
 }
-.pos-up .sc-label { margin-bottom: 0; white-space: nowrap; }
-.pos-up-group { display: flex; flex-direction: column; gap: 6px; }
-.pos-up-row { display: flex; gap: 8px; width: 100%; }
+.pos-up .sc-label { margin-bottom: 0; white-space: nowrap; flex-shrink: 0; min-width: 100px; }
+.pos-up-group { display: flex; align-items: center; gap: 10px; }
+.pos-up .pos-inp, 
+.pos-up .pos-btn { 
+  height: 40px !important; 
+  font-size: 15px;
+}
+.pos-up .pos-inp { flex: 1; }
+.pos-up-row { display: flex; gap: 8px; width: 100%; flex: 1; }
 .pos-bottom {
   flex-shrink: 0;
   background: var(--surface);
   border-top: 2px solid var(--border);
   padding: 8px 12px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  display: grid; /* Menggunakan grid untuk tata letak kolom yang fleksibel */
+  grid-template-columns: 0.8fr 1fr 1fr 1.2fr; /* Disesuaikan: 'Potongan Akhir' lebih pendek (0.8fr), 'Proses Transaksi' lebih panjang (1.2fr) */
   gap: 10px;
   align-items: end;
 }
@@ -409,13 +415,14 @@
   justify-content: center;
   font-size: 16px !important;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.1;
   border-radius: var(--radius);
   background: var(--green) !important;
   color: #fff;
   cursor: pointer;
   text-align: center;
-  padding: 0 14px;
+  padding: 0;
+  margin: 0;
   touch-action: manipulation;
   transition: background .15s, transform .1s, box-shadow .15s;
   box-shadow: 0 3px 12px rgba(8,203,0,.3);
@@ -424,8 +431,8 @@
 }
 #div_money_returned:hover  { background: var(--green-dark) !important; box-shadow: 0 4px 16px rgba(8,203,0,.38); transform: translateY(-1px); }
 #div_money_returned:active { transform: scale(.97); }
-.proses-main { font-size: 18px; font-weight: 800; }
-.proses-sub  { font-size: 12px; font-weight: 500; opacity: .9; margin-top: 3px; }
+.proses-main { font-size: 14px; font-weight: 600; opacity: .8; }
+.proses-sub  { font-size: 26px; font-weight: 800; margin-top: 0; }
 
 /* ═══════════════════════════════════════════════════
    MODAL — lebih besar & touchscreen-friendly
@@ -761,10 +768,18 @@
     @if($SubmitButtonText == 'Edit')
       {!! Form::submit($SubmitButtonText, ['class'=>'btn btn-warning btn-flat','style'=>'height:82px;font-size:18px;font-weight:700;min-width:160px;border-radius:var(--radius);']) !!}
     @elseif($SubmitButtonText == 'Tambah')
-      <div onclick="event.preventDefault(); submitForm(this);" id="div_money_returned">
-        <div class="proses-main">✓ Proses Transaksi</div>
+    <div class="pb-field">
+      <div class="pb-label">✓ Proses Transaksi </div>
+       <div onclick="event.preventDefault(); submitForm(this);" id="div_money_returned">
+        
         <div class="proses-sub" id="proses-sub-text">Kembali: — · 0 item</div>
       </div>
+    
+    </div>
+      <!-- <div onclick="event.preventDefault(); submitForm(this);" id="div_money_returned">
+        <div class="proses-main">✓ Proses Transaksi</div>
+        <div class="proses-sub" id="proses-sub-text">Kembali: — · 0 item</div>
+      </div> -->
       {!! Form::hidden('money_returned', null, ['id'=>'money_returned']) !!}
     @endif
 
