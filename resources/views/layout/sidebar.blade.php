@@ -87,11 +87,13 @@
           </a>
           <ul class="treeview-menu">
               <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'create' && Request::segment(3) != 'internal' && Request::segment(3) != 'transaction-internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/normal/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang</a></li>
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'createnew'  && Request::segment(3) != 'internal' && Request::segment(3) != 'transaction-internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/normal/createnew') }}"><i class="fa fa-circle-o"></i> new Tambah Loading Barang</a></li>
+              
               <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'create' && Request::segment(3) == 'internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/internal/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang Internal</a></li>
-              @if(\Auth::user()->email == 'admin')
+              <!-- @if(\Auth::user()->email == 'admin')
                 <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'create' && Request::segment(3) == 'transaction-internal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/transaction-internal/create') }}"><i class="fa fa-circle-o"></i> Tambah Loading Barang & Transaksi Internal</a></li>
-              @endif
-              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) != 'create' && Request::segment(4) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/50') }}"><i class="fa fa-circle-o"></i> Daftar Loading Barang</a></li>
+              @endif -->
+              <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) != 'create' && Request::segment(4) != 'createnew' && Request::segment(4) != 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/' . date('Y-m-d') . '/' . date('Y-m-d') . '/all/50') }}"><i class="fa fa-circle-o"></i> Daftar Loading Barang</a></li>
               <li class="{{ Request::segment(2) == 'good-loading' && Request::segment(4) == 'excel' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good-loading/excel') }}"><i class="fa fa-circle-o"></i> Import Data Excel</a></li>
           </ul>
         </li>
@@ -105,7 +107,6 @@
         </a>
         <ul class="treeview-menu">
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi</a></li>
-            <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createTouch' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createTouch') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi (tanpa retur)</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createGpt' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createGpt') }}" target="_blank()"><i class="fa fa-circle-o"></i> Tambah Transaksi (new page)</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create'&& Request::segment(3) != 'createGpt' && Request::segment(3) != 'createTouch' && Request::segment(3) != 'resume' && Request::segment(3) != 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>

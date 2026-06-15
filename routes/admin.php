@@ -124,6 +124,8 @@ Route::group(['prefix' => 'good'], function () {
 
 Route::group(['prefix' => 'good-loading'], function () {
 	Route::get('/{type}/create', 'GoodLoadingController@create');
+	Route::get('/{type}/createnew', 'GoodLoadingController@createnew');
+    
     Route::post('/{type}/store', 'GoodLoadingController@store')->name('good-loading.store');
 	Route::get('/excel', 'GoodLoadingController@excel');
     Route::post('/storeExcel', 'GoodLoadingController@storeExcel')->name('good-loading.storeExcel');

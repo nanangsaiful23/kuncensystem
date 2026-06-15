@@ -46,6 +46,21 @@ class GoodLoadingController extends Controller
 
         return view('admin.layout.page', compact('default', 'type'));
     }
+public function createnew($type)
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        if($type == 'internal')
+            $default['page_name'] = 'Tambah Loading Internal';
+        elseif($type == 'transaction-internal')
+            $default['page_name'] = 'Tambah Loading & Transaksi Internal';
+        else
+            $default['page_name'] = 'Tambah Loading';
+        $default['page'] = 'good-loading';
+        $default['section'] = 'createnew';
+
+        return view('admin.layout.page', compact('default', 'type'));
+    }
 
     public function store($type, Request $request)
     {
