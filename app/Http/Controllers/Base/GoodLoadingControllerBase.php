@@ -169,11 +169,13 @@ trait GoodLoadingControllerBase
             { 
                 if($data['names'][$i] != null)
                 {
-
-                    $data_good['code'] = $data['barcodes'][$i];
-                    $data_good['name'] = $data['name_temps'][$i];
-
                     $good = Good::find($data['names'][$i]);
+                    $data_good['code'] = $data['barcodes'][$i];
+                    if($good->getType() != '-')
+                        $data_good['name'] = str_replace(strtolower($good->getType()), "", lcfirst($data['name_temps'][$i]));
+                    else
+                        $data_good['name'] = $data['name_temps'][$i];
+                    $data_good['name'] = ltrim($data_good['name']);
                     $data_good['total_loading'] = $good->total_loading;
                     $data_good['total_transaction'] = $good->total_transaction;
 
@@ -535,7 +537,11 @@ trait GoodLoadingControllerBase
                 $good_unit = $good_loading_detail->good_unit;
 
                 $good = Good::find($good_unit->good_id);
-                $data_good['name'] = $data['name_temps'][$j];
+                if($good->getType() != '-')
+                    $data_good['name'] = str_replace(strtolower($good->getType()), "", lcfirst($data['name_temps'][$j]));
+                else
+                    $data_good['name'] = $data['name_temps'][$j];
+                $data_good['name'] = ltrim($data_good['name']);
                 $data_good['total_loading'] = $good->total_loading;
                 $data_good['total_transaction'] = $good->total_transaction;
 
