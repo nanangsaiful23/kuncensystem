@@ -14,6 +14,10 @@ Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cash
 Route::get('/store-health', 'StoreHealthController@index')->name('store-health');
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
+
+Route::get('/reports/reorder', 'ReorderController@index')->name('reports.reorder');
+ 
+Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports.reorder.export');
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
  Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
