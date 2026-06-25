@@ -82,9 +82,19 @@
 .ro-group { background:var(--card); border:1px solid var(--bdr); border-radius:.75rem;
             margin-bottom:1.25rem; overflow:hidden; }
 .ro-group-hd { padding:1.1rem 1.25rem; background:var(--surf); border-bottom:1px solid var(--bdr);
-               display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.6rem; }
+               display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.6rem;
+               cursor:pointer; user-select:none; transition:background .12s; }
+.ro-group-hd:hover { background:#eef2f7; }
+.ro-group.collapsed .ro-group-hd { border-bottom-color:transparent; }
+.ro-group-title { display:flex; align-items:center; gap:.65rem; min-width:0; }
+.ro-group-chevron { display:inline-flex; align-items:center; justify-content:center;
+    width:1.6rem; height:1.6rem; border-radius:9999px; background:#fff; border:1px solid var(--bdr);
+    color:var(--ink2); font-size:.85rem; flex-shrink:0; transition:transform .18s ease; }
+.ro-group.collapsed .ro-group-chevron { transform:rotate(-90deg); }
 .ro-group-hd h2 { font-size:1.25rem; font-weight:700; color:var(--ink); margin:0;
-                  display:flex; align-items:center; gap:.65rem; }
+                  display:flex; align-items:center; gap:.65rem; min-width:0; }
+.ro-group-body { max-height:none; overflow:hidden; }
+.ro-group.collapsed .ro-group-body { display:none; }
 .ro-group-meta { font-size:.98rem; color:var(--ink2); display:flex; gap:1.25rem; flex-wrap:wrap; }
 .ro-group-meta b { color:var(--ink); }
 .ro-urgent-pill { background:var(--urgent-bg); color:var(--urgent); border:1px solid var(--urgent-b);
@@ -306,18 +316,22 @@
 
 {{-- Grup per distributor --}}
 @forelse($groups as $group)
-<div class="ro-group">
-    <div class="ro-group-hd">
-        <h2>
-            🏢 {{ $group->distributor_nama }}
-            @if($group->urgent_count > 0)
-                <span class="ro-urgent-pill">{{ $group->urgent_count }} segera</span>
-            @endif
-        </h2>
+<div class="ro-group collapsed" id="roGroup{{ $loop->index }}">
+    <div class="ro-group-hd" onclick="roToggleGroup({{ $loop->index }})">
+        <div class="ro-group-title">
+            <span class="ro-group-chevron">▾</span>
+            <h2>
+                🏢 {{ $group->distributor_nama }}
+                @if($group->urgent_count > 0)
+                    <span class="ro-urgent-pill">{{ $group->urgent_count }} segera</span>
+                @endif
+            </h2>
+        </div>
         <div class="ro-group-meta">
             <span><b>{{ $group->jumlah_item }}</b> item</span>
             <span>Estimasi: <b>Rp {{ number_format($group->total_biaya, 0, ',', '.') }}</b></span>
             <button type="button" class="ro-export-group"
+                onclick="event.stopPropagation()"
                 data-group-idx="{{ $loop->index }}"
                 data-distributor-id="{{ $group->distributor_id }}"
                 data-distributor-nama="{{ $group->distributor_nama }}">
@@ -325,6 +339,7 @@
             </button>
         </div>
     </div>
+    <div class="ro-group-body">
     <div class="ro-tbl-wrap">
     <table data-group-idx="{{ $loop->index }}">
         <thead>
@@ -390,9 +405,10 @@
         </tbody>
     </table>
     </div>
+    </div>{{-- end ro-group-body --}}
 </div>
 @empty
-<div class="ro-group">
+<div class="ro-group" style="cursor:default">
     <div class="ro-empty">
         <div class="ei">🎉</div>
         <h3>Tidak ada barang yang perlu di-order</h3>
@@ -457,6 +473,12 @@
     /* ── Konstanta ────────────────────────────────────────────────── */
     var _discBaseUrl = '{{ url("admin/reports/movement") }}';
     var _goodId       = null;
+
+    /* ── Accordion: expand/collapse tabel per distributor ────────────── */
+    window.roToggleGroup = function (idx) {
+        var el = document.getElementById('roGroup' + idx);
+        if (el) el.classList.toggle('collapsed');
+    };
 
     /* ── Select-all per tabel distributor ───────────────────────────── */
     document.querySelectorAll('.ro-tbl-wrap table').forEach(function (table) {
