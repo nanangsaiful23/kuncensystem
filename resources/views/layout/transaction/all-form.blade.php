@@ -46,7 +46,7 @@
           <td>@if($transaction->member_id != 1){{ $transaction->member->name }}@else - @endif</td>
           <td>{{ $transaction->note }}</td>
           <td>{{ showRupiah($transaction->total_item_price) }}</td>
-          <td>{{ showRupiah(checkNull($discount_price)) }}</td>
+          <td>{{ showRupiah(checkNull($transaction->details->sum('discount_price'))) }}</td>
           <td>{{ showRupiah($transaction->total_discount_price) }}</td>
           <td>{{ showRupiah($transaction->total_sum_price) }}</td>
           <td>{{ showRupiah($transaction->money_paid) }}</td>
