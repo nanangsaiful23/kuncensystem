@@ -330,41 +330,66 @@ class MainController extends Controller
             $params = '21,22,24,26,31,32,35,41,42,43';
 
         $data_params = explode(',', $params);
+        $startCarbon = Carbon::parse($start_date);
+        $endCarbon = Carbon::parse($end_date);
 
-        $dates = Journal::select(DB::raw('DISTINCT YEAR(journals.journal_date) as year, MONTH(journals.journal_date) as month'))
+        $dates = Journal::selectRaw('YEAR(journals.journal_date) as year, MONTH(journals.journal_date) as month')
                         ->whereDate('journals.journal_date', '>=', $start_date)
                         ->whereDate('journals.journal_date', '<=', $end_date)
-                        ->groupBy(DB::raw('YEAR(journals.journal_date)'))
-                        ->groupBy(DB::raw('MONTH(journals.journal_date)'))
-                        ->orderBy('journals.journal_date', 'desc')
+                        ->groupByRaw('YEAR(journals.journal_date), MONTH(journals.journal_date)')
+                        ->orderByRaw('YEAR(journals.journal_date) desc, MONTH(journals.journal_date) desc')
                         ->paginate(20);
 
         foreach($dates as $date)
         {
-            $date->data = Journal::rightJoin('accounts', 'accounts.id', 'journals.debit_account_id')
-                                ->select('accounts.code', 'accounts.color', DB::raw('COALESCE(SUM(journals.debit), 0) as debit'), 'accounts.name')
-                                ->whereYear('journals.journal_date', $date->year)
-                                ->whereMonth('journals.journal_date', $date->month)
-                                ->whereIn('accounts.id', $data_params)
-                                ->groupBy('accounts.code')
-                                ->groupBy('accounts.color')
-                                ->groupBy('accounts.name')
-                                ->orderBy(DB::raw('SUM(journals.debit)'), 'asc')
-                                ->get();
+            $periodStart = Carbon::create($date->year, $date->month, 1)->startOfDay();
+            $periodEnd = Carbon::create($date->year, $date->month, 1)->endOfMonth()->endOfDay();
 
-            $date->dataplus = Journal::rightJoin('accounts', 'accounts.id', 'journals.credit_account_id')
-                                ->select('accounts.code', 'accounts.color', DB::raw('COALESCE(SUM(journals.debit), 0) as debit'), 'accounts.name')
-                                ->whereYear('journals.journal_date', $date->year)
-                                ->whereMonth('journals.journal_date', $date->month)
-                                ->whereIn('accounts.id', ['20'])
-                                ->groupBy('accounts.code')
-                                ->groupBy('accounts.color')
-                                ->groupBy('accounts.name')
-                                ->get();
+            if($date->year == $startCarbon->year && $date->month == $startCarbon->month) {
+                $periodStart = $startCarbon;
+            }
 
+            if($date->year == $endCarbon->year && $date->month == $endCarbon->month) {
+                $periodEnd =  Carbon::parse($end_date);
+            }
+
+            $date->data = Account::join('journals', function($join) {
+                                $join->on('accounts.id', 'journals.debit_account_id')
+                                     ->orOn('accounts.id', 'journals.credit_account_id');
+                            })
+                            ->select(
+                                'accounts.code',
+                                'accounts.color',
+                                DB::raw('COALESCE(SUM(CASE WHEN journals.debit_account_id = accounts.id THEN journals.debit ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN journals.credit_account_id = accounts.id THEN journals.credit ELSE 0 END), 0) as debit'),
+                                'accounts.name'
+                            )
+                            ->whereDate('journals.journal_date', '>=', $periodStart)
+                            ->whereDate('journals.journal_date', '<=', $periodEnd)
+                            ->whereIn('accounts.id', $data_params)
+                            ->groupBy('accounts.id', 'accounts.code', 'accounts.color', 'accounts.name')
+                            ->orderBy('debit', 'asc')
+                            ->get();
+
+                $date->dataplus = Account::join('journals', function($join) {
+                                $join->on('accounts.id', 'journals.debit_account_id')
+                                     ->orOn('accounts.id', 'journals.credit_account_id');
+                            })
+                            ->select(
+                                'accounts.code',
+                                'accounts.color',
+                                DB::raw('COALESCE(SUM(CASE WHEN journals.credit_account_id = accounts.id THEN journals.credit ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN journals.debit_account_id = accounts.id THEN journals.debit ELSE 0 END), 0) as debit'),
+                                'accounts.name'
+                            )
+                            ->whereDate('journals.journal_date', '>=', $periodStart)
+                            ->whereDate('journals.journal_date', '<=', $periodEnd)
+                            ->whereIn('accounts.id', ['20'])
+                            ->groupBy('accounts.id', 'accounts.code', 'accounts.color', 'accounts.name')
+                            ->orderBy('debit', 'asc')
+                            ->get();
+        
             $date->profit = $date->dataplus->sum('debit') - $date->data->sum('debit');
 
-            $date->date = $date->year . '-' . $date->month;
+            $date->date = $date->year . '-' . str_pad($date->month, 2, '0', STR_PAD_LEFT);
         }
 
         // dd($dates[0]);die;
