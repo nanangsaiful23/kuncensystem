@@ -435,12 +435,13 @@
                     <div class="ro-chk-label">Export</div>
                 </th>
                 <th>Barang</th>
+                <th class="tr" data-ro-tip="Jumlah pada loading/restock terakhir, sebagai pembanding">Loading Terakhir</th>
+                <th class="tr" data-ro-tip="Bisa diubah manual sebelum export sesuai kebutuhan">Qty Order</th>
+                
                 <th>Kategori</th>
                 <th class="tr">Stok Saat Ini</th>
                 <th class="tr" data-ro-tip="Titik pemicu order: stok pengaman + kebutuhan selama lead time">Min. Stok</th>
                 <th class="tr" data-ro-tip="Stok ideal setelah barang baru tiba">Target Stok</th>
-                <th class="tr" data-ro-tip="Jumlah pada loading/restock terakhir, sebagai pembanding">Loading Terakhir</th>
-                <th class="tr" data-ro-tip="Bisa diubah manual sebelum export sesuai kebutuhan">Qty Order</th>
                 <th class="tr">Estimasi Biaya</th>
                 <th>Urgensi</th>
                 <th class="ro-chk-col" data-ro-tip="Pilih barang yang akan di-discontinue sekaligus">
@@ -472,13 +473,6 @@
                     📅 Last loading: {{ $it->last_loading_date ?? 'belum pernah' }}
                 </div>
             </td>
-            <td>{{ $it->kategori }}</td>
-            <td class="tr">
-                {{ number_format($it->stok_sekarang, 0, ',', '.') }}
-                <div class="ro-stock-line">{{ number_format($it->avg_qty_per_day, 1) }}/hari</div>
-            </td>
-            <td class="tr">{{ number_format($it->min_stock, 0, ',', '.') }}</td>
-            <td class="tr">{{ number_format($it->target_stock, 0, ',', '.') }}</td>
             <td class="tr">
                 @if($it->last_loading_qty !== null)
                     {{ number_format($it->last_loading_qty, 0, ',', '.') }} {{ $it->last_loading_unit }}
@@ -498,6 +492,14 @@
                     <span class="ro-qty-unit">{{ $it->reorder_unit }}</span>
                 </div>
             </td>
+            <td>{{ $it->kategori }}</td>
+            <td class="tr">
+                {{ number_format($it->stok_sekarang, 0, ',', '.') }}
+                <div class="ro-stock-line">{{ number_format($it->avg_qty_per_day, 1) }}/hari</div>
+            </td>
+            <td class="tr">{{ number_format($it->min_stock, 0, ',', '.') }}</td>
+            <td class="tr">{{ number_format($it->target_stock, 0, ',', '.') }}</td>
+            
             <td class="tr">
                 <span id="roBiaya{{ $it->good_id }}">Rp {{ number_format($it->estimasi_biaya, 0, ',', '.') }}</span>
             </td>
