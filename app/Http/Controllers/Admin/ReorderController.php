@@ -59,7 +59,11 @@ class ReorderController extends Controller
      * Bisa untuk 1 distributor saja, atau semua distributor sekaligus
      * (jika parameter `distributor` tidak diisi / kosong).
      *
-     * GET /admin/reports/reorder/export?distributor=&start_date=&end_date=&kategori=&only_needed=
+     * Mendukung 2 format:
+     * - 'lengkap' (default): semua kolom analisis, untuk arsip/keperluan internal.
+     * - 'ringkas': hanya nama barang & jumlah order, siap dikirim ke distributor.
+     *
+     * GET /admin/reports/reorder/export?distributor=&start_date=&end_date=&kategori=&only_needed=&format=
      */
     public function export(Request $request)
     {
@@ -69,7 +73,10 @@ class ReorderController extends Controller
         $distributorNama  = $request->get('distributor_nama', null); // fallback utk grup "Belum Ditentukan"
         $kategori         = $request->get('kategori',    null);
         $onlyNeeded       = $request->get('only_needed', '1') === '1';
-        $goodIds          = $request->get('good_ids', null); // array good_id yang dicentang di halaman
+        $goodIds          = $request->get('good_ids', null);     // array good_id yang dicentang di halaman
+        $qtyOverrides     = $request->get('qty_overrides', null); // [good_id => qty hasil edit user]
+        $format           = $request->get('format', 'lengkap');  // 'lengkap' atau 'ringkas'
+        $format           = in_array($format, ['lengkap', 'ringkas'], true) ? $format : 'lengkap';
 
         $data = $this->repo->getReorderRecommendations(
             $startDate,
@@ -90,17 +97,29 @@ class ReorderController extends Controller
             })->values();
         }
 
-        // Filter ke barang yang dicentang saja (dari checkbox di halaman).
-        // Jika tidak ada good_ids dikirim (mis. akses langsung via URL tanpa
-        // lewat halaman), tampilkan semua seperti biasa — supaya export tetap
-        // bisa dipakai lewat link langsung.
+        // Filter ke barang yang dicentang saja (dari checkbox di halaman),
+        // dan terapkan qty hasil edit user (dari textfield Qty Order) jika ada
+        // — supaya angka yang ter-export PERSIS sama dengan yang terlihat di
+        // layar saat user export, bukan hasil hitung otomatis awal.
         if (is_array($goodIds) && count($goodIds) > 0) {
             $goodIdsInt = array_map('intval', $goodIds);
             $groups = $groups
-                ->map(function ($g) use ($goodIdsInt) {
+                ->map(function ($g) use ($goodIdsInt, $qtyOverrides) {
                     $g->items = $g->items
                         ->filter(function ($it) use ($goodIdsInt) {
                             return in_array((int) $it->good_id, $goodIdsInt, true);
+                        })
+                        ->map(function ($it) use ($qtyOverrides) {
+                            if (is_array($qtyOverrides) && isset($qtyOverrides[$it->good_id])) {
+                                // Qty Order selalu bulat (satuan kemasan utuh), jadi hasil
+                                // edit manual dari textfield juga dipaksa jadi integer di sini.
+                                $newQty = (int) round((float) $qtyOverrides[$it->good_id]);
+                                $newQty = max(0, $newQty);
+                                $it->reorder_qty    = $newQty;
+                                // harga_beli_per_unit sudah dalam harga per satuan kemasan terbesar
+                                $it->estimasi_biaya = round($newQty * $it->harga_beli_per_unit, 0);
+                            }
+                            return $it;
                         })
                         ->values();
                     $g->jumlah_item  = $g->items->count();
@@ -121,14 +140,24 @@ class ReorderController extends Controller
         }
 
         // Nama file: kalau filter ke 1 distributor, pakai nama distributor itu;
-        // kalau semua, pakai label umum.
+        // kalau semua, pakai label umum. Diberi penanda "ringkas" supaya
+        // pemilik toko mudah membedakan file mana yang siap dikirim ke
+        // distributor vs file arsip lengkap.
         $namaFileBagian = $distributorId && $groups->count() === 1
             ? Str::slug($groups->first()->distributor_nama)
             : 'semua-distributor';
+        $namaFileFormat = $format === 'ringkas' ? 'ringkas' : 'lengkap';
 
-        $filename = sprintf('restock-%s-%s.csv', $namaFileBagian, Carbon::now()->format('Ymd-His'));
+        $filename = sprintf(
+            'restock-%s-%s-%s.csv',
+            $namaFileBagian,
+            $namaFileFormat,
+            Carbon::now()->format('Ymd-His')
+        );
 
-        return $this->streamCsv($groups, $filename, $startDate, $endDate);
+        return $format === 'ringkas'
+            ? $this->streamCsvRingkas($groups, $filename)
+            : $this->streamCsv($groups, $filename, $startDate, $endDate);
     }
 
     /**
@@ -165,12 +194,15 @@ class ReorderController extends Controller
                     'Kode',
                     'Nama Barang',
                     'Kategori',
-                    'Satuan',
+                    'Tanggal Loading Terakhir',
+                    'Qty Loading Terakhir',
+                    'Satuan Loading Terakhir',
                     'Stok Saat Ini',
                     'Rata-rata Jual/Hari',
                     'Min. Stok',
                     'Target Stok',
-                    'Qty yang Disarankan Order',
+                    'Qty Order',
+                    'Satuan Order',
                     'Estimasi Harga Beli/Satuan',
                     'Estimasi Total Biaya',
                     'Urgensi',
@@ -181,19 +213,74 @@ class ReorderController extends Controller
                         $it->kode,
                         $it->nama,
                         $it->kategori,
-                        $it->satuan,
+                        $it->last_loading_date ?? '-',
+                        $it->last_loading_qty  ?? '-',
+                        $it->last_loading_unit ?? '-',
                         $it->stok_sekarang,
                         $it->avg_qty_per_day,
                         $it->min_stock,
                         $it->target_stock,
-                        $it->reorder_paket,
-                        $it->harga_beli,
+                        $it->reorder_qty,
+                        $it->reorder_unit,
+                        $it->harga_beli_per_unit,
                         $it->estimasi_biaya,
                         $it->urgensi_label,
                     ]);
                 }
 
-                fputcsv($out, ['', '', '', '', '', '', '', '', 'TOTAL ESTIMASI BIAYA', '', $group->total_biaya, '']);
+                fputcsv($out, ['', '', '', '', '', '', '', '', '', '', '', '', 'TOTAL ESTIMASI BIAYA', $group->total_biaya, '']);
+                fputcsv($out, []); // baris kosong pemisah antar distributor
+            }
+
+            fclose($out);
+        };
+
+        return new StreamedResponse($callback, 200, $headers);
+    }
+
+    /**
+     * Bangun & alirkan file CSV RINGKAS — hanya nama barang dan jumlah yang
+     * perlu di-order, tanpa kolom analisis internal (stok, min. stok, urgensi,
+     * dll). Format ini didesain supaya siap langsung dikirim/dilampirkan ke
+     * distributor sebagai daftar pesanan, tanpa perlu disunting lagi.
+     *
+     * Jika $groups berisi lebih dari 1 distributor, tetap dipisah per bagian
+     * dengan baris judul distributor, supaya kalau memang ada kebutuhan
+     * gabung banyak distributor dalam 1 file, tetap jelas mana milik siapa.
+     */
+    private function streamCsvRingkas($groups, string $filename): StreamedResponse
+    {
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($groups) {
+            $out = fopen('php://output', 'w');
+
+            fwrite($out, "\xEF\xBB\xBF"); // BOM UTF-8 agar Excel baca karakter non-ASCII dengan benar
+
+            fputcsv($out, ['Daftar Pesanan Barang']);
+            fputcsv($out, ['Tanggal', Carbon::now()->format('d-m-Y')]);
+            fputcsv($out, []);
+
+            foreach ($groups as $group) {
+                fputcsv($out, ['Kepada Yth. Distributor', $group->distributor_nama]);
+                fputcsv($out, []);
+                fputcsv($out, ['No', 'Nama Barang', 'Jumlah Pesan', 'Satuan']);
+
+                $no = 1;
+                foreach ($group->items as $it) {
+                    fputcsv($out, [
+                        $no++,
+                        $it->nama,
+                        $it->reorder_qty,
+                        $it->reorder_unit,
+                    ]);
+                }
+
+                fputcsv($out, []);
+                fputcsv($out, ['Total ' . $group->jumlah_item . ' jenis barang']);
                 fputcsv($out, []); // baris kosong pemisah antar distributor
             }
 

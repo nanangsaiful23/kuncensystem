@@ -9,6 +9,8 @@ use App\Models\Good;
 use App\Models\GoodUnit;
 use App\Models\Distributor;
 use App\Models\TransactionDetail;
+use App\Models\GoodLoading;
+use App\Models\GoodLoadingDetail;
 
 class ReorderRepository
 {
@@ -160,6 +162,32 @@ class ReorderRepository
             ->get()
             ->groupBy('good_id');
 
+        // ── Ambil data loading (restock) TERAKHIR per barang, sebagai
+        //    pembanding "biasanya order berapa" saat user menentukan qty
+        //    order kali ini. Diambil dari good_loading_details, dicari yang
+        //    loading_date paling baru untuk masing-masing good_id. ──────────
+        $lastLoadingRaw = DB::table('good_loading_details AS gld')
+            ->join('good_loadings AS gl', 'gl.id', '=', 'gld.good_loading_id')
+            ->join('good_units AS gu',    'gu.id', '=', 'gld.good_unit_id')
+            ->join('units AS u',          'u.id',  '=', 'gu.unit_id')
+            ->whereNull('gld.deleted_at')
+            ->whereNull('gl.deleted_at')
+            ->select(
+                'gu.good_id',
+                'gl.loading_date',
+                'gld.real_quantity',
+                'gld.quantity',
+                'u.name     AS unit_name',
+                'u.quantity AS unit_qty'
+            )
+            ->orderBy('gu.good_id')
+            ->orderByDesc('gl.loading_date')
+            ->get()
+            ->groupBy('good_id')
+            ->map(function ($rows) {
+                return $rows->first(); // baris pertama = loading_date terbaru (sudah di-order desc)
+            });
+
         // ── Ambil daftar distributor untuk pengelompokan ──────────────────────
         $distributors = Distributor::whereNull('deleted_at')->get()->keyBy('id');
 
@@ -184,38 +212,56 @@ class ReorderRepository
             }
 
             $unitOptions = $allUnitsByGood->get($gid, collect());
-            $rounded     = $this->roundToPackaging($calc['reorder_qty'], $unitOptions);
+            $converted   = $this->convertToBiggestUnit($calc['reorder_qty'], $unitOptions);
 
             $distId   = $good->distributor_id;
             $distName = $distId && $distributors->has($distId)
                 ? $distributors->get($distId)->name
                 : 'Belum Ditentukan';
 
+            // ── Data loading (restock) terakhir, sebagai pembanding ──────────
+            $lastLoading = $lastLoadingRaw->get($gid);
+            if ($lastLoading) {
+                $llQty  = (float) ($lastLoading->real_quantity ?? $lastLoading->quantity ?? 0);
+                $llUnit = $lastLoading->unit_name ?? 'pcs';
+                $llDate = $lastLoading->loading_date
+                    ? Carbon::parse($lastLoading->loading_date)->format('d-m-Y')
+                    : null;
+            } else {
+                $llQty  = null;
+                $llUnit = null;
+                $llDate = null;
+            }
+
             $items->push((object) [
-                'good_id'          => $gid,
-                'kode'             => $good->kode,
-                'nama'             => $good->nama,
-                'kategori'         => $good->kategori ?? '-',
-                'merk'             => $good->merk     ?? '-',
-                'satuan'           => $good->satuan   ?? '-',
-                'distributor_id'   => $distId,
-                'distributor_nama' => $distName,
-                'stok_sekarang'    => $stok,
-                'avg_qty_per_day'  => round($avgQtyPerDay, 2),
-                'total_transaksi'  => $totalTrx,
-                'lead_time_days'   => $calc['lead_time_days'],
-                'safety_stock'     => $calc['safety_stock'],
-                'min_stock'        => $calc['min_stock'],     // reorder point
-                'target_stock'     => $calc['target_stock'],
-                'reorder_qty_raw'  => $calc['reorder_qty'],
-                'reorder_qty'      => $rounded['qty'],
-                'reorder_unit'     => $rounded['unit_name'],
-                'reorder_paket'    => $rounded['label'],
-                'harga_beli'       => $hargaBeli,
-                'estimasi_biaya'   => round($rounded['qty'] * $hargaBeli, 0),
-                'urgensi'          => $calc['urgensi'],         // 1=segera 2=mendekati 0=aman
-                'urgensi_label'    => $calc['urgensi_label'],
-                'tipe'             => $calc['tipe'],            // fast/slow/baru
+                'good_id'             => $gid,
+                'kode'                => $good->kode,
+                'nama'                => $good->nama,
+                'kategori'            => $good->kategori ?? '-',
+                'merk'                => $good->merk     ?? '-',
+                'satuan'              => $good->satuan   ?? '-',
+                'distributor_id'      => $distId,
+                'distributor_nama'    => $distName,
+                'stok_sekarang'       => $stok,
+                'avg_qty_per_day'     => round($avgQtyPerDay, 2),
+                'total_transaksi'     => $totalTrx,
+                'lead_time_days'      => $calc['lead_time_days'],
+                'safety_stock'        => $calc['safety_stock'],
+                'min_stock'           => $calc['min_stock'],     // reorder point
+                'target_stock'        => $calc['target_stock'],
+                'reorder_qty_raw'     => $calc['reorder_qty'],   // dalam satuan dasar (pcs), utk referensi
+                'reorder_qty'         => $converted['qty'],      // angka editable, dlm satuan kemasan terbesar
+                'reorder_unit'        => $converted['unit_name'],// nama satuan kemasan terbesar (1 satuan saja)
+                'reorder_unit_qty'    => $converted['unit_qty'], // faktor konversi satuan itu ke pcs
+                'harga_beli'          => $hargaBeli,
+                'harga_beli_per_unit' => round($hargaBeli * $converted['unit_qty'], 0), // harga per satuan kemasan
+                'estimasi_biaya'      => round($converted['qty'] * $hargaBeli * $converted['unit_qty'], 0),
+                'urgensi'             => $calc['urgensi'],         // 1=segera 2=mendekati 0=aman
+                'urgensi_label'       => $calc['urgensi_label'],
+                'tipe'                => $calc['tipe'],            // fast/slow/baru
+                'last_loading_date'   => $llDate,                  // null jika belum pernah loading
+                'last_loading_qty'    => $llQty,
+                'last_loading_unit'   => $llUnit,
             ]);
         }
 
@@ -296,15 +342,20 @@ class ReorderRepository
             $safetyFactor = self::SAFETY_FACTOR_SLOW;
         }
 
-        $safetyStock = round($avgQtyPerDay * $leadTime * $safetyFactor, 1);
-        $minStock    = round($safetyStock + ($avgQtyPerDay * $leadTime), 1);
-        $targetStock = round(
-            $safetyStock + $avgQtyPerDay * ($leadTime + self::REVIEW_PERIOD_DAYS),
-            1
-        );
+        // Safety stock tetap desimal -> ini nilai perantara untuk hitung urgensi,
+        // tidak ditampilkan langsung sebagai angka pemesanan ke user.
+        $safetyStock = $avgQtyPerDay * $leadTime * $safetyFactor;
+
+        // Min. Stok, Target Stok, dan Qty Order WAJIB bulat (integer) dan
+        // dibulatkan KE ATAS (ceil) -- karena barang dipesan dalam satuan utuh
+        // (pcs/dus), dan lebih aman kelebihan sedikit daripada kurang dari
+        // kebutuhan minimum. Pembulatan dilakukan di angka akhir saja (bukan
+        // di tiap langkah) supaya tidak terjadi penumpukan bias pembulatan.
+        $minStock    = (int) ceil($safetyStock + ($avgQtyPerDay * $leadTime));
+        $targetStock = (int) ceil($safetyStock + $avgQtyPerDay * ($leadTime + self::REVIEW_PERIOD_DAYS));
 
         $perluOrder = $stok <= $minStock && $avgQtyPerDay > 0;
-        $reorderQty = $perluOrder ? max(0, round($targetStock - $stok, 1)) : 0;
+        $reorderQty = $perluOrder ? max(0, (int) ceil($targetStock - $stok)) : 0;
 
         // Urgensi: 1 = segera (stok di bawah safety stock, risiko habis sebelum
         // barang baru tiba), 2 = mendekati (di antara safety stock & min stock),
@@ -337,57 +388,39 @@ class ReorderRepository
     }
 
     /**
-     * Bulatkan reorder_qty ke kelipatan kemasan terbesar yang tersedia,
-     * supaya order ke distributor rapi (mis. 2 dus + 5 pcs, bukan "53.4 pcs").
+     * Konversi reorder_qty (dalam satuan dasar/pcs) menjadi 1 angka BULAT
+     * dalam SATU satuan kemasan terbesar yang tersedia untuk barang itu.
      *
-     * $units diurutkan dari kemasan terbesar -> terkecil (sudah di-order DESC
-     * di query). Algoritma greedy sederhana: pakai kemasan terbesar dulu,
-     * sisanya pakai kemasan lebih kecil, sisa akhir dibulatkan ke atas pada
-     * kemasan terkecil supaya jumlah order tidak kurang dari kebutuhan.
+     * Hasilnya selalu integer dan dibulatkan KE ATAS (mis. kebutuhan 2.3 Dus
+     * dibulatkan jadi 3 Dus) — karena pemesanan ke distributor dilakukan
+     * dalam satuan utuh (tidak ada "setengah dus"), dan lebih aman kelebihan
+     * sedikit daripada order kurang dari kebutuhan minimum.
+     *
+     * $units sudah diurutkan dari kemasan terbesar -> terkecil oleh query
+     * pemanggil (orderBy unit_qty desc), jadi cukup ambil yang pertama.
      */
-    private function roundToPackaging(float $qtyNeeded, $units): array
+    private function convertToBiggestUnit(float $qtyNeeded, $units): array
     {
-        if ($qtyNeeded <= 0) {
-            return ['qty' => 0, 'unit_name' => '-', 'label' => '-'];
-        }
-
         if ($units->isEmpty()) {
-            $rounded = (int) ceil($qtyNeeded);
-            return ['qty' => $rounded, 'unit_name' => 'pcs', 'label' => $rounded . ' pcs'];
+            return [
+                'qty'       => (int) ceil($qtyNeeded),
+                'unit_name' => 'pcs',
+                'unit_qty'  => 1,
+            ];
         }
 
-        $remaining = $qtyNeeded;
-        $parts     = [];
+        $biggest = $units->first(); // kemasan terbesar (sudah di-sort desc oleh query)
+        $unitQty = max(1, (int) $biggest->unit_qty);
 
-        foreach ($units as $u) {
-            $unitQty = max(1, (int) $u->unit_qty);
-            if ($unitQty <= 1) {
-                continue; // satuan dasar disisakan untuk pembulatan akhir
-            }
-            $count = floor($remaining / $unitQty);
-            if ($count > 0) {
-                $parts[]   = $count . ' ' . $u->unit_name;
-                $remaining -= $count * $unitQty;
-            }
-        }
-
-        // Sisa dibulatkan ke atas dalam satuan dasar (pcs/terkecil) —
-        // pembulatan ke atas memastikan jumlah order tidak kurang dari kebutuhan
-        $remainingRounded = (int) ceil($remaining);
-        $smallestUnitName = $units->sortBy('unit_qty')->first()->unit_name ?? 'pcs';
-        if ($remainingRounded > 0) {
-            $parts[] = $remainingRounded . ' ' . $smallestUnitName;
-        }
-
-        // Total qty aktual (dalam satuan dasar) setelah pembulatan ke atas —
-        // dipakai untuk hitung estimasi biaya & sorting, bisa sedikit lebih
-        // besar dari $qtyNeeded karena efek pembulatan kemasan.
-        $actualBaseQty = ($qtyNeeded - $remaining) + $remainingRounded;
+        // Dibulatkan ke atas ke bilangan bulat penuh supaya jumlah yang dipesan
+        // selalu kelipatan utuh kemasan dan tidak pernah kurang dari kebutuhan
+        // riil (mis. kebutuhan 2.1 Dus -> tetap dibulatkan jadi 3 Dus).
+        $qtyInBiggestUnit = $unitQty > 0 ? (int) ceil($qtyNeeded / $unitQty) : (int) ceil($qtyNeeded);
 
         return [
-            'qty'       => (int) $actualBaseQty,
-            'unit_name' => $smallestUnitName,
-            'label'     => implode(' + ', $parts) ?: '0 ' . $smallestUnitName,
+            'qty'       => $qtyInBiggestUnit,
+            'unit_name' => $biggest->unit_name,
+            'unit_qty'  => $unitQty,
         ];
     }
 
