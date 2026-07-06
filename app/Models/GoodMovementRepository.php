@@ -23,6 +23,26 @@ class GoodMovementRepository
     const DEAD_STOCK_DAYS      = 90;
     const REORDER_STOCK_MIN    = 10;
 
+    /**
+     * ── ANTI SALAH-DISCONTINUE ──────────────────────────────────────────
+     * Klasifikasi "dead" TIDAK BOLEH hanya berdasarkan "belum ada transaksi
+     * di periode filter yang sedang dilihat admin" — itu gampang salah,
+     * karena barang musiman/jarang keluar bisa kelihatan "mati" padahal
+     * larisnya bagus di luar jendela itu (atau memang lagi stockout jadi
+     * tidak bisa jual, bukan karena tidak laku).
+     *
+     * Solusinya: hitung juga RIWAYAT PENJUALAN JANGKA PANJANG
+     * (LONG_TERM_MONTHS bulan terakhir, independen dari filter tanggal
+     * yang dipilih admin). Kalau barang itu ternyata historisnya laku
+     * (>= SAFE_LIFETIME_TRX transaksi dalam jendela itu), dia TIDAK boleh
+     * otomatis masuk "Dead Stock" / kandidat discontinue — melainkan
+     * masuk kategori "at_risk" (Perlu Dicek) supaya pemilik toko mengecek
+     * dulu (biasanya karena stok habis / lupa di-restock), bukan langsung
+     * dihapus dari sistem.
+     */
+    const LONG_TERM_MONTHS     = 12;   // jendela riwayat jangka panjang
+    const SAFE_LIFETIME_TRX    = 5;    // minimal transaksi dlm jendela itu supaya dianggap "historisnya laku"
+
     // =========================================================================
     // QUERY UTAMA
     // =========================================================================
@@ -72,6 +92,29 @@ class GoodMovementRepository
                             * transaction_details.quantity
                          ), 0)                                                  AS total_laba'),
                 DB::raw('MAX(transactions.created_at)                           AS last_transaction_at')
+            )
+            ->groupBy('good_units.good_id')
+            ->get()
+            ->keyBy('good_id');
+
+        // ── TAHAP 1a-LT: Riwayat penjualan JANGKA PANJANG (independen dari
+        //    filter tanggal admin) — dipakai supaya barang yang historisnya
+        //    laku tidak otomatis dicap "Dead Stock" hanya karena kebetulan
+        //    tidak ada transaksi di jendela filter yang sedang dilihat.
+        $longTermStart = Carbon::now()->subMonths(self::LONG_TERM_MONTHS);
+        $longTermAgg = TransactionDetail::join(
+                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
+            )
+            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
+            ->where('transactions.type', 'normal')
+            ->whereNull('transactions.deleted_at')
+            ->whereNull('transaction_details.deleted_at')
+            ->where('transactions.created_at', '>=', $longTermStart)
+            ->select(
+                'good_units.good_id',
+                DB::raw('COUNT(DISTINCT transactions.id)                      AS total_transaksi_lt'),
+                DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0)  AS total_qty_lt'),
+                DB::raw('COALESCE(SUM(transaction_details.sum_price), 0)      AS total_omzet_lt')
             )
             ->groupBy('good_units.good_id')
             ->get()
@@ -179,7 +222,11 @@ class GoodMovementRepository
                 ? round(($hargaJual - $hargaBeli) / $hargaJual * 100, 1)
                 : 0;
 
-            $classification = $this->classify($totalTrx, $daysSinceTrx, $stok);
+            $lt             = $longTermAgg->get($gid);
+            $totalTrxLT     = $lt ? (int) $lt->total_transaksi_lt : 0;
+            $totalQtyLT     = $lt ? (float) $lt->total_qty_lt     : 0;
+
+            $classification = $this->classify($totalTrx, $daysSinceTrx, $stok, $totalTrxLT);
             $recommendation = $this->recommend($classification, $stok, $daysOfStock, $totalTrx, $margin);
 
             if ($status && $status !== 'all' && $classification['status'] !== $status) {
@@ -203,6 +250,10 @@ class GoodMovementRepository
                 'total_qty'        => $totalQty,
                 'total_omzet'      => $totalOmzet,
                 'total_laba'       => $totalLaba,
+                // Riwayat jangka panjang (12 bulan terakhir, independen dari filter)
+                // — alasan kenapa barang ini dianggap "at_risk" alih-alih "dead".
+                'total_transaksi_lt' => $totalTrxLT,
+                'total_qty_lt'       => $totalQtyLT,
                 'avg_qty_per_day'  => $avgQtyPerDay,
                 'days_of_stock'    => $daysOfStock,
                 'days_since_trx'   => $daysSinceTrx,
@@ -310,6 +361,7 @@ class GoodMovementRepository
             'fastCount'        => 0,
             'slowCount'        => 0,
             'deadCount'        => 0,
+            'atRiskCount'      => 0,
             'discontinuedCount'=> $goods->count(),
             'totalOmzet'       => 0,
             'totalLaba'        => 0,
@@ -378,27 +430,119 @@ class GoodMovementRepository
         return Good::whereNull('deleted_at')->where('is_discontinued', 1)->count();
     }
 
+    /**
+     * Discontinue BANYAK barang sekaligus (checklist), dengan SATU alasan
+     * yang sama untuk semua barang terpilih. Dipakai supaya beres-beres
+     * data lama (banyak barang salah/menumpuk) tidak perlu satu-satu.
+     *
+     * Sengaja tidak menerima $ids dari status 'at_risk' — itu keputusan
+     * di sisi UI (checkbox hanya muncul untuk baris berstatus 'dead'),
+     * tapi query di sini tetap dibatasi ke barang yang belum discontinued
+     * supaya tidak menimpa data yang sudah benar.
+     *
+     * @param  int[]  $goodIds
+     * @param  string $reason
+     * @param  int    $userId
+     * @return int    jumlah barang yang berhasil di-discontinue
+     */
+    public function markDiscontinuedBulk(array $goodIds, string $reason, int $userId): int
+    {
+        $goodIds = array_values(array_unique(array_map('intval', $goodIds)));
+
+        if (empty($goodIds)) {
+            return 0;
+        }
+
+        return (int) Good::whereIn('id', $goodIds)
+            ->whereNull('deleted_at')
+            ->where('is_discontinued', 0)
+            ->update([
+                'is_discontinued'     => 1,
+                'discontinued_at'     => Carbon::now(),
+                'discontinued_reason' => trim($reason),
+                'discontinued_by'     => $userId,
+            ]);
+    }
+
+    // =========================================================================
+    // BERES-BERES DATA: STOK MINUS
+    // =========================================================================
+    // Stok minus biasanya muncul karena kesalahan input transaksi/loading di
+    // masa lalu (transaksi tercatat sebelum barang di-loading, retur yang
+    // salah catat, dsb). Ini murni masalah KERAPIAN DATA, bukan masalah
+    // pergerakan barang — jadi dipisah dari klasifikasi fast/slow/dead di
+    // atas supaya tidak ikut mengotori keputusan reorder/discontinue.
+    // Perbaikan datanya sebaiknya lewat fitur Stock Opname yang sudah ada
+    // (StockOpname/StockOpnameDetail), bukan diedit manual di DB.
+
+    /**
+     * Daftar barang dengan stok minus (data tidak konsisten, perlu stock opname).
+     */
+    public function getNegativeStockGoods(int $limit = 50): \Illuminate\Support\Collection
+    {
+        return Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
+            ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->whereNull('goods.deleted_at')
+            ->where('goods.last_stock', '<', 0)
+            ->select(
+                'goods.id          AS good_id',
+                'goods.code        AS kode',
+                'goods.name        AS nama',
+                'goods.last_stock  AS stok',
+                'categories.name   AS kategori',
+                'brands.name       AS merk'
+            )
+            ->orderBy('goods.last_stock', 'asc') // paling minus duluan
+            ->limit($limit)
+            ->get();
+    }
+
+    public function countNegativeStock(): int
+    {
+        return Good::whereNull('deleted_at')->where('last_stock', '<', 0)->count();
+    }
+
     // =========================================================================
     // HELPER PRIVATE
     // =========================================================================
 
-    private function classify(int $totalTrx, int $daysSinceTrx, float $stok): array
+    private function classify(int $totalTrx, int $daysSinceTrx, float $stok, int $totalTrxLT = 0): array
     {
         if ($totalTrx >= self::FAST_MOVING_MIN_TRX && $daysSinceTrx <= self::ACTIVE_LAST_TRX_DAYS) {
             return ['status' => 'fast', 'label' => 'Fast Moving', 'color' => 'green'];
         }
-        if ($daysSinceTrx >= self::DEAD_STOCK_DAYS || ($totalTrx === 0 && $stok > 0)) {
-            return ['status' => 'dead', 'label' => 'Dead Stock',  'color' => 'red'];
+
+        $looksInactive = ($daysSinceTrx >= self::DEAD_STOCK_DAYS || ($totalTrx === 0 && $stok > 0))
+                       || ($totalTrx === 0 && $stok <= 0);
+
+        if ($looksInactive) {
+            // ⚠️ KUNCI PERBAIKAN: sebelum mencap "Dead Stock", cek dulu apakah
+            // barang ini historisnya (12 bulan terakhir, di luar filter admin)
+            // sebenarnya laku. Kalau ya → jangan otomatis mati, tandai "at_risk"
+            // supaya pemilik toko cek manual (biasanya stok habis / lupa order),
+            // bukan langsung jadi kandidat discontinue.
+            if ($totalTrxLT >= self::SAFE_LIFETIME_TRX) {
+                return ['status' => 'at_risk', 'label' => 'Perlu Dicek (Riwayat Bagus)', 'color' => 'purple'];
+            }
+            $label = ($totalTrx === 0 && $stok <= 0) ? 'Tidak Aktif' : 'Dead Stock';
+            return ['status' => 'dead', 'label' => $label, 'color' => 'red'];
         }
-        if ($totalTrx === 0 && $stok <= 0) {
-            return ['status' => 'dead', 'label' => 'Tidak Aktif', 'color' => 'red'];
-        }
+
         return ['status' => 'slow', 'label' => 'Slow Moving', 'color' => 'orange'];
     }
 
     private function recommend(array $classification, float $stok, int $daysOfStock, int $totalTrx, float $margin): array
     {
         $status = $classification['status'];
+
+        // Barang yang historisnya laku tapi belakangan tidak ada transaksi.
+        // JANGAN direkomendasikan discontinue — arahkan untuk dicek dulu.
+        if ($status === 'at_risk') {
+            if ($stok <= 0) {
+                return ['action' => 'restock_check', 'label' => 'Cek Stok & Restock', 'color' => 'purple', 'icon' => '🔎', 'urgency' => 2];
+            }
+            return ['action' => 'review_stuck', 'label' => 'Stok Ada, Cek Kenapa Tidak Laku', 'color' => 'purple', 'icon' => '❓', 'urgency' => 1];
+        }
 
         if ($status === 'dead') {
             if ($stok <= 0) {
@@ -429,14 +573,15 @@ class GoodMovementRepository
     private function buildSummary(array $goods, int $days): array
     {
         $total = count($goods);
-        $fastCount = $slowCount = $deadCount = 0;
+        $fastCount = $slowCount = $deadCount = $atRiskCount = 0;
         $totalOmzet = $totalLaba = $totalNilaiStok = 0;
         $reorderCount = $discontinueCount = $reviewCount = 0;
 
         foreach ($goods as $g) {
-            if ($g->status === 'fast')      $fastCount++;
-            elseif ($g->status === 'slow')  $slowCount++;
-            else                            $deadCount++;
+            if ($g->status === 'fast')        $fastCount++;
+            elseif ($g->status === 'slow')    $slowCount++;
+            elseif ($g->status === 'at_risk') $atRiskCount++;
+            else                              $deadCount++;
 
             $totalOmzet     += $g->total_omzet;
             $totalLaba      += $g->total_laba;
@@ -448,7 +593,7 @@ class GoodMovementRepository
         }
 
         return compact(
-            'total', 'fastCount', 'slowCount', 'deadCount',
+            'total', 'fastCount', 'slowCount', 'deadCount', 'atRiskCount',
             'totalOmzet', 'totalLaba', 'totalNilaiStok',
             'reorderCount', 'discontinueCount', 'reviewCount', 'days'
         );

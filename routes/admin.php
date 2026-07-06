@@ -21,6 +21,7 @@ Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
  Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
+Route::post('reports/movement/bulk-discontinue','GoodMovementController@bulkDiscontinue')->name('reports.movement.bulk-discontinue');
 // Tambahkan baris ini di bagian rute admin
 Route::get('admin/store-health/export', 'StoreHealthController@exportCsv')->name('store-health.export');
 
@@ -274,4 +275,3 @@ Route::group(['prefix' => 'voucher'], function () {
 	Route::delete('/{voucher_id}/delete', 'VoucherController@delete')->name('voucher.delete');
 	Route::get('/{pagination}', 'VoucherController@index');
 });
-

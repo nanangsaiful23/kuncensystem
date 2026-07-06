@@ -5,7 +5,9 @@
     $goods             = $goods             ?? collect();
     $summary           = $summary           ?? [];
     $categories        = $categories        ?? collect();
-    $discontinuedCount = $discontinuedCount ?? 0;
+    $discontinuedCount  = $discontinuedCount  ?? 0;
+    $negativeStockCount = $negativeStockCount ?? 0;
+    $negativeStockGoods = $negativeStockGoods ?? collect();
     $startDate         = $startDate         ?? date('Y-m-d', strtotime('-90 days'));
     $endDate           = $endDate           ?? date('Y-m-d');
     $kategori          = $kategori          ?? null;
@@ -14,7 +16,7 @@
     $sortDir           = $sortDir           ?? 'desc';
     $days              = $days              ?? 90;
     $s = array_merge([
-        'total'=>0,'fastCount'=>0,'slowCount'=>0,'deadCount'=>0,
+        'total'=>0,'fastCount'=>0,'slowCount'=>0,'deadCount'=>0,'atRiskCount'=>0,
         'totalOmzet'=>0,'totalLaba'=>0,'totalNilaiStok'=>0,
         'reorderCount'=>0,'discontinueCount'=>0,'reviewCount'=>0,
     ], $summary);
@@ -153,6 +155,7 @@
 .b-grn  { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
 .b-org  { background:var(--slow-bg); color:var(--slow); border:1px solid var(--slow-b); }
 .b-gry  { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+.b-risk { background:#faf5ff; color:#7e22ce; border:1px solid #e9d5ff; }
 
 .rec-maintain      { background:#f0fdf4; color:#15803d;  border:1px solid #bbf7d0; }
 .rec-reorder       { background:#fff7ed; color:#c2410c;  border:1px solid #fed7aa; }
@@ -162,6 +165,29 @@
 .rec-review        { background:#fff7ed; color:#92400e;  border:1px solid #fde68a; }
 .rec-clearance     { background:var(--dead-bg); color:#9f1239; border:1px solid var(--dead-b); }
 .rec-discontinue   { background:var(--disc-bg); color:var(--disc); border:1px solid var(--disc-b); }
+.rec-restock_check { background:#faf5ff; color:#7e22ce;  border:1px solid #e9d5ff; }
+.rec-review_stuck  { background:#faf5ff; color:#7e22ce;  border:1px solid #e9d5ff; }
+
+/* Pill "at_risk" (ungu) */
+.gm-pill-risk { background:#faf5ff; color:#7e22ce; border-color:#e9d5ff; }
+
+/* Warning stok minus */
+.gm-negstock { background:#fffbeb; border:1px solid #fde68a; border-radius:.6rem;
+               padding:.75rem 1rem; margin-bottom:.875rem; }
+.gm-negstock summary { cursor:pointer; font-size:.825rem; font-weight:700; color:#92400e; }
+.gm-negstock table { width:100%; border-collapse:collapse; margin-top:.6rem; font-size:.8rem; }
+.gm-negstock th, .gm-negstock td { text-align:left; padding:.35rem .5rem; border-bottom:1px solid #fde68a; }
+
+/* Checklist bulk-discontinue */
+.gm-chk-col { width:34px; text-align:center; }
+.gm-bulkbar { position:sticky; bottom:0; z-index:5; display:none; align-items:center;
+              gap:.75rem; background:var(--ink); color:#fff; padding:.6rem 1rem;
+              border-radius:.5rem; margin-top:.6rem; font-size:.825rem; }
+.gm-bulkbar.show { display:flex; }
+.gm-bulkbar button { padding:.35rem .85rem; border:none; border-radius:.4rem;
+                     font-size:.8rem; font-weight:700; cursor:pointer; }
+.gm-bulkbar .gm-bulk-go   { background:var(--disc); color:#fff; }
+.gm-bulkbar .gm-bulk-clear{ background:transparent; color:#cbd5e1; border:1px solid #475569 !important; }
 
 /* Stok color */
 .s-ok   { color:var(--fast); font-weight:600; }
@@ -286,6 +312,33 @@
     <div class="gm-alert gm-alert-err">❌ {{ session('error') }}</div>
 @endif
 
+{{-- Peringatan stok minus — ini masalah kerapian DATA, bukan masalah
+     pergerakan barang. Stok minus membuat perhitungan nilai stok, hari
+     stok, dan rekomendasi reorder ikut salah, jadi harus dibereskan lewat
+     Stock Opname (bukan diedit manual). --}}
+@if($negativeStockCount > 0)
+<details class="gm-negstock">
+    <summary>⚠️ {{ $negativeStockCount }} barang memiliki STOK MINUS — data ini bisa membuat perhitungan pergerakan/reorder salah. Klik untuk lihat & rapikan lewat Stock Opname.</summary>
+    <table>
+        <thead><tr><th>Barang</th><th>Kategori</th><th>Merk</th><th class="tr">Stok Sistem</th></tr></thead>
+        <tbody>
+        @foreach($negativeStockGoods as $ng)
+            <tr>
+                <td>{{ $ng->nama }} <span style="color:#94a3b8">({{ $ng->kode }})</span></td>
+                <td>{{ $ng->kategori ?? '-' }}</td>
+                <td>{{ $ng->merk ?? '-' }}</td>
+                <td class="tr" style="color:#dc2626;font-weight:700">{{ number_format($ng->stok) }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+    <p style="font-size:.75rem;color:#92400e;margin:.6rem 0 0">
+        Perbaiki lewat menu <strong>Stock Opname</strong> (hitung fisik ulang), jangan diedit langsung di database —
+        supaya riwayat penyesuaiannya tetap tercatat.
+    </p>
+</details>
+@endif
+
 {{-- Header --}}
 <div class="gm-head">
     <div>
@@ -357,6 +410,7 @@
         'fast'         => ['l'=>'🚀 Fast ('.$s['fastCount'].')',        'c'=>'gm-pill-fast'],
         'slow'         => ['l'=>'🐢 Slow ('.$s['slowCount'].')',        'c'=>'gm-pill-slow'],
         'dead'         => ['l'=>'💀 Dead ('.$s['deadCount'].')',        'c'=>'gm-pill-dead'],
+        'at_risk'      => ['l'=>'❓ Perlu Dicek ('.$s['atRiskCount'].')','c'=>'gm-pill-risk'],
         'discontinued' => ['l'=>'🗑️ Disc. ('.$discontinuedCount.')',    'c'=>'gm-pill-disc'],
     ]; @endphp
     @foreach($pills as $k => $p)
@@ -382,7 +436,12 @@
     <div class="gm-kpi k-dead">
         <div class="kl">Dead Stock</div>
         <div class="kv">{{ number_format($s['deadCount']) }}</div>
-        <div class="ks">{{ $s['total']>0?number_format($s['deadCount']/$s['total']*100,0).'%':'-' }}</div>
+        <div class="ks">Riwayat 12bln juga sepi</div>
+    </div>
+    <div class="gm-kpi" style="border-left:4px solid #7e22ce" data-gm-tip="Tidak ada transaksi di periode filter, TAPI riwayat 12 bulan terakhir menunjukkan barang ini historisnya laku — jangan langsung di-discontinue, cek dulu stoknya.">
+        <div class="kl">❓ Perlu Dicek</div>
+        <div class="kv" style="color:#7e22ce">{{ number_format($s['atRiskCount']) }}</div>
+        <div class="ks">Riwayat bagus, jangan dihapus dulu</div>
     </div>
     <div class="gm-kpi k-disc">
         <div class="kl">Discontinued</div>
@@ -527,6 +586,7 @@
            11. Rekomendasi 115px
         --}}
         <colgroup>
+            <col style="width:34px">
             <col style="width:90px">
             <col style="width:38px">
             <col style="width:190px">
@@ -541,6 +601,9 @@
         </colgroup>
         <thead>
             <tr>
+                <th class="tc gm-chk-col" data-gm-tip="Pilih beberapa Dead Stock lalu discontinue sekaligus">
+                    <input type="checkbox" id="gmChkAll" onclick="gmToggleAll(this)">
+                </th>
                 <th class="tc">Aksi</th>
                 <th>#</th>
                 <th>Barang</th>
@@ -570,10 +633,19 @@
             else                              $sc = 's-ok';
 
             $sb     = $g->status_color === 'orange' ? 'b-slow'
-                    : ($g->status_color === 'red'    ? 'b-dead' : 'b-fast');
-            $isDead = ($g->status === 'dead');
+                    : ($g->status_color === 'red'    ? 'b-dead'
+                    : ($g->status_color === 'purple' ? 'b-risk' : 'b-fast'));
+            $isDead   = ($g->status === 'dead');
+            $isAtRisk = ($g->status === 'at_risk');
         @endphp
         <tr class="gm-row{{ $isDead ? ' row-dead' : '' }}" data-idx="{{ $i }}">
+
+            {{-- 0. Checklist (hanya untuk Dead Stock murni — bukan at_risk) --}}
+            <td class="tc gm-chk-col">
+                @if($isDead)
+                <input type="checkbox" class="gm-chk-item" value="{{ $g->good_id }}" onchange="gmUpdateBulkBar()">
+                @endif
+            </td>
 
             {{-- 1. Aksi --}}
             <td class="tc">
@@ -585,6 +657,8 @@
                         '{{ addslashes($g->kategori) }}')">
                     🗑️ Disc.
                 </button>
+                @elseif($isAtRisk)
+                <span class="gm-badge-tag b-risk" style="font-size:.7rem" data-gm-tip="Riwayat 12 bulan: {{ $g->total_transaksi_lt }} transaksi. Jangan discontinue sebelum dicek manual.">Jgn Hapus</span>
                 @else
                 <span style="color:var(--ink3)">—</span>
                 @endif
@@ -607,7 +681,7 @@
             {{-- 5. Status --}}
             <td>
                 <span class="gm-badge-tag {{ $sb }}">
-                    {{ $g->status === 'fast' ? '🚀' : ($g->status === 'slow' ? '🐢' : '💀') }}
+                    {{ $g->status === 'fast' ? '🚀' : ($g->status === 'slow' ? '🐢' : ($g->status === 'at_risk' ? '❓' : '💀')) }}
                     {{ $g->status_label }}
                 </span>
             </td>
@@ -615,7 +689,11 @@
             {{-- 6. Trx / Qty per hari --}}
             <td class="tr">
                 <div style="font-weight:700">{{ number_format($g->total_transaksi) }}</div>
+                @if($isAtRisk)
+                <div style="font-size:.8rem;color:#7e22ce" data-gm-tip="Transaksi normal 12 bulan terakhir, di luar filter tanggal di atas">{{ number_format($g->total_transaksi_lt) }}x/12bln</div>
+                @else
                 <div style="font-size:.8rem;color:var(--ink3)">{{ number_format($g->avg_qty_per_day, 1) }}/hr</div>
+                @endif
             </td>
 
             {{-- 7. Omzet --}}
@@ -676,7 +754,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="11" style="text-align:center;padding:2.5rem;color:var(--ink3)">
+            <td colspan="12" style="text-align:center;padding:2.5rem;color:var(--ink3)">
                 <div style="font-size:1.5rem;margin-bottom:.5rem">🔍</div>
                 <div>Tidak ada barang sesuai filter.</div>
             </td>
@@ -697,6 +775,15 @@
         <span class="gm-badge-tag rec-review">⚠️ Review</span>
         <span class="gm-badge-tag rec-clearance">🏷️ Obral</span>
         <span class="gm-badge-tag rec-discontinue">🗑️ Disc.</span>
+        <span class="gm-badge-tag rec-restock_check">🔎 Cek Stok (Riwayat Bagus)</span>
+        <span class="gm-badge-tag rec-review_stuck">❓ Cek Manual (Riwayat Bagus)</span>
+    </div>
+
+    {{-- Toolbar bulk-discontinue: muncul saat ada checkbox Dead Stock dicentang --}}
+    <div class="gm-bulkbar" id="gmBulkBar">
+        <span id="gmBulkCount">0 barang dipilih</span>
+        <button type="button" class="gm-bulk-go" onclick="gmOpenBulkModal()">🗑️ Discontinue Terpilih</button>
+        <button type="button" class="gm-bulk-clear" onclick="gmClearAll()">Batal Pilih</button>
     </div>
     @endif
 
@@ -766,6 +853,44 @@
     <input type="hidden" name="reason" id="gmDiscFormReason">
 </form>
 
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- MODAL BULK DISCONTINUE — checklist banyak barang sekaligus         --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div class="gm-modal-overlay" id="gmBulkModal">
+    <div class="gm-modal">
+        <div class="gm-modal-hd">
+            <h3>🗑️ Discontinue Sekaligus</h3>
+            <button class="gm-modal-close" type="button" onclick="gmCloseBulkModal()">✕</button>
+        </div>
+        <div class="gm-modal-bd">
+            <div class="gm-modal-name" id="gmBulkCountModal">0 barang dipilih</div>
+            <div class="gm-modal-warn">
+                ⚠️ Barang yang dipilih tidak lagi memiliki riwayat penjualan yang bagus
+                dalam 12 bulan terakhir maupun periode filter saat ini. Semuanya akan
+                di-discontinue dengan <strong>satu alasan yang sama</strong> di bawah ini.
+                Bisa diaktifkan kembali kapan saja dari tab <em>Disc.</em>
+            </div>
+            <label class="gm-modal-lbl" for="gmBulkReason">
+                Alasan Discontinue (berlaku untuk semua barang terpilih) <span style="color:var(--dead)">*</span>
+            </label>
+            <textarea class="gm-modal-ta" id="gmBulkReason"
+                placeholder="Contoh: Beres-beres data lama — tidak ada penjualan >12 bulan, stok habis..."></textarea>
+            <div class="gm-modal-err" id="gmBulkErr">Alasan wajib diisi minimal 5 karakter.</div>
+        </div>
+        <div class="gm-modal-ft">
+            <button type="button" class="gm-btn-cancel" onclick="gmCloseBulkModal()">Batal</button>
+            <button type="button" class="gm-btn-ok" onclick="gmSubmitBulk()">🗑️ Ya, Discontinue Semua</button>
+        </div>
+    </div>
+</div>
+
+{{-- Form tersembunyi untuk POST bulk-discontinue --}}
+<form method="POST" id="gmBulkForm" action="{{ route('admin.reports.movement.bulk-discontinue') }}" style="display:none">
+    @csrf
+    <input type="hidden" name="reason" id="gmBulkFormReason">
+    <div id="gmBulkFormIds"></div>
+</form>
+
 <script>
 (function () {
     /* ── State ─────────────────────────────────────────────────── */
@@ -812,7 +937,7 @@
 
         // Update nomor urut per halaman
         for (var j = start; j < end; j++) {
-            var numCell = _allRows[j].querySelector('td:nth-child(2)');
+            var numCell = _allRows[j].querySelector('td:nth-child(3)');
             if (numCell) numCell.textContent = j + 1;
         }
 
@@ -929,6 +1054,90 @@
         form.submit();
     };
 
+    /* ── Checklist bulk-discontinue ─────────────────────────────── */
+    // Catatan: tabel ini dipaginasi di sisi browser (baris disembunyikan via
+    // display:none), jadi "pilih semua" & hitungan hanya menghitung baris yang
+    // SEDANG TAMPIL di halaman saat ini. Kalau mau bulk-discontinue banyak
+    // barang, ubah "Tampilkan per halaman" ke "Semua" dulu di atas tabel.
+    function gmVisibleCheckItems() {
+        var all = document.querySelectorAll('.gm-chk-item');
+        var visible = [];
+        for (var i = 0; i < all.length; i++) {
+            var row = all[i].closest('tr');
+            if (row && row.style.display !== 'none') visible.push(all[i]);
+        }
+        return visible;
+    }
+
+    window.gmToggleAll = function (master) {
+        var boxes = gmVisibleCheckItems();
+        for (var i = 0; i < boxes.length; i++) boxes[i].checked = master.checked;
+        gmUpdateBulkBar();
+    };
+
+    window.gmUpdateBulkBar = function () {
+        var visible = gmVisibleCheckItems();
+        var checked = visible.filter(function (b) { return b.checked; });
+        var bar = document.getElementById('gmBulkBar');
+        var countEl = document.getElementById('gmBulkCount');
+        if (!bar || !countEl) return;
+        if (checked.length > 0) {
+            bar.classList.add('show');
+            countEl.textContent = checked.length + ' barang dipilih';
+        } else {
+            bar.classList.remove('show');
+        }
+        // Sinkronkan checkbox "pilih semua" di header
+        var master = document.getElementById('gmChkAll');
+        if (master) master.checked = visible.length > 0 && checked.length === visible.length;
+    };
+
+    window.gmClearAll = function () {
+        var boxes = document.querySelectorAll('.gm-chk-item');
+        for (var i = 0; i < boxes.length; i++) boxes[i].checked = false;
+        gmUpdateBulkBar();
+    };
+
+    window.gmOpenBulkModal = function () {
+        var checked = document.querySelectorAll('.gm-chk-item:checked');
+        if (checked.length === 0) return;
+        document.getElementById('gmBulkCountModal').textContent = checked.length + ' barang akan di-discontinue';
+        document.getElementById('gmBulkReason').value = '';
+        document.getElementById('gmBulkErr').style.display = 'none';
+        document.getElementById('gmBulkModal').classList.add('open');
+        setTimeout(function () { document.getElementById('gmBulkReason').focus(); }, 120);
+    };
+
+    window.gmCloseBulkModal = function () {
+        document.getElementById('gmBulkModal').classList.remove('open');
+    };
+
+    window.gmSubmitBulk = function () {
+        var reason = document.getElementById('gmBulkReason').value.trim();
+        if (reason.length < 5) {
+            document.getElementById('gmBulkErr').style.display = 'block';
+            document.getElementById('gmBulkReason').focus();
+            return;
+        }
+        var checked = document.querySelectorAll('.gm-chk-item:checked');
+        if (checked.length === 0) { gmCloseBulkModal(); return; }
+
+        document.getElementById('gmBulkErr').style.display = 'none';
+        document.getElementById('gmBulkFormReason').value = reason;
+
+        var idsWrap = document.getElementById('gmBulkFormIds');
+        idsWrap.innerHTML = '';
+        checked.forEach(function (box) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'ids[]';
+            inp.value = box.value;
+            idsWrap.appendChild(inp);
+        });
+
+        document.getElementById('gmBulkForm').submit();
+    };
+
     /* ── Pill status ────────────────────────────────────────────── */
     window.gmSetStatus = function (val) {
         document.getElementById('gmStatusInput').value = val;
@@ -939,8 +1148,14 @@
     document.getElementById('gmDiscModal').addEventListener('click', function (e) {
         if (e.target === this) gmCloseModal();
     });
+    var bulkModalEl = document.getElementById('gmBulkModal');
+    if (bulkModalEl) {
+        bulkModalEl.addEventListener('click', function (e) {
+            if (e.target === this) gmCloseBulkModal();
+        });
+    }
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') gmCloseModal();
+        if (e.key === 'Escape') { gmCloseModal(); gmCloseBulkModal(); }
     });
 
     /* ── Boot ───────────────────────────────────────────────────── */
