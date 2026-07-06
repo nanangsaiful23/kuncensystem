@@ -78,12 +78,14 @@ class StoreHealthRepository
             ->leftJoin('units AS fallback_u', 'fallback_u.id', '=', 'fallback_gu.unit_id')
             ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands', 'brands.id', '=', 'goods.brand_id')
+            ->leftJoin('types', 'types.id', '=', 'goods.type_id')
             ->whereNull('goods.deleted_at')
             ->whereRaw('COALESCE(base_gu.id, fallback_gu.id) IS NOT NULL')
             ->select(
                 'goods.id AS good_id',
                 'goods.code AS kode',
                 'goods.name AS nama_barang',
+                'types.name AS tipe',
                 'categories.name AS kategori',
                 'brands.name AS merk',
                 DB::raw('COALESCE(base_u.name, fallback_u.name) AS satuan'),
@@ -97,7 +99,11 @@ class StoreHealthRepository
                 DB::raw('goods.last_stock * (COALESCE(base_gu.selling_price, fallback_gu.selling_price, 0) - COALESCE(base_gu.buy_price, fallback_gu.buy_price, 0)) AS potensi_laba')
             )
             ->orderBy('nilai_hpp', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($row) {
+                $row->nama_barang = $this->formatGoodName($row->tipe ?? null, $row->nama_barang);
+                return $row;
+            });
 
         return $this->attachUnitBreakdown($stock);
     }
@@ -252,6 +258,20 @@ class StoreHealthRepository
             'summary' => $this->buildMovementSummary($result, $days),
             'days' => $days,
         ];
+    }
+
+    /**
+     * Gabungkan tipe + nama barang jadi satu string tampilan, meniru persis
+     * Good::getFullName() supaya penamaan konsisten dengan laporan lain
+     * (Movement, Reorder, Sales).
+     */
+    private function formatGoodName(?string $tipe, string $nama): string
+    {
+        $tipe = trim((string) $tipe);
+        if ($tipe === '' || $tipe === '-') {
+            return ucfirst($nama);
+        }
+        return ucfirst(strtolower($tipe) . ' ' . $nama);
     }
 
     private function fallbackUnitSubquery()

@@ -151,6 +151,7 @@ class GoodMovementRepository
 
         $goodsQuery = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
             ->leftJoinSub($baseUnitSub, 'base_u', 'base_u.good_id', '=', 'goods.id')
             ->leftJoin('good_units AS gu', function ($j) {
                 $j->on('gu.good_id', '=', 'goods.id')->whereNull('gu.deleted_at');
@@ -159,11 +160,25 @@ class GoodMovementRepository
             ->whereNull('goods.deleted_at')
             // ✅ KUNCI: Hanya barang yang BELUM discontinued
             ->where('goods.is_discontinued', 0)
-            ->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty OR base_u.min_qty IS NULL')
+            // 🐛 FIX: sebelumnya ini whereRaw('... OR base_u.min_qty IS NULL') TANPA
+            // tanda kurung. Karena AND lebih "erat" dari OR di SQL, klausa itu
+            // otomatis terbaca sebagai:
+            //   (deleted_at IS NULL AND is_discontinued=0 AND kategori=? AND ...)
+            //   OR (base_u.min_qty IS NULL)
+            // Artinya SETIAP baris yang base_u.min_qty-nya NULL (unit dasarnya
+            // tidak ketemu/rusak) akan lolos APAPUN filter kategori-nya — makanya
+            // filter kategori kelihatan "tidak jalan": barang kategori lain tetap
+            // muncul karena mereka menyelinap lewat celah OR ini. Dibungkus
+            // closure supaya OR-nya terkurung sendiri dan tidak membocorkan filter lain.
+            ->where(function ($q) {
+                $q->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty')
+                  ->orWhereNull('base_u.min_qty');
+            })
             ->select(
                 'goods.id                AS good_id',
                 'goods.code              AS kode',
                 'goods.name              AS nama',
+                'types.name              AS tipe',
                 'goods.last_stock        AS stok_sekarang',
                 'goods.last_transaction  AS last_transaction_goods',
                 'goods.last_loading      AS last_loading_goods',
@@ -236,7 +251,10 @@ class GoodMovementRepository
             $result[] = (object) [
                 'good_id'          => $gid,
                 'kode'             => $good->kode,
-                'nama'             => $good->nama,
+                // Ditampilkan sebagai "Tipe Nama" (mis. "Kaleng Sarden ABC"),
+                // bukan cuma nama produknya saja — biar konsisten dengan
+                // Good::getFullName() yang dipakai di halaman lain.
+                'nama'             => $this->formatGoodName($good->tipe ?? null, $good->nama),
                 'kategori'         => $good->kategori        ?? '-',
                 'category_id'      => $good->category_id,
                 'merk'             => $good->merk            ?? '-',
@@ -294,6 +312,7 @@ class GoodMovementRepository
     {
         $query = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
             ->leftJoin('users',      'users.id',      '=', 'goods.discontinued_by')
             ->whereNull('goods.deleted_at')
             ->where('goods.is_discontinued', 1)
@@ -301,6 +320,7 @@ class GoodMovementRepository
                 'goods.id                 AS good_id',
                 'goods.code               AS kode',
                 'goods.name               AS nama',
+                'types.name               AS tipe',
                 'goods.last_stock         AS stok_sekarang',
                 'goods.discontinued_at    AS discontinued_at',
                 'goods.discontinued_reason AS discontinued_reason',
@@ -325,7 +345,7 @@ class GoodMovementRepository
                 return (object) [
                     'good_id'            => $g->good_id,
                     'kode'               => $g->kode,
-                    'nama'               => $g->nama,
+                    'nama'               => $this->formatGoodName($g->tipe ?? null, $g->nama),
                     'kategori'           => $g->kategori           ?? '-',
                     'merk'               => $g->merk               ?? '-',
                     'stok_sekarang'      => (float) $g->stok_sekarang,
@@ -505,6 +525,29 @@ class GoodMovementRepository
     // =========================================================================
     // HELPER PRIVATE
     // =========================================================================
+
+    /**
+     * Gabungkan tipe + nama barang jadi satu string tampilan, mis.
+     * tipe="Kaleng", nama="Sarden ABC" → "Kaleng sarden abc" → ucfirst
+     * jadi "Kaleng sarden abc". Meniru persis Good::getFullName() supaya
+     * penamaan konsisten di semua laporan, tapi tidak perlu load relasi
+     * Eloquent per baris (join sekali di query, bukan N+1 query).
+     */
+    private function formatGoodName(?string $tipe, ?string $nama): string
+    {
+        // Data lama kadang punya goods.name kosong/NULL — jangan sampai bikin
+        // laporan error, tampilkan placeholder yang jelas alih-alih crash.
+        $nama = trim((string) $nama);
+        if ($nama === '') {
+            $nama = '(tanpa nama)';
+        }
+
+        $tipe = trim((string) $tipe);
+        if ($tipe === '' || $tipe === '-') {
+            return ucfirst($nama);
+        }
+        return ucfirst(strtolower($tipe) . ' ' . $nama);
+    }
 
     private function classify(int $totalTrx, int $daysSinceTrx, float $stok, int $totalTrxLT = 0): array
     {

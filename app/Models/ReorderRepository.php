@@ -110,6 +110,7 @@ class ReorderRepository
 
         $goodsQuery = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands', 'brands.id', '=', 'goods.brand_id')
+            ->leftJoin('types',  'types.id',  '=', 'goods.type_id')
             ->leftJoinSub($baseUnitSub, 'base_u', 'base_u.good_id', '=', 'goods.id')
             ->leftJoin('good_units AS gu', function ($j) {
                 $j->on('gu.good_id', '=', 'goods.id')->whereNull('gu.deleted_at');
@@ -117,11 +118,19 @@ class ReorderRepository
             ->leftJoin('units AS u', 'u.id', '=', 'gu.unit_id')
             ->whereNull('goods.deleted_at')
             ->where('goods.is_discontinued', 0)
-            ->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty OR base_u.min_qty IS NULL')
+            // 🐛 FIX: whereRaw('... OR base_u.min_qty IS NULL') tanpa kurung membuat
+            // SEMUA filter sebelumnya (deleted_at, is_discontinued, kategori,
+            // distributor) bocor lewat OR ini untuk barang yang base_u.min_qty-nya
+            // NULL. Dibungkus closure supaya OR terkurung sendiri.
+            ->where(function ($q) {
+                $q->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty')
+                  ->orWhereNull('base_u.min_qty');
+            })
             ->select(
                 'goods.id                  AS good_id',
                 'goods.code                AS kode',
                 'goods.name                AS nama',
+                'types.name                AS tipe',
                 'goods.last_stock          AS stok_sekarang',
                 'goods.last_distributor_id AS distributor_id',
                 'categories.id             AS category_id',
@@ -236,7 +245,7 @@ class ReorderRepository
             $items->push((object) [
                 'good_id'             => $gid,
                 'kode'                => $good->kode,
-                'nama'                => $good->nama,
+                'nama'                => $this->formatGoodName($good->tipe ?? null, $good->nama),
                 'kategori'            => $good->kategori ?? '-',
                 'merk'                => $good->merk     ?? '-',
                 'satuan'              => $good->satuan   ?? '-',
@@ -324,6 +333,27 @@ class ReorderRepository
      *                     -> stok ideal yang ingin dicapai setelah order tiba
      *   reorder_qty    = target_stock - stok_sekarang   (jika stok_sekarang < min_stock)
      */
+    /**
+     * Gabungkan tipe + nama barang jadi satu string tampilan (mis. tipe
+     * "Kaleng" + nama "Sarden ABC" → "Kaleng sarden abc"), meniru persis
+     * Good::getFullName() supaya penamaan konsisten dengan laporan lain.
+     */
+    private function formatGoodName(?string $tipe, ?string $nama): string
+    {
+        // Data lama kadang punya goods.name kosong/NULL — jangan sampai bikin
+        // laporan error, tampilkan placeholder yang jelas alih-alih crash.
+        $nama = trim((string) $nama);
+        if ($nama === '') {
+            $nama = '(tanpa nama)';
+        }
+
+        $tipe = trim((string) $tipe);
+        if ($tipe === '' || $tipe === '-') {
+            return ucfirst($nama);
+        }
+        return ucfirst(strtolower($tipe) . ' ' . $nama);
+    }
+
     private function calculate(float $avgQtyPerDay, int $totalTrx, float $stok): array
     {
         $leadTime = self::DEFAULT_LEAD_TIME_DAYS;

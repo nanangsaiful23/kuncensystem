@@ -40,6 +40,21 @@ class SalesReportRepository
             Carbon::parse($endDate)->endOfDay(),
         ];
     }
+
+    /**
+     * Gabungkan tipe + nama barang jadi satu string tampilan (mis. tipe
+     * "Kaleng" + nama "Sarden ABC" → "Kaleng sarden abc"), meniru persis
+     * Good::getFullName() supaya penamaan konsisten dengan laporan lain
+     * (Movement, Reorder, Store Health).
+     */
+    private function formatGoodName(?string $tipe, string $nama): string
+    {
+        $tipe = trim((string) $tipe);
+        if ($tipe === '' || $tipe === '-') {
+            return ucfirst($nama);
+        }
+        return ucfirst(strtolower($tipe) . ' ' . $nama);
+    }
  
     // =========================================================================
     // A. RINGKASAN PENJUALAN (Sales Summary)
@@ -227,10 +242,12 @@ class SalesReportRepository
             ->join('goods',  'goods.id',  '=', 'good_units.good_id')
             ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
             ->select(
                 'good_units.id        AS good_unit_id',
                 'good_units.good_id',
                 'goods.name           AS nama_produk',
+                'types.name           AS tipe',
                 'goods.code           AS kode_produk',
                 'units.id             AS unit_id',
                 'units.name           AS satuan',
@@ -256,7 +273,7 @@ class SalesReportRepository
                     'good_unit_id'      => $agg->good_unit_id,
                     'good_id'           => $gu->good_id,
                     'kode_produk'       => $gu->kode_produk   ?? '-',
-                    'nama_produk'       => $gu->nama_produk   ?? '(dihapus)',
+                    'nama_produk'       => $gu ? $this->formatGoodName($gu->tipe ?? null, $gu->nama_produk) : '(dihapus)',
                     'satuan'            => $gu->satuan        ?? '-',
                     'unit_qty_konversi' => $gu->unit_qty_konversi ?? 1,
                     'kategori'          => $gu->kategori      ?? '-',
@@ -325,10 +342,12 @@ class SalesReportRepository
             ->whereNull('goods.deleted_at')
             ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
             ->select(
                 'goods.id',
                 'goods.code       AS kode_produk',
                 'goods.name       AS nama_produk',
+                'types.name       AS tipe',
                 'categories.name  AS kategori',
                 'brands.name      AS merk'
             )
@@ -354,7 +373,7 @@ class SalesReportRepository
             return (object) [
                 'good_id'           => $agg->good_id,
                 'kode_produk'       => $good->kode_produk  ?? '-',
-                'nama_produk'       => $good->nama_produk  ?? '(dihapus)',
+                'nama_produk'       => $good ? $this->formatGoodName($good->tipe ?? null, $good->nama_produk) : '(dihapus)',
                 'kategori'          => $good->kategori     ?? '-',
                 'merk'              => $good->merk         ?? '-',
                 'satuan_dasar'      => $baseUnit->satuan_dasar ?? '-',
@@ -658,11 +677,13 @@ class SalesReportRepository
         return Good::joinSub($pickedUnit, 'pu', 'pu.good_id', '=', 'goods.id')
             ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
             ->whereNull('goods.deleted_at')
             ->select(
                 'goods.id                  AS good_id',
                 'goods.code                AS kode',
                 'goods.name                AS nama_barang',
+                'types.name                AS tipe',
                 'categories.name           AS kategori',
                 'brands.name               AS merk',
  
@@ -683,7 +704,11 @@ class SalesReportRepository
                 DB::raw('goods.last_stock * (pu.selling_price - pu.buy_price) AS potensi_laba')
             )
             ->orderBy('nilai_hpp', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($row) {
+                $row->nama_barang = $this->formatGoodName($row->tipe ?? null, $row->nama_barang);
+                return $row;
+            });
     }
  
     /**
@@ -697,10 +722,12 @@ class SalesReportRepository
             ->join('good_units',  'good_units.id',  '=', 'retur_items.good_unit_id')
             ->join('units',       'units.id',        '=', 'good_units.unit_id')
             ->join('distributors','distributors.id', '=', 'retur_items.last_distributor_id')
+            ->leftJoin('types',   'types.id',        '=', 'goods.type_id')
             ->whereNull('retur_items.deleted_at')
             ->select(
                 'distributors.name       AS distributor',
                 'goods.name              AS nama_barang',
+                'types.name              AS tipe',
                 'units.name              AS satuan',
                 'retur_items.returned_type AS jenis_retur',
                 'retur_items.returned_date',
@@ -714,7 +741,12 @@ class SalesReportRepository
             ]);
         }
  
-        return $query->orderBy('retur_items.returned_date', 'desc')->get();
+        return $query->orderBy('retur_items.returned_date', 'desc')
+            ->get()
+            ->map(function ($row) {
+                $row->nama_barang = $this->formatGoodName($row->tipe ?? null, $row->nama_barang);
+                return $row;
+            });
     }
  
     // =========================================================================
@@ -891,4 +923,3 @@ class SalesReportRepository
         return $query->orderBy('accounts.code', 'asc')->get();
     }
 }
- 
