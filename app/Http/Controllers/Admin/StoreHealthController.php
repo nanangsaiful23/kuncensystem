@@ -42,6 +42,18 @@ class StoreHealthController extends Controller
                 'top_receivables' => collect(),
                 'locked_stock' => collect(),
                 'cash_flow' => collect(),
+                'reconciliation' => [
+                    'total_fisik' => 0,
+                    'total_jurnal' => 0,
+                    'selisih' => 0,
+                    'selisih_pct' => 0,
+                    'jumlah_barang' => 0,
+                    'jumlah_barang_minus' => 0,
+                    'total_nilai_minus' => 0,
+                    'barang_minus' => collect(),
+                    'status' => 'perlu_cek',
+                    'account_code' => null,
+                ],
             ];
         }
 

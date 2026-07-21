@@ -449,4 +449,136 @@ class FinancialReportRepository
             ];
         });
     }
+
+    // =========================================================================
+    // G. REKONSILIASI PERSEDIAAN — Cocokkan nilai stok fisik vs saldo jurnal
+    // =========================================================================
+
+    /**
+     * Total Nilai Persediaan Barang Dagang (FISIK) — dihitung dari
+     * goods.last_stock (satuan terkecil) x harga beli satuan terkecil.
+     *
+     * PENTING: goods.last_stock disimpan dalam SATUAN TERKECIL (pcs/eceran),
+     * jadi harga beli yang dipakai WAJIB dari good_unit dengan quantity
+     * terkecil juga (base_unit_id, fallback ke unit qty terkecil kalau
+     * base_unit_id kosong/terhapus). Kalau salah pilih unit, nilai yang
+     * dihasilkan tidak akan pernah cocok dengan saldo jurnal walau data
+     * sebenarnya benar.
+     *
+     * Barang dengan stok MINUS tetap diikutkan dalam total (supaya total
+     * fisik = apa adanya di sistem), tapi juga dikembalikan terpisah di
+     * 'barang_minus' karena stok minus biasanya menandakan ada kesalahan
+     * input transaksi/loading yang perlu dicek manual — bukan aset negatif
+     * yang benar-benar nyata.
+     *
+     * @return array{
+     *   total_nilai_persediaan: float,
+     *   jumlah_barang: int,
+     *   jumlah_barang_minus: int,
+     *   total_nilai_minus: float,
+     *   barang_minus: Collection
+     * }
+     */
+    public function getInventoryAssetTotal(): array
+    {
+        // Subquery fallback: pilih 1 good_unit_id per good_id dengan
+        // quantity satuan PALING KECIL, dipakai kalau goods.base_unit_id
+        // kosong atau unitnya sudah soft-deleted.
+        $fallbackUnit = DB::table('good_units AS gu_min')
+            ->join('units AS u_min', 'u_min.id', '=', 'gu_min.unit_id')
+            ->whereNull('gu_min.deleted_at')
+            ->select(
+                'gu_min.good_id',
+                DB::raw('SUBSTRING_INDEX(
+                            GROUP_CONCAT(gu_min.id ORDER BY CAST(u_min.quantity AS UNSIGNED) ASC, gu_min.id ASC),
+                            ",", 1
+                         ) AS good_unit_id')
+            )
+            ->groupBy('gu_min.good_id');
+
+        $rows = DB::table('goods')
+            ->leftJoin('good_units AS base_gu', function ($j) {
+                $j->on('base_gu.id', '=', 'goods.base_unit_id')
+                  ->whereNull('base_gu.deleted_at');
+            })
+            ->leftJoinSub($fallbackUnit, 'fb', 'fb.good_id', '=', 'goods.id')
+            ->leftJoin('good_units AS fallback_gu', function ($j) {
+                $j->on('fallback_gu.id', '=', 'fb.good_unit_id')
+                  ->whereNull('fallback_gu.deleted_at');
+            })
+            ->whereNull('goods.deleted_at')
+            ->select(
+                'goods.id',
+                'goods.code',
+                'goods.name',
+                'goods.last_stock',
+                DB::raw('COALESCE(base_gu.buy_price, fallback_gu.buy_price, 0) AS harga_beli')
+            )
+            ->get();
+
+        $totalNilai      = 0.0;
+        $totalNilaiMinus = 0.0;
+        $barangMinus     = collect();
+
+        foreach ($rows as $r) {
+            $nilai = (float) $r->last_stock * (float) $r->harga_beli;
+            $totalNilai += $nilai;
+
+            if ($r->last_stock < 0) {
+                $totalNilaiMinus += $nilai; // bernilai negatif, menekan total
+                $barangMinus->push((object) [
+                    'good_id'    => $r->id,
+                    'kode'       => $r->code,
+                    'nama'       => $r->name,
+                    'stok'       => $r->last_stock,
+                    'harga_beli' => $r->harga_beli,
+                    'nilai'      => $nilai,
+                ]);
+            }
+        }
+
+        return [
+            'total_nilai_persediaan' => $totalNilai,
+            'jumlah_barang'          => $rows->count(),
+            'jumlah_barang_minus'    => $barangMinus->count(),
+            'total_nilai_minus'      => $totalNilaiMinus,
+            'barang_minus'           => $barangMinus->sortBy('nilai')->values(),
+        ];
+    }
+
+    /**
+     * Saldo akun tertentu (misal: Persediaan Barang Dagang) dari jurnal,
+     * dihitung kumulatif sampai tanggal tertentu.
+     *
+     * Standar akuntansi akun aktiva: debit menambah saldo, kredit mengurangi.
+     *
+     * @param  string      $accountCode  Kode akun di tabel accounts (mis. '1141')
+     * @param  string|null $upToDate     Batas tanggal (default: hari ini)
+     */
+    public function getAccountBalanceByCode(string $accountCode, ?string $upToDate = null): float
+    {
+        $upTo = $upToDate ?? date('Y-m-d');
+
+        $accountId = Account::whereNull('deleted_at')
+            ->where('code', $accountCode)
+            ->value('id');
+
+        if (!$accountId) {
+            return 0.0;
+        }
+
+        $debit = DB::table('journals')
+            ->whereNull('deleted_at')
+            ->where('debit_account_id', $accountId)
+            ->where('journal_date', '<=', $upTo)
+            ->sum('debit');
+
+        $credit = DB::table('journals')
+            ->whereNull('deleted_at')
+            ->where('credit_account_id', $accountId)
+            ->where('journal_date', '<=', $upTo)
+            ->sum('credit');
+
+        return (float) $debit - (float) $credit;
+    }
 }

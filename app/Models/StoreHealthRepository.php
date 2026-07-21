@@ -13,6 +13,14 @@ class StoreHealthRepository
     const DEAD_STOCK_DAYS = 90;
     const REORDER_STOCK_MIN = 10;
 
+    /**
+     * Kode akun Persediaan Barang Dagang di tabel `accounts`.
+     * ⚠️ WAJIB DISESUAIKAN dengan kode akun yang benar-benar dipakai
+     * di database kamu sebelum rekonsiliasi ini bisa dipakai.
+     * Cek dengan: DB::table('accounts')->where('name','like','%persediaan%')->get();
+     */
+    const PERSEDIAAN_ACCOUNT_CODE = '1141';
+
     protected $salesRepo;
     protected $financialRepo;
     protected $movementRepo;
@@ -46,6 +54,9 @@ class StoreHealthRepository
         $scores = $this->buildScores($metrics);
         $recommendations = $this->buildRecommendations($metrics, $movementGoods, $receivables, $stockValuation);
 
+        // ── Rekonsiliasi Persediaan: nilai stok fisik vs saldo akun jurnal ──
+        $reconciliation = $this->buildInventoryReconciliation($end);
+
         return [
             'period' => [
                 'start_date' => $start,
@@ -58,6 +69,47 @@ class StoreHealthRepository
             'top_receivables' => $receivables->sortByDesc('sisa_piutang')->take(10)->values(),
             'locked_stock' => $stockValuation->sortByDesc('nilai_hpp')->take(10)->values(),
             'cash_flow' => $cashFlow,
+            'reconciliation' => $reconciliation,
+        ];
+    }
+
+    /**
+     * Bandingkan nilai persediaan FISIK (goods.last_stock x harga beli
+     * satuan terkecil) dengan saldo akun Persediaan di jurnal, sampai
+     * tanggal akhir periode yang dipilih.
+     *
+     * Status:
+     *  - 'cocok'      selisih < Rp 1 (praktis nol)
+     *  - 'wajar'      selisih ada tapi <= 2% dari saldo jurnal
+     *  - 'perlu_cek'  selisih > 2% dari saldo jurnal, atau saldo jurnal = 0
+     */
+    private function buildInventoryReconciliation(string $upToDate): array
+    {
+        $fisik       = $this->financialRepo->getInventoryAssetTotal();
+        $saldoJurnal = $this->financialRepo->getAccountBalanceByCode(self::PERSEDIAAN_ACCOUNT_CODE, $upToDate);
+
+        $selisih    = $fisik['total_nilai_persediaan'] - $saldoJurnal;
+        $selisihPct = $saldoJurnal != 0 ? round(abs($selisih) / abs($saldoJurnal) * 100, 1) : 0;
+
+        if (abs($selisih) < 1) {
+            $status = 'cocok';
+        } elseif ($saldoJurnal != 0 && $selisihPct <= 2) {
+            $status = 'wajar';
+        } else {
+            $status = 'perlu_cek';
+        }
+
+        return [
+            'total_fisik'         => $fisik['total_nilai_persediaan'],
+            'total_jurnal'        => $saldoJurnal,
+            'selisih'             => $selisih,
+            'selisih_pct'         => $selisihPct,
+            'jumlah_barang'       => $fisik['jumlah_barang'],
+            'jumlah_barang_minus' => $fisik['jumlah_barang_minus'],
+            'total_nilai_minus'   => $fisik['total_nilai_minus'],
+            'barang_minus'        => $fisik['barang_minus'],
+            'status'              => $status,
+            'account_code'        => self::PERSEDIAAN_ACCOUNT_CODE,
         ];
     }
 
@@ -78,14 +130,12 @@ class StoreHealthRepository
             ->leftJoin('units AS fallback_u', 'fallback_u.id', '=', 'fallback_gu.unit_id')
             ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands', 'brands.id', '=', 'goods.brand_id')
-            ->leftJoin('types', 'types.id', '=', 'goods.type_id')
             ->whereNull('goods.deleted_at')
             ->whereRaw('COALESCE(base_gu.id, fallback_gu.id) IS NOT NULL')
             ->select(
                 'goods.id AS good_id',
                 'goods.code AS kode',
                 'goods.name AS nama_barang',
-                'types.name AS tipe',
                 'categories.name AS kategori',
                 'brands.name AS merk',
                 DB::raw('COALESCE(base_u.name, fallback_u.name) AS satuan'),
@@ -99,11 +149,7 @@ class StoreHealthRepository
                 DB::raw('goods.last_stock * (COALESCE(base_gu.selling_price, fallback_gu.selling_price, 0) - COALESCE(base_gu.buy_price, fallback_gu.buy_price, 0)) AS potensi_laba')
             )
             ->orderBy('nilai_hpp', 'desc')
-            ->get()
-            ->map(function ($row) {
-                $row->nama_barang = $this->formatGoodName($row->tipe ?? null, $row->nama_barang);
-                return $row;
-            });
+            ->get();
 
         return $this->attachUnitBreakdown($stock);
     }
@@ -258,20 +304,6 @@ class StoreHealthRepository
             'summary' => $this->buildMovementSummary($result, $days),
             'days' => $days,
         ];
-    }
-
-    /**
-     * Gabungkan tipe + nama barang jadi satu string tampilan, meniru persis
-     * Good::getFullName() supaya penamaan konsisten dengan laporan lain
-     * (Movement, Reorder, Sales).
-     */
-    private function formatGoodName(?string $tipe, string $nama): string
-    {
-        $tipe = trim((string) $tipe);
-        if ($tipe === '' || $tipe === '-') {
-            return ucfirst($nama);
-        }
-        return ucfirst(strtolower($tipe) . ' ' . $nama);
     }
 
     private function fallbackUnitSubquery()

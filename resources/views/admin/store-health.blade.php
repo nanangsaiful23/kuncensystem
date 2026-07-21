@@ -18,6 +18,13 @@
     $topReceivables = $health['top_receivables'] ?? collect();
     $lockedStock = $health['locked_stock'] ?? collect();
     $scoreColor = $scores['color'] ?? 'red';
+    $recon = array_merge([
+        'total_fisik' => 0, 'total_jurnal' => 0, 'selisih' => 0, 'selisih_pct' => 0,
+        'jumlah_barang' => 0, 'jumlah_barang_minus' => 0, 'total_nilai_minus' => 0,
+        'barang_minus' => collect(), 'status' => 'perlu_cek', 'account_code' => null,
+    ], $health['reconciliation'] ?? []);
+    $reconColor = $recon['status'] === 'cocok' ? 'green' : ($recon['status'] === 'wajar' ? 'orange' : 'red');
+    $reconLabel = $recon['status'] === 'cocok' ? '✅ Cocok' : ($recon['status'] === 'wajar' ? '⚠️ Wajar' : '🚨 Perlu Dicek');
 @endphp
 
 <style>
@@ -75,6 +82,9 @@
 .badge-slow { background:#fff4e6; color:var(--orange); }
 .badge-dead { background:#ffe8e8; color:var(--red); }
 .badge-info { background:#e9f0ff; color:var(--blue); }
+.badge-recon-green { background:#e8f7ee; color:var(--green); }
+.badge-recon-orange { background:#fff4e6; color:var(--orange); }
+.badge-recon-red { background:#ffe8e8; color:var(--red); }
 .unit-list { display:grid; gap:.22rem; min-width:190px; }
 .unit-row { display:flex; justify-content:space-between; gap:.55rem; padding:.22rem .45rem; border:1px solid #e5ebf2; border-radius:6px; background:#fbfcfe; font-size:.78rem; }
 .unit-row strong { color:var(--ink); }
@@ -318,6 +328,73 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="sh-card" style="margin-top:1rem">
+            <div class="sh-title">
+                <h2>🔍 Rekonsiliasi Persediaan (Fisik vs Jurnal)</h2>
+                <small>
+                    Per {{ $endDate }}
+                    <span class="badge-soft badge-recon-{{ $reconColor }}" style="margin-left:.4rem">{{ $reconLabel }}</span>
+                </small>
+            </div>
+            <div class="sh-card-pad">
+                @if(!$recon['account_code'])
+                <div class="sh-empty" style="padding:1rem 0">
+                    Kode akun Persediaan belum diset. Cek <code>PERSEDIAAN_ACCOUNT_CODE</code>
+                    di <code>StoreHealthRepository</code> dan sesuaikan dengan kode akun di tabel <code>accounts</code>.
+                </div>
+                @endif
+                <div class="sh-grid sh-grid-kpi" style="margin-bottom:.75rem">
+                    <div class="sh-card sh-kpi">
+                        <div class="label">Nilai Fisik (Stok x Harga Beli)</div>
+                        <div class="value">Rp {{ number_format($recon['total_fisik'], 0, ',', '.') }}</div>
+                        <div class="sub">{{ number_format($recon['jumlah_barang']) }} barang</div>
+                    </div>
+                    <div class="sh-card sh-kpi">
+                        <div class="label">Saldo Akun Persediaan (Jurnal)</div>
+                        <div class="value">Rp {{ number_format($recon['total_jurnal'], 0, ',', '.') }}</div>
+                        <div class="sub">kode akun: {{ $recon['account_code'] ?? '-' }}</div>
+                    </div>
+                    <div class="sh-card sh-kpi {{ $reconColor }}">
+                        <div class="label">Selisih</div>
+                        <div class="value">Rp {{ number_format($recon['selisih'], 0, ',', '.') }}</div>
+                        <div class="sub">{{ $recon['selisih_pct'] }}% dari saldo jurnal</div>
+                    </div>
+                    <div class="sh-card sh-kpi {{ $recon['jumlah_barang_minus'] > 0 ? 'red' : 'green' }}">
+                        <div class="label">Barang Stok Minus</div>
+                        <div class="value">{{ number_format($recon['jumlah_barang_minus']) }}</div>
+                        <div class="sub">Rp {{ number_format($recon['total_nilai_minus'], 0, ',', '.') }} distorsi nilai</div>
+                    </div>
+                </div>
+
+                @if($recon['jumlah_barang_minus'] > 0)
+                <div class="sh-table-wrap">
+                    <table class="sh-table">
+                        <thead>
+                            <tr>
+                                <th>Barang</th>
+                                <th class="tr">Stok</th>
+                                <th class="tr">Harga Beli</th>
+                                <th class="tr">Nilai (Distorsi)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recon['barang_minus'] as $bm)
+                            <tr>
+                                <td>{{ $bm->nama }}<br><small>{{ $bm->kode }}</small></td>
+                                <td class="tr" style="color:var(--red);font-weight:800">{{ number_format($bm->stok, 0, ',', '.') }}</td>
+                                <td class="tr">Rp {{ number_format($bm->harga_beli, 0, ',', '.') }}</td>
+                                <td class="tr" style="color:var(--red)">Rp {{ number_format($bm->nilai, 0, ',', '.') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="sh-empty">Tidak ada barang dengan stok minus. 👍</div>
+                @endif
             </div>
         </div>
     </section>
