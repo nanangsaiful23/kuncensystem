@@ -358,6 +358,7 @@ class MainController extends Controller
                                      ->orOn('accounts.id', 'journals.credit_account_id');
                             })
                             ->select(
+                                'accounts.id as account_id',
                                 'accounts.code',
                                 'accounts.color',
                                 DB::raw('COALESCE(SUM(CASE WHEN journals.debit_account_id = accounts.id THEN journals.debit ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN journals.credit_account_id = accounts.id THEN journals.credit ELSE 0 END), 0) as debit'),
@@ -390,11 +391,59 @@ class MainController extends Controller
             $date->profit = $date->dataplus->sum('debit') - $date->data->sum('debit');
 
             $date->date = $date->year . '-' . str_pad($date->month, 2, '0', STR_PAD_LEFT);
+
+            $date->period_start = $periodStart->toDateString();
+            $date->period_end   = $periodEnd->toDateString();
         }
 
         // dd($dates[0]);die;
 
         return $dates;
+    }
+
+    /**
+     * Detail transaksi jurnal untuk satu akun biaya dalam satu periode.
+     * Dipakai oleh drill-down accordion di halaman Scale Ledger.
+     * GET /admin/scaleLedger/detail/{account_id}/{start_date}/{end_date}
+     */
+    public function scaleLedgerAccountDetail($account_id, $start_date, $end_date)
+    {
+        $account = Account::find($account_id);
+
+        if (!$account) {
+            return response()->json(['error' => 'Akun tidak ditemukan'], 404);
+        }
+
+        $journals = Journal::where(function ($q) use ($account_id) {
+                $q->where('debit_account_id', $account_id)
+                  ->orWhere('credit_account_id', $account_id);
+            })
+            ->whereNull('deleted_at')
+            ->whereDate('journal_date', '>=', $start_date)
+            ->whereDate('journal_date', '<=', $end_date)
+            ->orderBy('journal_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get(['id', 'journal_date', 'name', 'type', 'debit_account_id', 'debit', 'credit_account_id', 'credit']);
+
+        $rows = $journals->map(function ($j) use ($account_id) {
+            // Untuk akun biaya, nilainya normalnya di sisi debit.
+            // Kalau kebetulan ada entri kredit ke akun ini, tampilkan sebagai pengurang (minus).
+            $nominal = $j->debit_account_id == $account_id ? (float) $j->debit : -(float) $j->credit;
+
+            return [
+                'id'         => $j->id,
+                'tanggal'    => Carbon::parse($j->journal_date)->isoFormat('D MMM Y'),
+                'keterangan' => $j->name,
+                'tipe'       => $j->type,
+                'nominal'    => $nominal,
+            ];
+        });
+
+        return response()->json([
+            'account' => ['code' => $account->code, 'name' => $account->name],
+            'rows'    => $rows,
+            'total'   => $rows->sum('nominal'),
+        ]);
     }
 
     function salesGraph($type, $start_date, $end_date)

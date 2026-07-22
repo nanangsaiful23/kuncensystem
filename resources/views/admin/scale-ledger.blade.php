@@ -361,6 +361,35 @@
     color: var(--brand-dark);
   }
 
+  /* ── Expense row drill-down ── */
+  .exp-row { cursor: pointer; }
+  .exp-row.is-active { background: var(--brand-light); border-color: var(--brand); }
+  .exp-row__chevron {
+    color: var(--text-muted); font-size: .7rem; margin-left: 6px;
+    transition: transform .18s;
+  }
+  .exp-row.is-active .exp-row__chevron { transform: rotate(180deg); color: var(--brand); }
+
+  .exp-detail {
+    margin: 2px 0 8px 30px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--brand-mid);
+    background: #fff;
+    border-radius: 0 6px 6px 0;
+  }
+  .exp-detail-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 4px; font-size: var(--fs-xs);
+    border-bottom: 1px dashed var(--border);
+  }
+  .exp-detail-row:last-child { border-bottom: none; }
+  .exp-detail-date { color: var(--text-muted); width: 80px; flex-shrink: 0; }
+  .exp-detail-name { flex: 1; color: var(--text-secondary); }
+  .exp-detail-val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--brand-dark); white-space: nowrap; }
+  .exp-detail-loading, .exp-detail-empty {
+    font-size: var(--fs-xs); color: var(--text-muted); font-style: italic; padding: 6px 4px;
+  }
+
   /* Empty state */
   .exp-empty {
     text-align: center;
@@ -547,11 +576,19 @@
             <div class="acc-body__title">Rincian Pengeluaran</div>
             @if($date->data->count() > 0)
               @foreach($date->data as $i => $data)
-              <div class="exp-row">
+              @php $expTarget = 'exp-detail-' . $date->year . '-' . $date->month . '-' . $data->account_id; @endphp
+              <div class="exp-row"
+                   onclick="toggleExpDetail(this)"
+                   data-account-id="{{ $data->account_id }}"
+                   data-start="{{ $date->period_start }}"
+                   data-end="{{ $date->period_end }}"
+                   data-target="{{ $expTarget }}">
                 <span class="exp-row__num">{{ $i + 1 }}</span>
                 <span class="exp-row__name">{{ $data->name }}</span>
                 <span class="exp-row__val">{{ showRupiah($data->debit) }}</span>
+                <span class="exp-row__chevron">▾</span>
               </div>
+              <div class="exp-detail" id="{{ $expTarget }}" style="display:none"></div>
               @endforeach
               <div class="exp-total">
                 <span class="exp-total__label">Total Pengeluaran</span>
@@ -588,6 +625,56 @@
   function toggleAcc(idx) {
     var item = document.getElementById('acc-' + idx);
     item.classList.toggle('is-open');
+  }
+
+  /* Expense row drill-down toggle */
+  function toggleExpDetail(rowEl) {
+    var targetId = rowEl.dataset.target;
+    var target = document.getElementById(targetId);
+    var willOpen = target.style.display !== 'block';
+
+    // Tutup detail lain yang sedang terbuka
+    document.querySelectorAll('.exp-detail').forEach(function (el) { el.style.display = 'none'; });
+    document.querySelectorAll('.exp-row.is-active').forEach(function (el) { el.classList.remove('is-active'); });
+
+    if (!willOpen) return;
+
+    rowEl.classList.add('is-active');
+    target.style.display = 'block';
+
+    if (target.dataset.loaded === '1') return;
+
+    target.innerHTML = '<div class="exp-detail-loading">Memuat detail...</div>';
+
+    var url = "{{ url('/admin/scaleLedger/detail') }}/" + rowEl.dataset.accountId
+            + "/" + rowEl.dataset.start + "/" + rowEl.dataset.end;
+
+    fetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        target.dataset.loaded = '1';
+        if (!json.rows || json.rows.length === 0) {
+          target.innerHTML = '<div class="exp-detail-empty">Tidak ada rincian transaksi pada periode ini.</div>';
+          return;
+        }
+        var html = '';
+        json.rows.forEach(function (r) {
+          html += '<div class="exp-detail-row">'
+                +   '<span class="exp-detail-date">' + r.tanggal + '</span>'
+                +   '<span class="exp-detail-name">' + r.keterangan + '</span>'
+                +   '<span class="exp-detail-val">' + formatRupiahJs(r.nominal) + '</span>'
+                + '</div>';
+        });
+        target.innerHTML = html;
+      })
+      .catch(function () {
+        target.innerHTML = '<div class="exp-detail-empty">Gagal memuat detail. Coba lagi.</div>';
+      });
+  }
+
+  function formatRupiahJs(n) {
+    var sign = n < 0 ? '-' : '';
+    return sign + 'Rp ' + Math.abs(Math.round(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   }
 
   /* Bar chart */

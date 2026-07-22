@@ -9,6 +9,7 @@ Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
 Route::get('scaleLedger/{start_date}/{end_date}', 'MainController@scaleLedger');
 Route::get('/scaleLedger/{start_date}/{end_date}/{pagination}', 'MainController@scaleLedger');
 Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@getScaleLedger');
+Route::get('/scaleLedger/detail/{account_id}/{start_date}/{end_date}', 'MainController@scaleLedgerAccountDetail')->name('scaleLedger.detail');
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 Route::get('/store-health', 'StoreHealthController@index')->name('store-health');
@@ -21,7 +22,6 @@ Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
  Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
-Route::post('reports/movement/bulk-discontinue','GoodMovementController@bulkDiscontinue')->name('reports.movement.bulk-discontinue');
 // Tambahkan baris ini di bagian rute admin
 Route::get('admin/store-health/export', 'StoreHealthController@exportCsv')->name('store-health.export');
 
