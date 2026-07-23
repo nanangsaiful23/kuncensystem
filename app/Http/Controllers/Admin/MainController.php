@@ -439,9 +439,20 @@ class MainController extends Controller
             ];
         });
 
+        // Pisahkan positif (biaya normal) dan minus (koreksi/retur ke akun ini).
+        // Positif: terbesar dulu. Minus: paling kecil (paling negatif) dulu.
+        $positif = $rows->filter(function ($r) { return $r['nominal'] >= 0; })
+            ->sortByDesc('nominal')
+            ->values();
+
+        $minus = $rows->filter(function ($r) { return $r['nominal'] < 0; })
+            ->sortBy('nominal')
+            ->values();
+
         return response()->json([
             'account' => ['code' => $account->code, 'name' => $account->name],
-            'rows'    => $rows,
+            'positif' => $positif,
+            'minus'   => $minus,
             'total'   => $rows->sum('nominal'),
         ]);
     }

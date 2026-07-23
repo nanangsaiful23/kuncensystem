@@ -300,22 +300,22 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 9px 12px;
-    border-radius: 6px;
+    padding: 11px 14px;
+    border-radius: 7px;
     background: #fff;
     border: 1px solid var(--border);
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     transition: background .12s;
   }
   .exp-row:last-of-type { margin-bottom: 0; }
   .exp-row:hover { background: var(--brand-light); border-color: var(--brand-mid); }
 
   .exp-row__num {
-    width: 22px; height: 22px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     background: var(--brand-light);
     color: var(--brand);
-    font-size: .68rem;
+    font-size: .8rem;
     font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
@@ -323,14 +323,14 @@
   }
   .exp-row__name {
     flex: 1;
-    font-size: var(--fs-sm);
+    font-size: 1rem;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     min-width: 0;
   }
   .exp-row__val {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: var(--fs-base);
+    font-size: 1.05rem;
     font-weight: 600;
     color: var(--brand-dark);
     white-space: nowrap;
@@ -365,29 +365,69 @@
   .exp-row { cursor: pointer; }
   .exp-row.is-active { background: var(--brand-light); border-color: var(--brand); }
   .exp-row__chevron {
-    color: var(--text-muted); font-size: .7rem; margin-left: 6px;
+    color: var(--text-muted); font-size: .8rem; margin-left: 4px;
     transition: transform .18s;
   }
   .exp-row.is-active .exp-row__chevron { transform: rotate(180deg); color: var(--brand); }
 
   .exp-detail {
-    margin: 2px 0 8px 30px;
-    padding: 8px 10px;
-    border-left: 2px solid var(--brand-mid);
-    background: #fff;
-    border-radius: 0 6px 6px 0;
+    margin: 4px 0 5px 14px;
+    padding: 10px 14px 6px;
+    border-left: 3px solid var(--brand-mid);
+    background: #fcfcfd;
+    border-radius: 0 7px 7px 0;
   }
+
+  /* Dua kolom: kiri positif, kanan minus/koreksi */
+  .exp-detail-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px;
+  }
+  .exp-detail-col-head {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .8rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .05em; padding: 2px 4px 8px; margin-bottom: 4px;
+    border-bottom: 2px solid var(--border);
+  }
+  .exp-detail-col-head .cnt { font-weight: 600; text-transform: none; letter-spacing: 0; opacity: .7; }
+  .exp-detail-col-head.positif { color: var(--profit-text); border-bottom-color: var(--profit-border); }
+  .exp-detail-col-head.minus   { color: var(--loss-text);   border-bottom-color: var(--loss-border); }
+  .exp-detail-col + .exp-detail-col { border-left: 1px dashed var(--border); padding-left: 20px; }
+
   .exp-detail-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 6px 4px; font-size: var(--fs-xs);
+    padding: 9px 4px; font-size: .9375rem;
     border-bottom: 1px dashed var(--border);
+    line-height: 1.4;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background .12s;
+    text-decoration: none;
+    color: inherit;
   }
+  .exp-detail-row:hover, .exp-detail-row:focus { background: var(--brand-light); text-decoration: none; }
+  .exp-detail-row:hover .exp-detail-name { color: var(--brand-dark); text-decoration: underline; }
   .exp-detail-row:last-child { border-bottom: none; }
-  .exp-detail-date { color: var(--text-muted); width: 80px; flex-shrink: 0; }
-  .exp-detail-name { flex: 1; color: var(--text-secondary); }
-  .exp-detail-val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--brand-dark); white-space: nowrap; }
+  .exp-detail-date { color: var(--text-muted); width: 74px; flex-shrink: 0; font-weight: 500; }
+  .exp-detail-name { flex: 1; color: var(--text-primary); min-width: 0; }
+  .exp-detail-val { font-family: 'IBM Plex Mono', monospace; font-size: .95rem; font-weight: 600; color: var(--brand-dark); white-space: nowrap; }
+  .exp-detail-val.neg { color: var(--loss-text); }
+  .exp-detail-arrow { color: var(--text-muted); font-size: .85rem; flex-shrink: 0; }
+  .exp-detail-row:hover .exp-detail-arrow { color: var(--brand); }
   .exp-detail-loading, .exp-detail-empty {
-    font-size: var(--fs-xs); color: var(--text-muted); font-style: italic; padding: 6px 4px;
+    font-size: .9375rem; color: var(--text-muted); font-style: italic; padding: 10px 4px;
+  }
+  .exp-detail-col-empty {
+    font-size: .84rem; color: var(--text-muted); font-style: italic; padding: 10px 4px;
+  }
+
+  @media (max-width: 700px) {
+    .exp-detail-columns { grid-template-columns: 1fr; }
+    .exp-detail-col + .exp-detail-col {
+      border-left: none; padding-left: 0;
+      margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px;
+    }
   }
 
   /* Empty state */
@@ -653,23 +693,50 @@
       .then(function (res) { return res.json(); })
       .then(function (json) {
         target.dataset.loaded = '1';
-        if (!json.rows || json.rows.length === 0) {
+
+        var positif = json.positif || [];
+        var minus   = json.minus   || [];
+
+        if (positif.length === 0 && minus.length === 0) {
           target.innerHTML = '<div class="exp-detail-empty">Tidak ada rincian transaksi pada periode ini.</div>';
           return;
         }
-        var html = '';
-        json.rows.forEach(function (r) {
-          html += '<div class="exp-detail-row">'
-                +   '<span class="exp-detail-date">' + r.tanggal + '</span>'
-                +   '<span class="exp-detail-name">' + r.keterangan + '</span>'
-                +   '<span class="exp-detail-val">' + formatRupiahJs(r.nominal) + '</span>'
-                + '</div>';
-        });
+
+        var html = '<div class="exp-detail-columns">'
+                 +   '<div class="exp-detail-col">'
+                 +     '<div class="exp-detail-col-head positif"><span>Positif</span><span class="cnt">' + positif.length + '</span></div>'
+                 +     renderExpDetailRows(positif)
+                 +   '</div>'
+                 +   '<div class="exp-detail-col">'
+                 +     '<div class="exp-detail-col-head minus"><span>Minus</span><span class="cnt">' + minus.length + '</span></div>'
+                 +     renderExpDetailRows(minus)
+                 +   '</div>'
+                 + '</div>';
+
         target.innerHTML = html;
       })
       .catch(function () {
         target.innerHTML = '<div class="exp-detail-empty">Gagal memuat detail. Coba lagi.</div>';
       });
+  }
+
+  /* Render satu kolom (positif atau minus) sebagai daftar link ke halaman jurnal */
+  function renderExpDetailRows(items) {
+    if (!items || items.length === 0) {
+      return '<div class="exp-detail-col-empty">Tidak ada.</div>';
+    }
+    var journalBaseUrl = "{{ url('/admin/journal') }}";
+    var html = '';
+    items.forEach(function (r) {
+      var valClass = r.nominal < 0 ? 'exp-detail-val neg' : 'exp-detail-val';
+      html += '<a class="exp-detail-row" href="' + journalBaseUrl + '/' + r.id + '/edit">'
+            +   '<span class="exp-detail-date">' + r.tanggal + '</span>'
+            +   '<span class="exp-detail-name">' + r.keterangan + '</span>'
+            +   '<span class="' + valClass + '">' + formatRupiahJs(r.nominal) + '</span>'
+            +   '<span class="exp-detail-arrow">→</span>'
+            + '</a>';
+    });
+    return html;
   }
 
   function formatRupiahJs(n) {
