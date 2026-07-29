@@ -9,7 +9,6 @@ Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
 Route::get('scaleLedger/{start_date}/{end_date}', 'MainController@scaleLedger');
 Route::get('/scaleLedger/{start_date}/{end_date}/{pagination}', 'MainController@scaleLedger');
 Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@getScaleLedger');
-Route::get('/scaleLedger/detail/{account_id}/{start_date}/{end_date}', 'MainController@scaleLedgerAccountDetail')->name('scaleLedger.detail');
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 Route::get('/store-health', 'StoreHealthController@index')->name('store-health');
@@ -221,6 +220,7 @@ Route::group(['prefix' => 'retur'], function () {
 
 Route::group(['prefix' => 'stock-opname'], function () {
 	Route::get('/create', 'StockOpnameController@create');
+    Route::get('/minus-goods', 'StockOpnameController@minusGoods');
     Route::post('/store', 'StockOpnameController@store')->name('stock-opname.store');
     Route::get('/{stock_opname_id}/detail', 'StockOpnameController@detail');
 	Route::get('/{start_date}/{end_date}/{pagination}', 'StockOpnameController@index');

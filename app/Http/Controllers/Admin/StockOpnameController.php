@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Base\StockOpnameControllerBase;
 
 use App\Models\StockOpname;
+use App\Models\Good;
 
 class StockOpnameController extends Controller
 {
@@ -39,7 +40,62 @@ class StockOpnameController extends Controller
         $default['page'] = 'stock-opname';
         $default['section'] = 'create';
 
-        return view('admin.layout.page', compact('default'));
+        // Badge jumlah barang minus, ditampilkan di atas form supaya
+        // pemilik toko langsung sadar ada data yang perlu dibereskan.
+        $minusCount = Good::whereNull('deleted_at')
+            ->where('last_stock', '<', 0)
+            ->count();
+
+        return view('admin.layout.page', compact('default', 'minusCount'));
+    }
+
+    /**
+     * Daftar barang dengan stok minus (last_stock < 0), untuk dipilih
+     * dan langsung ditambahkan ke form stock opname.
+     *
+     * GET /admin/stock-opname/minus-goods?keyword=
+     */
+    public function minusGoods(Request $request)
+    {
+        $keyword = trim((string) $request->get('keyword', ''));
+
+        $query = Good::whereNull('goods.deleted_at')
+            ->where('goods.last_stock', '<', 0);
+
+        if ($keyword !== '') {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('goods.name', 'like', '%' . $keyword . '%')
+                  ->orWhere('goods.code', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        // Urutkan paling minus dulu — biasanya itu yang paling "parah"
+        // dan paling butuh perhatian.
+        $goods = $query->orderBy('goods.last_stock', 'asc')
+            ->limit(500)
+            ->get();
+
+        $result = $goods->map(function ($good) {
+            // Pakai fallback satuan yang sama seperti dipakai di seluruh
+            // sistem (Good::getPcsSellingPrice) supaya konsisten dengan
+            // satuan yang dipakai saat input stock opname manual.
+            $unit = $good->getPcsSellingPrice();
+
+            return [
+                'good_id'    => $good->id,
+                'code'       => $good->code,
+                'name'       => $good->getFullName(),
+                'last_stock' => (float) $good->last_stock,
+                'unit_id'    => $unit->unit_id  ?? null,
+                'unit_name'  => $unit->name     ?? '-',
+                'unit_qty'   => $unit->quantity ?? 1,
+            ];
+        })->values();
+
+        return response()->json([
+            'total' => $result->count(),
+            'goods' => $result,
+        ]);
     }
 
     public function store(Request $request)
