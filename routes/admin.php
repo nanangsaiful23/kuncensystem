@@ -10,6 +10,7 @@ Route::get('scaleLedger/{start_date}/{end_date}', 'MainController@scaleLedger');
 Route::get('/scaleLedger/{start_date}/{end_date}/{pagination}', 'MainController@scaleLedger');
 Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@getScaleLedger');
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
+Route::get('/scaleLedger/detail/{account_id}/{start_date}/{end_date}', 'MainController@scaleLedgerAccountDetail')->name('scaleLedger.detail');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
 Route::get('/store-health', 'StoreHealthController@index')->name('store-health');
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
