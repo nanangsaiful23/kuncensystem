@@ -957,7 +957,7 @@
           var htmlResult = '';
           for (var i = 0; i < r.length; i++) 
           {
-            htmlResult += '<div class="product-card"><input type="checkbox" class="product-checkbox"><div class="product-info"><div class="product-name">[ ' + r[i].good_type + '] ' + r[i].name + '</div><div class="product-meta"><span class="category-badge" style="background-color: ';
+            htmlResult += '<div class="product-card"><input type="checkbox" class="product-checkbox"><div class="product-info"><div class="product-name">[ ' + r[i].good_type + '] ' + r[i].short_name + '</div><div class="product-meta"><span class="category-badge" style="background-color: ';
 
             if(r[i].category.color == null)
               htmlResult += '#ede8ff';

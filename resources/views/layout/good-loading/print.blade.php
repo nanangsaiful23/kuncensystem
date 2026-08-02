@@ -33,7 +33,7 @@
 				@foreach($good_loading->detailsWithDeleted() as $detail)
 					<tr>
 						<td style="text-align: left !important;">
-							<b>{{ $i++ . '. ' . $detail->good_unit->good->name }}</b>
+							<b>{{ $i++ . '. ' . $detail->good_unit->good->getFullName() }}</b>
 						</td>
 					</tr>
 					<tr>
