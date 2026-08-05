@@ -116,9 +116,15 @@ class MainController extends Controller
         [$payment_ins, $payment_outs] = $this->getPayment('52%');
         [$other_debits, $other_credits] = $this->getPayment('610%');
 
-        $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($other_debits->sum('balance') + $other_debits->sum('debit') - $other_credits->sum('credit'));
+        $totalAktiva = $activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit');
 
-        $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) + $utang_dagang->balance - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) + $modal_pemilik->balance - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_di_ins->sum('balance');
+        $totalPasiva = ($pasiva_debits->sum('balance') + $laba[0])
+                    + (-1 * ($pasiva_debits->sum('debit') - ($pasiva_credits->sum('credit') + $laba[1])));
+
+        $total = $totalAktiva - $totalPasiva;
+        // $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($other_debits->sum('balance') + $other_debits->sum('debit') - $other_credits->sum('credit'));
+
+        // $total = $total - ($activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit')) + $utang_dagang->balance - ($utang_dagang->balance + $utang_dagang_debit->sum('debit') - $utang_dagang_credit->sum('credit')) + $modal_pemilik->balance - ($modal_pemilik->balance + $modal_pemilik_debit->sum('debit') - $modal_pemilik_credit->sum('credit')) + $kas_di_ins->sum('balance');
 
         $yesterday = Carbon::yesterday();
         $last_cash_flow = Journal::where('type', 'cash_draw')->whereDate('journal_date', $yesterday)->first();
