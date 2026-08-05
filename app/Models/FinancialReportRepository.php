@@ -552,6 +552,12 @@ class FinancialReportRepository
      *
      * Standar akuntansi akun aktiva: debit menambah saldo, kredit mengurangi.
      *
+     * PENTING: setiap akun punya nilai awal (kolom `balance` di tabel
+     * `accounts`) yang HARUS ditambahkan dulu sebagai titik awal, sebelum
+     * mutasi debit/kredit dari jurnal dihitung. Tanpa ini, akun yang baru
+     * dipakai (belum ada histori jurnal, tapi sudah punya saldo awal saat
+     * dibuat) akan selalu tampil bersaldo 0 di rekonsiliasi.
+     *
      * @param  string      $accountCode  Kode akun di tabel accounts (mis. '1141')
      * @param  string|null $upToDate     Batas tanggal (default: hari ini)
      */
@@ -559,26 +565,28 @@ class FinancialReportRepository
     {
         $upTo = $upToDate ?? date('Y-m-d');
 
-        $accountId = Account::whereNull('deleted_at')
+        $account = Account::whereNull('deleted_at')
             ->where('code', $accountCode)
-            ->value('id');
+            ->first();
 
-        if (!$accountId) {
+        if (!$account) {
             return 0.0;
         }
 
+        $saldoAwal = (float) $account->balance;
+
         $debit = DB::table('journals')
             ->whereNull('deleted_at')
-            ->where('debit_account_id', $accountId)
+            ->where('debit_account_id', $account->id)
             ->where('journal_date', '<=', $upTo)
             ->sum('debit');
 
         $credit = DB::table('journals')
             ->whereNull('deleted_at')
-            ->where('credit_account_id', $accountId)
+            ->where('credit_account_id', $account->id)
             ->where('journal_date', '<=', $upTo)
             ->sum('credit');
 
-        return (float) $debit - (float) $credit;
+        return $saldoAwal + (float) $debit - (float) $credit;
     }
 }
