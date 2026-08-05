@@ -118,7 +118,7 @@ class MainController extends Controller
 
         $totalAktiva = $activa_debits->sum('balance') + $activa_debits->sum('debit') - $activa_credits->sum('credit');
 
-        $totalPasiva = 0;
+        $totalPasiva = 100000000;
 
         $total = $totalAktiva - $totalPasiva;
         // $total = $penjualan_account->balance - $hpp_account->balance + ($penjualan_credit->sum('credit') - $penjualan_debit->sum('debit')) - ($hpp_debit->sum('debit') - $hpp_credit->sum('credit')) - ($payment_ins->sum('balance') + $payment_ins->sum('debit') - $payment_outs->sum('credit')) - ($other_debits->sum('balance') + $other_debits->sum('debit') - $other_credits->sum('credit'));
