@@ -58,7 +58,7 @@
               </thead>
               <tbody id="table-good">
                 @foreach($loadings as $good_loading)
-                  <tr @if($good_loading->gda != null) style="background-color: red" @endif>
+                  <tr @if($good_loading->gda != null) style="background-color: red" @elseif($good_loading->type != 'normal') style="background-color: yellow" @endif>
                     <td><a href="{{ url($role . '/good-loading/' . $good_loading->gid . '/detail') }}" class="btn" target="_blank">{{ $good_loading->gca }}</a></td>
                     <td>{{ getActor($good_loading->role, $good_loading->role_id)->name }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
