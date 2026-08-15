@@ -474,7 +474,7 @@
                 {
                     alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member dan centang tombol hutang');
                 }
-                else if($('#type').val() == '2101' && $('#distributor_id').val() == 'null')
+                else if(($('#type').val() == '2101' && $('#distributor_id').val() == 'null') || ($('#type').val() == '1131' && $('#distributor_id').val() == 'null'))
                 {
                     alert('Silahkan pilih distributor');
                 }
