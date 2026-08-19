@@ -135,12 +135,6 @@
           url: "{!! url($role . '/good/searchByGoodUnit/') !!}/" + good_unit_id,
           success: function(result){
             var good = result.good;
-            if(good.stock <= 0)
-            {
-                document.getElementById("message").style.display = "block";
-                htmlResult2 = "> " + good.name + " stock: " + good.stock + "<br>";
-                $("#empty-item").append(htmlResult2);
-            }
 
             $("#id-" + total_item).val(good_unit_id);
             $("#name-" + total_item).val(good.name);
