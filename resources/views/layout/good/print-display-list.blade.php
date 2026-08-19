@@ -13,13 +13,19 @@
 				size: 8.27in 11.69in;  
 				margin: 0.1in; 
 			}
+
+		  table, th, td  {
+		    font-size: 14pt; /* Standard readable print size */
+		    -webkit-print-color-adjust: exact !important; /* For Chrome, Safari, and Edge */
+    		print-color-adjust: exact !important;   
+		  }
 		}
 
 		table {
+			border-collapse: collapse;
 		}
 
 		table, th, td {
-			color: darkblue;
 			padding-left: 10px;
 		}
 	</style>
@@ -28,9 +34,9 @@
 		<table class="space-top-2">
 			<tbody>	
 				@for($i = 0; $i < sizeof($goods); $i++)
-					<tr>
+					<tr @if($i % 2 == 0) style="background-color: rgba(255, 255, 0, 0.1);" @endif>
 						<td width="80%"><h1>{{ $goods[$i]['name']}}</h1></td>
-						<td style="text-align: right;"><h1>{{ showRupiah($goods[$i]['price']) }}</h1></td>
+						<td style="text-align: right;"><h1>Rp{{ printRupiah($goods[$i]['price']) }}</h1></td>
 					</tr>
 				@endfor
 			</tbody>
