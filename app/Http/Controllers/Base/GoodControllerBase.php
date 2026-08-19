@@ -651,7 +651,7 @@ trait GoodControllerBase
                 {
                 //     foreach($good->good_units as $unit)
                 //     {
-                    $data['name'] = $good_unit->good->name;
+                    $data['name'] = $good_unit->good->getFullName();
                     $data['unit'] = $good_unit->unit->name;
                     $data['price'] = $good_unit->selling_price;
 
