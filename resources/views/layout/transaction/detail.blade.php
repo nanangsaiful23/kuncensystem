@@ -123,7 +123,7 @@
                             </thead>
                             <tbody>
                                 <?php $i = 1; ?>
-                                @foreach($transaction->details as $detail)
+                                @foreach($transaction->detailsWithDeleted() as $detail)
                                     <tr @if($detail->type == 'retur') style="background-color: yellow" @endif>
                                         <td>{{ $i++ }}</td>
                                         <td>
