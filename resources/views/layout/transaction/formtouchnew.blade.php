@@ -458,7 +458,7 @@
   color: var(--text) !important;
   text-align: left;
 }
-.modal-item:hover { border-color: var(--brand) !important; transform: translateX(3px); }
+.modal-item:hover { border-color: var(--brand) !important; transform: translateX(3px); background:yellow !important; }
 .pos-root .modal-footer .btn { height: 44px; font-size: 15px; font-weight: 600; padding: 0 20px; border-radius: var(--radius-sm); }
 
 /* ═══════════════════════════════════════════════════
