@@ -32,26 +32,35 @@
 			<tbody>	
 				<?php $i = 0; ?>
 				@while(isset($goods[$i]))
-					<tr>
-						@for($j = 0; $j < 4; $j++)
-							@if(isset($goods[$i * 4 + $j]))
-				            	<td style="width: 2.93in; height: 1.3in">
-					            	<div style="text-align: center;">
-						            	<span style="font-size: 15px;">{{ strtoupper($goods[$i * 4 + $j]['name']) }}</span><br>
-						            	<span style="font-size: 13px;">per {{ strtoupper($goods[$i * 4 + $j]['unit']) }}</span><br><br>
-						            	<span style="font-size: 19px;"><b>{{ showRupiah($goods[$i * 4 + $j]['price']) }}</b></span><br><br>
-					            	</div>
-					            	<div style="text-align: right; margin-right: 50px;">
-						            	<span style="font-size: 10px;">ntnmart {{ date('d-m-Y') }}</span>
-					            	</div>
-					            </td>
+								<tr>
+					@for($j = 0; $j < 3; $j++)
+						<!-- <tr> -->
+							@if(isset($goods[$i * 3 + $j]))
+					            	<td style="width: 3.74in;" colspan="{{ sizeof($goods[$i * 3 + $j]['price']) }}">
+						            	<div style="display: flex; text-align: center; align-items: center; height: 1.42in;">
+							            	<span style="font-size: 18px; display: inline-block; margin: 0 auto;">{{ strtoupper($goods[$i * 3 + $j]['name']) }}</span><br>
+							            </div>
+							            <div style="width: 3.74in; height: 1in; display: flex;">
+						            		@foreach($goods[$i * 3 + $j]['price'] as $price)
+						            			<?php $w = 3.74/sizeof($goods[$i * 3 + $j]['price']); ?>
+								            	<div style="text-align: center; width: {{ $w }}in;">
+									            	<span style="font-size: 13px;">per {{ strtoupper($price['unit']) }}</span><br>
+									            	<span style="font-size: 19px;"><b>{{ showRupiah($price['price']) }}</b></span>
+						            			</div>
+						            		@endforeach
+							            </div>
+						            	<div style="text-align: right; margin-right: 50px; height: 0.3in;">
+							            	<span style="font-size: 10px;">ntnmart {{ date('d-m-Y') }}</span>
+						            	</div>
+							        </td>
 				            @endif
-						@endfor
-						<?php $i++; ?>
-					</tr>
+				        <!-- </tr> -->
+					@endfor
+						        </tr>
+					<?php $i++; ?>
 					@if($i % 6 == 0 && $i > 0) 
 						<tr style="opacity: 0; border: 0px !important;">
-							@for($j = 0; $j < 4; $j++)
+							@for($j = 0; $j < 3; $j++)
 								<td style="border: 0px !important;">{{ $i }}</td>
 							@endfor
 						</tr>

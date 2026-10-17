@@ -646,17 +646,20 @@ trait GoodControllerBase
             if($request->ids[$i] != null)
             {
                 $good_unit = GoodUnit::find($request->ids[$i]);
+                $good = $good_unit->good;
 
                 for($j = 0; $j < $request->quantities[$i]; $j++)
                 {
-                //     foreach($good->good_units as $unit)
-                //     {
-                    $data['name'] = $good_unit->good->getFullName();
-                    $data['unit'] = $good_unit->unit->name;
-                    $data['price'] = $good_unit->selling_price;
+                    $data['name'] = $good->getFullName();
+                    $data['price'] = [];
+                    foreach($good->good_units as $unit)
+                    {
+                        $price['unit'] = $unit->unit->name;
+                        $price['price'] = $unit->selling_price;
 
+                        array_push($data['price'], $price);
+                    } 
                     array_push($goods, $data);
-                //     } 
                 }
             }
         }
