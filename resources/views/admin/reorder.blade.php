@@ -121,6 +121,10 @@
 
 .ro-stock-line { font-size:.85rem; color:var(--ink3); margin-top:.25rem; }
 .ro-item-name { font-weight:600; font-size:1.05rem; }
+/* Badge retur ke distributor */
+.b-retur { background:#faf5ff; color:#7c3aed; border:1px solid #ddd6fe; }
+.ro-retur-note { font-size:.78rem; color:#7c3aed; margin-top:.25rem;
+    display:inline-flex; align-items:center; gap:.25rem; }
 .ro-last-loading-date { color:#64748b; }
 
 .ro-qty-input-group { display:inline-flex; align-items:center; gap:.4rem; justify-content:flex-end; }
@@ -297,6 +301,10 @@
     <em>Qty Order</em> adalah jumlah yang disarankan dipesan agar stok cukup untuk ±14 hari ke depan,
     sudah dibulatkan ke satuan kemasan (dus/pak) jika tersedia. Lead time pengiriman masih berupa
     <strong>asumsi 5 hari</strong> — angka ini akan lebih akurat bila dicatat per distributor.
+    <br>🔄 <strong>Barang bertanda "Ada Retur"</strong> berarti stoknya turun sebagian karena diretur ke
+    distributor (bukan karena laku). Qty order sudah dihitung dari <em>stok efektif jual</em>
+    (stok aktual + qty yang diretur), sehingga barang yang habis murni karena retur
+    <strong>tidak akan direkomendasikan untuk di-order kembali</strong>.
 </div>
 
 {{-- Filter --}}
@@ -364,6 +372,13 @@
         <div class="kv" style="font-size:1.05rem">Rp {{ number_format($s['total_biaya']/1000000, 1) }}jt</div>
         <div class="ks">total semua order</div>
     </div>
+    @if(($s['retur_count'] ?? 0) > 0)
+    <div class="ro-kpi" style="border-left:5px solid #7c3aed">
+        <div class="kl">Ada Retur</div>
+        <div class="kv" style="color:#7c3aed">{{ number_format($s['retur_count']) }}</div>
+        <div class="ks">stok turun karena diretur ke dist.</div>
+    </div>
+    @endif
 </div>
 
 {{-- Grup per distributor --}}
@@ -435,13 +450,12 @@
                     <div class="ro-chk-label">Export</div>
                 </th>
                 <th>Barang</th>
-                <th class="tr" data-ro-tip="Jumlah pada loading/restock terakhir, sebagai pembanding">Loading Terakhir</th>
-                <th class="tr" data-ro-tip="Bisa diubah manual sebelum export sesuai kebutuhan">Qty Order</th>
-                
                 <th>Kategori</th>
                 <th class="tr">Stok Saat Ini</th>
                 <th class="tr" data-ro-tip="Titik pemicu order: stok pengaman + kebutuhan selama lead time">Min. Stok</th>
                 <th class="tr" data-ro-tip="Stok ideal setelah barang baru tiba">Target Stok</th>
+                <th class="tr" data-ro-tip="Jumlah pada loading/restock terakhir, sebagai pembanding">Loading Terakhir</th>
+                <th class="tr" data-ro-tip="Bisa diubah manual sebelum export sesuai kebutuhan">Qty Order</th>
                 <th class="tr">Estimasi Biaya</th>
                 <th>Urgensi</th>
                 <th class="ro-chk-col" data-ro-tip="Pilih barang yang akan di-discontinue sekaligus">
@@ -473,6 +487,19 @@
                     📅 Last loading: {{ $it->last_loading_date ?? 'belum pernah' }}
                 </div>
             </td>
+            <td>{{ $it->kategori }}</td>
+            <td class="tr">
+                {{ number_format($it->stok_sekarang, 0, ',', '.') }}
+                <div class="ro-stock-line">{{ number_format($it->avg_qty_per_day, 1) }}/hari</div>
+                @if($it->ada_retur)
+                <div class="ro-retur-note"
+                    data-ro-tip="{{ $it->qty_diretur }} pcs diretur ke distributor dalam periode ini. Stok efektif untuk analisis: {{ number_format($it->stok_efektif_jual, 0) }} pcs.">
+                    🔄 {{ $it->qty_diretur }} pcs diretur ke dist.
+                </div>
+                @endif
+            </td>
+            <td class="tr">{{ number_format($it->min_stock, 0, ',', '.') }}</td>
+            <td class="tr">{{ number_format($it->target_stock, 0, ',', '.') }}</td>
             <td class="tr">
                 @if($it->last_loading_qty !== null)
                     {{ number_format($it->last_loading_qty, 0, ',', '.') }} {{ $it->last_loading_unit }}
@@ -492,14 +519,6 @@
                     <span class="ro-qty-unit">{{ $it->reorder_unit }}</span>
                 </div>
             </td>
-            <td>{{ $it->kategori }}</td>
-            <td class="tr">
-                {{ number_format($it->stok_sekarang, 0, ',', '.') }}
-                <div class="ro-stock-line">{{ number_format($it->avg_qty_per_day, 1) }}/hari</div>
-            </td>
-            <td class="tr">{{ number_format($it->min_stock, 0, ',', '.') }}</td>
-            <td class="tr">{{ number_format($it->target_stock, 0, ',', '.') }}</td>
-            
             <td class="tr">
                 <span id="roBiaya{{ $it->good_id }}">Rp {{ number_format($it->estimasi_biaya, 0, ',', '.') }}</span>
             </td>
@@ -508,6 +527,12 @@
                     {{ $it->urgensi === 1 ? '🚨' : ($it->urgensi === 2 ? '⏳' : '✅') }}
                     {{ $it->urgensi_label }}
                 </span>
+                @if($it->ada_retur)
+                <span class="ro-badge-tag b-retur" style="margin-top:.3rem"
+                    data-ro-tip="Stok turun {{ $it->qty_diretur }} pcs karena diretur ke distributor (bukan karena laku). Qty order sudah dihitung dari stok efektif jual.">
+                    🔄 Ada Retur
+                </span>
+                @endif
             </td>
             <td class="ro-chk-col">
                 <input type="checkbox" class="ro-row-chk ro-disc-chk"
