@@ -162,13 +162,26 @@
 <body>
 	<table class="space-top-2">
 		<tbody>
-			<?php $i = 0; ?>
+			<?php 
+				$i = 0; 
+				$total = sizeof($goods);
+				if($total / 9 == 1)
+				{
+					$col = 3;
+					$fontSz = 0;
+				}
+				elseif($total / 4 == 1)
+				{
+					$col = 2;
+					$fontSz = 20;
+				}
+			?>
 			@while(isset($goods[$i]))
 			<tr>
-				@for($j = 0; $j < 3; $j++)
-					@if(isset($goods[$i * 3 + $j]))
+				@for($j = 0; $j < $col; $j++)
+					@if(isset($goods[$i * $col + $j]))
 						<?php
-							$item   = $goods[$i * 3 + $j];
+							$item   = $goods[$i * $col + $j];
 							$prices = $item['price'];
 							$n      = sizeof($prices);
 
@@ -180,16 +193,18 @@
 							elseif ($nameLen <= 48) $nameSize = 19;
 							elseif ($nameLen <= 70) $nameSize = 16;
 							else                    $nameSize = 13;
+							$nameSize += $fontSz;
 
 							// Ukuran awal harga berdasarkan jumlah satuan harga
 							$priceSize = $n == 1 ? 54 : ($n == 2 ? 34 : 24);
+							$priceSize += $fontSz + 15;
 						?>
-						<td style="width: 33.333%;" colspan="{{ $n }}">
-							<div class="name-box">
+						<td style="@if($col == 3) width: 33.333%; @else width: 50%;  height: 4.1in !important; @endif" colspan="{{ $n }}">
+							<div class="name-box" style="@if($col == 2) height: 1.5in !important; @endif">
 								<div class="name fit" data-min="10" style="font-size: {{ $nameSize }}px;">{{ mb_strtoupper($item['name']) }}</div>
 							</div>
 
-							<div class="price-box">
+							<div class="price-box" style="@if($col == 2) height: 2.1in !important; @endif">
 								@foreach($prices as $price)
 									<div class="price-col">
 										<span class="unit">per {{ mb_strtoupper($price['unit']) }}</span>
