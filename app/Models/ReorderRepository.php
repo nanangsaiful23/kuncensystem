@@ -97,6 +97,40 @@ class ReorderRepository
             ->get()
             ->keyBy('good_id');
 
+        // ── Agregasi retur barang ke DISTRIBUTOR per good dalam periode ───────
+        //
+        //    `transactions.type = 'retur_item'` = barang dikembalikan ke
+        //    distributor (bukan retur dari pembeli ke toko).
+        //
+        //    Kenapa perlu dipisah dari salesAgg:
+        //    Stok barang yang diretur ke distributor BERKURANG, sehingga
+        //    `goods.last_stock` (stok aktual saat ini) ikut turun. Akibatnya
+        //    sistem bisa salah membaca "stok rendah = perlu order", padahal
+        //    stok habis bukan karena laku — melainkan karena dikembalikan ke
+        //    distributor (misal: kadaluarsa, cacat, salah kirim).
+        //
+        //    Dengan data ini kita bisa hitung `stok_efektif_jual`:
+        //      stok_efektif_jual = stok_sekarang + total_qty_diretur
+        //    → stok "seharusnya" kalau tidak ada retur ke distributor,
+        //      yang dipakai sebagai dasar apakah barang benar-benar perlu
+        //      di-order lagi atau tidak.
+        $returAgg = TransactionDetail::join(
+                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
+            )
+            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
+            ->where('transactions.type', 'retur_item')
+            ->whereNull('transactions.deleted_at')
+            ->whereNull('transaction_details.deleted_at')
+            ->whereBetween('transactions.created_at', [$start, $end])
+            ->select(
+                'good_units.good_id',
+                DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) AS total_qty_diretur'),
+                DB::raw('COUNT(DISTINCT transactions.id)                     AS total_retur')
+            )
+            ->groupBy('good_units.good_id')
+            ->get()
+            ->keyBy('good_id');
+
         // ── Ambil goods aktif (belum discontinued), beserta base unit & harga,
         //    plus seluruh unit kemasan yang tersedia (untuk pembulatan order) ──
         $baseUnitSub = DB::table('good_units AS gu_base')
@@ -110,7 +144,6 @@ class ReorderRepository
 
         $goodsQuery = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands', 'brands.id', '=', 'goods.brand_id')
-            ->leftJoin('types',  'types.id',  '=', 'goods.type_id')
             ->leftJoinSub($baseUnitSub, 'base_u', 'base_u.good_id', '=', 'goods.id')
             ->leftJoin('good_units AS gu', function ($j) {
                 $j->on('gu.good_id', '=', 'goods.id')->whereNull('gu.deleted_at');
@@ -118,19 +151,11 @@ class ReorderRepository
             ->leftJoin('units AS u', 'u.id', '=', 'gu.unit_id')
             ->whereNull('goods.deleted_at')
             ->where('goods.is_discontinued', 0)
-            // 🐛 FIX: whereRaw('... OR base_u.min_qty IS NULL') tanpa kurung membuat
-            // SEMUA filter sebelumnya (deleted_at, is_discontinued, kategori,
-            // distributor) bocor lewat OR ini untuk barang yang base_u.min_qty-nya
-            // NULL. Dibungkus closure supaya OR terkurung sendiri.
-            ->where(function ($q) {
-                $q->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty')
-                  ->orWhereNull('base_u.min_qty');
-            })
+            ->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty OR base_u.min_qty IS NULL')
             ->select(
                 'goods.id                  AS good_id',
                 'goods.code                AS kode',
                 'goods.name                AS nama',
-                'types.name                AS tipe',
                 'goods.last_stock          AS stok_sekarang',
                 'goods.last_distributor_id AS distributor_id',
                 'categories.id             AS category_id',
@@ -206,14 +231,28 @@ class ReorderRepository
         foreach ($goodsRaw as $good) {
             $gid       = $good->good_id;
             $agg       = $salesAgg->get($gid);
-            $totalTrx  = $agg ? (int)   $agg->total_transaksi    : 0;
-            $totalQty  = $agg ? (float) $agg->total_qty_terjual  : 0;
+            $totalTrx  = $agg ? (int)   $agg->total_transaksi   : 0;
+            $totalQty  = $agg ? (float) $agg->total_qty_terjual : 0;
             $stok      = (float) $good->stok_sekarang;
             $hargaBeli = (float) ($good->harga_beli ?? 0);
 
+            // ── Data retur ke distributor dalam periode ───────────────────────
+            $retur          = $returAgg->get($gid);
+            $qtyDiretur     = $retur ? (float) $retur->total_qty_diretur : 0;
+            $totalReturTrx  = $retur ? (int)   $retur->total_retur       : 0;
+            $adaRetur       = $qtyDiretur > 0;
+
+            // Stok efektif untuk analisis penjualan:
+            // Stok saat ini + qty yang diretur ke distributor = stok "seharusnya"
+            // jika tidak ada retur. Dipakai sebagai dasar apakah barang benar-
+            // benar perlu di-order, bukan sekadar "stok berkurang karena retur".
+            $stokEfektifJual = $stok + $qtyDiretur;
+
             $avgQtyPerDay = $days > 0 ? $totalQty / $days : 0;
 
-            $calc = $this->calculate($avgQtyPerDay, $totalTrx, $stok);
+            // Hitung kebutuhan order berdasarkan stok efektif (bukan stok aktual),
+            // supaya barang yang habis karena retur tidak direkomendasikan order.
+            $calc = $this->calculate($avgQtyPerDay, $totalTrx, $stokEfektifJual);
 
             // Lewati barang yang tidak perlu di-order, kecuali diminta tampilkan semua
             if ($onlyNeeded && !$calc['perlu_order']) {
@@ -245,13 +284,17 @@ class ReorderRepository
             $items->push((object) [
                 'good_id'             => $gid,
                 'kode'                => $good->kode,
-                'nama'                => $this->formatGoodName($good->tipe ?? null, $good->nama),
+                'nama'                => $good->nama,
                 'kategori'            => $good->kategori ?? '-',
                 'merk'                => $good->merk     ?? '-',
                 'satuan'              => $good->satuan   ?? '-',
                 'distributor_id'      => $distId,
                 'distributor_nama'    => $distName,
                 'stok_sekarang'       => $stok,
+                'stok_efektif_jual'   => $stokEfektifJual,  // stok + qty yg diretur, utk analisis
+                'ada_retur'           => $adaRetur,          // true jika ada retur ke dist dlm periode
+                'qty_diretur'         => (int) $qtyDiretur,  // total qty pcs yang diretur ke dist
+                'total_retur_trx'     => $totalReturTrx,     // berapa kali transaksi retur
                 'avg_qty_per_day'     => round($avgQtyPerDay, 2),
                 'total_transaksi'     => $totalTrx,
                 'lead_time_days'      => $calc['lead_time_days'],
@@ -307,6 +350,7 @@ class ReorderRepository
             'total_biaya'       => $items->sum('estimasi_biaya'),
             'urgent_count'      => $items->where('urgensi', 1)->count(),
             'soon_count'        => $items->where('urgensi', 2)->count(),
+            'retur_count'       => $items->where('ada_retur', true)->count(),
             'days'              => $days,
         ];
 
@@ -333,27 +377,6 @@ class ReorderRepository
      *                     -> stok ideal yang ingin dicapai setelah order tiba
      *   reorder_qty    = target_stock - stok_sekarang   (jika stok_sekarang < min_stock)
      */
-    /**
-     * Gabungkan tipe + nama barang jadi satu string tampilan (mis. tipe
-     * "Kaleng" + nama "Sarden ABC" → "Kaleng sarden abc"), meniru persis
-     * Good::getFullName() supaya penamaan konsisten dengan laporan lain.
-     */
-    private function formatGoodName(?string $tipe, ?string $nama): string
-    {
-        // Data lama kadang punya goods.name kosong/NULL — jangan sampai bikin
-        // laporan error, tampilkan placeholder yang jelas alih-alih crash.
-        $nama = trim((string) $nama);
-        if ($nama === '') {
-            $nama = '(tanpa nama)';
-        }
-
-        $tipe = trim((string) $tipe);
-        if ($tipe === '' || $tipe === '-') {
-            return ucfirst($nama);
-        }
-        return ucfirst(strtolower($tipe) . ' ' . $nama);
-    }
-
     private function calculate(float $avgQtyPerDay, int $totalTrx, float $stok): array
     {
         $leadTime = self::DEFAULT_LEAD_TIME_DAYS;
