@@ -38,7 +38,7 @@
 						<td width="80%"><h1>{{ $goods[$i]['name']}}</h1></td>
 						<td style="text-align: right;">
 							@foreach($goods[$i]['price'] as $price)
-								<h1>Rp{{ formatNumber($price['price']]) . '/' . $price['unit'] }}</h1>
+								<h1>Rp{{ formatNumber($price['price']) . '/' . $price['unit'] }}</h1>
 							@endforeach
 						</td>
 					</tr>
