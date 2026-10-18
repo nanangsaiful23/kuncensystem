@@ -36,7 +36,11 @@
 				@for($i = 0; $i < sizeof($goods); $i++)
 					<tr @if($i % 2 == 0) style="background-color: rgba(255, 255, 0, 0.1);" @endif>
 						<td width="80%"><h1>{{ $goods[$i]['name']}}</h1></td>
-						<td style="text-align: right;"><h1>Rp{{ printRupiah($goods[$i]['price']) }}</h1></td>
+						<td style="text-align: right;">
+							@foreach($goods[$i]['price'] as $price)
+								<h1>Rp{{ formatNumber($price['price']]) . '/' . $price['unit'] }}</h1>
+							@endforeach
+						</td>
 					</tr>
 				@endfor
 			</tbody>
