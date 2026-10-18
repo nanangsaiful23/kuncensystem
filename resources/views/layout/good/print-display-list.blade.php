@@ -59,14 +59,14 @@
 		}
 
 		.head .title {
-			font-size: 22px;
+			font-size: 30px;
 			font-weight: 700;
 			letter-spacing: 0.06em;
 			color: var(--navy);
 		}
 
 		.head .brand {
-			font-size: 13px;
+			font-size: 16px;
 			font-weight: 700;
 			color: var(--red);
 		}
@@ -89,12 +89,12 @@
 		}
 
 		td {
-			padding: 7px 10px;
+			padding: 10px 12px;
 			vertical-align: middle;
 		}
 
 		td.col-name {
-			width: 62%;
+			width: 58%;
 			border-left: 5px solid transparent;
 		}
 
@@ -103,7 +103,7 @@
 		}
 
 		td.col-price {
-			width: 38%;
+			width: 42%;
 			text-align: right;
 		}
 
@@ -118,8 +118,8 @@
 
 		.note {
 			display: inline-block;
-			margin-top: 3px;
-			font-size: 10px;
+			margin-top: 4px;
+			font-size: 14px;
 			font-weight: 700;
 			letter-spacing: 0.03em;
 			color: var(--red);
@@ -136,13 +136,13 @@
 		}
 
 		.p .rp {
-			font-size: 18px;
+			font-size: 32px;
 			font-weight: 700;
 			color: var(--red);
 		}
 
 		.p .unit {
-			font-size: 13px;
+			font-size: 22px;
 			font-weight: 700;
 			color: var(--navy);
 			margin-left: 2px;
@@ -151,11 +151,11 @@
 		.p .tag {
 			display: inline-block;
 			margin-right: 6px;
-			padding: 2px 7px;
-			font-size: 9px;
+			padding: 3px 9px;
+			font-size: 12px;
 			font-weight: 700;
 			letter-spacing: 0.04em;
-			vertical-align: 2px;
+			vertical-align: 5px;
 			color: var(--navy);
 			background: var(--yellow);
 			border-radius: 999px;
@@ -165,7 +165,7 @@
 			margin-top: 8px;
 			padding-right: 10px;
 			text-align: right;
-			font-size: 10px;
+			font-size: 12px;
 			color: var(--navy);
 		}
 	</style>
@@ -190,14 +190,15 @@
 
 					// Ukuran awal nama berdasarkan panjang teks (disempurnakan lagi oleh JS agar pas di kotak)
 					$nameLen = mb_strlen($goods[$i]['name']);
-					if     ($nameLen <= 25) $nameSize = 20;
-					elseif ($nameLen <= 40) $nameSize = 17;
-					elseif ($nameLen <= 60) $nameSize = 15;
-					else                    $nameSize = 13;
+					if     ($nameLen <= 22) $nameSize = 32;
+					elseif ($nameLen <= 34) $nameSize = 27;
+					elseif ($nameLen <= 50) $nameSize = 23;
+					elseif ($nameLen <= 70) $nameSize = 19;
+					else                    $nameSize = 16;
 				?>
 				<tr class="{{ $i % 2 == 0 ? 'alt' : '' }} {{ $multi ? 'multi' : '' }}">
 					<td class="col-name">
-						<div class="name fit" data-min="10" style="font-size: {{ $nameSize }}px;">{{ $goods[$i]['name'] }}</div>
+						<div class="name fit" data-min="13" style="font-size: {{ $nameSize }}px;">{{ $goods[$i]['name'] }}</div>
 						@if($multi)
 							<span class="note">&#9660; BELI BANYAK LEBIH MURAH</span>
 						@endif
