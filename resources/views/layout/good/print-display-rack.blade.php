@@ -165,12 +165,12 @@
 			<?php 
 				$i = 0; 
 				$total = sizeof($goods);
-				if($total / 9 == 1)
+				if($total % 9 == 0)
 				{
 					$col = 3;
 					$fontSz = 0;
 				}
-				elseif($total / 4 == 1)
+				elseif($total % 4 == 0)
 				{
 					$col = 2;
 					$fontSz = 20;
