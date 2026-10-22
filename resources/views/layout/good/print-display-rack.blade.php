@@ -46,6 +46,7 @@
 		table {
 			border-collapse: collapse;
 			width: 11.49in;
+			table-layout: fixed;   /* semua kolom sama lebar, tidak terpengaruh isi sel */
 		}
 
 		tr {
@@ -64,9 +65,17 @@
 			background: #fff;
 		}
 
+		/* Tinggi tiap label dibuat tetap supaya semua sel seragam (1 sel = 1 barang, berapa pun jumlah harganya) */
+		.cell { overflow: hidden; }
+		.cols-3 { width: 33.333%; }
+		.cols-2 { width: 50%; height: 3.95in; }
+		.cols-2 .name-box  { height: 1.5in; }
+		.cols-2 .price-box { height: 2.15in; }
+
 		/* ===== Nama barang ===== */
 		.name-box {
 			height: 1.2in;
+			overflow: hidden;
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -90,6 +99,7 @@
 		/* ===== Harga ===== */
 		.price-box {
 			height: 1.17in;
+			overflow: hidden;
 			display: flex;
 		}
 
@@ -160,23 +170,30 @@
 	</style>
 </head>
 <body>
+<?php
+		$total  = sizeof($goods);
+		$col    = 3;   // default 3 kolom
+		$fontSz = 0;
+		if($total % 9 == 0)
+		{
+			$col = 3;
+			$fontSz = 0;
+		}
+		elseif($total % 4 == 0)
+		{
+			$col = 2;
+			$fontSz = 20;
+		}
+	?>
 	<table class="space-top-2">
+		<colgroup>
+			@for($c = 0; $c < $col; $c++)
+				<col style="width: {{ 100 / $col }}%;">
+			@endfor
+		</colgroup>
 		<tbody>
-			<?php 
-				$i = 0; 
-				$total = sizeof($goods);
-				if($total % 9 == 0)
-				{
-					$col = 3;
-					$fontSz = 0;
-				}
-				elseif($total % 4 == 0)
-				{
-					$col = 2;
-					$fontSz = 20;
-				}
-			?>
-			@while(isset($goods[$i]))
+			<?php $i = 0; ?>
+			@while(isset($goods[$i * $col]))
 			<tr>
 				@for($j = 0; $j < $col; $j++)
 					@if(isset($goods[$i * $col + $j]))
@@ -199,12 +216,12 @@
 							$priceSize = $n == 1 ? 54 : ($n == 2 ? 34 : 24);
 							$priceSize += $fontSz + 15;
 						?>
-						<td style="@if($col == 3) width: 33.333%; @else width: 50%;  height: 4.1in !important; @endif" colspan="{{ $n }}">
-							<div class="name-box" style="@if($col == 2) height: 1.5in !important; @endif">
+						<td class="cell cols-{{ $col }}">
+							<div class="name-box">
 								<div class="name fit" data-min="10" style="font-size: {{ $nameSize }}px;">{{ mb_strtoupper($item['name']) }}</div>
 							</div>
 
-							<div class="price-box" style="@if($col == 2) height: 2.1in !important; @endif">
+							<div class="price-box">
 								@foreach($prices as $price)
 									<div class="price-col">
 										<span class="unit">per {{ mb_strtoupper($price['unit']) }}</span>
@@ -224,7 +241,7 @@
 			<?php $i++; ?>
 			@if($i % 6 == 0 && $i > 0)
 				<tr style="opacity: 0; border: 0px !important; height: 0; line-height: 0; font-size: 0;">
-					@for($j = 0; $j < 3; $j++)
+					@for($j = 0; $j < $col; $j++)
 						<td style="border: 0px !important; padding: 0; height: 0; line-height: 0; font-size: 0;">{{ $i }}</td>
 					@endfor
 				</tr>
