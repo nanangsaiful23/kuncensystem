@@ -1,3 +1,29 @@
+<?php
+	// Pilihan jumlah label per halaman A4 landscape (dikirim dari halaman pilih barang: name="layout")
+	// layout => [kolom, baris]
+	$layouts = [2 => [1, 2], 4 => [2, 2], 9 => [3, 3], 16 => [4, 4], 25 => [5, 5]];
+	$layout  = (int) request('layout', 9);
+	if (!isset($layouts[$layout])) $layout = 9;
+	list($col, $rows) = $layouts[$layout];
+
+	// ===== PENGATURAN MARGIN (satuan inci) — ubah angka di sini bila posisi cetak perlu digeser =====
+	$marginTop    = 0.1;    // jarak tepi atas kertas ke tabel (naikkan bila terlalu mepet atas)
+	$marginBottom = 0;    // jarak tepi bawah kertas
+	$marginSide   = 0.1;    // jarak tepi kiri & kanan
+	$slack        = 0.1;    // cadangan tinggi agar printer tidak memecah jadi 2 halaman
+	                        // (sisa ini ada di bawah tabel, jadi jarak bawah efektif = $marginBottom + $slack)
+
+	// A4 landscape: 11.69in x 8.27in
+	$tableW = 11.69 - 2 * $marginSide;
+	$pageH  = 8.27 - $marginTop - $marginBottom - $slack;     // tinggi total tabel
+	$pageMargin = number_format($marginTop, 3, '.', '') . 'in ' . number_format($marginSide, 3, '.', '') . 'in '
+	            . number_format($marginBottom, 3, '.', '') . 'in ' . number_format($marginSide, 3, '.', '') . 'in';
+	$tableWcss  = number_format($tableW, 3, '.', '') . 'in';
+	$cellH = $pageH / $rows;       // tinggi 1 label (inci)
+	$scale = $cellH / 2.67;        // 1.0 = ukuran label 3x3 (acuan desain); semua font/jarak mengikuti skala ini
+	$minName  = max(7, round(10 * $scale));
+	$minPrice = max(9, round(12 * $scale));
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,7 +33,7 @@
 		@page
 		{
 			size: A4 landscape;
-			margin: 0.1in;
+			margin: {{ $pageMargin }};
 		}
 
 		@media print
@@ -15,7 +41,7 @@
 			@page
 			{
 				size: A4 landscape;
-				margin: 0.1in;
+				margin: {{ $pageMargin }};
 			}
 		}
 
@@ -40,12 +66,12 @@
 			color: var(--navy);
 		}
 
-		/* ===== Tabel (layout tidak diubah) ===== */
-		/* Area cetak A4 landscape: 11.69in x 8.27in dikurangi margin 0.1in => 11.49in x 8.07in.
-		   Tabel selebar area cetak; 3 baris per halaman (tiap baris 2.67in). */
+		/* ===== Tabel =====
+		   --h : tinggi 1 label, --s : skala font/jarak (diisi dari PHP pada elemen <table>) */
 		table {
 			border-collapse: collapse;
-			width: 11.49in;
+			width: {{ $tableWcss }};
+			margin: 0 auto;        /* di tengah secara horizontal */
 			table-layout: fixed;   /* semua kolom sama lebar, tidak terpengaruh isi sel */
 		}
 
@@ -65,24 +91,20 @@
 			background: #fff;
 		}
 
-		/* Tinggi tiap label dibuat tetap supaya semua sel seragam (1 sel = 1 barang, berapa pun jumlah harganya) */
-		.cell { overflow: hidden; }
-		.cols-3 { width: 33.333%; }
-		.cols-2 { width: 50%; height: 3.95in; }
-		.cols-2 .name-box  { height: 1.5in; }
-		.cols-2 .price-box { height: 2.15in; }
+		td.cell { height: var(--h); }
+		td.empty { border: 0 !important; background: transparent; }
 
-		/* ===== Nama barang ===== */
+		/* ===== Nama barang (42% tinggi label) ===== */
 		.name-box {
-			height: 1.2in;
+			height: calc(var(--h) * 0.42);
 			overflow: hidden;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			padding: 0.08in 0.18in;
+			padding: calc(0.08in * var(--s)) calc(0.18in * var(--s));
 			background: var(--tint);
-			border-top: 8px solid var(--red);
-			border-bottom: 2px solid var(--red);
+			border-top: calc(8px * var(--s)) solid var(--red);
+			border-bottom: calc(2px * var(--s)) solid var(--red);
 		}
 
 		.name {
@@ -96,9 +118,9 @@
 			overflow-wrap: anywhere;
 		}
 
-		/* ===== Harga ===== */
+		/* ===== Harga (46% tinggi label) ===== */
 		.price-box {
-			height: 1.17in;
+			height: calc(var(--h) * 0.46);
 			overflow: hidden;
 			display: flex;
 		}
@@ -110,8 +132,8 @@
 			flex-direction: column;
 			align-items: center;
 			justify-content: center;
-			gap: 0.06in;
-			padding: 0 0.08in;
+			gap: calc(0.06in * var(--s));
+			padding: 0 calc(0.08in * var(--s));
 		}
 
 		.price-col + .price-col {
@@ -119,14 +141,14 @@
 		}
 
 		.unit {
-			font-size: 14px;
+			font-size: max(8px, calc(14px * var(--s)));
 			font-weight: 700;
 			line-height: 1;
 			letter-spacing: 0.03em;
 			color: var(--navy);
 			background: var(--yellow);
 			border-radius: 999px;
-			padding: 4px 14px;
+			padding: calc(4px * var(--s)) calc(14px * var(--s));
 			white-space: nowrap;
 			max-width: 100%;
 			overflow: hidden;
@@ -150,15 +172,16 @@
 			color: var(--navy);
 		}
 
-		/* ===== Footer ===== */
+		/* ===== Footer (12% tinggi label) ===== */
 		.foot {
-			height: 0.3in;
+			height: calc(var(--h) * 0.12);
+			overflow: hidden;
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-			padding: 0 0.18in;
+			padding: 0 calc(0.18in * var(--s));
 			border-top: 1px solid #c9d3e6;
-			font-size: 11px;
+			font-size: max(8px, calc(11px * var(--s)));
 			color: var(--navy);
 		}
 
@@ -170,22 +193,7 @@
 	</style>
 </head>
 <body>
-<?php
-		$total  = sizeof($goods);
-		$col    = 3;   // default 3 kolom
-		$fontSz = 0;
-		if($total % 9 == 0)
-		{
-			$col = 3;
-			$fontSz = 0;
-		}
-		elseif($total % 4 == 0)
-		{
-			$col = 2;
-			$fontSz = 20;
-		}
-	?>
-	<table class="space-top-2">
+	<table class="space-top-2" style="--h: {{ round($cellH, 4) }}in; --s: {{ round($scale, 4) }};">
 		<colgroup>
 			@for($c = 0; $c < $col; $c++)
 				<col style="width: {{ 100 / $col }}%;">
@@ -204,28 +212,28 @@
 
 							// Ukuran awal nama berdasarkan panjang teks (disempurnakan lagi oleh JS agar pas di kotak)
 							$nameLen = mb_strlen($item['name']);
-							if     ($nameLen <= 12) $nameSize = 36;
-							elseif ($nameLen <= 20) $nameSize = 29;
-							elseif ($nameLen <= 32) $nameSize = 23;
-							elseif ($nameLen <= 48) $nameSize = 19;
-							elseif ($nameLen <= 70) $nameSize = 16;
-							else                    $nameSize = 13;
-							$nameSize += $fontSz;
+							if     ($nameLen <= 12) $baseName = 36;
+							elseif ($nameLen <= 20) $baseName = 29;
+							elseif ($nameLen <= 32) $baseName = 23;
+							elseif ($nameLen <= 48) $baseName = 19;
+							elseif ($nameLen <= 70) $baseName = 16;
+							else                    $baseName = 13;
+							$nameSize = max($minName, round($baseName * $scale));
 
-							// Ukuran awal harga berdasarkan jumlah satuan harga
-							$priceSize = $n == 1 ? 54 : ($n == 2 ? 34 : 24);
-							$priceSize += $fontSz + 15;
+							// Ukuran awal harga berdasarkan jumlah satuan harga (1 barang tetap 1 kolom)
+							$basePrice = $n == 1 ? 69 : ($n == 2 ? 49 : 39);
+							$priceSize = max($minPrice, round($basePrice * $scale));
 						?>
-						<td class="cell cols-{{ $col }}">
+						<td class="cell">
 							<div class="name-box">
-								<div class="name fit" data-min="10" style="font-size: {{ $nameSize }}px;">{{ mb_strtoupper($item['name']) }}</div>
+								<div class="name fit" data-min="{{ $minName }}" style="font-size: {{ $nameSize }}px;">{{ mb_strtoupper($item['name']) }}</div>
 							</div>
 
 							<div class="price-box">
 								@foreach($prices as $price)
 									<div class="price-col">
 										<span class="unit">per {{ mb_strtoupper($price['unit']) }}</span>
-										<div class="amount fit" data-min="12" style="font-size: {{ $priceSize }}px;"><span class="cur">Rp</span>{{ formatNumber($price['price']) }}</div>
+										<div class="amount fit" data-min="{{ $minPrice }}" style="font-size: {{ $priceSize }}px;"><span class="cur">Rp</span>{{ formatNumber($price['price']) }}</div>
 									</div>
 								@endforeach
 							</div>
@@ -235,17 +243,12 @@
 								<span>{{ date('d-m-Y') }}</span>
 							</div>
 						</td>
+					@else
+						<td class="cell empty"></td>
 					@endif
 				@endfor
 			</tr>
 			<?php $i++; ?>
-			@if($i % 6 == 0 && $i > 0)
-				<tr style="opacity: 0; border: 0px !important; height: 0; line-height: 0; font-size: 0;">
-					@for($j = 0; $j < $col; $j++)
-						<td style="border: 0px !important; padding: 0; height: 0; line-height: 0; font-size: 0;">{{ $i }}</td>
-					@endfor
-				</tr>
-			@endif
 			@endwhile
 		</tbody>
 	</table>

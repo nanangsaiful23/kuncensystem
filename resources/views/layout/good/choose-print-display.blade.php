@@ -37,6 +37,29 @@
   .pd-type-check { margin-left: auto; color: var(--pd-blue); font-size: 20px; visibility: hidden; }
   .pd-type input:checked + .pd-type-body .pd-type-check { visibility: visible; }
 
+  /* ===== Ukuran label rak ===== */
+  .pd-layout-wrap { margin: -4px 0 22px; padding: 14px; border: 1px solid var(--pd-line); border-radius: 6px; background: var(--pd-soft); }
+  .pd-layout-title { font-weight: 700; margin: 0 0 4px; font-size: 15px; }
+  .pd-layout-sub { font-size: 12px; color: #666; margin-bottom: 12px; }
+  .pd-sizes { display: flex; flex-wrap: wrap; margin: 0 -5px; }
+  .pd-size { flex: 1 1 130px; margin: 0 5px 10px; cursor: pointer; }
+  .pd-size input { position: absolute; opacity: 0; pointer-events: none; }
+  .pd-size-body {
+    display: block; text-align: center; padding: 10px 8px; background: #fff;
+    border: 2px solid var(--pd-line); border-radius: 6px; transition: border-color .15s, background .15s;
+  }
+  .pd-size:hover .pd-size-body { border-color: #b8cfe0; }
+  .pd-size input:checked + .pd-size-body { border-color: var(--pd-blue); background: #eaf4fb; }
+  .pd-size input:focus + .pd-size-body { box-shadow: 0 0 0 3px rgba(60,141,188,.25); }
+  .pd-size-preview {
+    display: grid; gap: 2px; width: 84px; height: 59px; margin: 0 auto 8px; padding: 3px;
+    border: 1px solid #9fb4c7; background: #fff;     /* proporsi A4 landscape */
+  }
+  .pd-size-preview i { background: #cfe3f1; border: 1px solid #8fb5d0; }
+  .pd-size input:checked + .pd-size-body .pd-size-preview i { background: var(--pd-blue); border-color: var(--pd-blue-dark); }
+  .pd-size-num { display: block; font-weight: 700; font-size: 16px; }
+  .pd-size-dim { display: block; font-size: 11px; color: #777; }
+
   /* ===== Cari barang ===== */
   .pd-search .form-control { height: 44px; font-size: 16px; }
   .pd-search .btn { height: 44px; font-size: 15px; }
@@ -152,6 +175,26 @@
               </div>
             </div>
 
+            {{-- UKURAN LABEL (hanya untuk Display Rak) --}}
+            <div class="pd-layout-wrap" id="pd-layout-wrap" style="display:none;">
+              <div class="pd-layout-title"><i class="fa fa-expand"></i> Ukuran label per halaman</div>
+              <div class="pd-layout-sub">Satu halaman selalu A4 landscape penuh. Semakin banyak label per halaman, semakin kecil ukuran tiap label.</div>
+              <div class="pd-sizes">
+                @foreach([2 => [1, 2, '29,2 × 10,2 cm'], 4 => [2, 2, '14,6 × 10,2 cm'], 9 => [3, 3, '9,7 × 6,8 cm'], 16 => [4, 4, '7,3 × 5,1 cm'], 25 => [5, 5, '5,8 × 4,1 cm']] as $n => $cfg)
+                  <label class="pd-size">
+                    <input type="radio" name="layout" value="{{ $n }}" {{ (int) old('layout', 9) === $n ? 'checked' : '' }} disabled>
+                    <span class="pd-size-body">
+                      <span class="pd-size-preview" style="grid-template-columns: repeat({{ $cfg[0] }}, 1fr); grid-template-rows: repeat({{ $cfg[1] }}, 1fr);">
+                        @for($c = 0; $c < $cfg[0] * $cfg[1]; $c++)<i></i>@endfor
+                      </span>
+                      <span class="pd-size-num">{{ $n }} label</span>
+                      <span class="pd-size-dim">&asymp; {{ $cfg[2] }}</span>
+                    </span>
+                  </label>
+                @endforeach
+              </div>
+            </div>
+
             {{-- LANGKAH 2 --}}
             <div class="pd-step">
               <h4 class="pd-step-title"><span class="pd-step-no">2</span> Cari dan tambah barang</h4>
@@ -243,7 +286,24 @@
 @section('js-addon')
   <script type="text/javascript">
     // Batas jumlah label per halaman (ubah di sini bila ukuran halaman cetak berubah)
-    var PAGE_LIMIT = { rack: 24, list: 17 };
+    // Display Rak: batas mengikuti ukuran label yang dipilih (2 / 4 / 9 / 16 / 25 per halaman)
+    var PAGE_LIMIT = { rack: 9, list: 17 };
+
+    function currentType() { return $('input[name="type"]:checked').val(); }
+
+    function currentLimit() {
+      var type = currentType();
+      if (type === 'rack') return parseInt($('input[name="layout"]:checked').val(), 10) || 9;
+      if (type === 'list') return PAGE_LIMIT.list;
+      return null;
+    }
+
+    // Opsi ukuran hanya muncul & ikut terkirim bila jenis display = rak
+    function syncLayout() {
+      var isRack = currentType() === 'rack';
+      $('#pd-layout-wrap').toggle(isRack);
+      $('input[name="layout"]').prop('disabled', !isRack);
+    }
 
     var items = [];        // barang terpilih: {id, name, unit, qty}
     var resultMap = {};    // hasil pencarian terakhir, berdasarkan good_unit_id
@@ -454,8 +514,7 @@
       for (var i = 0; i < items.length; i++) total += items[i].qty;
       $('#pd-total').text(total);
 
-      var type = $('input[name="type"]:checked').val();
-      var limit = type ? PAGE_LIMIT[type] : null;
+      var limit = currentLimit();
       var $sum = $('#pd-summary');
 
       if (!limit) {
@@ -470,7 +529,7 @@
       var over = total > limit;
       var pages = Math.max(1, Math.ceil(total / limit));
 
-      $('#pd-limit-text').text('Maks. ' + limit + ' per halaman');
+      $('#pd-limit-text').text(limit + ' label per halaman');
       $('#pd-progress-wrap').show();
       $('#pd-progress')
         .css('width', pct + '%')
@@ -478,9 +537,9 @@
         .addClass(over ? 'progress-bar-danger' : (pct >= 80 ? 'progress-bar-warning' : 'progress-bar-success'));
 
       if (over) {
-        $('#pd-note').html('<i class="fa fa-exclamation-triangle"></i> Melebihi 1 halaman (' + limit + '). Perkiraan ' + pages + ' halaman.');
+        $('#pd-note').html('<i class="fa fa-exclamation-triangle"></i> Melebihi 1 halaman (' + limit + ' label). Akan tercetak sekitar ' + pages + ' halaman A4.');
       } else {
-        $('#pd-note').text('Muat dalam 1 halaman (' + total + ' dari ' + limit + ').');
+        $('#pd-note').text('Muat dalam 1 halaman A4 (' + total + ' dari ' + limit + ' label).');
       }
       $sum.toggleClass('is-over', over);
     }
@@ -565,7 +624,8 @@
         if (confirm('Kosongkan semua barang yang sudah dipilih?')) { items = []; renderItems(); }
       });
 
-      $('input[name="type"]').on('change', function () { hideError(); updateSummary(); });
+      $('input[name="type"]').on('change', function () { hideError(); syncLayout(); updateSummary(); });
+      $('input[name="layout"]').on('change', updateSummary);
       $('#btn-print').on('click', submitForm);
 
       // Pulihkan pilihan bila halaman dimuat ulang setelah gagal validasi
@@ -580,6 +640,7 @@
       }
       if (oldType) { $('input[name="type"][value="' + oldType + '"]').prop('checked', true); }
 
+      syncLayout();
       renderItems();
       $('#search_good').focus();
     });
