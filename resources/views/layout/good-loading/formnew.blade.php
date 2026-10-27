@@ -125,7 +125,7 @@
     .sr-panel.busy .sr-list { pointer-events:none; }
 
     /* ---- TABEL: jumlah 0 & baris aktif ---- */
-    .tbl-items .fc.is-zero { border-color:var(--clr-danger); background:#FEF2F2; color:var(--clr-danger); font-weight:700; }
+    .tbl-items .fc.is-zero { border-color:#F59E0B; background:#FFFBEB; color:#92400E; font-weight:700; }
     .tbl-items .fc:focus { border-color:var(--clr-primary); background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,.25); }
     .tbl-items tbody tr:focus-within td { background:#FEFCE8 !important; }
     .tbl-items td.td-merged { transition:none; }
@@ -540,7 +540,7 @@ function populateRow(ri, good) {
     $('#old_stock-'+ri).val(good.old_stock);
     $('#new_stock-'+ri).val(parseInt(good.old_stock)+0);
     $('#base_qty-'+ri).val(gps.unit_qty);
-    $('#quantity-'+ri).val(0);   /* default 0: harus diisi manual agar tidak salah loading */
+    $('#quantity-'+ri).val(0);   /* default 0: isi manual; 0 tetap boleh (mis. hanya ganti harga, stok tetap) */
     $('#price-'+ri).val(parseFloat(gps.base_buy_price)*parseFloat(gps.unit_qty));
     $('#sell_price-'+ri).val(gps.selling_price);
     $('#unit-'+ri).val(gps.unit_id).trigger('change');
@@ -842,7 +842,7 @@ function processQueue(){
 
         closeResults();
 
-        if (added.length) notify(added.length + ' barang ditambahkan. Tekan panah bawah untuk mengisi jumlah (default 0).', 'success');
+        if (added.length) notify(added.length + ' barang ditambahkan. Tekan panah bawah untuk mengisi jumlah (0 = hanya ubah harga, stok tetap).', 'success');
         if (dup.length)   notify('Sudah ada: ' + dup.join(', '), 'warning');
         if (minus.length) notify('Stok minus, lakukan stock opname: ' + minus.join(', '), 'warning');
         if (failed)       notify(failed + ' barang gagal diambil', 'error');
@@ -972,26 +972,24 @@ function handleTableKey(e, t, type, idx){
 
 function keyboardSubmit(){
     if (total_real_item === 0) { notify('Belum ada barang di tabel', 'warning'); focusSearch(); return; }
-    if (!confirm('Simpan data ini?')) return;
+    var z = countZeroQty();
+    var msg = 'Simpan data ini?' + (z ? '\n\n' + z + ' barang berjumlah 0: hanya harga yang diperbarui, stok tetap.' : '');
+    if (!confirm(msg)) return;
     if ($('.btn-submit.tambah').length) submitForm();
     else if ($('.btn-submit.edit').length) $('.btn-submit.edit').click();
 }
 
-/* Jumlah 0 tidak boleh disimpan */
-function validateZeroQty(){
-    var bad = null;
+/* Jumlah 0 diperbolehkan (mis. ganti harga massal, stok tetap) -> hanya dihitung untuk info */
+function countZeroQty(){
+    var n = 0;
     $('#table-transaction tr').each(function(){
         var m = /^row-data-(\d+)$/.exec(this.id);
         if (!m) return;
         var idx = parseInt(m[1], 10);
         if (!row_group[idx]) return;
-        if ((parseFloat($('#quantity-' + idx).val()) || 0) <= 0) { bad = idx; return false; }
+        if ((parseFloat($('#quantity-' + idx).val()) || 0) <= 0) n++;
     });
-    if (bad === null) return true;
-    alert('Jumlah "' + group_map[row_group[bad]].name + '" masih 0. Isi jumlah barang yang diterima.');
-    var el = document.getElementById('quantity-' + bad);
-    if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ block:'center' }); }
-    return false;
+    return n;
 }
 
 $(document).ready(function(){
@@ -1041,10 +1039,6 @@ $(document).ready(function(){
         else if (e.ctrlKey && e.keyCode === 13) { e.preventDefault(); keyboardSubmit(); }   // Ctrl+Enter
     });
 
-    // Mode Edit: tolak simpan bila ada jumlah 0
-    if ($('.btn-submit.edit').length) {
-        $('#loading-form').on('submit', function(e){ if (!validateZeroQty()) e.preventDefault(); });
-    }
 });
 
 
@@ -1176,7 +1170,7 @@ function editPrice(i){
     var p=parseFloat(unf($('#price-'+i).val()))||0;
     var q=parseFloat($('#quantity-'+i).val())||0;
     $('#total_price-'+i).val(fmt(p*q));
-    if(row_group[i]) $('#quantity-'+i).toggleClass('is-zero', q<=0);
+    if(row_group[i]) $('#quantity-'+i).toggleClass('is-zero', q<=0).attr('title', q<=0 ? 'Jumlah 0: hanya harga yang diperbarui, stok tetap' : '');
     changeTotal();
     var gid=row_group[i]; if(gid) refreshNewStock(gid);
 }
@@ -1249,7 +1243,6 @@ function submitForm(){
     if($('#loading_date').val()===''){ok=false;alert('Isi tanggal pembelian');}
     if(total_real_item===0){ok=false;alert('Pilih minimal satu barang');}
     if($('#payment').val()==='0000'){alert('Cek jenis pembayaran');}
-    if(ok && !validateZeroQty()) ok=false;
     if(ok){
         if(window._submitting) return;
         window._submitting=true;
