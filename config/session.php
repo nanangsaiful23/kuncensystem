@@ -196,4 +196,18 @@ return [
 
     'same_site' => null,
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Session Serialization
+    |--------------------------------------------------------------------------
+    |
+    | Laravel 13's skeleton defaults to "json". "php" keeps the Laravel 6
+    | behaviour so existing sessions stay valid after the upgrade and any
+    | objects stored in the session keep working.
+    |
+    */
+
+    'serialization' => 'php',
+
 ];

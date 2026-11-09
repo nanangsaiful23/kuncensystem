@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Voucher extends Model
 {    
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use SoftDeletes;
     
     protected $fillable = [
@@ -17,7 +19,4 @@ class Voucher extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    protected $dates =[
-        'deleted_at',
-    ];
 }

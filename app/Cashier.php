@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Cashier extends Authenticatable
 {
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use Notifiable;
 
     /**

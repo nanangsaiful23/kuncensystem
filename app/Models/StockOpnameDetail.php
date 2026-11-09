@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockOpnameDetail extends Model
 {    
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use SoftDeletes;
     
     protected $fillable = [
@@ -17,9 +19,6 @@ class StockOpnameDetail extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    protected $dates =[
-        'deleted_at',
-    ];
     
     public function stock_opname()
     {

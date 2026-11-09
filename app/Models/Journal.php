@@ -9,6 +9,8 @@ use App\Models\Account;
 
 class Journal extends Model
 {    
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use SoftDeletes;
     
     protected $fillable = [
@@ -19,9 +21,6 @@ class Journal extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    protected $dates =[
-        'deleted_at',
-    ];
 
     public function debit_account()
     {

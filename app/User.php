@@ -8,6 +8,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use Notifiable;
 
     /**
