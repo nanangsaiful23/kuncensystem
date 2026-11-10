@@ -73,6 +73,7 @@ abstract class StockTestCase extends TestCase
 
         parent::setUp();
 
+        \App\Services\PeriodLock::forget();
         $this->seedBasics();
     }
 
@@ -161,9 +162,9 @@ abstract class StockTestCase extends TestCase
         return Cashier::find($id);
     }
 
-    protected function admin(): Admin
+    protected function admin(string $role = 'admin'): Admin
     {
-        $id = DB::table('admins')->insertGetId(['name' => 'Admin Test', 'email' => 'admin_test_' . uniqid(), 'password' => 'x']);
+        $id = DB::table('admins')->insertGetId(['name' => 'Admin Test', 'email' => 'admin_test_' . uniqid(), 'password' => 'x', 'role' => $role]);
 
         return Admin::find($id);
     }

@@ -151,6 +151,14 @@
 
               @include('layout.sidebar')
 
+              @if($errors->has('periode'))
+                {{-- closed period (tutup buku), also for pages without their own error box --}}
+                <div class="alert alert-danger alert-dismissible" style="position:fixed; top:60px; right:16px; left:16px; z-index:2000; max-width:640px; margin-left:auto; font-size:15px;">
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                  <i class="icon fa fa-lock"></i> {{ $errors->first('periode') }}
+                </div>
+              @endif
+
               <!-- <div style="position: fixed; overflow-y: scroll; top:8%; bottom: 0; width: 100%;"> -->
                 @yield('content')
               <!-- </div> -->

@@ -36,7 +36,7 @@ trait GoodLoadingControllerBase
      */
     private function syncLoadingRoundingJournal(GoodLoading $good_loading, $credit_account_id, $journal_date): void
     {
-        Journal::where('type', 'good_loading_rounding')->where('type_id', $good_loading->id)->delete();
+        Journal::where('type', 'good_loading_rounding')->where('type_id', $good_loading->id)->get()->each->delete();
 
         $difference = round((float) unformatNumber($good_loading->total_item_price) - $this->loadingGoodsValue($good_loading), 2);
 
@@ -693,7 +693,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         // stayed although the journal was gone.
         Journal::whereIn('type', ['good_loading', 'good_loading_rounding'])
                ->where('type_id', $good_loading->id)
-               ->delete();
+               ->get()->each->delete(); // one by one, so the period lock sees each journal
 
         $good_loading->delete();
 

@@ -42,6 +42,7 @@ class AuditJournals extends Command
             $this->info("Tidak ada selisih penjualan/HPP/retur antara $from dan $to.");
         }
 
+        $this->checkClosedYears();
         $this->checkStock();
         $this->checkInventory();
 
@@ -155,6 +156,18 @@ class AuditJournals extends Command
         foreach ($rows as $r) {
             if ($r->n_journal == 0 && $r->hpp > 0) {
                 $this->add($r->d, 'Batal transaksi tanpa jurnal HPP', $r->hpp, 0, 'ID transaksi ' . $r->id);
+            }
+        }
+    }
+
+    /** A closed year changed afterwards (super admin): its closing must be done again. */
+    private function checkClosedYears(): void
+    {
+        foreach (DB::table('journals')->whereNull('deleted_at')->where('type', 'closing')->distinct()->pluck('type_id') as $year) {
+            $left = array_sum(array_map(fn ($a) => -$a->debit_minus_credit, \App\Services\YearClosing::profitLossBalances("$year-12-31")));
+            if (abs($left) >= 1) {
+                $this->warn("Tahun $year berubah setelah tutup buku (laba rugi tersisa " . number_format($left, 0, ',', '.')
+                    . "). Jalankan: php artisan kuncen:close-year $year");
             }
         }
     }

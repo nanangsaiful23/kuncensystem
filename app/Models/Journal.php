@@ -22,6 +22,16 @@ class Journal extends Model
     ];
 
 
+    protected static function booted(): void
+    {
+        // Closed periods (tutup buku) may not change; see PeriodLock.
+        static::saving(function (Journal $journal) {
+            \App\Services\PeriodLock::assertOpen([$journal->journal_date, $journal->exists ? $journal->getOriginal('journal_date') : null]);
+        });
+        static::deleting(fn (Journal $journal) => \App\Services\PeriodLock::assertOpen([$journal->getOriginal('journal_date')]));
+        static::restoring(fn (Journal $journal) => \App\Services\PeriodLock::assertOpen([$journal->journal_date]));
+    }
+
     public function debit_account()
     {
         return Account::find($this->debit_account_id);
