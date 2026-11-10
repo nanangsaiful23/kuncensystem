@@ -53,6 +53,9 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('cashier', 'cashier/*') ? '/cashier/login' : '/admin/login'
         );
         $middleware->redirectUsersTo('/home');
+
+        // Every POST/PUT/DELETE is all-or-nothing (see AtomicRequest).
+        $middleware->appendToGroup('web', \App\Http\Middleware\AtomicRequest::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

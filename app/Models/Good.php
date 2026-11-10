@@ -23,6 +23,18 @@ class Good extends Model
     ];
 
 
+    protected static function booted(): void
+    {
+        // Controllers still write their own arithmetic into the stock
+        // columns; recalculate them from history after the commit so the
+        // stored value always equals getStock() (see StockService).
+        static::saved(function (self $good) {
+            if ($good->wasChanged(['total_loading', 'total_transaction', 'last_stock', 'base_unit_id'])) {
+                \App\Services\StockService::queue($good->id);
+            }
+        });
+    }
+
     public function getFullName()
     {
         $name = $this->name;
@@ -193,35 +205,23 @@ class Good extends Model
 
     public function getStock()
     {
-        $loadings = $this->good_loadings()->sum('real_quantity');
-
-        $transactions = $this->good_transactions()->sum('real_quantity');
-
-        $total = $loadings - $transactions;
-        
-        if($this->getPcsSellingPrice() == null)
-            return $total;
-
-        return round($total / $this->getPcsSellingPrice()->unit->quantity, 3);
+        // Same definition as before (loadings - transactions, without retur
+        // lines, in the smallest unit), now shared with goods.last_stock.
+        return \App\Services\StockService::stock($this);
     }
 
     public function getStockWoLastLoad($good_loading_id)
     {
-        $loadings = GoodLoadingDetail::join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
+        [$loaded, $sold] = \App\Services\StockService::history($this->id);
+
+        $loaded -= GoodLoadingDetail::join('good_loadings', 'good_loadings.id', 'good_loading_details.good_loading_id')
                                     ->join('good_units', 'good_units.id', 'good_loading_details.good_unit_id')
                                     ->where('good_units.good_id', $this->id)
-                                    ->where('good_loadings.id', '!=', $good_loading_id)
+                                    ->where('good_loadings.id', $good_loading_id)
                                     ->where('good_loadings.deleted_at', null)
                                     ->sum('real_quantity');
 
-        $transactions = $this->good_transactions()->sum('real_quantity');
-
-        $total = $loadings - $transactions;
-
-        if($this->getPcsSellingPrice() == null)
-            return $total;
-
-        return $total / $this->getPcsSellingPrice()->unit->quantity;
+        return ($loaded - $sold) / \App\Services\StockService::smallestQuantity($this);
     }
 
     public function getDistributor()

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Account;
 use App\Models\Distributor;
+use App\Models\Good;
 use App\Models\GoodLoading;
 use App\Models\GoodLoadingDetail;
 use App\Models\GoodUnit;
@@ -404,108 +405,74 @@ trait InternalTransactionControllerBase
        return $transaction; 
     }
 
+    /**
+     * Delete an internal transaction (biaya operasional, barang hilang,
+     * hutang/piutang dagang, modal pemilik...).
+     *
+     * The goods come back to stock and every inventory journal the
+     * transaction wrote is mirrored, so both sides move by the same amount.
+     * Before, the reversal booked Penjualan/HPP instead of the original
+     * accounts.
+     */
     public function reverseTransactionBase($role, $role_id, $status, $transaction_id)
     {
-        $transaction = Transaction::find($transaction_id);
-        $total = 0;
+        $transaction = Transaction::lockForUpdate()->find($transaction_id);
 
-        if($status == 'not valid')
-            $journal_status = 'reverse';
-        elseif($status == 'deleted')
-            $journal_status = 'delete';
-
-        foreach($transaction->details as $detail)
-        {
-            $good = $detail->good_unit->good;
-
-            $data_loading['role']         = $role;
-            $data_loading['role_id']      = $role_id;
-            $data_loading['checker']      = "Created by system";
-            $data_loading['loading_date'] = date('Y-m-d');
-            $data_loading['distributor_id']   = $good->last_distributor_id;
-            $data_loading['total_item_price'] = $detail->quantity * $detail->buy_price;
-            $data_loading['note']             = "Reverse transaction id " . $transaction->id;
-            $data_loading['payment']          = "cash";
-
-            $good_loading = GoodLoading::create($data_loading);
-
-            $data_detail['good_loading_id'] = $good_loading->id;
-            $data_detail['good_unit_id']    = $detail->good_unit->id;
-            $data_detail['last_stock']      = $good->getStock();
-            $data_detail['quantity']        = $detail->quantity;
-            $data_detail['real_quantity']   = $detail->real_quantity;
-            $data_detail['price']           = $detail->buy_price;
-            $data_detail['selling_price']   = $detail->selling_price;
-
-            GoodLoadingDetail::create($data_detail);
-
-            $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-            $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
-            $data_good['last_loading']      = $data_loading['loading_date'];
-            $good->update($data_good);
-
-            $total += $data_loading['total_item_price'];
-            $data_transaction['type'] = $status;
-            $detail->update($data_transaction);
+        if ($transaction == null || in_array($transaction->type, ['not valid', 'deleted'])) {
+            return true;
         }
 
-        if(sizeof($transaction->details) > 0)
-        {
-            $data_journal['type']               = 'good_loading';
-            $data_journal['type_id']            = $good_loading->id;
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-            $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-            if($transaction->payment == 'cash')
-                $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-            elseif($transaction->payment == 'transfer')
-                $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
-            elseif($transaction->payment == null)
-                $data_journal['credit_account_id']  = Account::where('code', $transaction->type)->first()->id;
-            $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+        $journal_status = $status == 'deleted' ? 'delete' : 'reverse';
+        $persediaan_id  = Account::where('code', '1141')->first()->id;
 
-            Journal::create($data_journal);
+        foreach ($transaction->details as $detail) {
+            $good_unit = GoodUnit::withTrashed()->find($detail->good_unit_id);
+            $good      = $good_unit ? Good::withTrashed()->find($good_unit->good_id) : null;
 
-            $data_hpp['type']               = 'hpp';
-            $data_hpp['journal_date']       = date('Y-m-d');
-            $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-            $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_hpp['debit']              = unformatNumber($total);
-            $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-            $data_hpp['credit']             = unformatNumber($total);
+            $good_loading = GoodLoading::create([
+                'role'             => $role,
+                'role_id'          => $role_id,
+                'checker'          => 'Created by system',
+                'loading_date'     => date('Y-m-d'),
+                'distributor_id'   => $good ? $good->last_distributor_id : null,
+                'total_item_price' => $detail->quantity * $detail->buy_price,
+                'note'             => 'Reverse transaction id ' . $transaction->id,
+                'payment'          => 'cash',
+            ]);
 
-            Journal::create($data_hpp); 
-        }
-        else
-        {  
-            // $data_journal['type']               = 'transaction';
-            // $data_journal['type_id']            = null;
-            // $data_journal['journal_date']       = date('Y-m-d');
-            // $data_journal['name']               = 'Double transaction with detail transaksi null';
-            // $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            // $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-            // if($transaction->payment == 'cash')
-            //     $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-            // elseif($transaction->payment == 'transfer')
-            //     $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
-            // $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+            GoodLoadingDetail::create([
+                'good_loading_id' => $good_loading->id,
+                'good_unit_id'    => $detail->good_unit_id,
+                'last_stock'      => $good ? $good->getStock() : 0,
+                'quantity'        => $detail->quantity,
+                'real_quantity'   => $detail->real_quantity,
+                'price'           => $detail->buy_price,
+                'selling_price'   => $detail->selling_price,
+            ]);
 
-            // Journal::create($data_journal);
-
-            // $data_hpp['type']               = 'hpp';
-            // $data_hpp['journal_date']       = date('Y-m-d');
-            // $data_hpp['name']               = 'Double transaction with detail transaksi null';
-            // $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            // $data_hpp['debit']              = unformatNumber($total);
-            // $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-            // $data_hpp['credit']             = unformatNumber($total);
-
-            // Journal::create($data_hpp);
+            $detail->update(['type' => $status]);
         }
 
-        $data_transaction['type'] = $status;
-        $transaction->update($data_transaction);
+        // Mirror the journals that took the goods out of inventory.
+        $journals = Journal::where('type_id', $transaction->id)
+                           ->where('credit_account_id', $persediaan_id)
+                           ->whereNotIn('type', ['transaction', 'hpp', 'good_loading'])
+                           ->get();
+
+        foreach ($journals as $journal) {
+            Journal::create([
+                'type'              => $journal->type,
+                'type_id'           => $transaction->id,
+                'journal_date'      => date('Y-m-d'),
+                'name'              => 'Batal (' . $journal_status . ') ' . $journal->name,
+                'debit_account_id'  => $persediaan_id,
+                'debit'             => $journal->credit,
+                'credit_account_id' => $journal->debit_account_id,
+                'credit'            => $journal->debit,
+            ]);
+        }
+
+        $transaction->update(['type' => $status]);
 
         return true;
     }

@@ -793,6 +793,8 @@
 </head>
 
 {!! Form::model(old(),array('url' => route($role . '.transaction.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'id' => 'transaction-form')) !!}
+{{-- one token per opened form: a resubmit (double click, retry after the connection dropped) is not saved twice --}}
+<input type="hidden" name="submit_token" value="{{ \Illuminate\Support\Str::uuid() }}">
 <body>
 
 <!-- TOP BAR -->

@@ -17,9 +17,46 @@ use App\Models\Journal;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 
-trait GoodLoadingControllerBase 
+trait GoodLoadingControllerBase
 {
-    public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $pagination)
+    /** Buy value of the goods in a loading: sum of quantity x price of its lines. */
+    private function loadingGoodsValue(GoodLoading $good_loading): float
+    {
+        return (float) GoodLoadingDetail::where('good_loading_id', $good_loading->id)
+                                        ->selectRaw('coalesce(sum(quantity * price), 0) as total')
+                                        ->value('total');
+    }
+
+    /**
+     * The total of a loading is rounded up to 500/1000 when paid in cash,
+     * but the goods are only worth the sum of their lines. Inventory is
+     * journaled at the value of the goods (see the main journal); the
+     * rounding goes to Biaya Lain-lain (paid more) or Pendapatan Lain-lain
+     * (paid less) in its own journal, kept in step on every save.
+     */
+    private function syncLoadingRoundingJournal(GoodLoading $good_loading, $credit_account_id, $journal_date): void
+    {
+        Journal::where('type', 'good_loading_rounding')->where('type_id', $good_loading->id)->delete();
+
+        $difference = round((float) unformatNumber($good_loading->total_item_price) - $this->loadingGoodsValue($good_loading), 2);
+
+        if (abs($difference) < 0.01) {
+            return;
+        }
+
+        Journal::create([
+            'type'              => 'good_loading_rounding',
+            'type_id'           => $good_loading->id,
+            'journal_date'      => $journal_date,
+            'name'              => 'Selisih pembulatan loading ID ' . $good_loading->id,
+            'debit_account_id'  => $difference > 0 ? Account::where('code', '5223')->first()->id : $credit_account_id,
+            'debit'             => abs($difference),
+            'credit_account_id' => $difference > 0 ? $credit_account_id : Account::where('code', '6101')->first()->id,
+            'credit'            => abs($difference),
+        ]);
+    }
+
+public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $pagination)
     {
         if($distributor_id == "all")
         {
@@ -341,11 +378,12 @@ trait GoodLoadingControllerBase
             $data_journal['journal_date']       = $data['loading_date'];
             $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . '(ID loading ' . $good_loading->id . ')';
             $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
+            $data_journal['debit']              = $this->loadingGoodsValue($good_loading);
             $data_journal['credit_account_id']  = $account->id;
-            $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
+            $data_journal['credit']             = $data_journal['debit'];
 
-            Journal::create($data_journal); 
+            Journal::create($data_journal);
+            $this->syncLoadingRoundingJournal($good_loading, $account->id, $data['loading_date']);
 
             if($type == 'transaction-internal')
             {
@@ -357,9 +395,9 @@ trait GoodLoadingControllerBase
                     $data_pb['journal_date']       = date('Y-m-d');
                     $data_pb['name']               = 'Barang hilang (ID transaksi ' . $transaction->id . ')';
                     $data_pb['debit_account_id']   = Account::where('code', '5215')->first()->id;
-                    $data_pb['debit']              = $data_transaction['total_sum_price'];
+                    $data_pb['debit']              = $hpp;
                     $data_pb['credit_account_id']  = Account::where('code', '1141')->first()->id;
-                    $data_pb['credit']             = $data_transaction['total_sum_price'];
+                    $data_pb['credit']             = $hpp;
 
                     Journal::create($data_pb);
                 }
@@ -372,9 +410,9 @@ trait GoodLoadingControllerBase
                     $data_op['journal_date']       = date('Y-m-d');
                     $data_op['name']               = 'Biaya operasional toko (ID transaksi' . $transaction->id . ')';
                     $data_op['debit_account_id']   = Account::where('code', '5220')->first()->id;
-                    $data_op['debit']              = $data_transaction['total_sum_price'];
+                    $data_op['debit']              = $hpp;
                     $data_op['credit_account_id']  = Account::where('code', '1141')->first()->id;
-                    $data_op['credit']             = $data_transaction['total_sum_price'];
+                    $data_op['credit']             = $hpp;
 
                     Journal::create($data_op);
                 }
@@ -389,9 +427,9 @@ trait GoodLoadingControllerBase
                     $data_ud['journal_date']       = date('Y-m-d');
                     $data_ud['name']               = 'Hutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
                     $data_ud['debit_account_id']   = Account::where('code', '2101')->first()->id;
-                    $data_ud['debit']              = $data_transaction['total_sum_price'];
+                    $data_ud['debit']              = $hpp;
                     $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
-                    $data_ud['credit']             = $data_transaction['total_sum_price'];
+                    $data_ud['credit']             = $hpp;
 
                     Journal::create($data_ud);
                 }
@@ -406,9 +444,9 @@ trait GoodLoadingControllerBase
                     $data_ud['journal_date']       = date('Y-m-d');
                     $data_ud['name']               = 'Piutang dagang distributor ' . $distributor->name . ' (ID transaksi ' . $transaction->id . ')';
                     $data_ud['debit_account_id']   = Account::where('code', '1131')->first()->id;
-                    $data_ud['debit']              = $data_transaction['total_sum_price'];
+                    $data_ud['debit']              = $hpp;
                     $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
-                    $data_ud['credit']             = $data_transaction['total_sum_price'];
+                    $data_ud['credit']             = $hpp;
 
                     Journal::create($data_ud);
                 }
@@ -421,9 +459,9 @@ trait GoodLoadingControllerBase
                     $data_ud['journal_date']       = date('Y-m-d');
                     $data_ud['name']               = 'Modal pemilik transaksi internal (ID transaksi ' . $transaction->id . ')';
                     $data_ud['debit_account_id']   = Account::where('code', '3001')->first()->id;
-                    $data_ud['debit']              = $data_transaction['total_sum_price'];
+                    $data_ud['debit']              = $hpp;
                     $data_ud['credit_account_id']  = Account::where('code', '1141')->first()->id;
-                    $data_ud['credit']             = $data_transaction['total_sum_price'];
+                    $data_ud['credit']             = $hpp;
 
                     Journal::create($data_ud);
                 } 
@@ -472,11 +510,12 @@ trait GoodLoadingControllerBase
             $data_journal['journal_date']       = date('Y-m-d');
             $data_journal['name']               = 'Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ' (ID loading ' . $good_loading->id . ')';
             $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            $data_journal['debit']              = unformatNumber($request->total_item_price);
+            $data_journal['debit']              = $this->loadingGoodsValue($good_loading);
             $data_journal['credit_account_id']  = Account::where('code', '3001')->first()->id; #modal awal pas pertama upload barang
-            $data_journal['credit']             = unformatNumber($request->total_item_price);
+            $data_journal['credit']             = $data_journal['debit'];
 
             Journal::create($data_journal);
+            $this->syncLoadingRoundingJournal($good_loading, $data_journal['credit_account_id'], $data_journal['journal_date']);
 
             return $good_loading;
         }
@@ -626,11 +665,21 @@ trait GoodLoadingControllerBase
 
         $data_journal['journal_date']       = $data['loading_date'];
         $data_journal['name']               = 'Edit loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . '(ID loading ' . $good_loading->id . ')';
-        $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
-        $data_journal['credit']             = unformatNumber($good_loading->total_item_price);
+        $data_journal['debit']              = $this->loadingGoodsValue($good_loading);
+        $data_journal['credit']             = $data_journal['debit'];
         $data_journal['credit_account_id']  = Account::where('code', $request->payment)->first()->id;
 
-       $journal->update($data_journal);
+        if ($journal) {
+            $journal->update($data_journal);
+        } else {
+            // the journal was missing (old data): create it instead of failing
+            Journal::create($data_journal + [
+                'type'             => 'good_loading',
+                'type_id'          => $good_loading->id,
+                'debit_account_id' => Account::where('code', '1141')->first()->id,
+            ]);
+        }
+        $this->syncLoadingRoundingJournal($good_loading, $data_journal['credit_account_id'], $data['loading_date']);
 
        return $good_loading; 
     }
@@ -639,11 +688,13 @@ trait GoodLoadingControllerBase
     {
         $good_loading = GoodLoading::find($good_loading_id);
 
-        $journal = Journal::where('type','good_loading')
-                          ->where('type_id', $good_loading->id)
-                          ->first();
+        // Journals of this loading go with it. Deleting the loading also takes
+        // its goods out of stock again (StockService); before, the stock
+        // stayed although the journal was gone.
+        Journal::whereIn('type', ['good_loading', 'good_loading_rounding'])
+               ->where('type_id', $good_loading->id)
+               ->delete();
 
-        $journal->delete();
         $good_loading->delete();
 
         return true;

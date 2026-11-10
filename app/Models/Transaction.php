@@ -32,6 +32,20 @@ class Transaction extends Model
             return Cashier::find($this->role_id);
     }
     
+    protected static function booted(): void
+    {
+        // Deleting or restoring the whole document changes the stock of
+        // every good in it (see StockService).
+        $sync = function (self $model) {
+            foreach ($model->details()->withTrashed()->pluck('good_unit_id')->unique() as $goodUnitId) {
+                \App\Services\StockService::queueGoodUnit($goodUnitId);
+            }
+        };
+
+        static::deleted($sync);
+        static::restored($sync);
+    }
+
     public function details()
     {
         return $this->hasMany('App\Models\TransactionDetail');

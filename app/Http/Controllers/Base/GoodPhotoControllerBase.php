@@ -42,7 +42,8 @@ trait GoodPhotoControllerBase
     {
         $photo = GoodPhoto::find($photo_id);
 
-        $path = Storage::disk('public')->getDriver()->getAdapter()->applyPathPrefix($photo->location);
+        // Flysystem 3 (Laravel 9+): path() replaces getAdapter()->applyPathPrefix().
+        $path = Storage::disk('public')->path($photo->location);
         File::delete($path);
 
         $photo->delete();

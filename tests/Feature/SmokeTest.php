@@ -42,6 +42,19 @@ class SmokeTest extends TestCase
         ];
     }
 
+    public function test_good_photo_is_served_from_public_disk(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('good_photos/abc.jpg', 'fake-jpeg-bytes');
+
+        $this->get('/image/good_photos/abc.jpg')
+            ->assertOk()
+            ->assertContent('fake-jpeg-bytes');
+
+        $this->get('/image/good_photos/missing.jpg')->assertNotFound();
+        $this->get('/image/../abc.jpg')->assertNotFound();
+    }
+
     public function test_route_groups_keep_their_names_and_middleware(): void
     {
         $admin = Route::getRoutes()->getByName('admin.account.store');

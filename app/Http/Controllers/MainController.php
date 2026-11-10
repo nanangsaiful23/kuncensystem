@@ -33,7 +33,14 @@ class MainController extends Controller
 
     public function getImage($directory, $url)
     {
-        $path = Storage::disk('public')->getDriver()->getAdapter()->applyPathPrefix($directory . '/' . $url);
+        // Flysystem 3 (Laravel 9+) removed getAdapter()->applyPathPrefix().
+        // Route segments can't contain "/", but block ".." so the path stays
+        // inside storage/app/public.
+        if ($directory === '..' || $url === '..') {
+            abort(404);
+        }
+
+        $path = Storage::disk('public')->path($directory . '/' . $url);
 
         if (!File::exists($path)) {
             abort(404);

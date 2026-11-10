@@ -537,8 +537,20 @@ class FinancialReportRepository
             }
         }
 
+        // Goods in the retur box (damaged, waiting to go back to the
+        // distributor) are out of the shelf stock but still owned: the
+        // journal keeps them in Persediaan until the distributor pays or
+        // replaces them, so they count here too.
+        $nilaiKotakRetur = (float) DB::table('retur_items')
+            ->join('good_units', 'good_units.id', '=', 'retur_items.good_unit_id')
+            ->whereNull('retur_items.returned_date')
+            ->whereNull('retur_items.deleted_at')
+            ->sum('good_units.buy_price');
+
         return [
-            'total_nilai_persediaan' => $totalNilai,
+            'total_nilai_persediaan' => $totalNilai + $nilaiKotakRetur,
+            'nilai_rak'              => $totalNilai,
+            'nilai_kotak_retur'      => $nilaiKotakRetur,
             'jumlah_barang'          => $rows->count(),
             'jumlah_barang_minus'    => $barangMinus->count(),
             'total_nilai_minus'      => $totalNilaiMinus,
