@@ -39,6 +39,7 @@ class FinancialReportController extends Controller
         $profitLoss      = [];
         $balanceSheet    = [];
         $cashFlow        = collect();
+        $monthlyBalance  = [];
 
         // Hanya load data tab yang aktif (hemat query)
         switch ($tab) {
@@ -50,6 +51,9 @@ class FinancialReportController extends Controller
                 break;
             case 'neraca':
                 $balanceSheet = $this->repo->getBalanceSheet($endDate);
+                break;
+            case 'neraca_bulanan':
+                $monthlyBalance = $this->repo->getMonthlyBalanceSheet((int) $request->get('year', date('Y')));
                 break;
             case 'kas':
                 $cashFlow = $this->repo->getCashFlowSummary($startDate, $endDate);
@@ -64,7 +68,24 @@ class FinancialReportController extends Controller
             'startDate', 'endDate', 'tab',
             'allAccounts', 'accountsGrouped',
             'generalJournal', 'ledger',
-            'profitLoss', 'balanceSheet', 'cashFlow'
+            'profitLoss', 'balanceSheet', 'cashFlow', 'monthlyBalance'
         ));
+    }
+
+    /** Tutup buku a year (POST year). Only for roles in kuncen.period_unlock_roles. */
+    public function closeYear(Request $request)
+    {
+        abort_unless(\App\Services\PeriodLock::userCanUnlock(), 403, 'Hanya super admin yang bisa tutup buku.');
+        $year = (int) $request->input('year');
+
+        if ($request->input('action') === 'reopen') {
+            \App\Services\YearClosing::reopen($year);
+            $message = "Tahun $year dibuka kembali.";
+        } else {
+            $profit = \App\Services\YearClosing::close($year);
+            $message = "Tutup buku $year selesai. Laba Rp " . number_format($profit, 0, ',', '.') . ' dipindah ke Laba Ditahan.';
+        }
+
+        return redirect()->route('admin.reports.financial', ['tab' => 'neraca_bulanan', 'year' => $year])->with('closing_message', $message);
     }
 }

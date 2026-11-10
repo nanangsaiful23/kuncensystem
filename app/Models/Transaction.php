@@ -11,6 +11,8 @@ use App\Models\Account;
 
 class Transaction extends Model
 {    
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use SoftDeletes;
     
     protected $fillable = [
@@ -21,9 +23,6 @@ class Transaction extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    protected $dates =[
-        'deleted_at',
-    ];
 
     public function actor()
     {
@@ -33,6 +32,20 @@ class Transaction extends Model
             return Cashier::find($this->role_id);
     }
     
+    protected static function booted(): void
+    {
+        // Deleting or restoring the whole document changes the stock of
+        // every good in it (see StockService).
+        $sync = function (self $model) {
+            foreach ($model->details()->withTrashed()->pluck('good_unit_id')->unique() as $goodUnitId) {
+                \App\Services\StockService::queueGoodUnit($goodUnitId);
+            }
+        };
+
+        static::deleted($sync);
+        static::restored($sync);
+    }
+
     public function details()
     {
         return $this->hasMany('App\Models\TransactionDetail');

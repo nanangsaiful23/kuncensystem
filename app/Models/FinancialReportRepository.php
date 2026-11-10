@@ -537,8 +537,20 @@ class FinancialReportRepository
             }
         }
 
+        // Goods in the retur box (damaged, waiting to go back to the
+        // distributor) are out of the shelf stock but still owned: the
+        // journal keeps them in Persediaan until the distributor pays or
+        // replaces them, so they count here too.
+        $nilaiKotakRetur = (float) DB::table('retur_items')
+            ->join('good_units', 'good_units.id', '=', 'retur_items.good_unit_id')
+            ->whereNull('retur_items.returned_date')
+            ->whereNull('retur_items.deleted_at')
+            ->sum('good_units.buy_price');
+
         return [
-            'total_nilai_persediaan' => $totalNilai,
+            'total_nilai_persediaan' => $totalNilai + $nilaiKotakRetur,
+            'nilai_rak'              => $totalNilai,
+            'nilai_kotak_retur'      => $nilaiKotakRetur,
             'jumlah_barang'          => $rows->count(),
             'jumlah_barang_minus'    => $barangMinus->count(),
             'total_nilai_minus'      => $totalNilaiMinus,
@@ -588,5 +600,134 @@ class FinancialReportRepository
             ->sum('credit');
 
         return $saldoAwal + (float) $debit - (float) $credit;
+    }
+
+    // =========================================================================
+    // H. NERACA BULANAN: saldo akhir tiap bulan dalam satu tahun
+    // =========================================================================
+
+    /**
+     * Balance sheet at the end of each month of $year.
+     *
+     * Unlike getBalanceSheet() it counts the opening balance of the accounts
+     * (accounts.balance), keeps the sign of every balance (a negative cash
+     * account shows as negative) and puts the profit into equity:
+     *   - "Laba belum ditutup": profit of earlier years that were not closed
+     *   - "Laba tahun berjalan": profit from 1 January to the end of the month
+     * The closing journals of $year itself are left out, so December still
+     * shows the profit of the year (the closing only moves it inside equity).
+     * Accounts outside 1xxx-6xxx are listed apart ("Akun lain").
+     */
+    public function getMonthlyBalanceSheet(int $year): array
+    {
+        $start = "$year-01-01";
+        $end   = "$year-12-31";
+        $currentYear = (int) date('Y');
+        $lastMonth = $year < $currentYear ? 12 : ($year === $currentYear ? (int) date('n') : 0);
+
+        $accounts = DB::table('accounts')->get()->keyBy('id');
+
+        // movement (debit - credit) per account; month 0 = before this year
+        $movement = [];
+        foreach (['debit' => 'debit_account_id', 'credit' => 'credit_account_id'] as $column => $accountColumn) {
+            $rows = DB::select("select $accountColumn account_id, case when journal_date < ? then 0 else month(journal_date) end m, sum($column) v
+                from journals where deleted_at is null and journal_date <= ? and not (coalesce(type, '') = 'closing' and coalesce(type_id, 0) = ?)
+                group by 1, 2", [$start, $end, $year]);
+            foreach ($rows as $r) {
+                $movement[$r->account_id][$r->m] = ($movement[$r->account_id][$r->m] ?? 0) + ($column === 'debit' ? 1 : -1) * (float) $r->v;
+            }
+        }
+
+        $months = [];
+        foreach (range(1, 12) as $m) {
+            $months[$m] = [
+                'label'  => Carbon::create($year, $m, 1)->locale('id')->isoFormat('MMM'),
+                'end'    => Carbon::create($year, $m, 1)->endOfMonth()->toDateString(),
+                'filled' => $m <= $lastMonth,
+            ];
+        }
+
+        $sections = ['aktiva' => [], 'kewajiban' => [], 'ekuitas' => [], 'lainnya' => []];
+        $profitBefore = 0.0;                                // credit positive
+        $profitMonth  = array_fill(1, 12, 0.0);             // credit positive, movement in month
+        $openingImbalance = 0.0;
+
+        foreach ($accounts->keys()->merge(array_keys($movement))->unique() as $id) {
+            $acc = $accounts->get($id);
+            $code = (string) ($acc->code ?? '');
+            $opening = $acc ? \App\Services\YearClosing::signedOpening($acc) : 0.0;
+            $openingImbalance += $opening;
+            $mv = $movement[$id] ?? [];
+
+            if (\App\Services\YearClosing::isProfitLossCode($code)) {
+                $profitBefore -= $opening + ($mv[0] ?? 0);
+                foreach (range(1, 12) as $m) {
+                    $profitMonth[$m] -= $mv[$m] ?? 0;
+                }
+                continue;
+            }
+
+            $section = ['1' => 'aktiva', '2' => 'kewajiban', '3' => 'ekuitas'][substr($code, 0, 1)] ?? 'lainnya';
+            $sign = in_array($section, ['kewajiban', 'ekuitas'], true) ? -1 : 1;
+
+            $running = $opening + ($mv[0] ?? 0);
+            $values = [];
+            $nonZero = abs($running) >= 0.5;
+            foreach (range(1, 12) as $m) {
+                $running += $mv[$m] ?? 0;
+                $values[$m] = $months[$m]['filled'] ? round($sign * $running, 2) : null;
+                $nonZero = $nonZero || abs($mv[$m] ?? 0) >= 0.5;
+            }
+
+            if ($nonZero) {
+                $sections[$section][] = (object) ['kode' => $code ?: '-', 'nama' => $acc->name ?? 'Akun #' . $id, 'values' => $values];
+            }
+        }
+
+        // profit in equity
+        $running = 0.0;
+        $before = $berjalan = [];
+        foreach (range(1, 12) as $m) {
+            $running += $profitMonth[$m];
+            $before[$m]   = $months[$m]['filled'] ? round($profitBefore, 2) : null;
+            $berjalan[$m] = $months[$m]['filled'] ? round($running, 2) : null;
+        }
+        if (abs($profitBefore) >= 0.5) {
+            $sections['ekuitas'][] = (object) ['kode' => '', 'nama' => 'Laba tahun-tahun lalu (belum tutup buku)', 'values' => $before, 'computed' => true];
+        }
+        $sections['ekuitas'][] = (object) ['kode' => '', 'nama' => 'Laba tahun berjalan ' . $year, 'values' => $berjalan, 'computed' => true];
+
+        foreach ($sections as $key => $rows) {
+            usort($rows, fn ($a, $b) => [!empty($a->computed), $a->kode] <=> [!empty($b->computed), $b->kode]);
+            $sections[$key] = $rows;
+        }
+
+        $total = fn (string $key) => array_map(
+            fn ($m) => $months[$m]['filled'] ? round(array_sum(array_map(fn ($r) => $r->values[$m] ?? 0, $sections[$key])), 2) : null,
+            array_combine(range(1, 12), range(1, 12))
+        );
+        $totals = ['aktiva' => $total('aktiva'), 'kewajiban' => $total('kewajiban'), 'ekuitas' => $total('ekuitas'), 'lainnya' => $total('lainnya')];
+
+        $difference = [];
+        foreach (range(1, 12) as $m) {
+            $difference[$m] = $months[$m]['filled']
+                ? round($totals['aktiva'][$m] + $totals['lainnya'][$m] - $totals['kewajiban'][$m] - $totals['ekuitas'][$m], 2)
+                : null;
+        }
+
+        $firstYear = (int) (DB::table('journals')->whereNull('deleted_at')->min(DB::raw('year(journal_date)')) ?: $currentYear);
+
+        return [
+            'year'             => $year,
+            'years'            => range($currentYear, min($firstYear, $year)),
+            'months'           => $months,
+            'sections'         => $sections,
+            'totals'           => $totals,
+            'difference'       => $difference,
+            'openingImbalance' => round($openingImbalance, 2),
+            'closed'           => \App\Services\YearClosing::isClosed($year),
+            'lockedUntil'      => \App\Services\PeriodLock::lockedUntil(),
+            'canClose'         => $year < $currentYear,
+        ];
     }
 }

@@ -12,6 +12,7 @@
     $profitLoss      = $profitLoss      ?? [];
     $balanceSheet    = $balanceSheet    ?? [];
     $cashFlow        = $cashFlow        ?? collect();
+    $monthlyBalance  = $monthlyBalance  ?? [];
 
     $pl = array_merge([
         'pendapatan'           => collect(),
@@ -219,6 +220,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
     @foreach([
         'labarugi'   => '📊 Laba Rugi',
         'neraca'     => '⚖️ Neraca',
+        'neraca_bulanan' => '📅 Neraca Bulanan',
         'buku_besar' => '📒 Buku Besar',
         'jurnal'     => '📋 Jurnal Umum',
         'kas'        => '💵 Kas',
@@ -621,6 +623,131 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
         </table>
     </div>
 </div>
+@endif
+
+{{-- ════════════════════════════════════════════════════════════ --}}
+{{-- TAB: NERACA BULANAN                                         --}}
+{{-- ════════════════════════════════════════════════════════════ --}}
+@if($tab === 'neraca_bulanan' && $monthlyBalance)
+@php
+    $mb = $monthlyBalance;
+    $fmtMb = function ($v) {
+        if ($v === null) return '<span style="color:var(--ink3)">–</span>';
+        $s = number_format(abs($v), 0, ',', '.');
+        return $v < 0 ? '<span style="color:var(--red)">−' . $s . '</span>' : $s;
+    };
+    $sectionTitles = ['aktiva' => 'Aktiva (1xxx)', 'kewajiban' => 'Kewajiban (2xxx)', 'ekuitas' => 'Ekuitas (3xxx + laba)', 'lainnya' => 'Akun lain (perlu dicek)'];
+    $canUnlock = \App\Services\PeriodLock::userCanUnlock();
+    $confirmText = $mb['closed']
+        ? 'Buka kembali tahun ' . $mb['year'] . '? Tahun sesudahnya yang sudah ditutup juga ikut dibuka.'
+        : 'Tutup buku tahun ' . $mb['year'] . '? Laba rugi dipindah ke Laba Ditahan dan data sampai 31 Desember ' . $mb['year'] . ' dikunci.';
+@endphp
+<style>
+.mb-tbl td:first-child, .mb-tbl th:first-child { position:sticky; left:0; z-index:1; min-width:230px; }
+.mb-tbl thead th:first-child { z-index:3; }
+.mb-tbl td { white-space:nowrap; }
+.mb-tbl tr.mb-sec td { background:#e2e8f0 !important; font-weight:800; color:var(--ink2); text-transform:uppercase; font-size:1.2rem; }
+.mb-tbl tr.mb-total td { font-weight:800; background:#f1f5f9 !important; }
+.mb-tbl tr.mb-computed td:first-child { font-style:italic; }
+.mb-bar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
+.mb-bar select { padding:.38rem .65rem; border:1px solid var(--bdr); border-radius:.4rem; font-size:1.3rem; }
+.mb-badge { padding:.3rem .75rem; border-radius:9999px; font-size:1.25rem; font-weight:700; }
+.mb-btn-d { padding:.4rem 1rem; background:var(--red); color:#fff; border:none; border-radius:.4rem; font-weight:700; cursor:pointer; font-size:1.3rem; }
+</style>
+
+<div class="fr-info">
+    ℹ️ Saldo akhir tiap bulan tahun <strong>{{ $mb['year'] }}</strong>, dihitung dari saldo awal akun + semua jurnal sampai akhir bulan itu.
+    Laba dimasukkan ke Ekuitas, jadi Aktiva harus sama dengan Kewajiban + Ekuitas. Nilai minus ditampilkan merah.
+</div>
+
+@if(session('closing_message'))
+<div class="pl-total-row bs-check-ok" style="margin-bottom:1rem;font-size:1.375rem;">{{ session('closing_message') }}</div>
+@endif
+
+<div class="mb-bar">
+    <form method="GET" action="{{ route('admin.reports.financial') }}">
+        <input type="hidden" name="tab" value="neraca_bulanan">
+        <select name="year" onchange="this.form.submit()" aria-label="Tahun">
+            @foreach($mb['years'] as $y)
+                <option value="{{ $y }}" @selected($y == $mb['year'])>{{ $y }}</option>
+            @endforeach
+        </select>
+    </form>
+
+    @if($mb['closed'])
+        <span class="mb-badge pl-green">🔒 Sudah tutup buku</span>
+    @elseif($mb['canClose'])
+        <span class="mb-badge pl-amber">Belum tutup buku</span>
+    @else
+        <span class="mb-badge pl-blue">Tahun berjalan</span>
+    @endif
+    @if($mb['lockedUntil'])
+        <span style="font-size:1.25rem;color:var(--ink2)">Data terkunci sampai {{ displayDate($mb['lockedUntil']) }}</span>
+    @endif
+
+    @if($canUnlock && $mb['canClose'])
+    <form method="POST" action="{{ route('admin.reports.financial.close-year') }}" style="margin-left:auto"
+          onsubmit="return confirm(@js($confirmText))">
+        @csrf
+        <input type="hidden" name="year" value="{{ $mb['year'] }}">
+        @if($mb['closed'])
+            <input type="hidden" name="action" value="reopen">
+            <button type="submit" class="fr-btn-p">🔓 Buka kembali {{ $mb['year'] }}</button>
+        @else
+            <button type="submit" class="mb-btn-d">🔒 Tutup buku {{ $mb['year'] }}</button>
+        @endif
+    </form>
+    @endif
+</div>
+
+<div class="fr-card">
+    <div class="fr-tbl-wrap" style="max-height:none">
+        <table class="mb-tbl">
+            <thead>
+                <tr>
+                    <th>Akun</th>
+                    @foreach($mb['months'] as $m)
+                        <th class="tr">{{ $m['label'] }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($mb['sections'] as $key => $rows)
+                @continue($key === 'lainnya' && empty($rows))
+                <tr class="mb-sec"><td colspan="13">{{ $sectionTitles[$key] }}</td></tr>
+                @foreach($rows as $row)
+                <tr class="{{ !empty($row->computed) ? 'mb-computed' : '' }}">
+                    <td>@if($row->kode)<span class="code-tag">{{ $row->kode }}</span> @endif{{ $row->nama }}</td>
+                    @foreach($row->values as $v)
+                        <td class="tr">{!! $fmtMb($v) !!}</td>
+                    @endforeach
+                </tr>
+                @endforeach
+                <tr class="mb-total">
+                    <td>Total {{ $sectionTitles[$key] }}</td>
+                    @foreach($mb['totals'][$key] as $v)
+                        <td class="tr">{!! $fmtMb($v) !!}</td>
+                    @endforeach
+                </tr>
+            @endforeach
+                <tr class="mb-total">
+                    <td>Selisih (Aktiva + Akun lain − Kewajiban − Ekuitas)</td>
+                    @foreach($mb['difference'] as $v)
+                        <td class="tr" style="{{ $v !== null && abs($v) >= 1 ? 'color:var(--red)' : 'color:var(--green)' }}">{!! $v === null ? $fmtMb(null) : (abs($v) < 1 ? '✓' : $fmtMb($v)) !!}</td>
+                    @endforeach
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if(abs($mb['openingImbalance']) >= 1)
+<div class="fr-info" style="margin-top:1rem;background:var(--amber-bg);border-color:var(--amber-b);color:var(--amber)">
+    ⚠️ Saldo awal akun (kolom saldo di menu Akun) tidak seimbang: selisih Rp {{ number_format(abs($mb['openingImbalance']), 0, ',', '.') }}
+    ({{ $mb['openingImbalance'] > 0 ? 'debit lebih besar' : 'kredit lebih besar' }}). Selisih neraca di atas berasal dari sini;
+    jurnalnya sendiri seimbang. Rapikan saldo awal akun supaya selisihnya nol.
+</div>
+@endif
 @endif
 
 {{-- ════════════════════════════════════════════════════════════ --}}

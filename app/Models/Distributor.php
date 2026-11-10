@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class Distributor extends Model
 {    
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use SoftDeletes;
     
     protected $fillable = [
@@ -19,9 +21,6 @@ class Distributor extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    protected $dates =[
-        'deleted_at',
-    ];
 
     public function totalHutangDagangInternal($pagination)
     {
@@ -139,7 +138,7 @@ class Distributor extends Model
 
           $totalCount = Good::where('last_distributor_id', $this->id)->count();
 
-          $basicQuery = DB::select(DB::raw("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock, last_loading.loading_date as loading_date, last_transaction.transaction_date as transaction_date
+          $basicQuery = DB::select("SELECT goods.id, goods.name, recap.total_loading, recap.total_transaction, SUM(recap.total_loading - recap.total_transaction) as total_real, recap.real_price, SUM((recap.total_loading - recap.total_transaction) * recap.real_price) as money_stock, last_loading.loading_date as loading_date, last_transaction.transaction_date as transaction_date
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, good_loadings.loading_date as loading_date
                                       FROM good_loading_details
@@ -186,7 +185,7 @@ class Distributor extends Model
                                  WHERE goods.last_distributor_id = " . $this->id . "
                                  GROUP BY goods.id, goods.name, recap.total_loading, recap.total_transaction, recap.real_price, last_loading.loading_date, last_transaction.transaction_date
                                  ORDER BY money_stock DESC
-                                 LIMIT " . $perPage . " OFFSET " . $pagination));
+                                 LIMIT " . $perPage . " OFFSET " . $pagination);
 
           $results = $basicQuery;
 
@@ -249,7 +248,7 @@ class Distributor extends Model
                                     ->get();
         else
         {
-            $results = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+            $results = DB::select("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total, transaction_details.quantity as qty
                                       FROM transaction_details
@@ -261,9 +260,9 @@ class Distributor extends Model
                                  WHERE goods.id = total_transaction.id
                                  GROUP BY goods.id, goods.name
                                  ORDER BY total DESC
-                                 LIMIT " . $perPage . " OFFSET " . (($currentPage - 1) * $perPage)));
+                                 LIMIT " . $perPage . " OFFSET " . (($currentPage - 1) * $perPage));
 
-            $data = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+            $data = DB::select("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, SUM((transaction_details.selling_price - transaction_details.buy_price) * transaction_details.quantity) AS total, transaction_details.quantity as qty
                                       FROM transaction_details
@@ -274,7 +273,7 @@ class Distributor extends Model
                                       GROUP BY goods.id, transaction_details.quantity, transaction_details.buy_price, transaction_details.selling_price) as total_transaction ON total_transaction.id = goods.id
                                  WHERE goods.id = total_transaction.id
                                  GROUP BY goods.id, goods.name
-                                 ORDER BY total DESC"));
+                                 ORDER BY total DESC");
 
           $totalCount = sizeof($data);
 
@@ -303,7 +302,7 @@ class Distributor extends Model
         else
         {
 
-            $results = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+            $results = DB::select("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transaction_details.quantity as qty
                                       FROM transaction_details
@@ -315,9 +314,9 @@ class Distributor extends Model
                                  WHERE goods.id = total_transaction.id
                                  GROUP BY goods.id, goods.name
                                  ORDER BY total DESC
-                                 LIMIT " . $perPage . " OFFSET " . (($currentPage - 1) * $perPage)));
+                                 LIMIT " . $perPage . " OFFSET " . (($currentPage - 1) * $perPage));
 
-            $data = DB::select(DB::raw("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
+            $data = DB::select("SELECT goods.id, goods.name, SUM(total_transaction.total) as total, SUM(total_transaction.qty) as quantity
                                  FROM goods 
                                  LEFT JOIN (SELECT goods.id, SUM(transaction_details.buy_price * transaction_details.quantity) AS total, transaction_details.quantity as qty
                                       FROM transaction_details
@@ -327,7 +326,7 @@ class Distributor extends Model
                                       WHERE goods.last_distributor_id = " . $this->id . " AND (transaction_details.type = '5215' OR transaction_details.type = 'stock_opname') AND transactions.deleted_at is NULL AND goods.deleted_at is NULL
                                       GROUP BY goods.id, transaction_details.quantity, transaction_details.buy_price) as total_transaction ON total_transaction.id = goods.id
                                  WHERE goods.id = total_transaction.id
-                                 GROUP BY goods.id, goods.name"));
+                                 GROUP BY goods.id, goods.name");
 
             $totalCount = sizeof($data);
 

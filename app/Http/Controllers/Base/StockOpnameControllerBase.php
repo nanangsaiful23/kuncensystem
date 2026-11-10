@@ -54,6 +54,16 @@ trait StockOpnameControllerBase
                                      ->where('unit_id', $request->units[$i])
                                      ->first();
 
+                // The stock before counting is taken from the server at the
+                // moment of saving, in the unit that was counted. The value in
+                // the form was loaded earlier (sales may have happened since)
+                // and was in the base unit, not always the counted unit.
+                $request_old_stocks = $request->old_stocks;
+                $request_old_stocks[$i] = round(\App\Services\StockService::stock($good_unit->good)
+                                         * \App\Services\StockService::smallestQuantity($good_unit->good)
+                                         / $good_unit->unit->quantity, 3);
+                $request->merge(['old_stocks' => $request_old_stocks]);
+
                 $data_stock_opname_detail['stock_opname_id'] = $stock_opname->id;
                 $data_stock_opname_detail['good_unit_id'] = $good_unit->id;
                 $data_stock_opname_detail['old_stock'] = $request->old_stocks[$i];

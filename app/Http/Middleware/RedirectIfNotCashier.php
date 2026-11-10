@@ -22,7 +22,8 @@ class RedirectIfNotCashier
 	    if (!Auth::guard($guard)->check()) {
 	        return redirect('cashier/login');
 	    }
-	    $agent = new \Jenssegers\Agent\Agent;
+	    $agent = new \Detection\MobileDetect();
+	    $agent->setUserAgent((string) $request->userAgent());
 
     	// $data['role'] 		 = 'cashier';
     	// $data['role_id'] 	 = \Auth::user()->id;
@@ -31,7 +32,7 @@ class RedirectIfNotCashier
 
     	// LoginHistory::create($data);
 
-    	if($agent->isPhone() && \Auth::user()->email != 'cashier')
+    	if($agent->isMobile() && !$agent->isTablet() && \Auth::user()->email != 'cashier')
     	{
     		$request->email = 'not valid';
 	        return redirect('cashier/login');

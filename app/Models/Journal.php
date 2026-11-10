@@ -9,6 +9,8 @@ use App\Models\Account;
 
 class Journal extends Model
 {    
+    use \App\Models\Concerns\SerializesDatesLegacy;
+
     use SoftDeletes;
     
     protected $fillable = [
@@ -19,9 +21,16 @@ class Journal extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    protected $dates =[
-        'deleted_at',
-    ];
+
+    protected static function booted(): void
+    {
+        // Closed periods (tutup buku) may not change; see PeriodLock.
+        static::saving(function (Journal $journal) {
+            \App\Services\PeriodLock::assertOpen([$journal->journal_date, $journal->exists ? $journal->getOriginal('journal_date') : null]);
+        });
+        static::deleting(fn (Journal $journal) => \App\Services\PeriodLock::assertOpen([$journal->getOriginal('journal_date')]));
+        static::restoring(fn (Journal $journal) => \App\Services\PeriodLock::assertOpen([$journal->journal_date]));
+    }
 
     public function debit_account()
     {

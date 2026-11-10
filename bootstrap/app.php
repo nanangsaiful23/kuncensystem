@@ -1,55 +1,62 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Create The Application
-|--------------------------------------------------------------------------
-|
-| The first thing we will do is create a new Laravel application instance
-| which serves as the "glue" for all the components of Laravel, and is
-| the IoC container for the system binding all of the various parts.
-|
-*/
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Route;
 
-$app = new Illuminate\Foundation\Application(
-    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
-);
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        commands: __DIR__.'/../routes/console.php',
+        using: function () {
+            // Same route groups the old RouteServiceProvider registered.
+            // Routes still use 'Controller@method' strings, so each group keeps
+            // its controller namespace.
+            Route::prefix('api')
+                ->middleware('api')
+                ->namespace('App\Http\Controllers')
+                ->group(base_path('routes/api.php'));
 
-/*
-|--------------------------------------------------------------------------
-| Bind Important Interfaces
-|--------------------------------------------------------------------------
-|
-| Next, we need to bind some important interfaces into the container so
-| we will be able to resolve them when needed. The kernels serve the
-| incoming requests to this application from both the web and CLI.
-|
-*/
+            Route::middleware('web')
+                ->namespace('App\Http\Controllers')
+                ->group(base_path('routes/web.php'));
 
-$app->singleton(
-    Illuminate\Contracts\Http\Kernel::class,
-    App\Http\Kernel::class
-);
+            Route::middleware(['web', 'cashier', 'auth:cashier'])
+                ->prefix('cashier')
+                ->as('cashier.')
+                ->namespace('App\Http\Controllers\Cashier')
+                ->group(base_path('routes/cashier.php'));
 
-$app->singleton(
-    Illuminate\Contracts\Console\Kernel::class,
-    App\Console\Kernel::class
-);
+            Route::middleware(['web', 'admin', 'auth:admin'])
+                ->prefix('admin')
+                ->as('admin.')
+                ->namespace('App\Http\Controllers\Admin')
+                ->group(base_path('routes/admin.php'));
+        },
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'cashier' => \App\Http\Middleware\RedirectIfNotCashier::class,
+            'cashier.guest' => \App\Http\Middleware\RedirectIfCashier::class,
+            'admin' => \App\Http\Middleware\RedirectIfNotAdmin::class,
+            'admin.guest' => \App\Http\Middleware\RedirectIfAdmin::class,
+        ]);
 
-$app->singleton(
-    Illuminate\Contracts\Debug\ExceptionHandler::class,
-    App\Exceptions\Handler::class
-);
+        // Old App\Http\Kernel: the api group was throttled to 60 requests/minute.
+        $middleware->prependToGroup('api', ThrottleRequests::class.':60,1');
 
-/*
-|--------------------------------------------------------------------------
-| Return The Application
-|--------------------------------------------------------------------------
-|
-| This script returns the application instance. The instance is given to
-| the calling script so we can separate the building of the instances
-| from the actual running of the application and sending responses.
-|
-*/
+        // Guests hitting a protected page go to the matching login page.
+        // (Both login routes are named 'login', so route('login') was ambiguous.)
+        $middleware->redirectGuestsTo(
+            fn (Request $request) => $request->is('cashier', 'cashier/*') ? '/cashier/login' : '/admin/login'
+        );
+        $middleware->redirectUsersTo('/home');
 
-return $app;
+        // Every POST/PUT/DELETE is all-or-nothing (see AtomicRequest).
+        $middleware->appendToGroup('web', \App\Http\Middleware\AtomicRequest::class);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();

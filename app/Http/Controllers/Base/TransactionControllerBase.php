@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Base;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 use App\Models\Account;
 use App\Models\Good;
@@ -164,8 +166,86 @@ trait TransactionControllerBase
         return [$transactions, $all_normal, $all_retur, $hpp_normal, $hpp_retur, $hpp_retur_normal];
     }
 
+    /**
+     * A form is opened with a submit_token. When the same form is posted
+     * again (double click, or the cashier retries after the connection
+     * dropped although the first post was saved) the first transaction is
+     * returned instead of saving the sale twice.
+     */
+    private function previousSubmission(Request $request): ?Transaction
+    {
+        $token = $request->input('submit_token');
+
+        if (! $token) {
+            return null;
+        }
+
+        // Same-token requests run one after another. The lock is released
+        // after the response, i.e. after AtomicRequest has committed.
+        $lock = Cache::lock('submit-token:' . $token, 120);
+        $lock->block(60);
+        app()->terminating(fn () => $lock->release());
+
+        $id = Cache::get('submit-token-done:' . $token);
+
+        return $id ? Transaction::find($id) : null;
+    }
+
+    private function rememberSubmission(Request $request, Transaction $transaction): void
+    {
+        if ($token = $request->input('submit_token')) {
+            DB::afterCommit(fn () => Cache::put('submit-token-done:' . $token, $transaction->id, now()->addDays(2)));
+        }
+    }
+
+    /**
+     * Check every line before anything is written, so a bad line stops the
+     * whole sale with a message instead of failing halfway.
+     */
+    private function validateTransactionItems(Request $request): void
+    {
+        $errors = [];
+        $items  = 0;
+
+        foreach ([['barcodes', 'quantities', 'Barang'], ['barcodesretur_s', 'quantitiesretur_s', 'Barang retur']] as [$codes, $qtys, $label]) {
+            foreach ((array) $request->input($codes, []) as $i => $good_unit_id) {
+                if ($good_unit_id == null) {
+                    continue;
+                }
+
+                $items++;
+                $good_unit = GoodUnit::find($good_unit_id);
+                $quantity  = $request->input($qtys)[$i] ?? null;
+
+                if ($good_unit == null || $good_unit->good == null || $good_unit->unit == null) {
+                    $errors[] = $label . ' baris ' . ($i + 1) . ': satuan barang tidak ditemukan (ID ' . $good_unit_id . '). Cek data satuan barang ini.';
+                } elseif (! is_numeric($quantity) || $quantity <= 0) {
+                    $errors[] = $label . ' ' . $good_unit->good->name . ': jumlah harus lebih dari 0.';
+                }
+            }
+        }
+
+        if ($items == 0) {
+            $errors[] = 'Transaksi tidak berisi barang.';
+        }
+
+        if (! in_array($request->payment, ['cash', 'transfer'])) {
+            $errors[] = 'Metode pembayaran tidak dikenal.';
+        }
+
+        if ($errors) {
+            throw ValidationException::withMessages(['transaction' => $errors]);
+        }
+    }
+
     public function storeTransactionBase($role, $role_id, Request $request)
     {
+        if ($previous = $this->previousSubmission($request)) {
+            return $previous;
+        }
+
+        $this->validateTransactionItems($request);
+
         $hpp = 0;
         $sum = 0;
 
@@ -186,7 +266,7 @@ trait TransactionControllerBase
         }
 
         #tabel transaction
-        if(isset($request->barcodesretur_s) && sizeof($request->barcodesretur_s) > 1)
+        if(count(array_filter((array) $request->barcodesretur_s, fn ($v) => $v != null)) > 0)
         {
             $data_transaction['type'] = 'retur'; 
         }
@@ -210,12 +290,13 @@ trait TransactionControllerBase
         $data_transaction['is_promo']= $request->is_promo;
 
         $transaction = Transaction::create($data_transaction);
+        $this->rememberSubmission($request, $transaction);
 
         #tabel transaction detail
         $data_detail['transaction_id'] = $transaction->id;
 
-        for ($i = 0; $i < sizeof($request->barcodes); $i++) 
-        { 
+        for ($i = 0; $i < sizeof((array) $request->barcodes); $i++)
+        {
             if($request->barcodes[$i] != null)
             {
                 $good_unit = GoodUnit::find($request->barcodes[$i]);
@@ -224,20 +305,17 @@ trait TransactionControllerBase
                 $data_detail['quantity']       = $request->quantities[$i];
                 $data_detail['real_quantity']  = $request->quantities[$i] * $good_unit->unit->quantity;
                 $data_detail['last_stock']     = $good_unit->good->getStock();
-                $data_detail['buy_price']      = unformatNumber($request->buy_prices[$i]);
+                // HPP uses the buy price stored on the server, not the one the
+                // cashier page loaded (it may be stale after a price change).
+                $data_detail['buy_price']      = $good_unit->buy_price;
                 $data_detail['selling_price']  = unformatNumber($request->prices[$i]);
                 $data_detail['discount_price'] = unformatNumber($request->discounts[$i]);
                 $data_detail['sum_price']      = unformatNumber($request->sums[$i]);
 
                 TransactionDetail::create($data_detail);
 
-                $good = $good_unit->good;
-
-                $data_good['total_loading']     = $good->total_loading;
-                $data_good['total_transaction'] = $good->total_transaction + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-                $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
-                $data_good['last_transaction']  = date('Y-m-d');
-                $good->update($data_good);
+                // Stock itself is recalculated from the details (StockService).
+                $good_unit->good->update(['last_transaction' => date('Y-m-d')]);
 
                 $sum += $data_detail['sum_price'];
                 $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
@@ -251,9 +329,14 @@ trait TransactionControllerBase
         {
             $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
 
+            // lockForUpdate: two cashiers adding to the same daily journal at
+            // the same moment must not overwrite each other's amount.
             $journal = Journal::whereDate('journal_date', date('Y-m-d'))
                               ->where('type', 'transaction')
                               ->where('debit_account_id', $data_journal['debit_account_id'])
+                              ->where('credit_account_id', Account::where('code', '4101')->first()->id)
+                              ->whereNull('type_id')
+                              ->lockForUpdate()
                               ->first();
 
             if($journal != null)
@@ -292,7 +375,17 @@ trait TransactionControllerBase
 
 
         #tabel journal hpp
-        $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))->where('type', 'hpp')->first();
+        // Only the daily sales HPP journal (Debit HPP / Credit Persediaan).
+        // Reverse and retur journals are also type 'hpp' but go the other
+        // way; adding today's sales to one of them booked the whole day's
+        // HPP as an increase of inventory (13 Jun 2024, 3 May 2025, 23 Jul 2025).
+        $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))
+                              ->where('type', 'hpp')
+                              ->where('debit_account_id', Account::where('code', '5101')->first()->id)
+                              ->where('credit_account_id', Account::where('code', '1141')->first()->id)
+                              ->where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d')))
+                              ->lockForUpdate()
+                              ->first();
 
         if($hpp_journal != null)
         {
@@ -407,73 +500,75 @@ trait TransactionControllerBase
                 if($request->barcodesretur_s[$i] != null)
                 {
                     $good_unit_retur = GoodUnit::find($request->barcodesretur_s[$i]);
-                    $data_detail_retur['good_unit_id']   = $request->barcodesretur_s[$i];
-                    $data_detail_retur['type']           = $data_transaction['type'];
+                    $good_retur      = $good_unit_retur->good;
+
+                    $data_detail_retur['good_unit_id']   = $good_unit_retur->id;
+                    $data_detail_retur['type']           = 'retur';
                     $data_detail_retur['quantity']       = $request->quantitiesretur_s[$i];
                     $data_detail_retur['real_quantity']  = $request->quantitiesretur_s[$i] * $good_unit_retur->unit->quantity;
-                    $data_detail_retur['last_stock']     = $good_unit_retur->good->getStock();
-                    $data_detail_retur['buy_price']      = unformatNumber($request->buy_pricesretur_s[$i]);
+                    $data_detail_retur['last_stock']     = $good_retur->getStock();
+                    $data_detail_retur['buy_price']      = $good_unit_retur->buy_price;
                     $data_detail_retur['selling_price']  = unformatNumber($request->pricesretur_s[$i]);
                     $data_detail_retur['discount_price'] = unformatNumber($request->discountsretur_s[$i]);
                     $data_detail_retur['sum_price']      = unformatNumber($request->sumsretur_s[$i]);
 
+                    // A 'retur' line is only a record of what came back; it
+                    // does not change stock (getStock() skips it). The stock
+                    // change is the loading below (good condition) or the
+                    // retur box (damaged). Before, this line also lowered the
+                    // stock of the LAST SOLD good, and crashed when the
+                    // transaction had no sold goods at all.
                     TransactionDetail::create($data_detail_retur);
-
-                    $good = $good_unit->good;
-
-                    $data_good['total_loading']     = $good->total_loading;
-                    $data_good['total_transaction'] = $good->total_transaction + round($data_detail_retur['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-                    $data_good['last_stock']        = $good->total_loading - $data_good['total_transaction'];
-                    $data_good['last_transaction']  = date('Y-m-d');
-                    $good->update($data_good);
 
                     $sum_retur += unformatNumber($request->pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
                     $hpp_retur += $data_detail_retur['buy_price'] * $data_detail_retur['quantity'];
 
                     $is_retur = true;
 
-                    $good = Good::find($request->namesretur_s[$i]);
-
                     if($request->conditionsretur_s[$i] == 'rusak') #barang rusak
                     {
+                        $last_buy = $good_retur->getLastBuy();
+                        $distributor_id = $last_buy && $last_buy->good_loading && $last_buy->good_loading->distributor
+                                        ? $last_buy->good_loading->distributor->id
+                                        : $good_retur->last_distributor_id;
+
                         for($j = 0; $j < $data_detail_retur['quantity']; $j++)
                         {
-                            $data_retur['good_id'] = $request->namesretur_s[$i];
-                            $data_retur['good_unit_id']   = $request->barcodesretur_s[$i];
-                            $data_retur['last_distributor_id'] = $good->getLastBuy()->good_loading->distributor->id;
+                            $data_retur['good_id'] = $good_retur->id;
+                            $data_retur['good_unit_id']   = $good_unit_retur->id;
+                            $data_retur['last_distributor_id'] = $distributor_id;
 
                             ReturItem::create($data_retur);
                         }
                     }
                     else #barang gak rusak
                     {
-                        $data_loading['role']         = $role;
-                        $data_loading['role_id']      = $role_id;
-                        $data_loading['checker']      = 'Load by sistem';
-                        $data_loading['loading_date'] = date('Y-m-d');
-                        $data_loading['distributor_id']   = $good->last_distributor_id;
-                        $data_loading['total_item_price'] = unformatNumber($request->buy_pricesretur_s[$i]) * $request->quantitiesretur_s[$i];
-                        $data_loading['note']             = 'Loading barang retur';
-                        $data_loading['payment']          = $request->payment;
+                        $data_loading_retur = [
+                            'role'             => $role,
+                            'role_id'          => $role_id,
+                            'checker'          => 'Load by sistem',
+                            'loading_date'     => date('Y-m-d'),
+                            'distributor_id'   => $good_retur->last_distributor_id,
+                            'total_item_price' => $data_detail_retur['buy_price'] * $data_detail_retur['quantity'],
+                            // the transaction ID lets a reverse find this loading
+                            'note'             => 'Loading barang retur (ID transaksi ' . $transaction->id . ')',
+                            'payment'          => $request->payment,
+                        ];
 
-                        $good_loading = GoodLoading::create($data_loading);
+                        $good_loading = GoodLoading::create($data_loading_retur);
 
-                        $data_detail['good_loading_id'] = $good_loading->id;
-                        $data_detail['good_unit_id']    = $good->getPcsSellingPrice()->id;
-                        $data_detail['last_stock']      = $good->getStock();
-                        $data_detail['quantity']        = $request->quantitiesretur_s[$i];
-                        $data_detail['real_quantity']   = $data_detail_retur['real_quantity'];
-                        $data_detail['price']           = unformatNumber($request->buy_pricesretur_s[$i]);
-                        $data_detail['selling_price']   = unformatNumber($request->pricesretur_s[$i]);
-                        $data_detail['expiry_date']     = null;
+                        GoodLoadingDetail::create([
+                            'good_loading_id' => $good_loading->id,
+                            'good_unit_id'    => $good_unit_retur->id,
+                            'last_stock'      => $good_retur->getStock(),
+                            'quantity'        => $data_detail_retur['quantity'],
+                            'real_quantity'   => $data_detail_retur['real_quantity'],
+                            'price'           => $data_detail_retur['buy_price'],
+                            'selling_price'   => $data_detail_retur['selling_price'],
+                            'expiry_date'     => null,
+                        ]);
 
-                        GoodLoadingDetail::create($data_detail);
-
-                        $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-                        $data_good['total_transaction'] = $good->total_transaction;
-                        $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
-                        $data_good['last_loading']      = $data_loading['loading_date'];
-                        $good->update($data_good);
+                        $good_retur->update(['last_loading' => date('Y-m-d')]);
                     }
                 }
             }  
@@ -497,7 +592,7 @@ trait TransactionControllerBase
             $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
             $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
             $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
-            if(sizeof($request->barcodes) == 0)
+            if(count(array_filter((array) $request->barcodes, fn ($v) => $v != null)) == 0)
                 $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1111')->first()->id;
             $data_journal_loading_retur['credit']             = unformatNumber($sum_retur);
 
@@ -517,174 +612,154 @@ trait TransactionControllerBase
         return $transaction;
     }
 
+    /**
+     * The loading that put a good-condition retur back on the shelf.
+     * New ones carry the transaction ID in the note; older ones are matched
+     * by time and good.
+     */
+    private function findReturLoading(Transaction $transaction, TransactionDetail $detail, ?Good $good): ?GoodLoading
+    {
+        $loading = GoodLoading::where('note', 'Loading barang retur (ID transaksi ' . $transaction->id . ')')
+                              ->whereHas('details', fn ($q) => $q->where('good_unit_id', $detail->good_unit_id))
+                              ->first();
+
+        if ($loading == null && $good != null) {
+            $loading = GoodLoading::where('note', 'Loading barang retur')
+                                  ->where('checker', 'Load by sistem')
+                                  ->whereBetween('created_at', [$transaction->created_at->copy()->subSeconds(10), $transaction->created_at->copy()->addSeconds(10)])
+                                  ->whereHas('details', fn ($q) => $q->whereIn('good_unit_id', GoodUnit::withTrashed()->where('good_id', $good->id)->pluck('id')))
+                                  ->first();
+        }
+
+        return $loading;
+    }
+
+    /**
+     * Cancel a transaction ('not valid') or delete it ('deleted').
+     *
+     * Every effect of the transaction is undone and the journals are always
+     * written, with amounts taken from the transaction itself. Before, the
+     * journals depended on a guess ($is_retur, comparing the whole day's
+     * sales with the day's journal) that was often wrong, e.g. when the retur
+     * was worth more than the goods bought; then the stock came back but the
+     * journal did not, or a retur stayed on the shelf after the cancel.
+     */
     public function reverseTransactionBase($role, $role_id, $status, $transaction_id)
     {
-        $transaction = Transaction::find($transaction_id);
-        $total = 0;
+        $transaction = Transaction::lockForUpdate()->find($transaction_id);
 
-        if($status == 'not valid')
-            $journal_status = 'reverse';
-        elseif($status == 'deleted')
-            $journal_status = 'delete';
-
-        foreach($transaction->details as $detail)
-        {
-            if($detail->type == 'normal')
-            {
-                $good = $detail->good_unit->good;
-
-                $data_loading['role']         = $role;
-                $data_loading['role_id']      = $role_id;
-                $data_loading['checker']      = "Created by system";
-                $data_loading['loading_date'] = date('Y-m-d');
-                $data_loading['distributor_id']   = $good->last_distributor_id;
-                $data_loading['total_item_price'] = $detail->quantity * $detail->buy_price;
-                $data_loading['note']             = "Reverse transaction id " . $transaction->id;
-                $data_loading['payment']          = "cash";
-
-                $good_loading = GoodLoading::create($data_loading);
-
-                $data_detail['good_loading_id'] = $good_loading->id;
-                $data_detail['good_unit_id']    = $detail->good_unit->id;
-                $data_detail['last_stock']      = $good->getStock();
-                $data_detail['quantity']        = $detail->quantity;
-                $data_detail['real_quantity']   = $detail->real_quantity;
-                $data_detail['price']           = $detail->buy_price;
-                $data_detail['selling_price']   = $detail->selling_price;
-
-                GoodLoadingDetail::create($data_detail);
-
-                $data_good['total_loading']     = $good->total_loading + round($data_detail['real_quantity'] / $good->base_unit()->unit->quantity, 3);
-                $data_good['total_transaction'] = $good->total_transaction;
-                $data_good['last_stock']        = $data_good['total_loading'] - $good->total_transaction;
-                $data_good['last_loading']      = $data_loading['loading_date'];
-                $good->update($data_good);
-
-                $total += $data_loading['total_item_price'];
-
-            }
-            elseif($detail->type == 'retur')
-            {
-                // $data_transaction['type'] = $status;
-                // $data_transaction['role'] = $role;
-                // $data_transaction['role_id'] = $role_id;
-                // $data_transaction['total_item_price'] = $detail->quantity * $detail->selling_price;
-                // $data_transaction['total_discount_price'] = 0;
-                // $data_transaction['total_sum_price'] = $data_transaction['total_item_price'];
-                // $data_transaction['voucher'] = null;
-                // $data_transaction['voucher_nominal'] = null;
-                // $data_transaction['money_paid'] = $data_transaction['total_item_price'];
-                // $data_transaction['money_returned'] = 0;
-                // $data_transaction['store']   = 'ntn getasan';
-                // $data_transaction['payment'] = 'cash';
-                // $data_transaction['note']    = "Reverse transaction retur id " . $transaction->id;
-
-                // $transaction_temp = Transaction::create($data_transaction);
-
-                // $data_detail['transaction_id'] = $transaction_temp->id;
-                // $data_detail['good_unit_id']   = $detail->good_unit_id;
-                // $data_detail['type']           = 'normal';
-                // $data_detail['quantity']       = $detail->quantity;
-                // $data_detail['real_quantity']  = $detail->real_quantity;
-                // $data_detail['last_stock']     = $detail->good_unit->good->getStock();
-                // $data_detail['buy_price']      = $detail->buy_price;
-                // $data_detail['selling_price']  = $detail->selling_price;
-                // $data_detail['discount_price'] = 0;
-                // $data_detail['sum_price']      = $data_transaction['total_item_price'];
-
-                // TransactionDetail::create($data_detail);
-
-                // $total -= $data_transaction['total_item_price'];
-            }
-            $data_transaction['type'] = $status;
-            $detail->update($data_transaction);
+        // Already cancelled (double click / second tab): nothing to do again.
+        if ($transaction == null || in_array($transaction->type, ['not valid', 'deleted'])) {
+            return true;
         }
 
-        if(sizeof($transaction->details) > 0)
-        {
-            if($transaction->payment == 'cash')
-            {
-                $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-                $penjualan_id                       = Account::where('code', '4101')->first()->id;
+        $journal_status = $status == 'deleted' ? 'delete' : 'reverse';
 
-                $old_journal = Journal::where('name', 'Penjualan tanggal ' . displayDate($transaction->created_at))
-                                      ->where('debit_account_id', $data_journal['credit_account_id'])
-                                      ->where('credit_account_id', $penjualan_id)
-                                      ->first();
+        $hpp_sold    = 0; // buy value of sold goods that come back to stock
+        $sales       = 0; // money of the sold goods (as journaled at sale)
+        $hpp_retur   = 0; // buy value of returned goods that leave again
+        $sales_retur = 0; // money that was paid back for the retur
+        $good_loading = null;
 
-                $transactions = Transaction::whereRaw('date(created_at) = "' . date('Y-m-d', strtotime($transaction->created_at)) . '" AND payment = "' . $transaction->payment . '" AND (type = "normal" OR type = "retur")')
-                                           ->get();
+        foreach ($transaction->details as $detail) {
+            $good_unit = GoodUnit::withTrashed()->find($detail->good_unit_id);
+            $good      = $good_unit ? Good::withTrashed()->find($good_unit->good_id) : null;
 
-                $returs = Journal::whereDate('created_at', date('Y-m-d', strtotime($transaction->created_at)))
-                                      ->where('credit_account_id', $data_journal['credit_account_id'])
-                                      ->where('debit_account_id', $penjualan_id)
-                                      ->get();
+            if ($detail->type == 'retur') {
+                $hpp_retur   += $detail->quantity * $detail->buy_price;
+                $sales_retur += $detail->quantity * $detail->selling_price;
 
-                if(floatval($transactions->sum('total_sum_price')) != (floatval($old_journal->debit) - floatval($returs->sum('debit'))))
-                    $is_retur = false;
-                else
-                    $is_retur = true;
+                $retur_loading = $this->findReturLoading($transaction, $detail, $good);
 
+                if ($retur_loading) {
+                    // good condition: it went back on the shelf, take it off again
+                    $retur_loading->delete();
+                } else {
+                    // damaged: take it out of the retur box again
+                    ReturItem::where('good_unit_id', $detail->good_unit_id)
+                             ->whereNull('returned_date')
+                             ->orderBy('id', 'desc')
+                             ->limit((int) ceil($detail->quantity))
+                             ->get()
+                             ->each->delete();
+                }
+
+                // the line stays type 'retur' (never counted as stock)
+                continue;
             }
-            elseif($transaction->payment == 'transfer')
-            {
-                $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
 
-                $is_retur = true;
-            }
+            $sales    += $detail->sum_price;
+            $hpp_sold += $detail->quantity * $detail->buy_price;
 
-            if($is_retur == true)
-            {
-                $data_journal['type']               = 'good_loading';
-                $data_journal['type_id']            = $good_loading->id;
-                $data_journal['journal_date']       = date('Y-m-d');
-                $data_journal['name']               = 'Loading ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-                $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-                $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-                $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
+            $good_loading = GoodLoading::create([
+                'role'             => $role,
+                'role_id'          => $role_id,
+                'checker'          => 'Created by system',
+                'loading_date'     => date('Y-m-d'),
+                'distributor_id'   => $good ? $good->last_distributor_id : null,
+                'total_item_price' => $detail->quantity * $detail->buy_price,
+                'note'             => 'Reverse transaction id ' . $transaction->id,
+                'payment'          => 'cash',
+            ]);
 
-                Journal::create($data_journal);
+            GoodLoadingDetail::create([
+                'good_loading_id' => $good_loading->id,
+                'good_unit_id'    => $detail->good_unit_id,
+                'last_stock'      => $good ? $good->getStock() : 0,
+                'quantity'        => $detail->quantity,
+                'real_quantity'   => $detail->real_quantity,
+                'price'           => $detail->buy_price,
+                'selling_price'   => $detail->selling_price,
+            ]);
 
-                $data_hpp['type']               = 'hpp';
-                $data_hpp['journal_date']       = date('Y-m-d');
-                $data_hpp['name']               = 'Penjualan ' . $journal_status . ' transaction ID ' . $transaction->id . ' (loading ID ' . $good_loading->id . ')';
-                $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-                $data_hpp['debit']              = unformatNumber($total);
-                $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-                $data_hpp['credit']             = unformatNumber($total);
-
-                Journal::create($data_hpp);  
-            }
-        }
-        else
-        {  
-            // $data_journal['type']               = 'transaction';
-            // $data_journal['type_id']            = null;
-            // $data_journal['journal_date']       = date('Y-m-d');
-            // $data_journal['name']               = 'Double transaction with detail transaksi null';
-            // $data_journal['debit_account_id']   = Account::where('code', '4101')->first()->id;
-            // $data_journal['debit']              = unformatNumber($transaction->total_sum_price);
-            // if($transaction->payment == 'cash')
-            //     $data_journal['credit_account_id']  = Account::where('code', '1111')->first()->id;
-            // elseif($transaction->payment == 'transfer')
-            //     $data_journal['credit_account_id']  = Account::where('code', '1112')->first()->id;
-            // $data_journal['credit']             = unformatNumber($transaction->total_sum_price);
-
-            // Journal::create($data_journal);
-
-            // $data_hpp['type']               = 'hpp';
-            // $data_hpp['journal_date']       = date('Y-m-d');
-            // $data_hpp['name']               = 'Double transaction with detail transaksi null';
-            // $data_hpp['debit_account_id']   = Account::where('code', '1141')->first()->id;
-            // $data_hpp['debit']              = unformatNumber($total);
-            // $data_hpp['credit_account_id']  = Account::where('code', '5101')->first()->id;
-            // $data_hpp['credit']             = unformatNumber($total);
-
-            // Journal::create($data_hpp);
+            $detail->update(['type' => $status]);
         }
 
-        $data_transaction['type'] = $status;
-        $transaction->update($data_transaction);
+        if (sizeof($transaction->details) > 0) {
+            $cash_id       = Account::where('code', $transaction->payment == 'transfer' ? '1112' : '1111')->first()->id;
+            $penjualan_id  = Account::where('code', '4101')->first()->id;
+            $hpp_id        = Account::where('code', '5101')->first()->id;
+            $persediaan_id = Account::where('code', '1141')->first()->id;
+            $suffix        = ' transaction ID ' . $transaction->id . ($good_loading ? ' (loading ID ' . $good_loading->id . ')' : '');
+
+            // The sale journal was: sold goods - discount - voucher. The retur
+            // journal paid back the retur. Undo both in one entry; when the
+            // retur was bigger the direction is turned around.
+            $money = $sales > 0
+                ? $sales - checkNull($transaction->total_discount_price) - checkNull($transaction->voucher_nominal)
+                : 0;
+            $money -= $sales_retur;
+
+            if (abs($money) >= 0.01) {
+                Journal::create([
+                    'type'              => 'good_loading',
+                    'type_id'           => $good_loading ? $good_loading->id : null,
+                    'journal_date'      => date('Y-m-d'),
+                    'name'              => 'Loading ' . $journal_status . $suffix,
+                    'debit_account_id'  => $money > 0 ? $penjualan_id : $cash_id,
+                    'debit'             => abs($money),
+                    'credit_account_id' => $money > 0 ? $cash_id : $penjualan_id,
+                    'credit'            => abs($money),
+                ]);
+            }
+
+            // Inventory: sold goods come back (+), returned goods leave (-).
+            $hpp = $hpp_sold - $hpp_retur;
+
+            if (abs($hpp) >= 0.01) {
+                Journal::create([
+                    'type'              => 'hpp',
+                    'journal_date'      => date('Y-m-d'),
+                    'name'              => 'Penjualan ' . $journal_status . $suffix,
+                    'debit_account_id'  => $hpp > 0 ? $persediaan_id : $hpp_id,
+                    'debit'             => abs($hpp),
+                    'credit_account_id' => $hpp > 0 ? $hpp_id : $persediaan_id,
+                    'credit'            => abs($hpp),
+                ]);
+            }
+        }
+
+        $transaction->update(['type' => $status]);
 
         return true;
     }

@@ -21,6 +21,7 @@ Route::get('/reports/reorder', 'ReorderController@index')->name('reports.reorder
 Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports.reorder.export');
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
  Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
+Route::post('reports/financial/close-year', 'FinancialReportController@closeYear')->name('reports.financial.close-year');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
 Route::post('reports/movement/bulk-discontinue','GoodMovementController@bulkDiscontinue')->name('reports.movement.bulk-discontinue');
 // Tambahkan baris ini di bagian rute admin

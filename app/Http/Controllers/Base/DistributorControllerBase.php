@@ -88,7 +88,7 @@ trait DistributorControllerBase
     {
         $types = [];
         foreach (DistributorLedger::select('name')->groupBy('name')->orderBy('name', 'asc')->get() as $data) {
-            $types = array_add($types, $data->name, $data->name);
+            $types = \Illuminate\Support\Arr::add($types, $data->name, $data->name);
         }
 
         $ledgers = DistributorLedger::whereDate('created_at', '>=', $start_date)

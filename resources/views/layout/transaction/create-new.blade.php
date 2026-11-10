@@ -125,6 +125,8 @@
               <div id="empty-item"></div>
           </div>
           {!! Form::model(old(),array('url' => route($role . '.transaction.store'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'transaction-form')) !!}
+          {{-- one token per opened form: a resubmit (double click, retry after the connection dropped) is not saved twice --}}
+          <input type="hidden" name="submit_token" value="{{ \Illuminate\Support\Str::uuid() }}">
             <div class="col-sm-12" style="max-height: 100vh !important; position: absolute;">
               <div class="col-sm-5" style="">
                 <div class="row col-sm-12" style="height: 55vh; overflow-y: scroll; position: absolute; background-color: white;">

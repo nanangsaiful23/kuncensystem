@@ -23,7 +23,8 @@ class RedirectIfNotAdmin
 	    if (!Auth::guard($guard)->check()) {
 	        return redirect('admin/login');
 	    }
-	    $agent = new \Jenssegers\Agent\Agent;
+	    $agent = new \Detection\MobileDetect();
+	    $agent->setUserAgent((string) $request->userAgent());
 
     	// $data['role'] 		 = 'admin';
     	// $data['role_id'] 	 = \Auth::user()->id;
@@ -32,7 +33,7 @@ class RedirectIfNotAdmin
 
     	// LoginHistory::create($data);
 
-    	if($agent->isPhone() && \Auth::user()->email != 'admin')
+    	if($agent->isMobile() && !$agent->isTablet() && \Auth::user()->email != 'admin')
     	{
     		$request->email = 'not valid';
 	        return redirect('admin/login');
