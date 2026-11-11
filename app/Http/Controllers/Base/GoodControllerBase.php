@@ -273,18 +273,19 @@ trait GoodControllerBase
 
     public function storeGoodBase(Request $request)
     {
-        $request->price = unformatNumber($request->price);
-        $request->selling_price = unformatNumber($request->selling_price);
+        // "12.500", "12,500" and "12500" all mean the same price (parseNumber)
+        $request->merge([
+            'price'         => parseNumber($request->input('price')),
+            'selling_price' => parseNumber($request->input('selling_price')),
+        ]);
         $this->validate($request, [
-            'price' => array('required', 'regex:/^[\d\s,]*$/'),
-            'selling_price' => array('required', 'regex:/^[\d\s,]*$/'),
+            'price' => array('required', 'numeric', 'min:0'),
+            'selling_price' => array('required', 'numeric', 'min:0'),
         ]);
 
         $data = $request->input();
-        if($data['category_id'] == null) 
+        if($data['category_id'] == null)
             $data['category_id'] = 1;
-        $data['price'] = unformatNumber($request->price);
-        $data['selling_price'] = unformatNumber($request->selling_price);
 
         $good = Good::where('name', $data['name'])->first();
 

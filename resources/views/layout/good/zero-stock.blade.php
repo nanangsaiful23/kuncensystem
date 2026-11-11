@@ -45,7 +45,7 @@
             </div>
           @endif
           <div class="box-body" style="overflow-x:scroll; color: black !important">
-            @if(\Auth::user()->email == 'admin')
+            @if(isSuperadmin())
               {!! Form::model(old(),array('url' => route($role . '.zeroStock.export'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'export-form')) !!}
               <input type="hidden" name="type" value="delete" id="type">
               <button type="button" class="btn form-control" onclick="changeType()"> EXPORT BARANG</button>
@@ -56,17 +56,17 @@
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Distributor Terakhir</th>
                 @endif
                 <th>Nama</th>
                 <th>Stock</th>
                 
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Loading Terakhir</th>
                   <th>Harga Beli Terakhir</th>
                 @endif
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Export</th>
                   <th>Hapus Barang</th>
                 @endif
@@ -75,17 +75,17 @@
               <tbody id="table-good">
                 @foreach($goods as $good)
                   <tr>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td>{!! Form::select('distributors[]', getDistributorLists(), $good->getDistributor()->id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'distributor-' . $good->id, 'onchange' => 'changeDist(' . $good->id . ')']) !!}</td>
                     @endif
                     <td><a href="{{ url($role . '/good/' . $good->id . '/detail') }}" target="_blank()">{{ $good->getFullName() }}</a></td>
                     <td style="text-align: center;">{{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}</td>
                   
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td style="text-align: center;">{{ $good->getLastBuy() == null ? "" : displayDate($good->getLastBuy()->good_loading->loading_date) }}</td>
                       <td style="text-align: right;">{{ showRupiah($good->getPcsSellingPrice()->buy_price) }}</td>
                     @endif
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td style="text-align: center;">
                         <input type="checkbox" name="exports[]" value="{{ $good->id }}" checked="checked">
                       </td>
@@ -100,7 +100,7 @@
               </tbody>
             </table>
           </form>
-            @if(\Auth::user()->email == 'admin')  
+            @if(isSuperadmin())  
               {!! Form::close() !!}
             @endif
           </div>

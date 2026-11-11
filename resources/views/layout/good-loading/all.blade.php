@@ -296,7 +296,7 @@
                 <th>User</th>
                 <th class="tc">Detail</th>
                 <th class="tc">Print</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th class="tc">Edit</th>
                   <th class="tc">Hapus</th>
                 @endif
@@ -337,7 +337,7 @@
                       <i class="fa fa-print" aria-hidden="true"></i>
                     </a>
                   </td>
-                  @if(\Auth::user()->email == 'admin')
+                  @if(isSuperadmin())
                     <td class="tc">
                       <a class="gl-icon-link" href="{{ url($role . '/good-loading/' . $good_loading->id . '/edit') }}" title="Edit">
                         <i class="fa fa-file" aria-hidden="true"></i>

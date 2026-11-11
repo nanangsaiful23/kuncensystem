@@ -37,7 +37,7 @@
               <thead>
               <tr>
                 <th>Waktu</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Kasir</th>
                 @endif
                 <th>Total Belanja</th>
@@ -53,7 +53,7 @@
                 @foreach($transactions['cash'] as $transaction)
                   <tr>
                     <td>{{ $transaction->created_at }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td>{{ $transaction->actor()->name }}</td>
                     @endif
                     <td>{{ showRupiah($transaction->total_item_price) }}</td>
@@ -83,7 +83,7 @@
               <thead>
               <tr>
                 <th>Waktu</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Kasir</th>
                 @endif
                 <th>Total Belanja</th>
@@ -99,7 +99,7 @@
                 @foreach($transactions['credit'] as $transaction)
                   <tr>
                     <td>{{ $transaction->created_at }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td>{{ $transaction->actor()->name }}</td>
                     @endif
                     <td>{{ showRupiah($transaction->total_item_price) }}</td>
@@ -129,7 +129,7 @@
               <thead>
               <tr>
                 <th>Waktu</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Kasir</th>
                 @endif
                 <th>Total Belanja</th>
@@ -145,7 +145,7 @@
                 @foreach($transactions['transfer'] as $transaction)
                   <tr>
                     <td>{{ $transaction->created_at }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td>{{ $transaction->actor()->name }}</td>
                     @endif
                     <td>{{ showRupiah($transaction->total_item_price) }}</td>

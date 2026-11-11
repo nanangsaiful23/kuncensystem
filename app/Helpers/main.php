@@ -224,9 +224,80 @@
         return number_format(checkNull($number),0,'',',');
     }
 
+    /*
+     * Admin roles (admins.role), from high to low:
+     *   superadmin  everything, incl. what used to be only for the account
+     *               with email 'admin' (reports, delete, unit changes, ...)
+     *   supervisor  sees and changes buy prices
+     *   admin       daily work
+     * A higher role always has the rights of the lower ones.
+     */
+    function isSuperadmin()
+    {
+        $user = \Auth::user();
+
+        return $user !== null && ($user->role ?? null) === 'superadmin';
+    }
+
+    /** Supervisor or higher: may see and change buy prices. */
+    function isSupervisor()
+    {
+        $user = \Auth::user();
+
+        return $user !== null && in_array($user->role ?? null, ['supervisor', 'superadmin'], true);
+    }
+
     function unformatNumber($number)
     {
         return str_replace(",", "", $number);
+    }
+
+    /**
+     * Reads a number typed or shown in either style:
+     *   Indonesian "12.500" / "1.234,5"   English "12,500" / "1,234.5"   raw "12500.00"
+     * Rules (prices and quantities have at most 2 decimals):
+     *   - both "." and ",": the last one is the decimal separator
+     *   - one kind only, used more than once ("1.234.567"): thousands
+     *   - one kind only, once, followed by exactly 3 digits ("12.500", "12,500"): thousands
+     *   - otherwise it is the decimal separator ("12500.00", "2,5")
+     * Returns null for an empty value. The same rules are used in the browser
+     * (resources/views/layout/good-loading/number-js.blade.php).
+     */
+    function parseNumber($value)
+    {
+        if ($value === null || is_bool($value)) {
+            return null;
+        }
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+
+        $s = preg_replace('/[^0-9.,\-]/', '', (string) $value);
+        if ($s === '' || $s === '-') {
+            return null;
+        }
+
+        $negative = str_starts_with($s, '-');
+        $s = str_replace('-', '', $s);
+        $lastDot = strrpos($s, '.');
+        $lastComma = strrpos($s, ',');
+
+        if ($lastDot !== false && $lastComma !== false) {
+            $decimal = $lastDot > $lastComma ? '.' : ',';
+            $thousands = $decimal === '.' ? ',' : '.';
+            $s = str_replace([$thousands, $decimal], ['', '.'], $s);
+        } elseif ($lastDot !== false || $lastComma !== false) {
+            $sep = $lastDot !== false ? '.' : ',';
+            $parts = explode($sep, $s);
+            $isThousands = count($parts) > 2 || (strlen(end($parts)) === 3 && $parts[0] !== '' && $parts[0] !== '0');
+            $s = $isThousands ? str_replace($sep, '', $s) : str_replace($sep, '.', $s);
+        }
+
+        if (! is_numeric($s)) {
+            return null;
+        }
+
+        return $negative ? -(float) $s : (float) $s;
     }
 
     function showRupiah($money)

@@ -76,7 +76,7 @@
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
-                                @if(\Auth::user()->role == 'supervisor')
+                                @if(isSupervisor())
                                     <th>Harga Beli</th>
                                     <th>Harga Jual</th>
                                     <th>Total Diskon</th>
@@ -97,7 +97,7 @@
                                         <td>
                                             {{ $detail->quantity }}
                                         </td>
-                                        @if(\Auth::user()->role == 'supervisor')
+                                        @if(isSupervisor())
                                             <td style="text-align: right;">
                                                 {{ showRupiah($detail->buy_price) }}
                                             </td>

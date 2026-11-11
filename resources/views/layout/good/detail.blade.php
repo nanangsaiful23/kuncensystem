@@ -45,7 +45,7 @@
                                     <td>:</td>
                                     <td>@if($good->brand != null) {{ $good->brand->name }} @else - @endif</td>
                                 </tr>
-                                @if(\Auth::user()->role == 'supervisor')
+                                @if(isSupervisor())
                                     <tr>
                                         <td>Distributor terakhir</td>
                                         <td>:</td>
@@ -80,7 +80,7 @@
                                 <h3>{{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}</h3>
                             </div>
                         </div>
-                        @if(\Auth::user()->email == 'admin')
+                        @if(isSuperadmin())
                             <div class="col-sm-12" style="background-color: #FFC29B; border-radius: 10px; margin-top: 10px;">
                                 <h4>Harga Beli</h4>
                                 <h5>@if($good->getLastBuy() != null) {{ $good->getDistributor()->name . ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif</h5>
@@ -100,7 +100,7 @@
                                     <div class="col-sm-6">
                                         <h5>
                                             {{ showRupiah($unit->selling_price) . ' /' . $unit->unit->name}}
-                                            @if(\Auth::user()->email == 'admin')
+                                            @if(isSuperadmin())
                                               <br>Untung: {{ showRupiah($unit->selling_price - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, $unit->selling_price) }}%)
                                             @endif
                                         </h5>

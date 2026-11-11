@@ -18,7 +18,7 @@
                 <th>ID</th>
                 <th>Nama</th>
                 <th>Lokasi</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Total Aset</th>
                   <th>Total Untung</th>
                   <th>Total Rugi (Penyusutan & SO)</th>
@@ -42,7 +42,7 @@
                     <td>{{ $distributor->id }}</td>
                     <td>{{ $distributor->name }}</td>
                     <td>{{ $distributor->location }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td>{{ showRupiah($distributor->total_aset) }}</td>
                       <?php $a = $distributor->total_profit; $b = $distributor->total_rugi; ?>
                       <td>{{ showRupiah($a) }}</td>

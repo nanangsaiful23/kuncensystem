@@ -146,7 +146,7 @@
                         {!! Form::text('prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-'.$i)) !!}
                     </td>
                     <td>
-                        @if(\Auth::user()->email == 'admin')
+                        @if(isSuperadmin())
                             <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeyup="editPrice('all_barcode', '{{ $i }}')">
                         @else
                             {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
@@ -309,7 +309,7 @@
                         {!! Form::text('pricesretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-retur_s'.$i)) !!}
                     </td>
                     <td>
-                        @if(\Auth::user()->email == 'admin')
+                        @if(isSuperadmin())
                             <input type="text" name="discountsretur_s[]" class="form-control" id="discount-retur_s{{ $i }}" onchange="editPrice('all_barcode_retur', '{{ $i }}')">
                         @else
                             {!! Form::text('discountsretur_s[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-retur_s'.$i)) !!}
@@ -672,7 +672,7 @@
 
             changeTotal();
 
-            @if(\Auth::user()->email == 'admin')
+            @if(isSuperadmin())
                 htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td>' + temp1 + '</td><td style="display: none"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeyup="editPrice(\'' + name + '\', \'' + type + temp1 + '\')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1+ '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1+'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+'" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
             @else
                 htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td>' + temp1 + '</td><td style="display: none"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1+ '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1 +'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1 + '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1 +'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+ '" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';

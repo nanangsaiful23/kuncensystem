@@ -80,7 +80,7 @@
                                     {!! Form::text('money_paid', showRupiah($transaction->money_paid), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                                 </div>
                             </div>
-                            @if(\Auth::user()->email == 'admin')
+                            @if(isSuperadmin())
                                 <div class="form-group col-sm-6">
                                     {!! Form::label('hpp', 'HPP', array('class' => 'col-sm-4 control-label')) !!}
                                     <div class="col-sm-6">
@@ -96,7 +96,7 @@
                                     {!! Form::text('money_returned', showRupiah($transaction->money_returned), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                                 </div>
                             </div>
-                            @if(\Auth::user()->email == 'admin')
+                            @if(isSuperadmin())
                                 <div class="form-group col-sm-6">
                                     {!! Form::label('profit', 'Untung', array('class' => 'col-sm-4 control-label')) !!}
                                     <div class="col-sm-6">
@@ -114,7 +114,7 @@
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
-                                @if(\Auth::user()->email == 'admin')
+                                @if(isSuperadmin())
                                     <th>Harga Beli</th> 
                                 @endif
                                 <th>Harga Jual</th>
@@ -135,7 +135,7 @@
                                         <td>
                                             {{ $detail->quantity }}
                                         </td>
-                                        @if(\Auth::user()->email == 'admin')
+                                        @if(isSuperadmin())
                                             <td style="text-align: right;">
                                                 {{ showRupiah($detail->buy_price) }}
                                             </td>

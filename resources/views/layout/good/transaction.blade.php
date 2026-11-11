@@ -43,7 +43,7 @@
                 <th>Unit</th>
                 <th>Jumlah Real</th>
                 <th>Stock Terakhir</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Harga Beli</th>
                 @endif
                 <th>Harga Jual</th>
@@ -64,7 +64,7 @@
                     <td>{{ $transaction->good_unit->unit->name }}</td>
                     <td>{{ $transaction->real_quantity }}</td>
                     <td>{{ $transaction->last_stock }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td style="text-align: right;">{{ showRupiah($transaction->buy_price) }}</td>
                     @endif
                     <td style="text-align: right;">{{ showRupiah($transaction->selling_price) }}</td>

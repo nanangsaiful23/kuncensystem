@@ -6,7 +6,7 @@
                 @if($SubmitButtonText == 'View')
                     {!! Form::text('debit_account_id', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                 @else
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                         {!! Form::select('debit_account_id', getOtherPayment(), null, ['class' => 'form-control select2', 'style'=>'width: 100%']) !!}
                     @else
                         <select class="form-control select2" style="width: 100%;" name="debit_account_id">

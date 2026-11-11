@@ -33,7 +33,7 @@
                 {!! Form::select('type', getGoodTypes(), $type_id, ['class' => 'form-control select2', 'style'=>'width: 100%', 'id' => 'type', 'onchange' => 'advanceSearch()']) !!}
               </div>
             </div>
-            @if(\Auth::user()->email == 'admin')
+            @if(isSuperadmin())
               <div class="form-group col-sm-12" style="margin-top: 10px;">
                 {!! Form::label('sort', 'Sort', array('class' => 'col-sm-1 control-label')) !!}
                 <div class="col-sm-2">
@@ -64,7 +64,7 @@
                   <th style="width: 12%; text-align: center;" class="col-stock">Stock <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-stock', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-stock', 'show')"></i></th>
                   <th style="width: 15%; text-align: center;" class="col-price">Harga Jual <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-price', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-price', 'show')"></i></th>
                   <th style="width: 15%; text-align: center;" class="col-code">Kode <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-code', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-code', 'show')"></i></th>
-                  @if(\Auth::user()->role == 'supervisor')
+                  @if(isSupervisor())
                     <th style="width: 10%; text-align: center;" class="col-buy-price">Harga Beli <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-buy-price', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-buy-price', 'show')"></i></th>
                   @endif
                   <th style="width: 15%; text-align: center;" class="col-act">Action <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-cat', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-cat', 'show')"></i></th>
@@ -77,7 +77,7 @@
                     <td class="col-name">
                       <h4>{{ '[' . $good->getType() . '] ' . $good->name }}</h4>
                       @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
-                      @if(\Auth::user()->email == 'admin')
+                      @if(isSuperadmin())
                         <i class="fa fa-truck green" aria-hidden="true"></i> {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
                       @endif
                       <br>
@@ -94,7 +94,7 @@
                     <td class="col-price">
                       @foreach($good->good_units as $unit)
                         <b>{{ showRupiah($unit->selling_price) . ' /' . $unit->unit->name}}</b>
-                        @if(\Auth::user()->email == 'admin')
+                        @if(isSuperadmin())
                           <br>Untung: {{ showRupiah($unit->selling_price - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, $unit->selling_price) }}%)<br>
                         @endif
                         @if($role == 'admin')
@@ -110,7 +110,7 @@
                       @endforeach
                     </td>
                     <td class="col-code">{{ $good->code }}</td>
-                    @if(\Auth::user()->role == 'supervisor')
+                    @if(isSupervisor())
                       <td class="col-buy-price">
                         @foreach($good->good_units as $unit)
                           {{ showRupiah($unit->buy_price) . ' /' . $unit->unit->name}}
@@ -169,7 +169,7 @@
         url: "{!! url($role . '/good/searchByKeyword/') !!}/" + $("#search-input").val(),
         success: function(result){
           console.log(result);
-          var htmlResult = "<thead><tr><th style=\"width: 5%; text-align: center;\">Kategori</th><th style=\"width: 45%; text-align: center;\">Nama</th><th style=\"width: 12%; text-align: center;\">Stock</th><th style=\"width: 15%; text-align: center;\">Harga Jual</th><th style=\"width: 15%; text-align: center;\">Kode</th>@if(\Auth::user()->email == 'admin')<th style=\"width: 10%; text-align: center;\">Harga Beli</th>@endif<th style=\"width: 5%; text-align: center;\">Action</th></tr></thead><tbody>";
+          var htmlResult = "<thead><tr><th style=\"width: 5%; text-align: center;\">Kategori</th><th style=\"width: 45%; text-align: center;\">Nama</th><th style=\"width: 12%; text-align: center;\">Stock</th><th style=\"width: 15%; text-align: center;\">Harga Jual</th><th style=\"width: 15%; text-align: center;\">Kode</th>@if(isSuperadmin())<th style=\"width: 10%; text-align: center;\">Harga Beli</th>@endif<th style=\"width: 5%; text-align: center;\">Action</th></tr></thead><tbody>";
           if(result != null)
           {
             var r = result.goods;

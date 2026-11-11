@@ -75,7 +75,7 @@
                                 <th>Nama</th>
                                 <th>Satuan</th>
                                 <th>Jumlah</th>
-                                @if(\Auth::user()->role == 'supervisor')
+                                @if(isSupervisor())
                                     <th>Harga Beli</th>
                                     <th>Total Akhir</th>
                                 @endif
@@ -99,10 +99,10 @@
                                             <textarea type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}"
                                                 onchange="editPrice('{{ $i }}')" onkeypress="editPrice('{{ $i }}')">{{ $detail->quantity }}</textarea>
                                         </td>
-                                        <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
+                                        <td @if(!isSupervisor()) style="display: none" @endif>
                                             {!! Form::textarea('buy_prices[]', $detail->buy_price, array('class' => 'form-control', 'id' => 'buy_price-'.$i, 'style' => 'height: 70px', 'readonly' => 'readonly')) !!}
                                         </td>
-                                        <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
+                                        <td @if(!isSupervisor()) style="display: none" @endif>
                                             {!! Form::textarea('sum_prices[]', $detail->sum_price, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum_price-'.$i, 'style' => 'height: 70px')) !!}
                                         </td>
                                         <!-- <td><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('{{ $i }}')"></i></td> -->

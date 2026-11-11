@@ -162,7 +162,7 @@
                             </td>
                             <td width="1%">Disc</td>
                             <td colspan="2" width="20%">
-                                @if(\Auth::user()->email == 'admin')
+                                @if(isSuperadmin())
                                     <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')">
                                 @else
                                     {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
@@ -392,7 +392,7 @@
                                 {!! Form::text('pricesretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-retur_s'.$i)) !!}
                             </td>
                             <td>
-                                @if(\Auth::user()->email == 'admin')
+                                @if(isSuperadmin())
                                     <input type="text" name="discountsretur_s[]" class="form-control" id="discount-retur_s{{ $i }}" onchange="editPrice('all_barcode_retur', '{{ $i }}')">
                                 @else
                                     {!! Form::text('discountsretur_s[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-retur_s'.$i)) !!}

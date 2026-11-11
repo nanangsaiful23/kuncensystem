@@ -52,7 +52,7 @@
                     <th>Barcode</th>
                     <th width="40%">Nama</th>
                     <th>Satuan</th>
-                    @if(\Auth::user()->role == 'supervisor')
+                    @if(isSupervisor())
                         <th width="10%">Harga Beli</th>
                         <th width="10%">Harga Jual</th>
                     @endif
@@ -75,10 +75,10 @@
                                 {!! Form::select('units[]', getUnits(), null, ['class' => 'form-control select2','required'=>'required', 'style'=>'width:100%', 'id' => 'unit-' . $i]) !!}
                             @endif
                         </td>
-                        <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
+                        <td @if(!isSupervisor()) style="display: none" @endif>
                              <textarea type="text" name="prices[]" class="form-control" id="price-{{ $i }}"></textarea>
                         </td>
-                        <td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif>
+                        <td @if(!isSupervisor()) style="display: none" @endif>
                             {!! Form::textarea('sell_prices[]', null, array('class' => 'form-control', 'id' => 'sell_price-'.$i, 'style' => 'height: 70px')) !!}
                         </td>
                         <td><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('{{ $i }}')"></i></td>
@@ -245,7 +245,7 @@
           function editPrice(index)
           {
               temp1=parseInt(index)+1
-              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'"></textarea></td><td @if(\Auth::user()->role != 'supervisor') style="display: none" @endif><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
+              htmlResult = '<tr id="row-data-' + temp1+ '"><td><textarea type="text" name="barcodes[]" class="form-control" id="barcode-' + temp1+ '" onchange="searchName(' + temp1+ ')"></textarea></td><td width="20%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + temp1+ '" name="name_temps[]" type="text" style="height: 70px"></textarea><textarea id="name-' + temp1 + '" name="names[]" type="text" style="display:none"></textarea></td><td><select class="form-control select2" id="unit-' + temp1 + '" name="units[]">@foreach(getUnitAsObjects() as $unit)<option value="{{ $unit->id }}">{{ $unit->name }}</option>@endforeach</select></td><td @if(!isSupervisor()) style="display: none" @endif><textarea type="text" name="prices[]" class="form-control" id="price-' + temp1+'"></textarea></td><td @if(!isSupervisor()) style="display: none" @endif><textarea class="form-control" id="sell_price-' + temp1+ '" name="sell_prices[]" type="text"></textarea></td><td><i class="fa fa-times red" id="delete-' + temp1+'" onclick="deleteItem('
               + temp1+ ')"></i></td></tr>';
               htmlResult += "<script>$('#unit-" + temp1 + "').select2();<\/script>";
               if(index == total_item)

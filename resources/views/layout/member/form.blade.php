@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        @if(\Auth::user()->email == 'admin')
+        @if(isSuperadmin())
             <div class="form-group">
                 {!! Form::label('store_name', 'Nama Toko', array('class' => 'col-sm-12')) !!}
                 <div class="col-sm-5">

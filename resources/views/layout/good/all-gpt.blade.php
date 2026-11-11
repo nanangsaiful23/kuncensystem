@@ -777,7 +777,7 @@
 
           {!! Form::select('category', getCategories(), $category_id, ['class' => 'filter-select select2', 'id' => 'category', 'onchange' => 'advanceSearch()']) !!}
           {!! Form::select('type', getGoodTypes(), $type_id, ['class' => 'filter-select select2', 'id' => 'type', 'onchange' => 'advanceSearch()']) !!}
-          @if(\Auth::user()->email == 'admin')
+          @if(isSuperadmin())
             {!! Form::select('distributor', getDistributorLists(), $distributor_id, ['class' => 'filter-select select2', 'id' => 'distributor', 'onchange' => 'advanceSearch()']) !!}
           @endif
         </div>
@@ -815,7 +815,7 @@
                     </span>
                   @endif
                   <span class="product-code">{{ $good->code }}</span>
-                  @if(\Auth::user()->email == 'admin')
+                  @if(isSuperadmin())
                     <span class="distributor-info">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                       {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
@@ -841,7 +841,7 @@
                 <!-- <div class="price-label">HARGA JUAL</div> -->
                 @foreach($good->good_units as $unit)
                   <div class="price-sell">{{ showRupiah($unit->selling_price) . ' / ' . $unit->unit->name }}</div>
-                  @if(\Auth::user()->email == 'admin')
+                  @if(isSuperadmin())
                     <div class="price-buy">Beli: {{ showRupiah($unit->buy_price) }}</div>
                     <div class="profit-badge">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>

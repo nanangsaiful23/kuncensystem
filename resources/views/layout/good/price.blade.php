@@ -29,7 +29,7 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll">
-            @if(\Auth::user()->role == 'supervisor')
+            @if(isSupervisor())
               <a href="{{ url($role . '/good/' . $good->id . '/editPrice') }}" class="btn btn-warning" target="_blank()">Ubah Harga Jual</a>
               <a href="{{ url($role . '/good/' . $good->id . '/createPrice') }}" class="btn btn-warning" target="_blank()">Tambah Harga Jual</a>
             @endif
@@ -39,7 +39,7 @@
                 <th>Created at</th>
                 <th>PIC</th>
                 <th>Satuan</th>
-                @if(\Auth::user()->role == 'supervisor')
+                @if(isSupervisor())
                   <th>Harga Beli Lama</th>
                   <th>Harga Beli Baru</th>
                 @endif
@@ -54,7 +54,7 @@
                     <td>{{ $price->created_at }}</td>
                     <td>{{ $price->actor()->name }}</td>
                     <td>{{ $price->good_unit->unit->code }}</td>
-                    @if(\Auth::user()->role == 'supervisor')
+                    @if(isSupervisor())
                       <td style="text-align: right;">{{ showRupiah($price->old_buy_price) }}</td>
                       <td style="text-align: right;">{{ showRupiah($price->recent_buy_price) }}</td>
                     @endif

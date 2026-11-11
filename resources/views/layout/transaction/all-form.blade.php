@@ -28,7 +28,7 @@
       @if($role == 'admin')
         <th class="center">Retur</th>
       @endif
-      @if(\Auth::user()->email == 'admin')
+      @if(isSuperadmin())
         <th class="center">Edit</th>
         <th class="center">Hapus</th>
       @endif
@@ -80,7 +80,7 @@
             </form>
           </td>
           @endif
-          @if(\Auth::user()->email == 'admin')
+          @if(isSuperadmin())
             <td class="center"><a href="{{ url($role . '/transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-file tosca" aria-hidden="true"></i></a></td>
             <td>
                 <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>

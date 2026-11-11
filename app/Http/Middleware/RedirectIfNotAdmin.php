@@ -33,7 +33,7 @@ class RedirectIfNotAdmin
 
     	// LoginHistory::create($data);
 
-    	if($agent->isMobile() && !$agent->isTablet() && \Auth::user()->email != 'admin')
+    	if($agent->isMobile() && !$agent->isTablet() && !isSuperadmin())
     	{
     		$request->email = 'not valid';
 	        return redirect('admin/login');

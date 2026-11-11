@@ -39,19 +39,19 @@
                 <th>PIC</th>
                 <th>Tanggal loading</th>
                 <th>Note</th>
-                @if(\Auth::user()->role == 'supervisor')
+                @if(isSupervisor())
                   <th>Nama Distributor</th>
                 @endif
                 <th>Expired</th>
                 <th>Jumlah Input</th>
                 <th>Jumlah Real</th>
-                @if(\Auth::user()->role == 'supervisor')
+                @if(isSupervisor())
                   <th>Harga Beli</th>
                   <th>Total Harga</th>
                 @endif
                 <th>Stock Sebelumnya</th>
                 <th>Harga Jual</th>
-                @if(\Auth::user()->email == 'admin')
+                @if(isSuperadmin())
                   <th>Laba</th>
                 @endif
               </tr>
@@ -63,19 +63,19 @@
                     <td>{{ getActor($good_loading->role, $good_loading->role_id)->name }}</td>
                     <td>{{ displayDate($good_loading->loading_date) }}</td>
                     <td>{{ $good_loading->note }}</td>
-                    @if(\Auth::user()->role == 'supervisor')
+                    @if(isSupervisor())
                       <td>{{ $good_loading->distributor->name }}</td>
                     @endif
                     <td>{{ $good_loading->expiry_date }}</td>
                     <td>{{ $good_loading->quantity. ' ' . $good_loading->code }}</td>
                     <td>{{ $good_loading->real_quantity }}</td>
-                    @if(\Auth::user()->role == 'supervisor')
+                    @if(isSupervisor())
                       <td style="text-align: right;">{{ showRupiah($good_loading->price) }}</td>
                       <td style="text-align: right;">{{ showRupiah($good_loading->quantity * $good_loading->price) }}</td>
                     @endif
                     <td>{{ $good_loading->last_stock }}</td>
                     <td style="text-align: right;">{{ showRupiah($good_loading->selling_price) }}</td>
-                    @if(\Auth::user()->email == 'admin')
+                    @if(isSuperadmin())
                       <td>{{ showRupiah(roundMoney($good_loading->selling_price) - $good_loading->price) }}
                         <br>{{ calculateProfit($good_loading->price, $good_loading->selling_price) }}%
                       </td>

@@ -81,7 +81,7 @@
                                 <th>Expired</th>
                                 <th>Jumlah Input</th>
                                 <th>Jumlah Real</th>
-                                @if(\Auth::user()->role == 'supervisor')
+                                @if(isSupervisor())
                                     <th>Harga Beli</th>
                                     <th>Total Harga</th>
                                 @endif
@@ -109,7 +109,7 @@
                                         <td>
                                             {{ $detail->real_quantity . ' ' . $detail->good_unit->unit->base }}
                                         </td>
-                                        @if(\Auth::user()->role == 'supervisor')
+                                        @if(isSupervisor())
                                             <td style="text-align: right;">
                                                 {{ showRupiah($detail->price) }}
                                             </td>
@@ -122,7 +122,7 @@
                                         </td>
                                         <td style="text-align: right;">
                                             {{ showRupiah($detail->selling_price) }}
-                                            @if(\Auth::user()->email == 'admin')
+                                            @if(isSuperadmin())
                                               <br>Untung: {{ showRupiah(roundMoney($detail->selling_price) - $detail->price) . ' (' . calculateProfit($detail->price, roundMoney($detail->selling_price)) }}%)<br>
                                             @endif
                                         </td>

@@ -11,7 +11,7 @@ trait OtherPaymentControllerBase
 {
     public function indexOtherPaymentBase($start_date, $end_date, $pagination)
     {
-        if(\Auth::user()->email == 'admin')
+        if(isSuperadmin())
         {
             if($pagination == 'all')
                $other_payments = Journal::where('type', 'like', '%_payment%')

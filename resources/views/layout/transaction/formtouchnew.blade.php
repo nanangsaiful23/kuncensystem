@@ -981,7 +981,7 @@
       + '<td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none;">'
       + '<input class="form-control right-input" readonly id="price-' + type + temp1 + '" name="prices' + type + '[]" type="text" style="' + inpStyle + 'text-align:right;"></td>';
 
-    @if(\Auth::user()->email == 'admin')
+    @if(isSuperadmin())
       h += '<td><input type="text" name="discount_pieces' + type + '[]" class="form-control right-input" id="discount_piece-' + type + temp1 + '" onchange="editPrice(\'' + name + '\',\'' + type + temp1 + '\')" onkeypress="editPrice(\'' + name + '\',\'' + type + temp1 + '\')" style="' + inpStyle + 'text-align:right;"></td>'
         + '<td><input type="text" name="discounts' + type + '[]" class="form-control right-input" id="discount-' + type + temp1 + '" onchange="editPrice(\'' + name + '\',\'' + type + temp1 + '\')" onkeypress="editPrice(\'' + name + '\',\'' + type + temp1 + '\')" style="' + inpStyle + 'text-align:right;"></td>';
     @else

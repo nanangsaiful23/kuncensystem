@@ -124,8 +124,29 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         return [$good_loadings, $cash];
     }
 
+    /**
+     * Prices, quantities and totals arrive in whatever style the form shows
+     * ("12.500", "12,500", "12500.00"). Turn them into plain numbers once,
+     * before anything reads them (see parseNumber()).
+     */
+    private function normalizeLoadingNumbers(Request $request): void
+    {
+        $merge = [];
+        foreach (['prices', 'sell_prices', 'quantities', 'total_prices'] as $field) {
+            $values = $request->input($field);
+            if (is_array($values)) {
+                $merge[$field] = array_map(fn ($v) => ($v === null || $v === '') ? $v : (parseNumber($v) ?? 0), $values);
+            }
+        }
+        if ($request->has('total_item_price')) {
+            $merge['total_item_price'] = parseNumber($request->input('total_item_price')) ?? 0;
+        }
+        $request->merge($merge);
+    }
+
     public function storeGoodLoadingBase($role, $role_id, $type, Request $request)
     {
+        $this->normalizeLoadingNumbers($request);
         $data = $request->input();
 
         // if($type == 'internal')
@@ -144,20 +165,20 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
             $data['distributor_id'] = $distributor->id;
         }
 
-        $request->total_item_price = unformatNumber($request->total_item_price);
+        $total_item_price = (float) $data['total_item_price'];
         $data_loading['note']      = $data['note'];
-        $data_loading['total_item_price'] = $request->total_item_price;
+        $data_loading['total_item_price'] = $total_item_price;
         if($data['payment'] != '1112')
         {
-            if($request->total_item_price % 1000 > 0 && $request->total_item_price % 1000 <= 500 && $request->total_item_price > 1000)
+            if($total_item_price % 1000 > 0 && $total_item_price % 1000 <= 500 && $total_item_price > 1000)
             {
-                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 500;
-                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+                $data_loading['total_item_price'] = intval($total_item_price / 1000) * 1000 + 500;
+                $data_loading['note'] .= " (pembulatan dari " . $total_item_price . ")";
             }
-            elseif($request->total_item_price % 1000 > 500 && $request->total_item_price > 1000)
+            elseif($total_item_price % 1000 > 500 && $total_item_price > 1000)
             {
-                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 1000;
-                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+                $data_loading['total_item_price'] = intval($total_item_price / 1000) * 1000 + 1000;
+                $data_loading['note'] .= " (pembulatan dari " . $total_item_price . ")";
             }
         }
 
@@ -166,7 +187,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         $data_loading['checker']      = $data['checker'];
         $data_loading['loading_date'] = $data['loading_date'];
         $data_loading['distributor_id']   = $data['distributor_id'];
-        // $data_loading['total_item_price'] = unformatNumber($request->total_item_price);
+        // $data_loading['total_item_price'] = unformatNumber($total_item_price);
         $data_loading['payment']      = $data['payment'];
         $data_loading['type']         = $type;
 
@@ -497,7 +518,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
             $data_loading['checker']          = "Upload by sistem";
             $data_loading['loading_date']     = date('Y-m-d');
             $data_loading['distributor_id']   = $distributor->id;
-            $data_loading['total_item_price'] = $request->total_item_price;
+            $data_loading['total_item_price'] = parseNumber($request->total_item_price) ?? 0;
             $data_loading['note']             = "Upload by sistem";
             $data_loading['payment']          = "cash";
 
@@ -523,22 +544,23 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
 
     public function updateGoodLoadingBase($role, $role_id, $good_loading_id, Request $request)
     {
+        $this->normalizeLoadingNumbers($request);
         $data = $request->input();
 
-        $request->total_item_price = unformatNumber($request->total_item_price);
+        $total_item_price = (float) $data['total_item_price'];
         $data_loading['note']      = $data['note'];
-        $data_loading['total_item_price'] = $request->total_item_price;
+        $data_loading['total_item_price'] = $total_item_price;
         if($data['payment'] != '1112')
         {
-            if($request->total_item_price % 1000 > 0 && $request->total_item_price % 1000 <= 500 && $request->total_item_price > 1000)
+            if($total_item_price % 1000 > 0 && $total_item_price % 1000 <= 500 && $total_item_price > 1000)
             {
-                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 500;
-                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+                $data_loading['total_item_price'] = intval($total_item_price / 1000) * 1000 + 500;
+                $data_loading['note'] .= " (pembulatan dari " . $total_item_price . ")";
             }
-            elseif($request->total_item_price % 1000 > 500 && $request->total_item_price > 1000)
+            elseif($total_item_price % 1000 > 500 && $total_item_price > 1000)
             {
-                $data_loading['total_item_price'] = intval($request->total_item_price / 1000) * 1000 + 1000;
-                $data_loading['note'] .= " (pembulatan dari " . $request->total_item_price . ")";
+                $data_loading['total_item_price'] = intval($total_item_price / 1000) * 1000 + 1000;
+                $data_loading['note'] .= " (pembulatan dari " . $total_item_price . ")";
             }
         }
 
