@@ -42,15 +42,15 @@
 /* Header */
 .gm-head { display:flex; justify-content:space-between; align-items:flex-start;
            flex-wrap:wrap; gap:.75rem; margin-bottom:1rem; }
-.gm-head h1 { font-size:1.25rem; font-weight:800; color:var(--ink); margin:0; }
-.gm-head p  { font-size:.8rem; color:var(--ink2); margin:.15rem 0 0; }
+.gm-head h1 { font-size:1.4rem; font-weight:800; color:var(--ink); margin:0; }
+.gm-head p  { font-size:1.4rem; color:var(--ink2); margin:.15rem 0 0; }
 .gm-badge   { background:var(--blue-bg); border:1px solid var(--blue-b); color:var(--blue);
-              font-size:.72rem; font-weight:600; padding:.3rem .75rem;
+              font-size:1.4rem; font-weight:600; padding:.3rem .75rem;
               border-radius:9999px; white-space:nowrap; align-self:flex-start; }
 
 /* Alert */
 .gm-alert { padding:.65rem 1rem; border-radius:.5rem; margin-bottom:.875rem;
-            font-size:.8125rem; font-weight:500; }
+            font-size:1.4rem; font-weight:500; }
 .gm-alert-ok  { background:var(--fast-bg); border:1px solid var(--fast-b); color:#15803d; }
 .gm-alert-err { background:var(--dead-bg); border:1px solid var(--dead-b); color:#b91c1c; }
 
@@ -59,23 +59,23 @@
              padding:.75rem 1rem; margin-bottom:.875rem;
              display:flex; align-items:flex-end; gap:.6rem; flex-wrap:wrap; }
 .gm-fg { display:flex; flex-direction:column; gap:.2rem; }
-.gm-fg label { font-size:.65rem; font-weight:700; color:var(--ink3);
+.gm-fg label { font-size:1.4rem; font-weight:700; color:var(--ink3);
                text-transform:uppercase; letter-spacing:.08em; }
 .gm-fg input, .gm-fg select { padding:.38rem .65rem; border:1px solid var(--bdr);
-    border-radius:.4rem; font-size:.8rem; color:var(--ink); background:var(--surf);
+    border-radius:.4rem; font-size:1.4rem; color:var(--ink); background:var(--surf);
     min-width:110px; line-height:1.4; }
 .gm-fg input:focus,.gm-fg select:focus { outline:none; border-color:var(--blue); }
 .gm-btn-prim { padding:.4rem 1rem; background:var(--blue); color:#fff; border:none;
-               border-radius:.4rem; font-size:.8rem; font-weight:600; cursor:pointer;
+               border-radius:.4rem; font-size:1.4rem; font-weight:600; cursor:pointer;
                align-self:flex-end; white-space:nowrap; }
 .gm-btn-reset { padding:.4rem .75rem; background:var(--surf); color:var(--ink2);
-                border:1px solid var(--bdr); border-radius:.4rem; font-size:.8rem;
+                border:1px solid var(--bdr); border-radius:.4rem; font-size:1.4rem;
                 cursor:pointer; align-self:flex-end; text-decoration:none;
                 display:inline-block; white-space:nowrap; }
 
 /* Pills */
 .gm-pills { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.875rem; }
-.gm-pill  { padding:.3rem .8rem; border-radius:9999px; font-size:.775rem; font-weight:600;
+.gm-pill  { padding:.3rem .8rem; border-radius:9999px; font-size:1.4rem; font-weight:600;
             cursor:pointer; border:2px solid transparent; text-decoration:none;
             display:inline-block; transition:box-shadow .15s; }
 .gm-pill-all  { background:var(--ink);     color:#fff; }
@@ -91,10 +91,10 @@
                gap:.625rem; margin-bottom:.875rem; }
 .gm-kpi { background:var(--card); border:1px solid var(--bdr);
           border-radius:.6rem; padding:.75rem .875rem; }
-.gm-kpi .kl { font-size:.65rem; font-weight:700; color:var(--ink3);
+.gm-kpi .kl { font-size:1.4rem; font-weight:700; color:var(--ink3);
               text-transform:uppercase; letter-spacing:.07em; margin-bottom:.3rem; }
-.gm-kpi .kv { font-size:1.35rem; font-weight:800; color:var(--ink); line-height:1; }
-.gm-kpi .ks { font-size:.7rem; color:var(--ink3); margin-top:.2rem; }
+.gm-kpi .kv { font-size:1.4rem; font-weight:800; color:var(--ink); line-height:1; }
+.gm-kpi .ks { font-size:1.4rem; color:var(--ink3); margin-top:.2rem; }
 .gm-kpi.k-fast { border-left:4px solid var(--fast); } .gm-kpi.k-fast .kv{color:var(--fast);}
 .gm-kpi.k-slow { border-left:4px solid var(--slow); } .gm-kpi.k-slow .kv{color:var(--slow);}
 .gm-kpi.k-dead { border-left:4px solid var(--dead); } .gm-kpi.k-dead .kv{color:var(--dead);}
@@ -107,9 +107,9 @@
 .gm-ac { background:var(--card); border:1px solid var(--bdr); border-radius:.6rem;
          padding:.75rem .875rem; display:flex; align-items:center; gap:.625rem; }
 .gm-ac-ico { width:2rem; height:2rem; border-radius:.4rem; display:flex;
-             align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
-.gm-ac .al { font-size:.65rem; font-weight:700; color:var(--ink3); text-transform:uppercase; }
-.gm-ac .av { font-size:1.1rem; font-weight:800; color:var(--ink); }
+             align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+.gm-ac .al { font-size:1.4rem; font-weight:700; color:var(--ink3); text-transform:uppercase; }
+.gm-ac .av { font-size:1.4rem; font-weight:800; color:var(--ink); }
 .gm-ac-r .gm-ac-ico { background:#ffe4e6; }
 .gm-ac-d .gm-ac-ico { background:var(--disc-bg); }
 .gm-ac-v .gm-ac-ico { background:var(--slow-bg); }
@@ -120,10 +120,10 @@
                border-radius:.6rem; overflow:hidden; margin-bottom:1rem; }
 .gm-tbl-head { padding:.625rem 1rem; border-bottom:1px solid var(--bdr);
                display:flex; align-items:center; justify-content:space-between; }
-.gm-tbl-head h2 { font-size:.875rem; font-weight:700; color:var(--ink); margin:0; }
-.gm-tbl-cnt { font-size:.775rem; color:var(--ink3); }
+.gm-tbl-head h2 { font-size:1.4rem; font-weight:700; color:var(--ink); margin:0; }
+.gm-tbl-cnt { font-size:1.4rem; color:var(--ink3); }
 .gm-tbl-wrap { overflow-x:auto; max-height:580px; overflow-y:auto; }
-.gm-tbl-wrap table { width:100%; border-collapse:collapse; font-size:1rem;
+.gm-tbl-wrap table { width:100%; border-collapse:collapse; font-size:1.4rem;
                      table-layout:auto; min-width:900px; }
 .gm-tbl-wrap thead th { position:sticky; top:0; z-index:2;
     background:var(--surf); padding:.65rem .8rem; text-align:left;
@@ -146,7 +146,7 @@
 
 /* Badges */
 .gm-badge-tag { display:inline-flex; align-items:center; gap:.2rem; padding:.18rem .55rem;
-                border-radius:9999px; font-size:.875rem; font-weight:700; white-space:nowrap; }
+                border-radius:9999px; font-size:1.4rem; font-weight:700; white-space:nowrap; }
 .b-fast { background:var(--fast-bg); color:var(--fast); border:1px solid var(--fast-b); }
 .b-slow { background:var(--slow-bg); color:var(--slow); border:1px solid var(--slow-b); }
 .b-dead { background:var(--dead-bg); color:var(--dead); border:1px solid var(--dead-b); }
@@ -174,18 +174,18 @@
 /* Warning stok minus */
 .gm-negstock { background:#fffbeb; border:1px solid #fde68a; border-radius:.6rem;
                padding:.75rem 1rem; margin-bottom:.875rem; }
-.gm-negstock summary { cursor:pointer; font-size:.825rem; font-weight:700; color:#92400e; }
-.gm-negstock table { width:100%; border-collapse:collapse; margin-top:.6rem; font-size:.8rem; }
+.gm-negstock summary { cursor:pointer; font-size:1.4rem; font-weight:700; color:#92400e; }
+.gm-negstock table { width:100%; border-collapse:collapse; margin-top:.6rem; font-size:1.4rem; }
 .gm-negstock th, .gm-negstock td { text-align:left; padding:.35rem .5rem; border-bottom:1px solid #fde68a; }
 
 /* Checklist bulk-discontinue */
 .gm-chk-col { width:34px; text-align:center; }
 .gm-bulkbar { position:sticky; bottom:0; z-index:5; display:none; align-items:center;
               gap:.75rem; background:var(--ink); color:#fff; padding:.6rem 1rem;
-              border-radius:.5rem; margin-top:.6rem; font-size:.825rem; }
+              border-radius:.5rem; margin-top:.6rem; font-size:1.4rem; }
 .gm-bulkbar.show { display:flex; }
 .gm-bulkbar button { padding:.35rem .85rem; border:none; border-radius:.4rem;
-                     font-size:.8rem; font-weight:700; cursor:pointer; }
+                     font-size:1.4rem; font-weight:700; cursor:pointer; }
 .gm-bulkbar .gm-bulk-go   { background:var(--disc); color:#fff; }
 .gm-bulkbar .gm-bulk-clear{ background:transparent; color:#cbd5e1; border:1px solid #475569 !important; }
 
@@ -199,33 +199,33 @@
 .dos-w { display:flex; align-items:center; gap:.25rem; }
 .dos-b { flex:1; height:4px; background:var(--bdr); border-radius:9999px; overflow:hidden; min-width:30px; }
 .dos-f { height:4px; border-radius:9999px; }
-.dos-t { font-size:.875rem; white-space:nowrap; }
+.dos-t { font-size:1.4rem; white-space:nowrap; }
 
 /* Action buttons */
 .btn-disc { padding:.22rem .6rem; background:var(--disc-bg); color:var(--disc);
-            border:1px solid var(--disc-b); border-radius:.35rem; font-size:.875rem;
+            border:1px solid var(--disc-b); border-radius:.35rem; font-size:1.4rem;
             font-weight:700; cursor:pointer; white-space:nowrap; display:inline-block; }
 .btn-disc:hover { background:var(--disc); color:#fff; }
 .btn-restore { padding:.22rem .6rem; background:var(--fast-bg); color:#15803d;
-               border:1px solid var(--fast-b); border-radius:.35rem; font-size:.875rem;
+               border:1px solid var(--fast-b); border-radius:.35rem; font-size:1.4rem;
                font-weight:700; cursor:pointer; white-space:nowrap; }
 .btn-restore:hover { background:#15803d; color:#fff; }
 
 /* Legend */
 .gm-legend { padding:.625rem 1rem; border-top:1px solid var(--bdr);
              display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; }
-.gm-legend-lbl { font-size:.68rem; font-weight:700; color:var(--ink3); }
+.gm-legend-lbl { font-size:1.4rem; font-weight:700; color:var(--ink3); }
 
 /* Distribusi */
 .gm-dist { background:var(--card); border:1px solid var(--bdr); border-radius:.6rem;
            padding:1rem; margin-top:.875rem; }
-.gm-dist h2 { font-size:.8375rem; font-weight:700; margin:0 0 .75rem; }
-.dist-row  { display:flex; align-items:center; gap:.5rem; font-size:.775rem; margin-bottom:.3rem; }
+.gm-dist h2 { font-size:1.4rem; font-weight:700; margin:0 0 .75rem; }
+.dist-row  { display:flex; align-items:center; gap:.5rem; font-size:1.4rem; margin-bottom:.3rem; }
 .dist-lbl  { min-width:105px; color:var(--ink2); }
 .dist-bw   { flex:1; height:7px; background:var(--bdr); border-radius:9999px; overflow:hidden; }
 .dist-bf   { height:7px; border-radius:9999px; }
 .dist-cnt  { min-width:26px; text-align:right; font-weight:600; }
-.dist-pct  { min-width:38px; text-align:right; font-size:.7rem; color:var(--ink3); }
+.dist-pct  { min-width:38px; text-align:right; font-size:1.4rem; color:var(--ink3); }
 
 /* Empty */
 .gm-empty { text-align:center; padding:2.5rem 1rem; color:var(--ink3); }
@@ -235,26 +235,26 @@
 .gm-pagi { display:flex; align-items:center; justify-content:space-between;
            flex-wrap:wrap; gap:.5rem; padding:.75rem 1rem;
            border-top:1px solid var(--bdr); background:var(--surf); }
-.gm-pagi-info { font-size:.875rem; color:var(--ink2); }
+.gm-pagi-info { font-size:1.4rem; color:var(--ink2); }
 .gm-pagi-info strong { color:var(--ink); }
 .gm-pagi-ctrl { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; }
 .gm-pagi-btn  { min-width:34px; height:34px; padding:0 .6rem; border:1px solid var(--bdr);
                 background:#fff; color:var(--ink2); border-radius:.4rem;
-                font-size:.875rem; cursor:pointer; display:inline-flex;
+                font-size:1.4rem; cursor:pointer; display:inline-flex;
                 align-items:center; justify-content:center; transition:.15s; }
 .gm-pagi-btn:hover:not(:disabled)  { background:var(--blue-bg); border-color:var(--blue); color:var(--blue); }
 .gm-pagi-btn.active { background:var(--blue); border-color:var(--blue); color:#fff; font-weight:700; }
 .gm-pagi-btn:disabled { opacity:.4; cursor:not-allowed; }
-.gm-pagi-sep  { color:var(--ink3); font-size:.875rem; padding:0 .15rem; }
-.gm-perpage   { display:flex; align-items:center; gap:.4rem; font-size:.875rem; color:var(--ink2); }
+.gm-pagi-sep  { color:var(--ink3); font-size:1.4rem; padding:0 .15rem; }
+.gm-perpage   { display:flex; align-items:center; gap:.4rem; font-size:1.4rem; color:var(--ink2); }
 .gm-perpage select { padding:.3rem .5rem; border:1px solid var(--bdr); border-radius:.4rem;
-                     font-size:.875rem; background:#fff; color:var(--ink); cursor:pointer; }
+                     font-size:1.4rem; background:#fff; color:var(--ink); cursor:pointer; }
 
 /* Tooltip */
 [data-gm-tip] { position:relative; cursor:help; }
 [data-gm-tip]:hover::after { content:attr(data-gm-tip); position:absolute; bottom:130%;
     left:50%; transform:translateX(-50%); background:var(--ink); color:#fff;
-    font-size:.66rem; padding:.22rem .5rem; border-radius:.3rem;
+    font-size:1.4rem; padding:.22rem .5rem; border-radius:.3rem;
     white-space:nowrap; z-index:9999; pointer-events:none; }
 
 /* ── MODAL ─────────────────────────────────────────────────────── */
@@ -266,30 +266,30 @@
             box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden; }
 .gm-modal-hd { padding:.875rem 1.1rem; border-bottom:1px solid var(--bdr);
                display:flex; align-items:center; justify-content:space-between; }
-.gm-modal-hd h3 { font-size:.9375rem; font-weight:700; color:var(--ink); margin:0; }
-.gm-modal-close { background:none; border:none; font-size:1.125rem; cursor:pointer;
+.gm-modal-hd h3 { font-size:1.4rem; font-weight:700; color:var(--ink); margin:0; }
+.gm-modal-close { background:none; border:none; font-size:1.4rem; cursor:pointer;
                   color:var(--ink3); padding:.1rem .3rem; border-radius:.3rem; }
 .gm-modal-close:hover { color:var(--ink); background:var(--surf); }
 .gm-modal-bd { padding:1.1rem; }
-.gm-modal-name { font-weight:700; font-size:.9rem; color:var(--ink); margin-bottom:.15rem; }
-.gm-modal-meta { font-size:.775rem; color:var(--ink2); margin-bottom:.875rem; }
+.gm-modal-name { font-weight:700; font-size:1.4rem; color:var(--ink); margin-bottom:.15rem; }
+.gm-modal-meta { font-size:1.4rem; color:var(--ink2); margin-bottom:.875rem; }
 .gm-modal-warn { background:var(--disc-bg); border:1px solid var(--disc-b);
-                 border-radius:.45rem; padding:.6rem .875rem; font-size:.775rem;
+                 border-radius:.45rem; padding:.6rem .875rem; font-size:1.4rem;
                  color:var(--disc); margin-bottom:.875rem; line-height:1.55; }
-.gm-modal-lbl  { font-size:.775rem; font-weight:700; color:var(--ink2);
+.gm-modal-lbl  { font-size:1.4rem; font-weight:700; color:var(--ink2);
                  margin-bottom:.3rem; display:block; }
 .gm-modal-ta   { width:100%; padding:.55rem .75rem; border:1px solid var(--bdr);
-                 border-radius:.45rem; font-size:.8125rem; resize:vertical;
+                 border-radius:.45rem; font-size:1.4rem; resize:vertical;
                  min-height:85px; font-family:inherit; color:var(--ink); }
 .gm-modal-ta:focus { outline:none; border-color:var(--disc); }
-.gm-modal-err  { font-size:.72rem; color:var(--dead); margin-top:.3rem; display:none; }
+.gm-modal-err  { font-size:1.4rem; color:var(--dead); margin-top:.3rem; display:none; }
 .gm-modal-ft   { padding:.75rem 1.1rem; border-top:1px solid var(--bdr);
                  display:flex; justify-content:flex-end; gap:.5rem; }
 .gm-btn-cancel { padding:.4rem .9rem; background:var(--surf); color:var(--ink2);
                  border:1px solid var(--bdr); border-radius:.4rem;
-                 font-size:.8125rem; cursor:pointer; }
+                 font-size:1.4rem; cursor:pointer; }
 .gm-btn-ok     { padding:.4rem 1rem; background:var(--disc); color:#fff; border:none;
-                 border-radius:.4rem; font-size:.8125rem; font-weight:700; cursor:pointer; }
+                 border-radius:.4rem; font-size:1.4rem; font-weight:700; cursor:pointer; }
 .gm-btn-ok:hover { background:#5b21b6; }
 
 @media(max-width:768px) {
@@ -332,7 +332,7 @@
         @endforeach
         </tbody>
     </table>
-    <p style="font-size:.75rem;color:#92400e;margin:.6rem 0 0">
+    <p style="font-size:1.4rem;color:#92400e;margin:.6rem 0 0">
         Perbaiki lewat menu <strong>Stock Opname</strong> (hitung fisik ulang), jangan diedit langsung di database —
         supaya riwayat penyesuaiannya tetap tercatat.
     </p>
@@ -450,12 +450,12 @@
     </div>
     <div class="gm-kpi k-blue">
         <div class="kl">Total Omzet</div>
-        <div class="kv" style="font-size:1rem">Rp {{ number_format($s['totalOmzet']/1000000,1) }}jt</div>
+        <div class="kv" style="font-size:1.4rem">Rp {{ number_format($s['totalOmzet']/1000000,1) }}jt</div>
         <div class="ks">Laba Rp {{ number_format($s['totalLaba']/1000000,1) }}jt</div>
     </div>
     <div class="gm-kpi">
         <div class="kl">Nilai Stok</div>
-        <div class="kv" style="font-size:1rem">Rp {{ number_format($s['totalNilaiStok']/1000000,1) }}jt</div>
+        <div class="kv" style="font-size:1.4rem">Rp {{ number_format($s['totalNilaiStok']/1000000,1) }}jt</div>
         <div class="ks">HPP tersimpan</div>
     </div>
 </div>
@@ -528,7 +528,7 @@
             <td style="color:var(--ink3)">{{ $i + 1 }}</td>
             <td title="{{ $g->nama }}">
                 <div style="font-weight:600">{{ $g->nama }}</div>
-                <div style="font-size:.8rem;color:var(--ink3)">
+                <div style="font-size:1.4rem;color:var(--ink3)">
                     {{ $g->kode ?? '' }}@if($g->merk && $g->merk !== '-') · {{ $g->merk }}@endif
                 </div>
             </td>
@@ -658,7 +658,7 @@
                     🗑️ Disc.
                 </button>
                 @elseif($isAtRisk)
-                <span class="gm-badge-tag b-risk" style="font-size:.7rem" data-gm-tip="Riwayat 12 bulan: {{ $g->total_transaksi_lt }} transaksi. Jangan discontinue sebelum dicek manual.">Jgn Hapus</span>
+                <span class="gm-badge-tag b-risk" style="font-size:1.4rem" data-gm-tip="Riwayat 12 bulan: {{ $g->total_transaksi_lt }} transaksi. Jangan discontinue sebelum dicek manual.">Jgn Hapus</span>
                 @else
                 <span style="color:var(--ink3)">—</span>
                 @endif
@@ -670,7 +670,7 @@
             {{-- 3. Barang --}}
             <td title="{{ $g->nama }}">
                 <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">{{ $g->nama }}</div>
-                <div style="font-size:.8rem;color:var(--ink3);overflow:hidden;text-overflow:ellipsis">
+                <div style="font-size:1.4rem;color:var(--ink3);overflow:hidden;text-overflow:ellipsis">
                     @if($g->kode){{ $g->kode }} · @endif{{ $g->satuan }}@if($g->merk && $g->merk !== '-') · {{ $g->merk }}@endif
                 </div>
             </td>
@@ -690,9 +690,9 @@
             <td class="tr">
                 <div style="font-weight:700">{{ number_format($g->total_transaksi) }}</div>
                 @if($isAtRisk)
-                <div style="font-size:.8rem;color:#7e22ce" data-gm-tip="Transaksi normal 12 bulan terakhir, di luar filter tanggal di atas">{{ number_format($g->total_transaksi_lt) }}x/12bln</div>
+                <div style="font-size:1.4rem;color:#7e22ce" data-gm-tip="Transaksi normal 12 bulan terakhir, di luar filter tanggal di atas">{{ number_format($g->total_transaksi_lt) }}x/12bln</div>
                 @else
-                <div style="font-size:.8rem;color:var(--ink3)">{{ number_format($g->avg_qty_per_day, 1) }}/hr</div>
+                <div style="font-size:1.4rem;color:var(--ink3)">{{ number_format($g->avg_qty_per_day, 1) }}/hr</div>
                 @endif
             </td>
 
@@ -717,7 +717,7 @@
             <td class="tr">
                 <div class="{{ $sc }}">{{ $g->stok_sekarang <= 0 ? 'Habis' : number_format($g->stok_sekarang, 0, ',', '.') }}</div>
                 @if($g->stok_sekarang > 0)
-                <div style="font-size:.8rem;color:var(--ink3)">Rp{{ number_format($g->nilai_stok / 1000, 0) }}rb</div>
+                <div style="font-size:1.4rem;color:var(--ink3)">Rp{{ number_format($g->nilai_stok / 1000, 0) }}rb</div>
                 @endif
             </td>
 
@@ -736,10 +736,10 @@
                     </div>
                 @endif
                 <div style="margin-top:.1rem">
-                    @if($g->days_since_trx >= 999)    <span class="gm-badge-tag b-gry"  style="font-size:.775rem">Tdk pernah</span>
-                    @elseif($g->days_since_trx >= 90) <span class="gm-badge-tag b-dead" style="font-size:.775rem">{{ $g->days_since_trx }}h lalu</span>
-                    @elseif($g->days_since_trx >= 30) <span class="gm-badge-tag b-slow" style="font-size:.775rem">{{ $g->days_since_trx }}h lalu</span>
-                    @else                             <span class="gm-badge-tag b-fast" style="font-size:.775rem">{{ $g->days_since_trx }}h lalu</span>
+                    @if($g->days_since_trx >= 999)    <span class="gm-badge-tag b-gry"  style="font-size:1.4rem">Tdk pernah</span>
+                    @elseif($g->days_since_trx >= 90) <span class="gm-badge-tag b-dead" style="font-size:1.4rem">{{ $g->days_since_trx }}h lalu</span>
+                    @elseif($g->days_since_trx >= 30) <span class="gm-badge-tag b-slow" style="font-size:1.4rem">{{ $g->days_since_trx }}h lalu</span>
+                    @else                             <span class="gm-badge-tag b-fast" style="font-size:1.4rem">{{ $g->days_since_trx }}h lalu</span>
                     @endif
                 </div>
             </td>

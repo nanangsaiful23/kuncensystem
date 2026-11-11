@@ -156,18 +156,6 @@ class MainController extends Controller
         return [$debit, $credit];
     }
 
-    public function profit()
-    {
-        $default['page_name'] = 'Laba Rugi';
-
-        [$penjualan_account, $penjualan_debit, $penjualan_credit] = $this->getPenjualanHpp('4101');
-        [$hpp_account, $hpp_debit, $hpp_credit] = $this->getPenjualanHpp('5101');
-        [$payment_ins, $payment_outs] = $this->getPayment('52%');
-        [$other_debits, $other_credits] = $this->getPayment('610%');
-
-        return view('admin.profit', compact('default', 'penjualan_account', 'penjualan_debit', 'penjualan_credit', 'hpp_account', 'hpp_debit', 'hpp_credit', 'payment_ins', 'payment_outs', 'other_debits', 'other_credits'));
-    }
-
     public function scale($start_date, $end_date)
     {
         $default['page_name'] = 'Neraca';

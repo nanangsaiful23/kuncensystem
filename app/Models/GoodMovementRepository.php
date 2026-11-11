@@ -72,108 +72,32 @@ class GoodMovementRepository
             return $this->getDiscontinuedData($kategori, $sortBy, $sortDir);
         }
 
-        // ── TAHAP 1: Agregasi transaksi per good_id dalam periode ─────────────
-        // Hanya type='normal' — retur, void, dan tipe lain DIKECUALIKAN
-        $salesAgg = TransactionDetail::join(
-                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
-            )
-            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->where('transactions.type', 'normal')          // ← hanya transaksi normal
-            ->whereNull('transactions.deleted_at')
-            ->whereNull('transaction_details.deleted_at')
-            ->whereBetween('transactions.created_at', [$start, $end])
-            ->select(
-                'good_units.good_id',
-                DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0)   AS total_qty_terjual'),
-                DB::raw('COUNT(DISTINCT transactions.id)                        AS total_transaksi'),
-                DB::raw('COALESCE(SUM(transaction_details.sum_price), 0)        AS total_omzet'),
-                DB::raw('COALESCE(SUM(
-                            (transaction_details.selling_price - transaction_details.buy_price)
-                            * transaction_details.quantity
-                         ), 0)                                                  AS total_laba'),
-                DB::raw('MAX(transactions.created_at)                           AS last_transaction_at')
-            )
-            ->groupBy('good_units.good_id')
-            ->get()
-            ->keyBy('good_id');
+        // ── TAHAP 1: penjualan per good_id dalam periode ──────────────────────
+        // Penjualan = transaksi 'normal' dan 'retur' (penjualan yang juga ada
+        // barang returnya) yang tidak dibatalkan; baris retur tidak dihitung.
+        // Qty dijumlah dalam satuan terkecil (real_quantity) lalu dibagi isi
+        // satuan dasar barang, supaya sama satuannya dengan goods.last_stock.
+        // Sebelumnya qty (pcs) dibandingkan langsung dengan stok (satuan dasar),
+        // salah untuk barang yang satuan dasarnya pak/dus.
+        $salesAgg = $this->salesPerGood($start, $end)
+            ->selectRaw('MAX(transactions.created_at) AS last_transaction_at')
+            ->get()->keyBy('good_id');
 
-        // ── TAHAP 1a-LT: Riwayat penjualan JANGKA PANJANG (independen dari
-        //    filter tanggal admin) — dipakai supaya barang yang historisnya
-        //    laku tidak otomatis dicap "Dead Stock" hanya karena kebetulan
-        //    tidak ada transaksi di jendela filter yang sedang dilihat.
-        $longTermStart = Carbon::now()->subMonths(self::LONG_TERM_MONTHS);
-        $longTermAgg = TransactionDetail::join(
-                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
-            )
-            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->where('transactions.type', 'normal')
-            ->whereNull('transactions.deleted_at')
-            ->whereNull('transaction_details.deleted_at')
-            ->where('transactions.created_at', '>=', $longTermStart)
-            ->select(
-                'good_units.good_id',
-                DB::raw('COUNT(DISTINCT transactions.id)                      AS total_transaksi_lt'),
-                DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0)  AS total_qty_lt'),
-                DB::raw('COALESCE(SUM(transaction_details.sum_price), 0)      AS total_omzet_lt')
-            )
-            ->groupBy('good_units.good_id')
-            ->get()
-            ->keyBy('good_id');
+        // ── TAHAP 1a-LT: penjualan JANGKA PANJANG (LONG_TERM_MONTHS terakhir,
+        //    independen dari filter tanggal) supaya barang yang biasanya laku
+        //    tidak dicap "Dead Stock" karena kebetulan sepi di periode filter.
+        $longTermAgg = $this->salesPerGood(Carbon::now()->subMonths(self::LONG_TERM_MONTHS), Carbon::now())
+            ->selectRaw('MAX(transactions.created_at) AS last_normal_at')
+            ->get()->keyBy('good_id');
 
-        // ── TAHAP 1b: Last normal transaction per good (ALL TIME) ────────────
-        // Digunakan sebagai fallback daysSinceTrx untuk barang yang tidak ada
-        // di periode filter. Tidak menggunakan goods.last_transaction karena
-        // field itu diisi dari SEMUA tipe (termasuk retur) sehingga tidak akurat.
-        $lastNormalTrx = TransactionDetail::join(
-                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
-            )
-            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->where('transactions.type', 'normal')          // ← hanya transaksi normal
-            ->whereNull('transactions.deleted_at')
-            ->whereNull('transaction_details.deleted_at')
-            ->select(
-                'good_units.good_id',
-                DB::raw('MAX(transactions.created_at) AS last_normal_at')
-            )
-            ->groupBy('good_units.good_id')
-            ->get()
-            ->keyBy('good_id');
-
-        // ── TAHAP 2: Ambil goods — KECUALIKAN yang sudah discontinued ─────────
-        $baseUnitSub = DB::table('good_units AS gu_base')
-            ->join('units AS u_base', 'u_base.id', '=', 'gu_base.unit_id')
-            ->whereNull('gu_base.deleted_at')
-            ->select(
-                'gu_base.good_id',
-                DB::raw('MIN(CAST(u_base.quantity AS UNSIGNED)) AS min_qty')
-            )
-            ->groupBy('gu_base.good_id');
-
+        // ── TAHAP 2: barang aktif (belum discontinued) dengan satuan dasarnya ─
         $goodsQuery = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
             ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
-            ->leftJoinSub($baseUnitSub, 'base_u', 'base_u.good_id', '=', 'goods.id')
-            ->leftJoin('good_units AS gu', function ($j) {
-                $j->on('gu.good_id', '=', 'goods.id')->whereNull('gu.deleted_at');
-            })
+            ->leftJoin('good_units AS gu', 'gu.id', '=', 'goods.base_unit_id')
             ->leftJoin('units AS u', 'u.id', '=', 'gu.unit_id')
             ->whereNull('goods.deleted_at')
-            // ✅ KUNCI: Hanya barang yang BELUM discontinued
             ->where('goods.is_discontinued', 0)
-            // 🐛 FIX: sebelumnya ini whereRaw('... OR base_u.min_qty IS NULL') TANPA
-            // tanda kurung. Karena AND lebih "erat" dari OR di SQL, klausa itu
-            // otomatis terbaca sebagai:
-            //   (deleted_at IS NULL AND is_discontinued=0 AND kategori=? AND ...)
-            //   OR (base_u.min_qty IS NULL)
-            // Artinya SETIAP baris yang base_u.min_qty-nya NULL (unit dasarnya
-            // tidak ketemu/rusak) akan lolos APAPUN filter kategori-nya — makanya
-            // filter kategori kelihatan "tidak jalan": barang kategori lain tetap
-            // muncul karena mereka menyelinap lewat celah OR ini. Dibungkus
-            // closure supaya OR-nya terkurung sendiri dan tidak membocorkan filter lain.
-            ->where(function ($q) {
-                $q->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty')
-                  ->orWhereNull('base_u.min_qty');
-            })
             ->select(
                 'goods.id                AS good_id',
                 'goods.code              AS kode',
@@ -187,6 +111,7 @@ class GoodMovementRepository
                 'categories.name         AS kategori',
                 'brands.name             AS merk',
                 'u.name                  AS satuan',
+                'u.quantity              AS base_qty',
                 'gu.buy_price            AS harga_beli',
                 'gu.selling_price        AS harga_jual'
             );
@@ -195,12 +120,7 @@ class GoodMovementRepository
             $goodsQuery->where('categories.id', $kategori);
         }
 
-        $goodsRaw = $goodsQuery
-            ->orderBy('goods.id')
-            ->orderByRaw('CAST(u.quantity AS UNSIGNED) ASC')
-            ->get()
-            ->unique('good_id')
-            ->keyBy('good_id');
+        $goodsRaw = $goodsQuery->orderBy('goods.id')->get()->keyBy('good_id');
 
         // ── TAHAP 3: Gabungkan & klasifikasi ──────────────────────────────────
         $result = [];
@@ -208,17 +128,17 @@ class GoodMovementRepository
         foreach ($goodsRaw as $good) {
             $gid        = $good->good_id;
             $agg        = $salesAgg->get($gid);
+            $baseQty    = (float) $good->base_qty > 0 ? (float) $good->base_qty : 1;
             $totalTrx   = $agg ? (int)   $agg->total_transaksi   : 0;
-            $totalQty   = $agg ? (float) $agg->total_qty_terjual  : 0;
+            $totalQty   = $agg ? round((float) $agg->total_qty_terjual / $baseQty, 2) : 0;
             $totalOmzet = $agg ? (float) $agg->total_omzet        : 0;
             $totalLaba  = $agg ? (float) $agg->total_laba         : 0;
 
-            // Fallback: last normal transaction all-time (bukan goods.last_transaction
-            // yang bisa terisi dari tipe retur/void)
-            $lastNormal = $lastNormalTrx->get($gid);
+            // Fallback: last sale in the last 12 months, then goods.last_transaction
+            $lastNormal = $longTermAgg->get($gid);
             $lastTrxAt  = $agg
                 ? $agg->last_transaction_at
-                : ($lastNormal ? $lastNormal->last_normal_at : null);
+                : ($lastNormal ? $lastNormal->last_normal_at : $good->last_transaction_goods);
             $stok       = (float) $good->stok_sekarang;
             $hargaBeli  = (float) ($good->harga_beli  ?? 0);
             $hargaJual  = (float) ($good->harga_jual  ?? 0);
@@ -238,8 +158,8 @@ class GoodMovementRepository
                 : 0;
 
             $lt             = $longTermAgg->get($gid);
-            $totalTrxLT     = $lt ? (int) $lt->total_transaksi_lt : 0;
-            $totalQtyLT     = $lt ? (float) $lt->total_qty_lt     : 0;
+            $totalTrxLT     = $lt ? (int) $lt->total_transaksi : 0;
+            $totalQtyLT     = $lt ? round((float) $lt->total_qty_terjual / $baseQty, 2) : 0;
 
             $classification = $this->classify($totalTrx, $daysSinceTrx, $stok, $totalTrxLT);
             $recommendation = $this->recommend($classification, $stok, $daysOfStock, $totalTrx, $margin);
@@ -302,6 +222,32 @@ class GoodMovementRepository
             'summary' => $summary,
             'days'    => $days,
         ];
+    }
+
+    /**
+     * Sales per good in a period (types 'normal' and 'retur', not cancelled,
+     * returned lines left out). Quantity in the smallest unit; profit after
+     * the line discount. The id range of the period's transactions keeps
+     * MySQL on the transaction_id index (transactions.created_at has none).
+     */
+    public function salesPerGood(Carbon $start, Carbon $end)
+    {
+        $range = DB::table('transactions')->whereBetween('created_at', [$start, $end])->selectRaw('MIN(id) a, MAX(id) b')->first();
+
+        return TransactionDetail::join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
+            ->whereIn('transactions.type', ['normal', 'retur'])
+            ->whereNull('transactions.deleted_at')
+            ->whereNull('transaction_details.deleted_at')
+            ->whereRaw("COALESCE(transaction_details.type, '') <> 'retur'")
+            ->whereBetween('transaction_details.transaction_id', [(int) ($range->a ?? 0), (int) ($range->b ?? 0)])
+            ->whereBetween('transactions.created_at', [$start, $end])
+            ->groupBy('good_units.good_id')
+            ->select('good_units.good_id')
+            ->selectRaw('COALESCE(SUM(transaction_details.real_quantity), 0) AS total_qty_terjual')
+            ->selectRaw('COUNT(DISTINCT transactions.id) AS total_transaksi')
+            ->selectRaw('COALESCE(SUM(transaction_details.sum_price), 0) AS total_omzet')
+            ->selectRaw('COALESCE(SUM(transaction_details.sum_price - transaction_details.buy_price * transaction_details.quantity), 0) AS total_laba');
     }
 
     /**

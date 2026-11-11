@@ -260,7 +260,7 @@
       @endif
       @if(isSuperadmin())
         <li class="header">LAPORAN </li>
-         <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger') ? 'active' : ''  }}">
+         <li class="treeview {{ (Request::segment(2) == 'scale' || Request::segment(2) == 'scaleLedger' || Request::segment(2) == 'journal' || Request::is('admin/reports/financial*')) ? 'active' : ''  }}">
           <a href="#">
               <i class="fa fa-balance-scale"></i><span> laporan financial</span>
             <span class="pull-right-container">
@@ -270,7 +270,7 @@
           <ul class="treeview-menu">
             <li><a href="{{ url('/' . $role . '/journal/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/id/asc/15') }}"><i class="fa fa-calculator"></i> Jurnal</a></li>
         
-            <li><a href="{{ route('admin.reports.financial') }}" ><i class="fa fa-calculator"></i> report keuangan</a></li>
+            <li class="{{ Request::is('admin/reports/financial*') ? 'active' : '' }}"><a href="{{ route('admin.reports.financial') }}"><i class="fa fa-calculator"></i> Laba Rugi, Neraca Bulanan &amp; Kas</a></li>
         
               <li class="{{ Request::segment(2) == 'scale' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scale/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Detail Neraca</a></li>
               <li class="{{ Request::segment(2) == 'scaleLedger' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/scaleLedger/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Grafik Ledger Neraca</a></li>
@@ -300,11 +300,9 @@
               <li class="{{ Request::segment(2) == 'salesGraph' && Request::segment(3) == 'category' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/salesGraph/category/2020-01-01/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Per Kategori</a></li>
           </ul>
         </li>
-        <li class="{{ Request::segment(2) == 'store-health' ? 'active' : ''  }}"><a href="{{ route('admin.store-health') }}" ><i class="fa fa-heartbeat"></i> Kondisi Toko</a></li>
-        <li><a href="{{ route('admin.reports.sales') }}" ><i class="fa fa-calculator"></i> report new</a></li>
-        <li><a href="{{ route('admin.reports.movement') }}" ><i class="fa fa-calculator"></i> report movement</a></li>
-        
-        <li class="{{ Request::segment(2) == 'profit' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/profit') }}"><i class="fa fa-arrow-circle-up"></i> Laba Rugi</a></li>
+        <li class="{{ Request::is('admin/reports/owner*') ? 'active' : '' }}"><a href="{{ route('admin.reports.owner') }}"><i class="fa fa-dashboard"></i> Ringkasan Pemilik</a></li>
+        <li class="{{ Request::is('admin/reports/sales*') ? 'active' : '' }}"><a href="{{ route('admin.reports.sales') }}"><i class="fa fa-shopping-cart"></i> Laporan Penjualan</a></li>
+        <li class="{{ Request::is('admin/reports/movement*') ? 'active' : '' }}"><a href="{{ route('admin.reports.movement') }}"><i class="fa fa-refresh"></i> Perputaran Barang</a></li>
        
       @endif
     </ul>

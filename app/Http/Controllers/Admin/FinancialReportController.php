@@ -27,31 +27,23 @@ class FinancialReportController extends Controller
 
     public function index(Request $request)
     {
+        abort_unless(isSuperadmin(), 403); // the menu is only shown to superadmin
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->get('end_date',   Carbon::now()->toDateString());
         $tab       = $request->get('tab', 'labarugi');
+        if (! in_array($tab, ['labarugi', 'neraca_bulanan', 'kas'], true)) {
+            $tab = 'labarugi'; // old links (neraca, buku_besar, jurnal): those tabs were removed
+        }
 
         $accountsGrouped = $this->repo->getAccountsGrouped();
         $allAccounts     = $this->repo->getAllAccounts();
 
-        $generalJournal  = collect();
-        $ledger          = collect();
         $profitLoss      = [];
-        $balanceSheet    = [];
         $cashFlow        = collect();
         $monthlyBalance  = [];
 
         // Hanya load data tab yang aktif (hemat query)
         switch ($tab) {
-            case 'jurnal':
-                $generalJournal = $this->repo->getGeneralJournal($startDate, $endDate);
-                break;
-            case 'buku_besar':
-                $ledger = $this->repo->getLedgerByAccount($startDate, $endDate);
-                break;
-            case 'neraca':
-                $balanceSheet = $this->repo->getBalanceSheet($endDate);
-                break;
             case 'neraca_bulanan':
                 $monthlyBalance = $this->repo->getMonthlyBalanceSheet((int) $request->get('year', date('Y')));
                 break;
@@ -67,8 +59,7 @@ class FinancialReportController extends Controller
         return view('admin.financial-report', compact(
             'startDate', 'endDate', 'tab',
             'allAccounts', 'accountsGrouped',
-            'generalJournal', 'ledger',
-            'profitLoss', 'balanceSheet', 'cashFlow', 'monthlyBalance'
+            'profitLoss', 'cashFlow', 'monthlyBalance'
         ));
     }
 

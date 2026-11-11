@@ -13,26 +13,26 @@
     .report-wrapper    { background: var(--surface) !important; min-height: 100vh; }
     .report-header     { margin-bottom: 1.5rem; }
     .report-header h1  { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin: 0; }
-    .report-header p   { color: var(--muted); margin: .25rem 0 0; font-size: .875rem; }
+    .report-header p   { color: var(--muted); margin: .25rem 0 0; font-size: 1.4rem; }
 
     /* ── Filter Bar ─────────────────────────── */
     .filter-bar        { background: #fff; border: 1px solid var(--border); border-radius: .75rem;
                          padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex;
                          align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
     .filter-group      { display: flex; flex-direction: column; gap: .3rem; }
-    .filter-group label{ font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .filter-group label{ font-size: 1.4rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
     .filter-group input,
     .filter-group select{ padding: .45rem .75rem; border: 1px solid var(--border); border-radius: .5rem;
-                          font-size: .875rem; color: #334155; background: #fff; }
+                          font-size: 1.4rem; color: #334155; background: #fff; }
     .btn-filter        { padding: .5rem 1.25rem; background: var(--primary); color: #fff;
-                         border: none; border-radius: .5rem; font-size: .875rem; font-weight: 600;
+                         border: none; border-radius: .5rem; font-size: 1.4rem; font-weight: 600;
                          cursor: pointer; align-self: flex-end; }
     .btn-filter:hover  { background: #1d4ed8; }
 
     /* ── Section Tabs ───────────────────────── */
     .tab-nav           { display: flex; gap: .25rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .tab-btn           { padding: .45rem 1rem; border: 1px solid var(--border); border-radius: .5rem;
-                         font-size: .8125rem; font-weight: 500; background: #fff; color: var(--muted);
+                         font-size: 1.4rem; font-weight: 500; background: #fff; color: var(--muted);
                          cursor: pointer; transition: all .15s; }
     .tab-btn.active,
     .tab-btn:hover     { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -44,10 +44,10 @@
                          gap: 1rem; margin-bottom: 1.5rem; }
     .kpi-card          { background: #fff; border: 1px solid var(--border); border-radius: .75rem;
                          padding: 1.1rem 1.25rem; }
-    .kpi-card .label   { font-size: .75rem; font-weight: 600; color: var(--muted);
+    .kpi-card .label   { font-size: 1.4rem; font-weight: 600; color: var(--muted);
                          text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
-    .kpi-card .value   { font-size: 1.375rem; font-weight: 700; color: #1e293b; }
-    .kpi-card .sub     { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+    .kpi-card .value   { font-size: 1.4rem; font-weight: 700; color: #1e293b; }
+    .kpi-card .sub     { font-size: 1.4rem; color: var(--muted); margin-top: .2rem; }
     .kpi-card.green .value { color: var(--success); }
     .kpi-card.blue  .value { color: var(--primary); }
     .kpi-card.orange .value{ color: var(--warning); }
@@ -79,7 +79,7 @@
 
     /* ── Badges ─────────────────────────────── */
     .badge             { display: inline-flex; align-items: center; padding: .2rem .6rem;
-                         border-radius: 9999px; font-size: .7rem; font-weight: 600; }
+                         border-radius: 9999px; font-size: 1.4rem; font-weight: 600; }
     .badge-green       { background: #dcfce7; color: #15803d; }
     .badge-blue        { background: #dbeafe; color: #1d4ed8; }
     .badge-orange      { background: #fef3c7; color: #b45309; }
@@ -150,7 +150,6 @@
         <button class="tab-btn" onclick="showTab('produk', this)">🛒 Produk</button>
         <button class="tab-btn" onclick="showTab('pelanggan', this)">👥 Pelanggan</button>
         <button class="tab-btn" onclick="showTab('pembelian', this)">🚚 Pembelian &amp; Stok</button>
-        <button class="tab-btn" onclick="showTab('keuangan', this)">💰 Keuangan</button>
     </div>
 
     {{-- ================================================================
@@ -161,17 +160,17 @@
         {{-- KPI Cards --}}
         <div class="kpi-grid">
             <div class="kpi-card blue">
-                <div class="label">Total Omzet</div>
-                <div class="value">Rp {{ number_format($summary['totalOmzet'], 0, ',', '.') }}</div>
-                <div class="sub">{{ number_format($summary['totalTransaksi']) }} transaksi</div>
+                <div class="label">Penjualan Bersih</div>
+                <div class="value">Rp {{ number_format($summary['omzetBersih'], 0, ',', '.') }}</div>
+                <div class="sub">bruto Rp {{ number_format($summary['totalOmzet'], 0, ',', '.') }} &middot; {{ number_format($summary['totalTransaksi']) }} transaksi</div>
             </div>
             <div class="kpi-card green">
                 <div class="label">Laba Kotor</div>
                 <div class="value">Rp {{ number_format($summary['totalLaba'], 0, ',', '.') }}</div>
                 <div class="sub">
                     Margin
-                    @if($summary['totalOmzet'] > 0)
-                        {{ number_format($summary['totalLaba'] / $summary['totalOmzet'] * 100, 1) }}%
+                    @if($summary['omzetBersih'] > 0)
+                        {{ number_format($summary['totalLaba'] / $summary['omzetBersih'] * 100, 1) }}%
                     @else 0% @endif
                 </div>
             </div>
@@ -180,9 +179,9 @@
                 <div class="value">Rp {{ number_format($summary['totalHpp'], 0, ',', '.') }}</div>
             </div>
             <div class="kpi-card red">
-                <div class="label">Total Diskon</div>
-                <div class="value">Rp {{ number_format($summary['totalDiskon'], 0, ',', '.') }}</div>
-                <div class="sub">Termasuk voucher</div>
+                <div class="label">Diskon &amp; Retur</div>
+                <div class="value">Rp {{ number_format($summary['totalDiskon'] + $summary['totalRetur'], 0, ',', '.') }}</div>
+                <div class="sub">diskon+voucher Rp {{ number_format($summary['totalDiskon'], 0, ',', '.') }} &middot; retur Rp {{ number_format($summary['totalRetur'], 0, ',', '.') }}</div>
             </div>
             <div class="kpi-card">
                 <div class="label">Jml Transaksi</div>
@@ -198,7 +197,7 @@
         <div class="card">
             <div class="card-header">
                 <span class="card-title">📈 Trend Penjualan Harian</span>
-                <span style="font-size:.8125rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
+                <span style="font-size:1.4rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
             </div>
             <div class="card-body">
                 <div class=" tbl-wrap tbl-scroll-v">
@@ -242,7 +241,7 @@
                             <tr>
                                 <th>Bulan</th>
                                 <th class="text-right">Omzet</th>
-                                <th class="text-right">Total Diskon</th>
+                                <th class="text-right">Diskon &amp; Retur</th>
                                 <th class="text-right">Omzet Bersih</th>
                                 <th class="text-right">Jml Transaksi</th>
                             </tr>
@@ -307,7 +306,7 @@
                                         <div class="progress-wrap" style="flex:1;">
                                             <div class="progress-bar" style="width:{{ $pct }}%;"></div>
                                         </div>
-                                        <span style="font-size:.75rem;color:var(--muted);min-width:36px;">{{ number_format($pct, 1) }}%</span>
+                                        <span style="font-size:1.4rem;color:var(--muted);min-width:36px;">{{ number_format($pct, 1) }}%</span>
                                     </div>
                                 </td>
                             </tr>
@@ -329,7 +328,7 @@
     <div id="tab-produk" class="tab-pane">
 
         {{-- Penjelasan logika unit --}}
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.6rem;padding:.875rem 1.1rem;margin-bottom:1.25rem;font-size:.8125rem;color:#1e40af;line-height:1.6;">
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.6rem;padding:.875rem 1.1rem;margin-bottom:1.25rem;font-size:1.4rem;color:#1e40af;line-height:1.6;">
             <strong>ℹ️ Catatan Perhitungan:</strong>
             Tabel <em>"Terlaris per Satuan"</em> mengelompokkan data per <strong>produk + satuan</strong>
             (mis. Indomie/Pcs dan Indomie/Dus adalah baris terpisah) agar qty, omzet, dan laba
@@ -342,7 +341,7 @@
         <div class="card">
             <div class="card-header">
                 <span class="card-title">🏆 Top Terlaris — per Produk &amp; Satuan</span>
-                <span style="font-size:.8rem;color:var(--muted);">Setiap baris = 1 kombinasi produk + satuan</span>
+                <span style="font-size:1.4rem;color:var(--muted);">Setiap baris = 1 kombinasi produk + satuan</span>
             </div>
             <div class="card-body">
                 <div class=" tbl-wrap tbl-scroll-v">
@@ -414,7 +413,7 @@
         <div class="card">
             <div class="card-header">
                 <span class="card-title">📋 Ringkasan per Produk</span>
-                <span style="font-size:.8rem;color:var(--muted);">Qty dikonversi ke satuan terkecil — semua unit digabung</span>
+                <span style="font-size:1.4rem;color:var(--muted);">Qty dikonversi ke satuan terkecil — semua unit digabung</span>
             </div>
             <div class="card-body">
                 <div class=" tbl-wrap tbl-scroll-v">
@@ -438,7 +437,7 @@
                             @forelse($salesPerGood as $i => $sg)
                             <tr>
                                 <td><strong>{{ $i + 1 }}</strong></td>
-                                <td><code style="font-size:.75rem;">{{ $sg->kode_produk }}</code></td>
+                                <td><code style="font-size:1.4rem;">{{ $sg->kode_produk }}</code></td>
                                 <td>{{ $sg->nama_produk }}</td>
                                 <td>{{ $sg->kategori }}</td>
                                 <td>{{ $sg->merk }}</td>
@@ -597,7 +596,7 @@
                                 <th>Telepon</th>
                                 <th class="text-right">Jml Transaksi</th>
                                 <th class="text-right">Total Omzet</th>
-                                <th class="text-right">Total Diskon</th>
+                                <th class="text-right">Diskon &amp; Retur</th>
                                 <th>Transaksi Terakhir</th>
                             </tr>
                         </thead>
@@ -768,7 +767,7 @@
         <div class="card">
             <div class="card-header">
                 <span class="card-title">📦 Valuasi Stok Saat Ini</span>
-                <span style="font-size:.8125rem;color:var(--muted);">
+                <span style="font-size:1.4rem;color:var(--muted);">
                     HPP: Rp {{ number_format($totals['stock_nilai_hpp'], 0, ',', '.') }}
                     &nbsp;|&nbsp;
                     Nilai Jual: Rp {{ number_format($totals['stock_nilai_jual'], 0, ',', '.') }}
@@ -777,9 +776,9 @@
                 </span>
             </div>
             <div class="card-body">
-                <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.7rem 1rem;margin-bottom:1rem;font-size:.8rem;color:#1e40af;">
-                    ℹ️ Stok &amp; harga menggunakan <strong>satuan terkecil</strong> (sesuai nilai <code>goods.last_stock</code>).
-                    Kolom <em>Stok</em> menunjukkan jumlah dalam satuan tersebut.
+                <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.7rem 1rem;margin-bottom:1rem;font-size:1.4rem;color:#1e40af;">
+                    ℹ️ Stok dan harga dalam <strong>satuan dasar</strong> barang (sama dengan nilai persediaan di neraca).
+                    Ditampilkan {{ $stockValuation->count() }} barang dengan nilai terbesar dari {{ number_format($stockCount ?? $stockValuation->count()) }} barang yang punya stok; total di bawah menghitung semuanya.
                 </div>
                 <div class=" tbl-wrap tbl-scroll-v">
                     <table>
@@ -806,7 +805,7 @@
                                     : 0;
                             @endphp
                             <tr>
-                                <td><code style="font-size:.75rem;">{{ $s->kode }}</code></td>
+                                <td><code style="font-size:1.4rem;">{{ $s->kode }}</code></td>
                                 <td>{{ $s->nama_barang }}</td>
                                 <td>{{ $s->kategori ?? '-' }}</td>
                                 <td>{{ $s->merk ?? '-' }}</td>
@@ -850,150 +849,7 @@
     </div>{{-- end tab-pembelian --}}
 
 
-    {{-- ================================================================
-         TAB 5: KEUANGAN
-    ================================================================ --}}
-    <div id="tab-keuangan" class="tab-pane">
 
-        {{-- Laba Rugi --}}
-        <div class="grid-2">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">📊 Ringkasan Laba Rugi</span>
-                    <span style="font-size:.8125rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
-                </div>
-                <div class="card-body">
-                    <table class="pl-table">
-                        <tbody>
-                            <tr>
-                                <td>Omzet Bruto</td>
-                                <td>Rp {{ number_format($profitLoss['omzetBruto'], 0, ',', '.') }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left:1.5rem;color:var(--danger);">(-) Total Diskon</td>
-                                <td style="color:var(--danger);">(Rp {{ number_format($profitLoss['totalDiskon'], 0, ',', '.') }})</td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left:1.5rem;color:var(--danger);">(-) Retur Penjualan</td>
-                                <td style="color:var(--danger);">(Rp {{ number_format($profitLoss['totalRetur'], 0, ',', '.') }})</td>
-                            </tr>
-                            <tr class="sub-total">
-                                <td>Omzet Bersih</td>
-                                <td>Rp {{ number_format($profitLoss['omzetBersih'], 0, ',', '.') }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left:1.5rem;color:var(--danger);">(-) HPP (Harga Pokok Penjualan)</td>
-                                <td style="color:var(--danger);">(Rp {{ number_format($profitLoss['totalHpp'], 0, ',', '.') }})</td>
-                            </tr>
-                            <tr class="total">
-                                <td>Laba Kotor</td>
-                                <td style="color: {{ $profitLoss['labaKotor'] >= 0 ? 'var(--success)' : 'var(--danger)' }};">
-                                    Rp {{ number_format($profitLoss['labaKotor'], 0, ',', '.') }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" style="height:1rem;border:none;"></td>
-                            </tr>
-                            <tr>
-                                <td>Total Pembelian Periode Ini</td>
-                                <td>Rp {{ number_format($profitLoss['totalPembelian'], 0, ',', '.') }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {{-- Neraca Saldo --}}
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">⚖️ Neraca Saldo</span>
-                </div>
-                <div class="card-body">
-                    <div class=" tbl-wrap tbl-scroll-v">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Kode</th>
-                                    <th>Akun</th>
-                                    <th>Tipe</th>
-                                    <th class="text-right">Saldo Awal</th>
-                                    <th class="text-right">Mutasi</th>
-                                    <th class="text-right">Saldo Akhir</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($trialBalance as $tb)
-                                <tr>
-                                    <td><code style="font-size:.75rem;">{{ $tb->kode_akun }}</code></td>
-                                    <td>{{ $tb->nama_akun }}</td>
-                                    <td><span class="badge badge-blue">{{ $tb->tipe_akun }}</span></td>
-                                    <td class="text-right">Rp {{ number_format($tb->saldo_awal, 0, ',', '.') }}</td>
-                                    <td class="text-right">Rp {{ number_format($tb->mutasi, 0, ',', '.') }}</td>
-                                    <td class="text-right" style="font-weight:600;">Rp {{ number_format($tb->saldo_akhir, 0, ',', '.') }}</td>
-                                </tr>
-                                @empty
-                                <tr><td colspan="6" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada data neraca saldo.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Jurnal Umum --}}
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">📒 Jurnal Umum</span>
-                <span style="font-size:.8125rem;color:var(--muted);">{{ $startDate }} – {{ $endDate }}</span>
-            </div>
-            <div class="card-body">
-                <div class=" tbl-wrap tbl-scroll-v">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Tanggal</th>
-                                <th>Keterangan</th>
-                                <th>Tipe</th>
-                                <th>Akun Debit</th>
-                                <th class="text-right">Debit (Rp)</th>
-                                <th>Akun Kredit</th>
-                                <th class="text-right">Kredit (Rp)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($generalJournal as $j)
-                            <tr>
-                                <td>{{ $j->id }}</td>
-                                <td>{{ \Carbon\Carbon::parse($j->journal_date)->isoFormat('D MMM Y') }}</td>
-                                <td>{{ $j->keterangan }}</td>
-                                <td><span class="badge badge-blue">{{ $j->tipe }}</span></td>
-                                <td>{{ $j->kode_debit }} - {{ $j->akun_debit }}</td>
-                                <td class="text-right">Rp {{ number_format($j->debit, 0, ',', '.') }}</td>
-                                <td>{{ $j->kode_kredit }} - {{ $j->akun_kredit }}</td>
-                                <td class="text-right">Rp {{ number_format($j->credit, 0, ',', '.') }}</td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="8" class="text-center" style="color:var(--muted);padding:2rem;">Tidak ada jurnal untuk periode ini.</td></tr>
-                            @endforelse
-                        </tbody>
-                        @if($generalJournal->count() > 0)
-                        <tfoot>
-                            <tr style="font-weight:700;background:#f8fafc;">
-                                <td colspan="5">TOTAL</td>
-                                <td class="text-right">Rp {{ number_format($totals['journal_debit'], 0, ',', '.') }}</td>
-                                <td></td>
-                                <td class="text-right">Rp {{ number_format($totals['journal_credit'], 0, ',', '.') }}</td>
-                            </tr>
-                        </tfoot>
-                        @endif
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </div>{{-- end tab-keuangan --}}
     </section>
 </div>
 @section('js-addon')

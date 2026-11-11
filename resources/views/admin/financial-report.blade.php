@@ -7,10 +7,7 @@
     $tab             = $tab             ?? 'labarugi';
     $allAccounts     = $allAccounts     ?? collect();
     $accountsGrouped = $accountsGrouped ?? [];
-    $generalJournal  = $generalJournal  ?? collect();
-    $ledger          = $ledger          ?? collect();
     $profitLoss      = $profitLoss      ?? [];
-    $balanceSheet    = $balanceSheet    ?? [];
     $cashFlow        = $cashFlow        ?? collect();
     $monthlyBalance  = $monthlyBalance  ?? [];
 
@@ -27,15 +24,6 @@
         'laba_bersih'          => 0,
     ], $profitLoss);
 
-    $bs = array_merge([
-        'aktiva'        => collect(),
-        'pasiva'        => collect(),
-        'ekuitas'       => collect(),
-        'totalAktiva'   => 0,
-        'totalPasiva'   => 0,
-        'totalEkuitas'  => 0,
-        'upTo'          => $endDate,
-    ], $balanceSheet);
 @endphp
 
 <style>
@@ -54,9 +42,9 @@
 .fr-head { display:flex; justify-content:space-between; align-items:flex-start;
            flex-wrap:wrap; gap:.75rem; margin-bottom:1rem; }
 .fr-head h1 { font-size:1.75rem; font-weight:800; color:var(--ink); margin:0; }
-.fr-head p  { font-size:1.3rem; color:var(--ink2); margin:.15rem 0 0; }
+.fr-head p  { font-size:1.4rem; color:var(--ink2); margin:.15rem 0 0; }
 .fr-badge   { background:var(--blue-bg); border:1px solid var(--blue-b); color:var(--blue);
-              font-size:1.25rem; font-weight:600; padding:.3rem .75rem;
+              font-size:1.4rem; font-weight:600; padding:.3rem .75rem;
               border-radius:9999px; white-space:nowrap; }
 
 /* Filter */
@@ -64,18 +52,18 @@
              padding:.75rem 1rem; margin-bottom:.875rem;
              display:flex; align-items:flex-end; gap:.6rem; flex-wrap:wrap; }
 .fr-fg { display:flex; flex-direction:column; gap:.2rem; } 
-.fr-fg label { font-size:1.15rem; font-weight:700; color:var(--ink3);
+.fr-fg label { font-size:1.4rem; font-weight:700; color:var(--ink3);
                text-transform:uppercase; letter-spacing:.08em; }
 .fr-fg input { padding:.38rem .65rem; border:1px solid var(--bdr); border-radius:.4rem; 
-               font-size:1.375rem; color:var(--ink); background:var(--surf); min-width:130px; }
+               font-size:1.4rem; color:var(--ink); background:var(--surf); min-width:130px; }
 .fr-fg input:focus { outline:none; border-color:var(--blue); }
 .fr-btn-p { padding:.4rem 1rem; background:var(--blue); color:#fff; border:none; 
-            border-radius:.4rem; font-size:1.375rem; font-weight:600;
+            border-radius:.4rem; font-size:1.4rem; font-weight:600;
             cursor:pointer; align-self:flex-end; }
 
 /* Tabs */
 .fr-tabs { display:flex; gap:.3rem; flex-wrap:wrap; margin-bottom:1rem; }
-.fr-tab  { padding:.4rem .9rem; border-radius:.45rem; font-size:1.3375rem; font-weight:600;
+.fr-tab  { padding:.4rem .9rem; border-radius:.45rem; font-size:1.4rem; font-weight:600;
            cursor:pointer; border:2px solid var(--bdr); background:var(--card);
            color:var(--ink2); text-decoration:none; transition:.15s; }
 .fr-tab:hover,.fr-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
@@ -97,7 +85,7 @@
 .fr-tbl-wrap table { width:100%; border-collapse:collapse; font-size:1.4rem; }
 .fr-tbl-wrap thead th { position:sticky; top:0; z-index:2; background:#f1f5f9;
 .    padding:.55rem .8rem; text-align:left; font-weight:700; color:var(--ink2); 
-    border-bottom:2px solid var(--bdr); white-space:nowrap; font-size:1.35rem; }
+    border-bottom:2px solid var(--bdr); white-space:nowrap; font-size:1.4rem; }
 .fr-tbl-wrap tbody td { padding:.55rem .8rem; border-bottom:1px solid var(--bdr2); 
                         color:var(--ink); vertical-align:middle; font-size:1.4rem; }
 .fr-tbl-wrap tbody tr:nth-child(even) td { background:#f8fafc; }
@@ -110,7 +98,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 
 /* Laba Rugi spesifik */
 .pl-section { margin-bottom:1.25rem; }
-.pl-section-title { font-size:1.3rem; font-weight:800; color:var(--ink3);
+.pl-section-title { font-size:1.4rem; font-weight:800; color:var(--ink3);
                     text-transform:uppercase; letter-spacing:.08em;
                     padding:.4rem 0 .3rem; border-bottom:2px solid var(--bdr);
                     margin-bottom:.5rem; display:flex; justify-content:space-between; }
@@ -120,7 +108,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 .pl-row .pr-left  { display:flex; align-items:center; gap:.5rem; font-size:1.4rem; }
 .pl-row .pr-right { font-size:1.4rem; font-weight:600; text-align:right; white-space:nowrap; }
 .pl-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.pl-sub  { font-size:1.3rem; color:var(--ink3); margin-left:1.25rem; }
+.pl-sub  { font-size:1.4rem; color:var(--ink3); margin-left:1.25rem; }
 .pl-total-row { display:flex; justify-content:space-between; align-items:center;
                 padding:.55rem .75rem; border-radius:.45rem; font-weight:700; 
                 font-size:1.4375rem; margin-top:.5rem; }
@@ -132,7 +120,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 
 /* Neraca */
 .bs-section { margin-bottom:1rem; }
-.bs-title   { font-size:1.3rem; font-weight:800; color:var(--ink3);
+.bs-title   { font-size:1.4rem; font-weight:800; color:var(--ink3);
               text-transform:uppercase; letter-spacing:.08em;
               padding:.35rem 0; border-bottom:2px solid var(--bdr); margin-bottom:.4rem; }
 .bs-row     { display:flex; justify-content:space-between; align-items:center;
@@ -152,25 +140,25 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 .kas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:.75rem; }
 .kas-card { background:var(--card); border:1px solid var(--bdr); border-radius:.6rem; 
             padding:.875rem 1rem; border-left:4px solid var(--blue); }
-.kas-card .kc-label { font-size:1.2rem; font-weight:700; color:var(--ink3);
+.kas-card .kc-label { font-size:1.4rem; font-weight:700; color:var(--ink3);
                       text-transform:uppercase; letter-spacing:.07em; margin-bottom:.35rem; }
-.kas-card .kc-code  { font-size:1.25rem; color:var(--ink3); margin-bottom:.15rem; }
+.kas-card .kc-code  { font-size:1.4rem; color:var(--ink3); margin-bottom:.15rem; }
 .kas-card .kc-saldo { font-size:1.6rem; font-weight:800; margin-bottom:.5rem; }
 .kas-card .kc-row   { display:flex; justify-content:space-between; 
-                      font-size:1.3rem; color:var(--ink2); margin-bottom:.15rem; }
+                      font-size:1.4rem; color:var(--ink2); margin-bottom:.15rem; }
 .kas-card .kc-pos   { color:var(--green); font-weight:600; }
 .kas-card .kc-neg   { color:var(--red);   font-weight:600; }
 
 /* Akun badge */
 .acc-dot  { width:9px; height:9px; border-radius:50%; display:inline-block;
             flex-shrink:0; margin-right:.35rem; }
-.code-tag { font-family:monospace; font-size:1.25rem; background:var(--surf);
+.code-tag { font-family:monospace; font-size:1.4rem; background:var(--surf);
             border:1px solid var(--bdr); border-radius:.3rem;
             padding:.1rem .4rem; color:var(--ink2); }
 
 /* Info box */
 .fr-info  { background:var(--blue-bg); border:1px solid var(--blue-b); border-radius:.5rem;
-            padding:.6rem .875rem; font-size:1.3rem; color:var(--blue);
+            padding:.6rem .875rem; font-size:1.4rem; color:var(--blue);
             margin-bottom:.875rem; }
 
 /* Empty */
@@ -191,9 +179,9 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 <div class="fr-head">
     <div>
         <h1>💰 Laporan Keuangan</h1>
-        <p>Laba Rugi · Neraca · Buku Besar · Jurnal · Kas — data dinamis dari {{ $allAccounts->count() }} akun aktif</p>
+        <p>Laba Rugi · Neraca Bulanan · Kas — data dinamis dari {{ $allAccounts->count() }} akun aktif</p>
     </div>
-    <span class="fr-badge" style="font-size:1.25rem;">
+    <span class="fr-badge" style="font-size:1.4rem;">
         {{ \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y') }} →
         {{ \Carbon\Carbon::parse($endDate)->isoFormat('D MMM Y') }}
     </span>
@@ -219,13 +207,10 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 <div class="fr-tabs">
     @foreach([
         'labarugi'   => '📊 Laba Rugi',
-        'neraca'     => '⚖️ Neraca',
         'neraca_bulanan' => '📅 Neraca Bulanan',
-        'buku_besar' => '📒 Buku Besar',
-        'jurnal'     => '📋 Jurnal Umum',
         'kas'        => '💵 Kas',
     ] as $key => $label)
-    <a href="{{ route('admin.reports.financial', array_merge(request()->query(), ['tab'=>$key])) }}" style="font-size:1.3375rem;"
+    <a href="{{ route('admin.reports.financial', array_merge(request()->query(), ['tab'=>$key])) }}" style="font-size:1.4rem;"
        class="fr-tab {{ $tab===$key?'active':'' }}">{{ $label }}</a>
     @endforeach
 </div>
@@ -246,7 +231,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
     <div class="fr-card">
         <div class="fr-card-hd">
             <h2 style="font-size:1.4rem;">💰 Pendapatan & Laba Kotor</h2>
-            <span style="font-size:.8rem;color:var(--ink3)">{{ $startDate }} – {{ $endDate }}</span>
+            <span style="font-size:1.4rem;color:var(--ink3)">{{ $startDate }} – {{ $endDate }}</span>
         </div>
         <div class="fr-card-body">
 
@@ -370,257 +355,16 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 
             {{-- Ringkasan cepat --}}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.75rem">
-                <div class="pl-total-row pl-blue" style="font-size:1.3rem;">
-                    <span style="font-size:1.3rem;">Total Pendapatan</span>
-                    <span style="font-size:1.3rem;">Rp {{ number_format($pl['total_pendapatan'],0,',','.') }}</span>
+                <div class="pl-total-row pl-blue" style="font-size:1.4rem;">
+                    <span style="font-size:1.4rem;">Total Pendapatan</span>
+                    <span style="font-size:1.4rem;">Rp {{ number_format($pl['total_pendapatan'],0,',','.') }}</span>
                 </div>
-                <div class="pl-total-row pl-amber" style="font-size:1.3rem;">
-                    <span style="font-size:1.3rem;">Total Beban</span>
-                    <span style="font-size:1.3rem;">Rp {{ number_format($pl['total_beban_usaha'] + $pl['hpp'],0,',','.') }}</span>
+                <div class="pl-total-row pl-amber" style="font-size:1.4rem;">
+                    <span style="font-size:1.4rem;">Total Beban</span>
+                    <span style="font-size:1.4rem;">Rp {{ number_format($pl['total_beban_usaha'] + $pl['hpp'],0,',','.') }}</span>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-@endif
-
-{{-- ════════════════════════════════════════════════════════════ --}}
-{{-- TAB: NERACA                                                 --}}
-{{-- ════════════════════════════════════════════════════════════ --}}
-@if($tab === 'neraca')
-<div class="fr-info">
-    ℹ️ Neraca dihitung dari saldo kumulatif jurnal per akun sampai tanggal <strong>{{ $bs['upTo'] }}</strong>.
-    Akun <strong>1xxx = Aktiva</strong>, <strong>2xxx = Kewajiban</strong>, <strong>3xxx = Ekuitas</strong>. 
-</div>
-
-@php
-    $totalPasivaEkuitas = $bs['totalPasiva'] + $bs['totalEkuitas'];
-    $selisih = $bs['totalAktiva'] - $totalPasivaEkuitas;
-@endphp
-
-{{-- Check balance --}}
-<div class="pl-total-row {{ abs($selisih) < 1 ? 'bs-check-ok' : 'bs-check-err' }}"
-     style="margin-bottom:1rem;font-size:1.375rem;">
-    <span style="font-size:1.375rem;">{{ abs($selisih) < 1 ? '✅ Neraca Seimbang' : '❌ Neraca Tidak Seimbang' }}</span>
-    <span style="font-size:1.375rem;">Selisih: Rp {{ number_format(abs($selisih),0,',','.') }}</span>
-</div>
-
-<div class="fr-grid2">
-    {{-- Aktiva --}}
-    <div class="fr-card">
-        <div class="fr-card-hd"><h2>🏦 Aktiva (1xxx)</h2></div>
-        <div class="fr-card-body">
-            <div class="bs-section">
-                @forelse($bs['aktiva'] as $acc)
-                <div class="bs-row">
-                    <div class="bl">
-                        <span class="pl-dot" style="background:{{ $acc->color ?? '#94a3b8' }}"></span>
-                        <div style="font-size:1.4rem;">
-                            <div style="font-size:.9rem">{{ $acc->nama }}</div>
-                            <div><span class="code-tag">{{ $acc->kode }}</span></div>
-                        </div>
-                    </div>
-                    <div class="br">Rp {{ number_format($acc->saldo,0,',','.') }}</div>
-                </div>
-                @empty
-                <div class="fr-empty">Tidak ada data aktiva.</div>
-                @endforelse
-            </div>
-            <div class="bs-total bs-aktiva-total">
-                <span style="font-size:1.4375rem;">Total Aktiva</span>
-                <span style="font-size:1.4375rem;">Rp {{ number_format($bs['totalAktiva'],0,',','.') }}</span>
-            </div>
-        </div>
-    </div>
-
-    {{-- Pasiva + Ekuitas --}}
-    <div class="fr-card">
-        <div class="fr-card-hd"><h2>📋 Kewajiban & Ekuitas</h2></div>
-        <div class="fr-card-body">
-
-            @if($bs['pasiva']->count() > 0)
-            <div class="bs-section">
-                <div class="bs-title">Kewajiban (2xxx)</div>
-                @foreach($bs['pasiva'] as $acc)
-                <div class="bs-row">
-                    <div class="bl">
-                        <span class="pl-dot" style="background:{{ $acc->color ?? '#94a3b8' }}"></span>
-                        <div style="font-size:1.4rem;">
-                            <div style="font-size:.9rem">{{ $acc->nama }}</div>
-                            <div><span class="code-tag">{{ $acc->kode }}</span></div>
-                        </div>
-                    </div>
-                    <div class="br">Rp {{ number_format($acc->saldo,0,',','.') }}</div>
-                </div>
-                @endforeach
-                <div class="bs-total bs-pasiva-total" style="font-size:.875rem;margin-top:.35rem">
-                    <span style="font-size:1.375rem;">Total Kewajiban</span>
-                    <span style="font-size:1.375rem;">Rp {{ number_format($bs['totalPasiva'],0,',','.') }}</span>
-                </div>
-            </div>
-            @endif
-
-            @if($bs['ekuitas']->count() > 0)
-            <div class="bs-section" style="margin-top:.75rem">
-                <div class="bs-title">Ekuitas (3xxx)</div>
-                @foreach($bs['ekuitas'] as $acc)
-                <div class="bs-row">
-                    <div class="bl">
-                        <span class="pl-dot" style="background:{{ $acc->color ?? '#94a3b8' }}"></span>
-                        <div style="font-size:1.4rem;">
-                            <div style="font-size:.9rem">{{ $acc->nama }}</div>
-                            <div><span class="code-tag">{{ $acc->kode }}</span></div>
-                        </div>
-                    </div>
-                    <div class="br">Rp {{ number_format($acc->saldo,0,',','.') }}</div>
-                </div>
-                @endforeach
-                <div class="bs-total bs-ekuitas-total" style="font-size:.875rem;margin-top:.35rem">
-                    <span style="font-size:1.375rem;">Total Ekuitas</span>
-                    <span style="font-size:1.375rem;">Rp {{ number_format($bs['totalEkuitas'],0,',','.') }}</span>
-                </div>
-            </div>
-            @endif
-
-            <div class="bs-total bs-pasiva-total"
-                 style="margin-top:.75rem;font-size:1.5rem;font-weight:800;">
-                <span style="font-size:1.5rem;">Total Kewajiban + Ekuitas</span>
-                <span style="font-size:1.5rem;">Rp {{ number_format($totalPasivaEkuitas,0,',','.') }}</span>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ════════════════════════════════════════════════════════════ --}}
-{{-- TAB: BUKU BESAR                                             --}}
-{{-- ════════════════════════════════════════════════════════════ --}}
-@if($tab === 'buku_besar')
-<div class="fr-info">
-    ℹ️ Saldo per akun dalam periode ini. Semua akun yang memiliki transaksi jurnal tampil otomatis.
-    Saldo positif = debit lebih besar; negatif = kredit lebih besar. 
-</div>
-<div class="fr-card">
-    <div class="fr-card-hd">
-        <h2>📒 Buku Besar per Akun</h2>
-        <span style="font-size:.8rem;color:var(--ink3)">{{ $ledger->count() }} akun aktif</span>
-    </div>
-    <div class="fr-tbl-wrap">
-        <table>
-            <thead><tr>
-                <th>Kode</th>
-                <th>Nama Akun</th>
-                <th>Kelompok</th>
-                <th>Tipe</th>
-                <th class="tr">Total Debit</th>
-                <th class="tr">Total Kredit</th>
-                <th class="tr">Saldo</th>
-            </tr></thead>
-            <tbody>
-            @forelse($ledger as $row)
-            <tr>
-                <td><span class="code-tag">{{ $row->kode }}</span></td>
-                <td>
-                    <span class="acc-dot" style="background:{{ $row->color ?? '#94a3b8' }}"></span> 
-                    {{ $row->nama }}
-                </td>
-                <td style="font-size:1.3rem;color:var(--ink2)">{{ $row->kelompok }}</td>
-                <td>
-                    @if(strtolower($row->tipe)==='debet')
-                        <span style="font-size:.75rem;background:var(--blue-bg);color:var(--blue);padding:.15rem .5rem;border-radius:9999px;font-weight:600">Debet</span>
-                    @else
-                        <span style="font-size:.75rem;background:var(--amber-bg);color:var(--amber);padding:.15rem .5rem;border-radius:9999px;font-weight:600">Kredit</span>
-                    @endif
-                </td>
-                <td class="tr">Rp {{ number_format($row->total_debit,0,',','.') }}</td>
-                <td class="tr">Rp {{ number_format($row->total_kredit,0,',','.') }}</td>
-                <td class="tr" style="font-weight:700;color:{{ $row->saldo >= 0 ? 'var(--green)' : 'var(--red)' }}"> 
-                    Rp {{ number_format(abs($row->saldo),0,',','.') }}
-                    <span style="font-size:.75rem;font-weight:400;color:var(--ink3)">
-                        {{ $row->saldo >= 0 ? 'D' : 'K' }}
-                    </span>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="7"><div class="fr-empty">Tidak ada data buku besar di periode ini.</div></td></tr>
-            @endforelse
-            </tbody>
-            @if($ledger->count() > 0)
-            <tfoot>
-                <tr>
-                    <td colspan="4">TOTAL</td>
-                    <td class="tr">Rp {{ number_format($ledger->sum('total_debit'),0,',','.') }}</td>
-                    <td class="tr">Rp {{ number_format($ledger->sum('total_kredit'),0,',','.') }}</td>
-                    <td></td>
-                </tr>
-            </tfoot>
-            @endif
-        </table>
-    </div>
-</div>
-@endif
-
-{{-- ════════════════════════════════════════════════════════════ --}}
-{{-- TAB: JURNAL UMUM                                            --}}
-{{-- ════════════════════════════════════════════════════════════ --}}
-@if($tab === 'jurnal')
-<div class="fr-card">
-    <div class="fr-card-hd">
-        <h2>📋 Jurnal Umum</h2>
-        <span style="font-size:.8rem;color:var(--ink3)">{{ $generalJournal->count() }} entri</span>
-    </div>
-    <div class="fr-tbl-wrap">
-        <table>
-            <thead><tr>
-                <th>Tanggal</th>
-                <th>Keterangan</th>
-                <th>Tipe</th>
-                <th>Akun Debit</th>
-                <th class="tr">Debit (Rp)</th>
-                <th>Akun Kredit</th>
-                <th class="tr">Kredit (Rp)</th>
-            </tr></thead>
-            <tbody>
-            @forelse($generalJournal as $j)
-            <tr>
-                <td style="white-space:nowrap">
-                    {{ \Carbon\Carbon::parse($j->journal_date)->isoFormat('D MMM Y') }}
-                </td>
-                <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-                    title="{{ $j->keterangan }}">{{ $j->keterangan }}</td>
-                <td><span style="font-size:.75rem;background:var(--blue-bg);color:var(--blue);padding:.15rem .5rem;border-radius:9999px;font-weight:600">{{ $j->tipe }}</span></td>
-                <td style="font-size:1.4rem;">
-                    <span class="acc-dot" style="background:{{ $j->color_debit ?? '#94a3b8' }}"></span>
-                    <span class="code-tag">{{ $j->kode_debit }}</span>
-                    {{ $j->akun_debit }}
-                </td>
-                <td class="tr" style="font-weight:600;color:var(--blue)">
-                    {{ number_format($j->debit,0,',','.') }}
-                </td>
-                <td style="font-size:1.4rem;">
-                    <span class="acc-dot" style="background:{{ $j->color_kredit ?? '#94a3b8' }}"></span>
-                    <span class="code-tag">{{ $j->kode_kredit }}</span>
-                    {{ $j->akun_kredit }}
-                </td>
-                <td class="tr" style="font-weight:600;color:var(--amber)">
-                    {{ number_format($j->credit,0,',','.') }}
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="7"><div class="fr-empty">Tidak ada jurnal di periode ini.</div></td></tr>
-            @endforelse
-            </tbody>
-            @if($generalJournal->count() > 0)
-            <tfoot>
-                <tr>
-                    <td colspan="4">TOTAL</td>
-                    <td class="tr">Rp {{ number_format($generalJournal->sum('debit'),0,',','.') }}</td>
-                    <td></td>
-                    <td class="tr">Rp {{ number_format($generalJournal->sum('credit'),0,',','.') }}</td>
-                </tr>
-            </tfoot>
-            @endif
-        </table>
     </div>
 </div>
 @endif
@@ -646,13 +390,13 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 .mb-tbl td:first-child, .mb-tbl th:first-child { position:sticky; left:0; z-index:1; min-width:230px; }
 .mb-tbl thead th:first-child { z-index:3; }
 .mb-tbl td { white-space:nowrap; }
-.mb-tbl tr.mb-sec td { background:#e2e8f0 !important; font-weight:800; color:var(--ink2); text-transform:uppercase; font-size:1.2rem; }
+.mb-tbl tr.mb-sec td { background:#e2e8f0 !important; font-weight:800; color:var(--ink2); text-transform:uppercase; font-size:1.4rem; }
 .mb-tbl tr.mb-total td { font-weight:800; background:#f1f5f9 !important; }
 .mb-tbl tr.mb-computed td:first-child { font-style:italic; }
 .mb-bar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
-.mb-bar select { padding:.38rem .65rem; border:1px solid var(--bdr); border-radius:.4rem; font-size:1.3rem; }
-.mb-badge { padding:.3rem .75rem; border-radius:9999px; font-size:1.25rem; font-weight:700; }
-.mb-btn-d { padding:.4rem 1rem; background:var(--red); color:#fff; border:none; border-radius:.4rem; font-weight:700; cursor:pointer; font-size:1.3rem; }
+.mb-bar select { padding:.38rem .65rem; border:1px solid var(--bdr); border-radius:.4rem; font-size:1.4rem; }
+.mb-badge { padding:.3rem .75rem; border-radius:9999px; font-size:1.4rem; font-weight:700; }
+.mb-btn-d { padding:.4rem 1rem; background:var(--red); color:#fff; border:none; border-radius:.4rem; font-weight:700; cursor:pointer; font-size:1.4rem; }
 </style>
 
 <div class="fr-info">
@@ -661,7 +405,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
 </div>
 
 @if(session('closing_message'))
-<div class="pl-total-row bs-check-ok" style="margin-bottom:1rem;font-size:1.375rem;">{{ session('closing_message') }}</div>
+<div class="pl-total-row bs-check-ok" style="margin-bottom:1rem;font-size:1.4rem;">{{ session('closing_message') }}</div>
 @endif
 
 <div class="mb-bar">
@@ -682,7 +426,7 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
         <span class="mb-badge pl-blue">Tahun berjalan</span>
     @endif
     @if($mb['lockedUntil'])
-        <span style="font-size:1.25rem;color:var(--ink2)">Data terkunci sampai {{ displayDate($mb['lockedUntil']) }}</span>
+        <span style="font-size:1.4rem;color:var(--ink2)">Data terkunci sampai {{ displayDate($mb['lockedUntil']) }}</span>
     @endif
 
     @if($canUnlock && $mb['canClose'])
@@ -771,21 +515,21 @@ tfoot td { font-weight:700; background:#f1f5f9 !important;
     @forelse($cashFlow as $kas)
     <div class="kas-card" style="border-left-color:{{ $kas->color }}">
         <div class="kc-label">{{ $kas->nama }}</div>
-        <div class="kc-code" style="font-size:1.25rem;"><span class="code-tag">{{ $kas->kode }}</span></div>
+        <div class="kc-code" style="font-size:1.4rem;"><span class="code-tag">{{ $kas->kode }}</span></div>
         <div class="kc-saldo" style="font-size:1.6rem;color:{{ $kas->saldo_akhir >= 0 ? 'var(--green)' : 'var(--red)' }}">
             Rp {{ number_format($kas->saldo_akhir,0,',','.') }} 
         </div>
         <div class="kc-row">
-            <span style="font-size:1.3rem;">Saldo Awal</span>
-            <span style="font-size:1.3rem;">Rp {{ number_format($kas->saldo_awal,0,',','.') }}</span>
+            <span style="font-size:1.4rem;">Saldo Awal</span>
+            <span style="font-size:1.4rem;">Rp {{ number_format($kas->saldo_awal,0,',','.') }}</span>
         </div>
         <div class="kc-row">
-            <span style="font-size:1.3rem;">Masuk</span>
-            <span class="kc-pos" style="font-size:1.3rem;">+ Rp {{ number_format($kas->masuk,0,',','.') }}</span>
+            <span style="font-size:1.4rem;">Masuk</span>
+            <span class="kc-pos" style="font-size:1.4rem;">+ Rp {{ number_format($kas->masuk,0,',','.') }}</span>
         </div>
         <div class="kc-row">
-            <span style="font-size:1.3rem;">Keluar</span>
-            <span class="kc-neg" style="font-size:1.3rem;">− Rp {{ number_format($kas->keluar,0,',','.') }}</span>
+            <span style="font-size:1.4rem;">Keluar</span>
+            <span class="kc-neg" style="font-size:1.4rem;">− Rp {{ number_format($kas->keluar,0,',','.') }}</span>
         </div>
     </div>
     @empty

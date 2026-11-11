@@ -2,7 +2,6 @@
 
 Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
-Route::get('profit', 'MainController@profit');
 Route::get('salesGraph/{type}/{start_date}/{end_date}', 'MainController@salesGraph');
 Route::get('getSalesGraph/{type}/{start_date}/{end_date}', 'MainController@getSalesGraph');
 Route::get('scale/{start_date}/{end_date}', 'MainController@scale');
@@ -12,20 +11,17 @@ Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@ge
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('/scaleLedger/detail/{account_id}/{start_date}/{end_date}', 'MainController@scaleLedgerAccountDetail')->name('scaleLedger.detail');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
-Route::get('/store-health', 'StoreHealthController@index')->name('store-health');
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
+Route::get('/reports/owner', 'OwnerSummaryController@index')->name('reports.owner');
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
 
-Route::get('/reports/reorder', 'ReorderController@index')->name('reports.reorder');
  
-Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports.reorder.export');
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');
  Route::get('reports/financial', 'FinancialReportController@index')->name('reports.financial');
 Route::post('reports/financial/close-year', 'FinancialReportController@closeYear')->name('reports.financial.close-year');
 Route::post('reports/movement/{id}/discontinue','GoodMovementController@discontinue')->name('reports.movement.discontinue');
 Route::post('reports/movement/bulk-discontinue','GoodMovementController@bulkDiscontinue')->name('reports.movement.bulk-discontinue');
 // Tambahkan baris ini di bagian rute admin
-Route::get('admin/store-health/export', 'StoreHealthController@exportCsv')->name('store-health.export');
 
 Route::post('reports/movement/{id}/restore','GoodMovementController@restore')->name('reports.movement.restore');
 Route::group(['prefix' => 'account'], function () {

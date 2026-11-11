@@ -67,327 +67,87 @@ class FinancialReportRepository
     // B. JURNAL UMUM — Dinamis, semua akun otomatis masuk
     // =========================================================================
 
-    /**
-     * Jurnal umum lengkap dalam periode.
-     * Otomatis menampilkan semua akun yang ada di journals,
-     * termasuk akun baru yang ditambahkan.
-     */
-    public function getGeneralJournal($startDate = null, $endDate = null): Collection
-    {
-        $query = Journal::join('accounts AS da', 'da.id', '=', 'journals.debit_account_id')
-            ->join('accounts AS ca', 'ca.id', '=', 'journals.credit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->select(
-                'journals.id',
-                'journals.journal_date',
-                'journals.name         AS keterangan',
-                'journals.type         AS tipe',
-                'da.code               AS kode_debit',
-                'da.name               AS akun_debit',
-                'da.color              AS color_debit',
-                'journals.debit',
-                'ca.code               AS kode_kredit',
-                'ca.name               AS akun_kredit',
-                'ca.color              AS color_kredit',
-                'journals.credit'
-            );
-
-        if ($startDate && $endDate) {
-            $query->whereBetween('journals.journal_date', [$startDate, $endDate]);
-        }
-
-        return $query->orderBy('journals.journal_date', 'asc')
-                     ->orderBy('journals.id', 'asc')
-                     ->get();
-    }
-
     // =========================================================================
     // C. BUKU BESAR — Saldo per akun, dinamis
     // =========================================================================
 
+    // =========================================================================
+    // D. LAPORAN LABA RUGI
+    // =========================================================================
+
     /**
-     * Rekap mutasi & saldo per akun dalam periode.
-     * DINAMIS: semua akun yang punya transaksi jurnal akan muncul otomatis.
+     * Debit and credit per account in a period, without the year-end closing
+     * journals (they only move the profit to Laba Ditahan).
+     *
+     * @return \Illuminate\Support\Collection<int, object{id,code,name,color,debit,credit}>
      */
-    public function getLedgerByAccount($startDate = null, $endDate = null): Collection
+    public function accountTotals(string $codeLike, string $start, string $end): Collection
     {
-        // Saldo debit per akun
-        $debitQuery = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.debit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->select(
-                'accounts.id   AS account_id',
-                'accounts.code AS kode',
-                'accounts.name AS nama',
-                'accounts.type AS tipe',
-                'accounts.group AS kelompok',
-                'accounts.activa AS aktiva_pasiva',
-                'accounts.color AS color',
-                DB::raw('COALESCE(SUM(journals.debit), 0)  AS total_debit'),
-                DB::raw('0                                  AS total_kredit')
-            )
-            ->groupBy(
-                'accounts.id', 'accounts.code', 'accounts.name',
-                'accounts.type', 'accounts.group', 'accounts.activa', 'accounts.color'
-            );
+        $side = function (string $column, string $accountColumn) use ($codeLike, $start, $end) {
+            return DB::table('journals')
+                ->join('accounts', 'accounts.id', '=', 'journals.' . $accountColumn)
+                ->whereNull('journals.deleted_at')
+                ->whereRaw("COALESCE(journals.type, '') <> 'closing'")
+                ->where('accounts.code', 'like', $codeLike)
+                ->whereBetween('journals.journal_date', [$start, $end])
+                ->groupBy('accounts.id')
+                ->selectRaw("accounts.id AS id, COALESCE(SUM(journals.$column), 0) AS total")
+                ->pluck('total', 'id');
+        };
+        $debit = $side('debit', 'debit_account_id');
+        $credit = $side('credit', 'credit_account_id');
+        $ids = $debit->keys()->merge($credit->keys())->unique()->all();
 
-        // Saldo kredit per akun
-        $creditQuery = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.credit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->select(
-                'accounts.id   AS account_id',
-                'accounts.code AS kode',
-                'accounts.name AS nama',
-                'accounts.type AS tipe',
-                'accounts.group AS kelompok',
-                'accounts.activa AS aktiva_pasiva',
-                'accounts.color AS color',
-                DB::raw('0                                   AS total_debit'),
-                DB::raw('COALESCE(SUM(journals.credit), 0)  AS total_kredit')
-            )
-            ->groupBy(
-                'accounts.id', 'accounts.code', 'accounts.name',
-                'accounts.type', 'accounts.group', 'accounts.activa', 'accounts.color'
-            );
-
-        if ($startDate && $endDate) {
-            $debitQuery->whereBetween('journals.journal_date', [$startDate, $endDate]);
-            $creditQuery->whereBetween('journals.journal_date', [$startDate, $endDate]);
-        }
-
-        // Union dan agregasi di PHP (lebih kompatibel dengan Laravel 6 + MySQL)
-        $debits  = $debitQuery->get()->keyBy('account_id');
-        $credits = $creditQuery->get()->keyBy('account_id');
-
-        // Gabungkan semua account_id dari kedua sisi
-        $allIds = $debits->keys()->merge($credits->keys())->unique();
-
-        return $allIds->map(function ($id) use ($debits, $credits) {
-            $d = $debits->get($id);
-            $c = $credits->get($id);
-            $base = $d ?? $c;
-
-            $totalDebit  = (float) ($d->total_debit  ?? 0);
-            $totalKredit = (float) ($c->total_kredit ?? 0);
-            $saldo       = $totalDebit - $totalKredit;
-
-            return (object) [
-                'account_id'    => $base->account_id,
-                'kode'          => $base->kode,
-                'nama'          => $base->nama,
-                'tipe'          => $base->tipe,
-                'kelompok'      => $base->kelompok,
-                'aktiva_pasiva' => $base->aktiva_pasiva,
-                'color'         => $base->color,
-                'total_debit'   => $totalDebit,
-                'total_kredit'  => $totalKredit,
-                'saldo'         => $saldo,  // positif = debit lebih besar
-            ];
-        })->sortBy('kode')->values();
+        return Account::whereIn('id', $ids)->orderBy('code')->get()->map(fn ($a) => (object) [
+            'id' => $a->id, 'code' => $a->code, 'name' => $a->name, 'color' => $a->color,
+            'debit' => (float) ($debit[$a->id] ?? 0), 'credit' => (float) ($credit[$a->id] ?? 0),
+        ]);
     }
 
-    // =========================================================================
-    // D. LAPORAN LABA RUGI — Dinamis berbasis akun Laba Rugi + kode 5xxx/4xxx
-    // =========================================================================
-
     /**
-     * Laba Rugi dihitung dari jurnal berdasarkan kode akun:
-     *  - 4xxx (Pendapatan)   → masuk sisi kredit  (menambah laba)
-     *  - 5xxx (Beban/Biaya)  → masuk sisi debit   (mengurangi laba)
-     *
-     * DINAMIS: jika ada akun 5225, 5226 baru, otomatis masuk ke perhitungan.
+     * Laba Rugi from the journals, per account, as debit and credit together:
+     *  - 4xxx pendapatan    = kredit - debit (cancelled sales are debited back)
+     *  - 5xxx beban (5101 HPP shown apart) = debit - kredit (e.g. a price
+     *    increase is credited to 5215 and lowers the cost)
+     *  - 6xxx pendapatan lain = kredit - debit
+     * Before, only one side was counted, which overstated sales, HPP and
+     * costs (October 2026: profit 0,77 juta instead of 21,9 juta).
      */
     public function getProfitLossReport($startDate, $endDate): array
     {
-        $start = Carbon::parse($startDate)->startOfDay();
-        $end   = Carbon::parse($endDate)->endOfDay();
+        $start = Carbon::parse($startDate)->toDateString();
+        $end   = Carbon::parse($endDate)->toDateString();
 
-        // ── Pendapatan: semua akun grup 4xxx (kredit) ─────────────────────
-        $pendapatan = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.credit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->where('accounts.code', 'like', '4%')
-            ->whereBetween('journals.journal_date', [
-                $start->toDateString(), $end->toDateString()
-            ])
-            ->select(
-                'accounts.id',
-                'accounts.code',
-                'accounts.name',
-                'accounts.color',
-                DB::raw('COALESCE(SUM(journals.credit), 0) AS total')
-            )
-            ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.color')
-            ->orderBy('accounts.code')
-            ->get();
+        $rows = function (string $like, bool $creditPositive) use ($start, $end) {
+            return $this->accountTotals($like, $start, $end)->map(function ($a) use ($creditPositive) {
+                $a->total = round($creditPositive ? $a->credit - $a->debit : $a->debit - $a->credit, 2);
+                return $a;
+            })->filter(fn ($a) => abs($a->total) >= 0.5)->values();
+        };
 
-        // ── Beban/Biaya: semua akun grup 5xxx (debit) ─────────────────────
-        $beban = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.debit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->where('accounts.code', 'like', '5%')
-            ->whereBetween('journals.journal_date', [
-                $start->toDateString(), $end->toDateString()
-            ])
-            ->select(
-                'accounts.id',
-                'accounts.code',
-                'accounts.name',
-                'accounts.color',
-                DB::raw('COALESCE(SUM(journals.debit), 0) AS total')
-            )
-            ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.color')
-            ->orderBy('accounts.code')
-            ->get();
-
-        // ── Pendapatan lain-lain: akun 6xxx (kredit) ──────────────────────
-        $pendapatanLain = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.credit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->where('accounts.code', 'like', '6%')
-            ->whereBetween('journals.journal_date', [
-                $start->toDateString(), $end->toDateString()
-            ])
-            ->select(
-                'accounts.id',
-                'accounts.code',
-                'accounts.name',
-                'accounts.color',
-                DB::raw('COALESCE(SUM(journals.credit), 0) AS total')
-            )
-            ->groupBy('accounts.id', 'accounts.code', 'accounts.name', 'accounts.color')
-            ->orderBy('accounts.code')
-            ->get();
+        $pendapatan     = $rows('4%', true);
+        $beban          = $rows('5%', false);
+        $pendapatanLain = $rows('6%', true);
 
         $totalPendapatan     = (float) $pendapatan->sum('total');
-        $totalBeban          = (float) $beban->sum('total');
         $totalPendapatanLain = (float) $pendapatanLain->sum('total');
-
-        // HPP dipisah dari beban lain (kode 5101)
-        $hpp = $beban->where('code', '5101')->sum('total');
+        $hpp        = (float) $beban->where('code', '5101')->sum('total');
         $labaKotor  = $totalPendapatan - $hpp;
-        $bebanUsaha = $beban->where('code', '!=', '5101')->sum('total');
+        $bebanUsaha = (float) $beban->where('code', '!=', '5101')->sum('total');
         $labaBersih = $labaKotor - $bebanUsaha + $totalPendapatanLain;
 
         return [
-            'pendapatan'          => $pendapatan,
-            'beban'               => $beban,
-            'pendapatan_lain'     => $pendapatanLain,
-            'total_pendapatan'    => $totalPendapatan,
-            'hpp'                 => $hpp,
-            'laba_kotor'          => $labaKotor,
-            'beban_usaha'         => $beban->where('code', '!=', '5101')->values(),
-            'total_beban_usaha'   => $bebanUsaha,
-            'total_pendapatan_lain'=> $totalPendapatanLain,
-            'laba_bersih'         => $labaBersih,
+            'pendapatan'            => $pendapatan,
+            'beban'                 => $beban,
+            'pendapatan_lain'       => $pendapatanLain,
+            'total_pendapatan'      => $totalPendapatan,
+            'hpp'                   => $hpp,
+            'laba_kotor'            => $labaKotor,
+            'beban_usaha'           => $beban->where('code', '!=', '5101')->values(),
+            'total_beban_usaha'     => $bebanUsaha,
+            'total_pendapatan_lain' => $totalPendapatanLain,
+            'laba_bersih'           => $labaBersih,
         ];
-    }
-
-    // =========================================================================
-    // E. NERACA — Dinamis berbasis akun 1xxx (Aktiva) & 2xxx/3xxx (Pasiva)
-    // =========================================================================
-
-    /**
-     * Neraca dihitung dari saldo kumulatif jurnal per akun neraca.
-     * DINAMIS: akun baru 1xxx/2xxx/3xxx otomatis masuk.
-     */
-    public function getBalanceSheet($upToDate = null): array
-    {
-        $upTo = $upToDate ? Carbon::parse($upToDate)->endOfDay()->toDateString() : date('Y-m-d');
-
-        // Saldo debit kumulatif per akun sampai tanggal tertentu
-        $debitSaldo = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.debit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->where('journals.journal_date', '<=', $upTo)
-            ->select(
-                'accounts.id',
-                'accounts.code',
-                'accounts.name',
-                'accounts.type',
-                'accounts.group',
-                'accounts.activa',
-                'accounts.color',
-                DB::raw('COALESCE(SUM(journals.debit), 0)  AS saldo_debit'),
-                DB::raw('0                                  AS saldo_kredit')
-            )
-            ->groupBy('accounts.id','accounts.code','accounts.name',
-                      'accounts.type','accounts.group','accounts.activa','accounts.color')
-            ->get()->keyBy('id');
-
-        $creditSaldo = DB::table('journals')
-            ->join('accounts', 'accounts.id', '=', 'journals.credit_account_id')
-            ->whereNull('journals.deleted_at')
-            ->where('journals.journal_date', '<=', $upTo)
-            ->select(
-                'accounts.id',
-                'accounts.code',
-                'accounts.name',
-                'accounts.type',
-                'accounts.group',
-                'accounts.activa',
-                'accounts.color',
-                DB::raw('0                                   AS saldo_debit'),
-                DB::raw('COALESCE(SUM(journals.credit), 0)  AS saldo_kredit')
-            )
-            ->groupBy('accounts.id','accounts.code','accounts.name',
-                      'accounts.type','accounts.group','accounts.activa','accounts.color')
-            ->get()->keyBy('id');
-
-        $allIds = $debitSaldo->keys()->merge($creditSaldo->keys())->unique();
-
-        $aktiva  = collect();
-        $pasiva  = collect();
-        $ekuitas = collect();
-
-        foreach ($allIds as $id) {
-            $d    = $debitSaldo->get($id);
-            $c    = $creditSaldo->get($id);
-            $base = $d ?? $c;
-
-            $code   = $base->code ?? '';
-            $prefix = substr($code, 0, 1);
-
-            // Hanya akun neraca (1xxx, 2xxx, 3xxx)
-            if (!in_array($prefix, ['1', '2', '3'])) continue;
-
-            $debit  = (float)($d->saldo_debit  ?? 0);
-            $kredit = (float)($c->saldo_kredit ?? 0);
-            $saldo  = $debit - $kredit;
-
-            $item = (object) [
-                'account_id' => $id,
-                'kode'       => $code,
-                'nama'       => $base->name,
-                'tipe'       => $base->type,
-                'aktiva_p'   => strtolower(trim($base->activa ?? '')),
-                'color'      => $base->color,
-                'saldo'      => abs($saldo),
-            ];
-
-            if ($prefix === '1') {
-                $aktiva->push($item);
-            } elseif ($prefix === '2') {
-                $pasiva->push($item);
-            } else {
-                $ekuitas->push($item);
-            }
-        }
-
-        $aktiva  = $aktiva->sortBy('kode')->values();
-        $pasiva  = $pasiva->sortBy('kode')->values();
-        $ekuitas = $ekuitas->sortBy('kode')->values();
-
-        $totalAktiva  = $aktiva->sum('saldo');
-        $totalPasiva  = $pasiva->sum('saldo');
-        $totalEkuitas = $ekuitas->sum('saldo');
-
-        return compact(
-            'aktiva', 'pasiva', 'ekuitas',
-            'totalAktiva', 'totalPasiva', 'totalEkuitas',
-            'upTo'
-        );
     }
 
     // =========================================================================
@@ -395,47 +155,27 @@ class FinancialReportRepository
     // =========================================================================
 
     /**
-     * Mutasi semua akun kas dalam periode.
-     * DINAMIS: akun kas baru (1113, 1114, 1116, dst) otomatis masuk.
+     * Mutasi semua akun kas dalam periode. The opening balance of the account
+     * (accounts.balance) is part of the balance; before it was left out, so
+     * e.g. Kas di Nanang showed -25,7 juta instead of 12,97 juta.
      */
     public function getCashFlowSummary($startDate, $endDate): Collection
     {
         $start = Carbon::parse($startDate)->toDateString();
         $end   = Carbon::parse($endDate)->toDateString();
+        $before = Carbon::parse($start)->subDay()->toDateString();
 
         $kasAccounts = Account::whereNull('deleted_at')
             ->where('code', 'like', '111%')
             ->orderBy('code')
             ->get();
 
-        return $kasAccounts->map(function ($acc) use ($start, $end) {
-            $masuk = DB::table('journals')
-                ->whereNull('deleted_at')
-                ->where('debit_account_id', $acc->id)
-                ->whereBetween('journal_date', [$start, $end])
-                ->sum('debit');
-
-            $keluar = DB::table('journals')
-                ->whereNull('deleted_at')
-                ->where('credit_account_id', $acc->id)
-                ->whereBetween('journal_date', [$start, $end])
-                ->sum('credit');
-
-            // Saldo awal (sebelum periode)
-            $saldoAwalDebit = DB::table('journals')
-                ->whereNull('deleted_at')
-                ->where('debit_account_id', $acc->id)
-                ->where('journal_date', '<', $start)
-                ->sum('debit');
-
-            $saldoAwalKredit = DB::table('journals')
-                ->whereNull('deleted_at')
-                ->where('credit_account_id', $acc->id)
-                ->where('journal_date', '<', $start)
-                ->sum('credit');
-
-            $saldoAwal  = (float)$saldoAwalDebit - (float)$saldoAwalKredit;
-            $saldoAkhir = $saldoAwal + (float)$masuk - (float)$keluar;
+        return $kasAccounts->map(function ($acc) use ($start, $end, $before) {
+            $masuk = (float) DB::table('journals')->whereNull('deleted_at')
+                ->where('debit_account_id', $acc->id)->whereBetween('journal_date', [$start, $end])->sum('debit');
+            $keluar = (float) DB::table('journals')->whereNull('deleted_at')
+                ->where('credit_account_id', $acc->id)->whereBetween('journal_date', [$start, $end])->sum('credit');
+            $saldoAwal = $this->getAccountBalanceByCode($acc->code, $before);
 
             return (object) [
                 'account_id'  => $acc->id,
@@ -443,9 +183,9 @@ class FinancialReportRepository
                 'nama'        => $acc->name,
                 'color'       => $acc->color ?? '#94a3b8',
                 'saldo_awal'  => $saldoAwal,
-                'masuk'       => (float) $masuk,
-                'keluar'      => (float) $keluar,
-                'saldo_akhir' => $saldoAkhir,
+                'masuk'       => $masuk,
+                'keluar'      => $keluar,
+                'saldo_akhir' => $saldoAwal + $masuk - $keluar,
             ];
         });
     }
@@ -609,7 +349,7 @@ class FinancialReportRepository
     /**
      * Balance sheet at the end of each month of $year.
      *
-     * Unlike getBalanceSheet() it counts the opening balance of the accounts
+     * It counts the opening balance of the accounts
      * (accounts.balance), keeps the sign of every balance (a negative cash
      * account shows as negative) and puts the profit into equity:
      *   - "Laba belum ditutup": profit of earlier years that were not closed

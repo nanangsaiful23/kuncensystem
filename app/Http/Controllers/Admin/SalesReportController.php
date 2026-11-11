@@ -78,24 +78,19 @@ class SalesReportController extends Controller
      */
     public function index(Request $request)
     {
+        abort_unless(isSuperadmin(), 403); // the menu is only shown to superadmin
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->get('end_date',   Carbon::now()->toDateString());
         $year      = $request->get('year', now()->year);
  
         // Default array kosong untuk summary & profitLoss (kembalian berupa array)
         $emptySummary = [
-            'totalOmzet' => 0, 'totalDiskon' => 0, 'totalHpp' => 0,
-            'totalLaba'  => 0, 'totalTransaksi' => 0, 'rataRata' => 0,
-        ];
-        $emptyPL = [
-            'omzetBruto' => 0, 'totalDiskon' => 0, 'totalRetur' => 0,
-            'omzetBersih'=> 0, 'totalHpp'    => 0, 'labaKotor'  => 0,
-            'totalPembelian' => 0,
+            'totalOmzet' => 0, 'totalDiskon' => 0, 'totalRetur' => 0, 'omzetBersih' => 0,
+            'totalHpp' => 0, 'totalLaba' => 0, 'totalTransaksi' => 0, 'rataRata' => 0,
         ];
  
         // ── Semua data dengan guard kosong ────────────────────────────────────
         $summary     = $this->safeArray(fn() => $this->repo->getSalesSummary($startDate, $endDate), $emptySummary);
-        $profitLoss  = $this->safeArray(fn() => $this->repo->getProfitLossSummary($startDate, $endDate), $emptyPL);
  
         $dailyTrend            = $this->safe(fn() => $this->repo->getDailySalesTrend($startDate, $endDate));
         $monthlyTrend          = $this->safe(fn() => $this->repo->getMonthlySalesTrend($year));
@@ -110,8 +105,6 @@ class SalesReportController extends Controller
         $returSummary          = $this->safe(fn() => $this->repo->getReturSummary($startDate, $endDate));
         $paymentMethods        = $this->safe(fn() => $this->repo->getSalesByPaymentMethod($startDate, $endDate));
         $voucherReport         = $this->safe(fn() => $this->repo->getVoucherUsageReport($startDate, $endDate));
-        $generalJournal        = $this->safe(fn() => $this->repo->getGeneralJournal($startDate, $endDate));
-        $trialBalance          = $this->safe(fn() => $this->repo->getTrialBalance());
  
         $availableYears = range(now()->year, now()->year - 4);
  
@@ -139,11 +132,12 @@ class SalesReportController extends Controller
             'stock_nilai_jual'   => $this->colSum($stockValuation, 'nilai_jual'),
             'stock_potensi_laba' => $this->colSum($stockValuation, 'potensi_laba'),
  
-            'journal_debit'      => $this->colSum($generalJournal, 'debit'),
-            'journal_credit'     => $this->colSum($generalJournal, 'credit'),
         ];
+        // the page lists the 100 most valuable goods; the totals above count all of them
+        $stockCount     = $stockValuation->count();
+        $stockValuation = $stockValuation->take(100);
  
-        $totals['monthly_bersih']  = $totals['monthly_omzet'] - $totals['monthly_diskon'];
+        $totals['monthly_bersih']  = $totals['monthly_omzet'] - $totals['monthly_diskon']; // total_diskon includes retur
         $totals['topgoods_margin'] = $totals['topgoods_omzet'] > 0
             ? round($totals['topgoods_laba'] / $totals['topgoods_omzet'] * 100, 1)
             : 0;
@@ -155,8 +149,7 @@ class SalesReportController extends Controller
             'topGoods', 'salesPerGood', 'salesByCategory', 'salesByBrand',
             'topMembers', 'memberReceivables',
             'purchaseByDistributor', 'stockValuation', 'returSummary',
-            'profitLoss', 'paymentMethods', 'voucherReport',
-            'generalJournal', 'trialBalance'
+            'paymentMethods', 'voucherReport', 'stockCount'
         ));
     }
 }
