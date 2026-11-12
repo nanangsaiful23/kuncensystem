@@ -14,6 +14,8 @@ Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cash
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
 Route::get('/reports/owner', 'OwnerSummaryController@index')->name('reports.owner');
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
+Route::get('/reports/reorder', 'ReorderController@index')->name('reports.reorder');
+Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports.reorder.export');
 
  
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');

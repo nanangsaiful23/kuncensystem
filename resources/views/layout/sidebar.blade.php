@@ -303,6 +303,7 @@
         <li class="{{ Request::is('admin/reports/owner*') ? 'active' : '' }}"><a href="{{ route('admin.reports.owner') }}"><i class="fa fa-dashboard"></i> Ringkasan Pemilik</a></li>
         <li class="{{ Request::is('admin/reports/sales*') ? 'active' : '' }}"><a href="{{ route('admin.reports.sales') }}"><i class="fa fa-shopping-cart"></i> Laporan Penjualan</a></li>
         <li class="{{ Request::is('admin/reports/movement*') ? 'active' : '' }}"><a href="{{ route('admin.reports.movement') }}"><i class="fa fa-refresh"></i> Perputaran Barang</a></li>
+        <li class="{{ Request::is('admin/reports/reorder*') ? 'active' : '' }}"><a href="{{ route('admin.reports.reorder') }}"><i class="fa fa-truck"></i> Rekomendasi Reorder</a></li>
        
       @endif
     </ul>
