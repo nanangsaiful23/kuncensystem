@@ -1,898 +1,787 @@
-<style type="text/css">
-  .select2-container--default .select2-selection--multiple .select2-selection__choice
-  {
-    background-color: rgb(60, 141, 188) !important;
-  }
+@include('layout.transaction.style')
 
-  .modal-body {
-    overflow-y: auto;
-    }
+<?php $canDiscount = isSuperadmin(); ?>
 
-    .modal-content {
-        /*width: 1500px;
-        margin-left: -500px;*/
-    }
-</style>
-<script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+<div class="loading-shell">
 
-<div class="panel-body">
-    <video id="preview" style="display: none; margin-top: 0px;"></video>
-    <div class="alert alert-danger alert-dismissible" id="message" style="display:none">
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-        <h4><i class="icon fa fa-warning"></i> Barang kosong</h4>
-        <div id="empty-item"></div>
+    {{-- CARI: barcode + nama barang digabung (sama seperti loading) --}}
+    <div class="search-bar" id="sr-wrap">
+        <h5 class="page-title">{{ $default['page_name'] }}</h5>
+        <span class="mode-switch" title="Ganti Jual / Retur (F6)">
+            <button type="button" id="mode-jual" class="on-jual" onclick="setMode('')">Jual</button>
+            <button type="button" id="mode-retur" onclick="setMode('retur_s')">Retur</button>
+        </span>
+        <span class="sdiv"></span>
+        <i class="fa fa-search" style="color:var(--clr-muted);font-size:14px;"></i>
+        <div class="sg">
+            <label for="all_search">Cari Barang</label>
+            <div class="iw">
+                <input type="text" id="all_search" autocomplete="off" placeholder="Scan barcode lalu Enter, atau ketik nama barang..."
+                       oninput="onSearchInput()" onkeydown="onSearchKeydown(event)">
+                <span class="si" onclick="focusSearch()" title="Fokus ke pencarian (F2)"><i class="fa fa-barcode"></i></span>
+            </div>
+        </div>
+        <span id="sr-busy"><i class="fa fa-spinner fa-spin"></i> Mencari...</span>
+        <span class="kbd-hint"><kbd>F2</kbd> cari &middot; <kbd>F3</kbd> / <kbd>&darr;</kbd> ke tabel &middot; <kbd>F6</kbd> jual/retur &middot; <kbd>F8</kbd> bayar &middot; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> proses</span>
+
+        <div class="sr-panel" id="sr-panel">
+            <div class="sr-head">
+                <span id="sr-info"></span>
+                <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> pilih &middot; <kbd>Insert</kbd> / <kbd>Shift</kbd>+<kbd>&uarr;&darr;</kbd> centang &middot; <kbd>Enter</kbd> tambahkan &middot; <kbd>Esc</kbd> tutup</span>
+            </div>
+            <div class="sr-list" id="sr-list"></div>
+            <div class="sr-foot">
+                <button type="button" class="sr-btn" onclick="srCheckAll()">Centang semua</button>
+                <button type="button" class="sr-btn primary is-empty" id="sr-add" onclick="srAddChecked()">
+                    <i class="fa fa-plus"></i> <span class="sr-lbl">Tambahkan</span><span class="sr-cnt"> (<span id="sr-count">0</span>)</span>
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="row">
-        <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
-            {!! Form::label('all_barcode', 'Cari barcode', array('class' => 'col-sm-4 control-label')) !!}
-            <div class="col-sm-8">
-                <input type="text" name="all_barcode" class="form-control" id="all_barcode" onchange="searchByBarcode('all_barcode')">
+
+    <div class="loading-body">
+
+        {{-- TABEL --}}
+        <div class="panel-table">
+            <div class="panel-table-header">
+                <h6><i class="fa fa-list-ul"></i> Daftar Barang</h6>
+                <span class="tbl-hint"><kbd>Enter</kbd> kolom berikut &middot; <kbd>&uarr;</kbd><kbd>&darr;</kbd> baris &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> kolom &middot; <kbd>Esc</kbd> cari &middot; <kbd>Alt</kbd>+<kbd>Del</kbd> hapus</span>
+                <span class="badge-count" id="badge-item-count">0 item</span>
             </div>
-        </div>
-        <div class="form-group col-sm-7" style="height: 40px!important; font-size: 20px;">
-            {!! Form::label('keyword', 'Cari keyword', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-8">
-                <input type="text" name="search_good" class="form-control" id="search_good">
-            </div>
-             <div class="modal modal-primary fade" id="modal_search">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span></button>
-                      <h4 class="modal-title">Hasil Keyword (klik nama barang)</h4>
-                  </div>
-                  <div class="modal-body">
-                    <div id="result_good"></div>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                  </div>
+            <div class="panel-table-scroll" id="table-scroll">
+                <table class="tbl-items">
+                    <thead>
+                        <tr>
+                            <th class="col-no">#</th>
+                            <th class="col-name">Nama Barang</th>
+                            <th class="col-num">Harga</th>
+                            <th class="col-qty">Jml</th>
+                            <th class="col-disc">Potongan</th>
+                            <th class="col-sum">Total</th>
+                            <th class="col-act"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-transaction"></tbody>
+                </table>
+                <div id="empty-hint"><i class="fa fa-barcode"></i> Belum ada barang. Scan barcode atau ketik nama barang di kolom cari.</div>
+
+                <div id="retur-wrap" style="display:none">
+                    <div class="retur-head"><i class="fa fa-undo"></i> RETUR (barang dikembalikan pembeli, mengurangi total)</div>
+                    <table class="tbl-items">
+                        <thead>
+                            <tr>
+                                <th class="col-no">#</th>
+                                <th class="col-name">Nama Barang</th>
+                                <th class="col-cond">Kondisi</th>
+                                <th class="col-num">Harga</th>
+                                <th class="col-qty">Jml</th>
+                                <th class="col-disc">Potongan</th>
+                                <th class="col-sum">Total</th>
+                                <th class="col-act"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-retur"></tbody>
+                    </table>
                 </div>
-              </div>
             </div>
         </div>
-        <div class="col-sm-12">
-            <div class="col-sm-6">
-                <div class="form-group col-sm-12">
-                    {!! Form::label('member_id', 'Member', array('class' => 'col-sm-3 control-label')) !!}
-                    <div class="col-sm-8">
-                        @if($SubmitButtonText == 'View')
-                            {!! Form::text('member', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                        @else
-                            <input type="text" name="search_member" class="form-control" id="search_member" onfocus="changeBackColor('search_member')" onfocusout="changeBackNorm('search_member')">
-                            {!! Form::hidden('member_id', '1', array('id' => 'member_id')) !!}
-                             <div class="modal modal-primary fade" id="modal_member">
-                              <div class="modal-dialog">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                      <span aria-hidden="true">&times;</span></button>
-                                      <h4 class="modal-title">Hasil Keyword (klik nama member)</h4>
-                                  </div>
-                                  <div class="modal-body">
-                                    <div id="result_member"></div>
-                                  </div>
-                                  <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                        @endif
+
+        {{-- SIDEBAR PEMBAYARAN --}}
+        <div class="panel-sidebar pos">
+            <div class="pos-total">
+                <div class="lbl">Total Akhir</div>
+                <input type="text" name="total_sum_price" id="total_sum_price" readonly tabindex="-1" value="0">
+            </div>
+
+            <div class="sidebar-card">
+                <div class="pos-sum-line"><span>Total harga</span><span id="show_item_price">0</span></div>
+                <div class="pos-sum-line"><span>Potongan per barang</span><span id="show_discount_items">0</span></div>
+                <input type="hidden" name="total_item_price" id="total_item_price" value="0">
+                <input type="hidden" name="total_discount_items_price" id="total_discount_items_price" value="0">
+                <input type="hidden" name="voucher_nominal" value="0">
+                {{ Form::hidden('type', 'normal') }}
+                <div class="field-row" style="margin-top:6px">
+                    <label for="total_discount_price">Potongan harga akhir</label>
+                    <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" value="0" autocomplete="off"
+                           style="text-align:right" oninput="recalc()" onblur="fmtField('total_discount_price')">
+                </div>
+            </div>
+
+            <div class="sidebar-card pos-pay">
+                <div class="field-row">
+                    <label for="money_paid">Bayar <kbd>F8</kbd></label>
+                    <input type="text" name="money_paid" class="form-control" id="money_paid" autocomplete="off" inputmode="numeric"
+                           oninput="recalc()" onblur="fmtField('money_paid')">
+                </div>
+                <div class="pay-sugg" id="pay-sugg"></div>
+                <div class="field-row">
+                    <label>Kembali</label>
+                    <div class="pos-change" id="show_change">0</div>
+                    <input type="hidden" name="money_returned" id="money_returned" value="0">
+                </div>
+            </div>
+
+            <div class="sidebar-card" style="flex:1;overflow-y:auto;">
+                <div class="field-row">
+                    <label>Member</label>
+                    <div class="mem-wrap">
+                        <input type="text" id="member_q" class="form-control" autocomplete="off" placeholder="Umum. Ketik nama member, Enter" onkeydown="onMemberKey(event)" oninput="onMemberInput()">
+                        <input type="hidden" name="member_id" id="member_id" value="1">
+                        <div class="mem-list" id="mem-list"></div>
                     </div>
+                    <span class="mem-tag" id="mem-tag">Umum</span>
+                    <button type="button" class="sr-btn" style="margin-left:4px" onclick="startCamera()">Scan kartu</button>
+                    <button type="button" class="sr-btn" onclick="stopCamera()">Stop</button>
+                    <video id="preview" style="display:none;width:100%;margin-top:4px"></video>
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="form-group col-sm-12">
-                    <div class="col-sm-4 btn btn-warning" onclick="startCamera()">Scan Barcode Member</div>
-                    <div class="col-sm-4 btn btn-warning" onclick="stopCamera()">Berhenti Scan</div>
-                </div>
-            </div>
-        </div>
-        <div class="form-group col-sm-5">
-            {!! Form::label('note', 'Keterangan', array('class' => 'col-sm-4 control-label')) !!}
-            <div class="col-sm-8">
-                @if($SubmitButtonText == 'View')
-                    {!! Form::text('note', null, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
-                @else
-                    {!! Form::text('note', null, array('class' => 'form-control', 'style' => 'height: 70px')) !!}
-                @endif
-            </div>
-        </div>
-        <div class="form-group col-sm-7">
-            {!! Form::label('payment', 'Jenis Pembayaran', array('class' => 'col-sm-3 control-label', 'style' => 'text-align: left')) !!}
-            <div class="col-sm-8">
-                <h5>(jika pembayaran hutang, pilih metode cash dan nominal uang isi sesuai dengan uang yang diterima)</h5>
-                <select class="form-control select2" style="width: 100%;" name="payment">
-                    <!-- <div> -->
+                <div class="field-row">
+                    <label>Jenis Pembayaran</label>
+                    <select class="form-control" name="payment" id="payment">
                         <option value="cash">Cash/Uang</option>
                         <option value="transfer">Transfer</option>
-                    <!-- </div> -->
-                </select>
-            </div>
-        </div>
-        <div class="form-group col-sm-5" style="font-size: 16px">
-            <input type="checkbox" name="is_promo" value="1"> Promo
-        </div>
-        <table class="table table-bordered table-striped" style="overflow-x: auto;">
-            <thead>
-                <th style="display: none;">Barcode</th>
-                <th>No</th>
-                <th>Nama</th>
-                <th>Jumlah</th>
-                <th>Harga</th>
-                <th>Potongan</th>
-                <th>Total Harga</th>
-                <th>Total Akhir</th>
-                <th>Hapus</th>
-            </thead>
-            <tbody id="table-transaction">
-                <?php $i = 1; ?>
-                <tr id="row-data-{{ $i }}">
-                    <td>{{ $i }}</td>
-                    <td style="display: none">
-                        {!! Form::textarea('barcodes[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'barcode-'.$i, 'style' => 'height: 70px')) !!}
-                    </td>
-                    <td width="30%">
-                        {!! Form::textarea('name_temps[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'name_temp-'.$i, 'style' => 'height: 70px')) !!}
-                        {!! Form::text('names[]', null, array('id'=>'name-' . $i, 'style' => 'display:none')) !!}
-                    </td>
-                    <td>
-                        <input type="text" name="quantities[]" class="form-control" id="quantity-{{ $i }}" onchange="checkDiscount('all_barcode', '{{ $i }}')" onkeyup="checkDiscount('all_barcode', '{{ $i }}')">
-                    </td>
-                    <td>
-                        {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
-                        {!! Form::text('prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-'.$i)) !!}
-                    </td>
-                    <td>
-                        @if(isSuperadmin())
-                            <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeyup="editPrice('all_barcode', '{{ $i }}')">
-                        @else
-                            {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
-                        @endif
-                    </td>
-                    <td>
-                        {!! Form::text('total_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_price-'.$i)) !!}
-                    </td>
-                    <td>
-                        {!! Form::text('sums[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum-'.$i)) !!}
-                    </td>
-                    <td><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('-{{ $i }}')"></i></td>
-                </tr>
-            </tbody>
-        </table>
-        <div class="col-sm-12">
-            <div class="col-sm-6" style="display: none">
-                <div class="form-group">
-                    {!! Form::label('total_item_price', 'Total Harga', array('class' => 'col-sm-5 control-label')) !!}
-                    <div class="col-sm-7">
-                        {!! Form::text('total_item_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_item_price')) !!}
-                    </div>
+                    </select>
+                    <small style="color:var(--clr-muted);font-size:11px">Hutang: pilih cash, isi uang sesuai yang diterima, dan pilih member.</small>
+                </div>
+                <div class="field-row">
+                    <label><input type="checkbox" name="is_promo" value="1" style="width:auto;height:auto;display:inline-block"> Promo</label>
+                </div>
+                <div class="field-row">
+                    <label>Keterangan</label>
+                    <textarea name="note" class="form-control" id="note" placeholder="Opsional..."></textarea>
                 </div>
             </div>
-            <div class="col-sm-6">
-                <div class="form-group">
-                {!! Form::label('total_discount_price', 'Potongan Harga Akhir', array('class' => 'col-sm-5 control-label')) !!}
-                    <div class="col-sm-7">
-                        <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" onchange="changeTotal()" onkeypress="changeTotal()" required="required" onkeyup="formatNumber('total_discount_price'); changeTotal()">
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="form-group">
-                    {!! Form::label('total_sum_price', 'Total Akhir', array('class' => 'col-sm-5 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
-                    <div class="col-sm-7">
-                        {!! Form::text('total_sum_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_sum_price', 'style' => "font-size: 40px; height: 40px;")) !!}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-12">
-            <div class="col-sm-6" style="display: none">
-                <div class="form-group">
-                    {!! Form::label('total_discount_items_price', 'Total Potongan Harga Per Barang', array('class' => 'col-sm-5 control-label')) !!}
-                    <div class="col-sm-7">
-                        {!! Form::text('total_discount_items_price', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_discount_items_price')) !!}
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6" style="display: none">
-                <div class="form-group">
-                    {!! Form::label('voucher', 'Potongan Voucher', array('class' => 'col-sm-5 control-label')) !!}
-                    <div class="col-sm-7">
-                        <input type="text" name="voucher_nominal" class="form-control" id="voucher_nominal">
-                        <div class="col-sm-2">
-                            <input type="text" name="voucher" class="form-control" id="voucher"><br>
-                            <div onclick="event.preventDefault(); checkVoucher();" class= 'btn btn-success btn-flat btn-block form-control'>Check Voucher</div>
-                        </div>
-                        <div class="col-sm-2">
-                        </div>
-                        <div class="col-sm-3" id="voucher_result">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-sm-offset-6">
-                <div class="form-group">
-                    {!! Form::label('money_paid', 'Bayar', array('class' => 'col-sm-5 control-label', 'style' => "font-size: 40px; height: 40px;")) !!}
-                    <div class="col-sm-7">
-                        <input type="text" name="money_paid" class="form-control" id="money_paid" onchange="changeReturn()" onkeypress="changeReturn()" required="required" onkeyup="formatNumber('money_paid'); changeReturn()" style="font-size: 40px; height: 40px;">
-                    </div>
-                </div>
-                <div class="form-group">
-                    {!! Form::label('money_returned', 'Kembali', array('class' => 'col-sm-5 control-label')) !!}
-                    <div class="col-sm-7">
-                        {!! Form::text('money_returned', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'money_returned')) !!}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {{ Form::hidden('type', 'normal') }}
-    </div>
 
-    <hr>
-    @if($SubmitButtonText == 'Edit')
-        {!! Form::submit($SubmitButtonText, ['class' => 'btn btn-warning btn-flat btn-block form-control',])  !!}
-    @elseif($SubmitButtonText == 'Tambah')
-        <div onclick="event.preventDefault(); submitForm(this);" class= 'btn btn-success btn-flat btn-block form-control' style="height: 80px; font-size: 40px;">Proses Transaksi</div>
-    @elseif($SubmitButtonText == 'View')
-    @endif
-    <hr>
-
-    <div class="row" style="background-color: yellow;">
-        <h3>Transaksi Retur</h3>
-        <div class="form-group col-sm-5" style="height: 40px!important; font-size: 20px;">
-            {!! Form::label('all_barcode_retur', 'Cari barcode', array('class' => 'col-sm-4 control-label')) !!}
-            <div class="col-sm-8">
-                <input type="text" name="all_barcode_retur" class="form-control" id="all_barcode_retur" onchange="searchByBarcode('all_barcode_retur')">
-            </div>
+            <button type="button" class="btn-submit tambah big" id="btn-process" onclick="event.preventDefault(); submitForm();">
+                <i class="fa fa-check-circle"></i> Proses Transaksi
+            </button>
+            {{ csrf_field() }}
         </div>
-        <div class="form-group col-sm-7" style="height: 40px!important; font-size: 20px;">
-            {!! Form::label('keyword_retur', 'Cari keyword', array('class' => 'col-sm-3 control-label')) !!}
-            <div class="col-sm-8">
-                <input type="text" name="search_good_retur" class="form-control" id="search_good_retur">
-            </div>
-             <div class="modal modal-primary fade" id="modal_search_retur">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span></button>
-                      <h4 class="modal-title">Hasil Keyword (klik nama barang)</h4>
-                  </div>
-                  <div class="modal-body">
-                    <div id="result_good_retur"></div>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div>
-        <table class="table table-bordered table-striped" style="overflow-x: auto;">
-            <thead>
-                <th>Barcode</th>
-                <th>Nama</th>
-                <th>Kondisi</th>
-                <th>Jumlah</th>
-                <th>Harga</th>
-                <th>Potongan</th>
-                <th>Total Harga</th>
-                <th>Total Akhir</th>
-                <th>Hapus</th>
-            </thead>
-            <tbody id="table-transaction-retur">
-                <?php $i = 1; ?>
-                <tr id="row-data-retur_s{{ $i }}">
-                    <td>
-                        {!! Form::textarea('barcodesretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'barcode-retur_s'.$i, 'style' => 'height: 70px')) !!}
-                    </td>
-                    <td width="30%">
-                        {!! Form::textarea('name_tempsretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'name_temp-retur_s'.$i, 'style' => 'height: 70px')) !!}
-                        {!! Form::text('namesretur_s[]', null, array('id'=>'name-retur_s' . $i, 'style' => 'display:none')) !!}
-                    </td>
-                    <td>
-                        <select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s{{ $i }}">
-                            <!-- <div> -->
-                                <option value="rusak">Rusak</option>
-                                <option value="not">Tidak Rusak</option>
-                            <!-- </div> -->
-                        </select>
-                    </td>
-                    <td>
-                        <input type="text" name="quantitiesretur_s[]" class="form-control" id="quantity-retur_s{{ $i }}" onchange="checkDiscount('all_barcode_retur', '{{ $i }}')">
-                    </td>
-                    <td>
-                        {!! Form::text('buy_pricesretur_s[]', null, array('id'=>'buy_price-retur_s' . $i, 'style' => 'display:none')) !!}
-                        {!! Form::text('pricesretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-retur_s'.$i)) !!}
-                    </td>
-                    <td>
-                        @if(isSuperadmin())
-                            <input type="text" name="discountsretur_s[]" class="form-control" id="discount-retur_s{{ $i }}" onchange="editPrice('all_barcode_retur', '{{ $i }}')">
-                        @else
-                            {!! Form::text('discountsretur_s[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-retur_s'.$i)) !!}
-                        @endif
-                    </td>
-                    <td>
-                        {!! Form::text('total_pricesretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_price-retur_s'.$i)) !!}
-                    </td>
-                    <td>
-                        {!! Form::text('sumsretur_s[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum-retur_s'.$i)) !!}
-                    </td>
-                    <td><i class="fa fa-times red" id="delete-retur_s{{ $i }}" onclick="deleteItem('-retur_s{{ $i }}')"></i></td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>
 
-{{ csrf_field() }}
-
-{!! Form::close() !!}
+<div id="toast-box"></div>
 
 @section('js-addon')
-    <script type="text/javascript">
-        let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
-        var total_item = 1;
-        var total_item_retur = 1;
-        $(document).ready (function (){
-            $('.select2').select2();
-            $("#all_barcode").focus();
-            $("#row-data-" + total_item).hide();
-            document.getElementById("total_discount_price").value = 0;
+<script>
+var CAN_DISCOUNT = @if($canDiscount) true @else false @endif;
+var URL_BARCODE  = "{!! url($role.'/good/searchByBarcode/') !!}/";
+var URL_KEYWORD  = "{!! url($role.'/good/searchByKeywordGoodUnit/') !!}/";
+var URL_MEMBERS  = "{!! url($role.'/member/searchByName/') !!}/";
+var URL_MEMBER_CODE = "{!! url($role.'/member/search/') !!}/";
 
-            $("#search_good").keyup( function(e){
-              if(e.keyCode == 13)
-              {
-                ajaxFunction("all_barcode");
-              }
-            });
+var mode = '';                    /* '' = jual, 'retur_s' = retur */
+var counter = { '': 0, 'retur_s': 0 };
+var sr = { timer:null, seq:0, items:[], active:-1, open:false, query:'' };
 
-            $("#search_good_retur").keyup( function(e){
-              if(e.keyCode == 13)
-              {
-                ajaxFunction("all_barcode_retur");
-              }
-            });
+/* ═══════ ANGKA ═══════════════════════════════════════════════════════════ */
+function num(v){ var n = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isFinite(n) ? n : 0; }
+function qtyNum(v){ var n = parseFloat(String(v == null ? '' : v).trim().replace(',', '.')); return isFinite(n) ? n : 0; }
+function r2(n){ return Math.round(n * 100) / 100; }
+function fmt(n){ return r2(n).toLocaleString('en-US', { maximumFractionDigits:2 }); }
+function plain(n){ return String(r2(n)); }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function $id(i){ return document.getElementById(i); }
+function fmtField(id){ var el = $id(id); if (el && el.value !== '') { el.value = fmt(num(el.value)); } recalc(); }
 
-            $("#search_member").keyup( function(e){
-              if(e.keyCode == 13)
-              {
-                searchMember();
-              }
-            });
+function notify(msg, type){
+    var $t = $('<div class="toast-item ' + (type || 'info') + '"></div>').text(msg);
+    $('#toast-box').append($t);
+    setTimeout(function(){ $t.fadeOut(300, function(){ $t.remove(); }); }, 4200);
+}
+
+/* ═══════ INIT ════════════════════════════════════════════════════════════ */
+$(document).ready(function(){
+    $('#all_search').focus();
+    $('#transaction-form').on('keydown', function(e){
+        /* Enter tidak boleh mengirim form secara tidak sengaja */
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault();
+    });
+    recalc();
+});
+
+/* ═══════ JUAL / RETUR ════════════════════════════════════════════════════ */
+function setMode(k){
+    mode = k;
+    $('#mode-jual').toggleClass('on-jual', k === '');
+    $('#mode-retur').toggleClass('on-retur', k === 'retur_s');
+    $('#all_search').attr('placeholder', k === 'retur_s'
+        ? 'MODE RETUR: barang yang dicari masuk daftar retur...'
+        : 'Scan barcode lalu Enter, atau ketik nama barang...');
+    if (k === 'retur_s') $('#retur-wrap').show();
+    focusSearch();
+}
+
+/* ═══════ BARIS ═══════════════════════════════════════════════════════════ */
+function tbodyOf(k){ return $(k === 'retur_s' ? '#table-retur' : '#table-transaction'); }
+
+function rowHtml(k, n, it){
+    var s = k + n;
+    var cond = k ? '<td class="col-cond"><select class="fc" name="conditionsretur_s[]" id="condition-' + s + '"><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></select></td>' : '';
+    var stockTxt = '';
+    if (!k && it.stock !== undefined && it.stock !== null && it.stock !== '') {
+        var st = parseFloat(it.stock);
+        stockTxt = ' &middot; <span class="' + (st <= 0 ? 'low' : '') + '">stok ' + esc(fmt(st)) + '</span>';
+    }
+    return '<tr id="row-' + s + '" class="group-odd' + (k ? ' retur-row' : '') + '" data-k="' + k + '" data-n="' + n + '">'
+    + '<td class="col-no td-no" id="no-' + s + '"></td>'
+    + '<td class="col-name"><div class="cell-txt nm">' + esc(it.name + ' ' + it.unit) + '<small>' + esc(it.code || '') + stockTxt + '</small></div>'
+    +   '<input type="hidden" name="barcodes' + k + '[]" id="barcode-' + s + '" value="' + esc(it.good_unit_id) + '">'
+    +   '<input type="hidden" name="names' + k + '[]" id="name-' + s + '" value="' + esc(it.good_id) + '">'
+    +   '<input type="hidden" name="name_temps' + k + '[]" id="name_temp-' + s + '" value="' + esc(it.name + ' ' + it.unit) + '">'
+    +   '<input type="hidden" name="buy_prices' + k + '[]" id="buy_price-' + s + '" value="' + esc(it.buy_price) + '">'
+    +   '<input type="hidden" name="total_prices' + k + '[]" id="total_price-' + s + '">'
+    + '</td>'
+    + cond
+    + '<td class="col-num"><input type="text" class="fc num" name="prices' + k + '[]" id="price-' + s + '" value="' + esc(fmt(num(it.price))) + '" readonly tabindex="-1"></td>'
+    + '<td class="col-qty"><input type="text" class="fc qty" name="quantities' + k + '[]" id="quantity-' + s + '" value="1" autocomplete="off" inputmode="decimal" oninput="calcRow(\'' + k + '\',' + n + ')"></td>'
+    + '<td class="col-disc"><input type="text" class="fc num" name="discounts' + k + '[]" id="discount-' + s + '" value="0" autocomplete="off"' + (CAN_DISCOUNT ? ' oninput="calcRow(\'' + k + '\',' + n + ')"' : ' readonly tabindex="-1"') + '></td>'
+    + '<td class="col-sum"><input type="text" class="fc num sum" name="sums' + k + '[]" id="sum-' + s + '" readonly tabindex="-1"></td>'
+    + '<td class="col-act"><button type="button" class="btn-delete" tabindex="-1" onclick="deleteRow(\'' + k + '\',' + n + ')" title="Hapus (Alt+Del)"><i class="fa fa-trash"></i></button></td>'
+    + '</tr>';
+}
+
+function addRow(it){
+    var k = mode;
+    /* barang yang sama (satuan & harga sama) di tabel yang sama: jumlah ditambah 1 */
+    var dup = null;
+    tbodyOf(k).find('tr').each(function(){
+        var n = $(this).data('n'), s = k + n;
+        if ($id('barcode-' + s).value === String(it.good_unit_id) && num($id('price-' + s).value) === num(it.price)) { dup = n; return false; }
+    });
+    if (dup !== null) {
+        var q = $id('quantity-' + k + dup);
+        q.value = r2(qtyNum(q.value) + 1);
+        calcRow(k, dup);
+        flashRow(k, dup);
+        notify('"' + it.name + ' ' + it.unit + '" sudah ada, jumlah jadi ' + q.value, 'info');
+        return;
+    }
+
+    var n = ++counter[k];
+    tbodyOf(k).prepend(rowHtml(k, n, it));      /* barang terbaru di paling atas */
+    if (k === 'retur_s') $('#retur-wrap').show();
+    calcRow(k, n);
+    renumber(k);
+    flashRow(k, n);
+    if (!k && it.stock !== undefined && it.stock !== null && it.stock !== '' && parseFloat(it.stock) <= 0) {
+        notify('Stok ' + it.name + ' ' + it.unit + ': ' + fmt(parseFloat(it.stock)) + ' (habis / minus)', 'warning');
+    }
+}
+
+function renumber(k){
+    var $rows = tbodyOf(k).find('tr'), total = $rows.length;
+    $rows.each(function(i){
+        var no = total - i;
+        $('#no-' + k + $(this).data('n')).text(no);
+        $(this).removeClass('group-odd group-even').addClass(no % 2 ? 'group-odd' : 'group-even');   /* ganjil putih, genap biru muda */
+    });
+    updateBadge();
+}
+
+function updateBadge(){
+    var a = $('#table-transaction tr').length, b = $('#table-retur tr').length;
+    $('#badge-item-count').text(a + ' item' + (b ? ' + ' + b + ' retur' : ''));
+    $('#empty-hint').toggle(a === 0 && b === 0);
+    if (b === 0 && mode !== 'retur_s') $('#retur-wrap').hide();
+}
+
+function flashRow(k, n){
+    var $tr = $('#row-' + k + n);
+    $tr.addClass('flash');
+    setTimeout(function(){ $tr.removeClass('flash'); }, 1500);
+    if ($tr[0] && $tr[0].scrollIntoView) $tr[0].scrollIntoView({ block:'nearest' });
+}
+
+function deleteRow(k, n){
+    var $tr = $('#row-' + k + n);
+    if (!$tr.length) return;
+    var name = $id('name_temp-' + k + n).value;
+    if (!confirm('Hapus "' + name + '" dari daftar?')) return;
+    var $rows = dataRows(), ri = $rows.index($tr[0]);
+    $tr.remove();
+    renumber(k);
+    recalc();
+    var $left = dataRows();
+    if ($left.length) focusCtl(ctl($left.eq(Math.min(ri, $left.length - 1)), 'quantity')); else focusSearch();
+}
+
+function calcRow(k, n){
+    var s = k + n;
+    var p = num($id('price-' + s).value), q = qtyNum($id('quantity-' + s).value), d = num($id('discount-' + s).value);
+    var tot = r2(p * q);
+    $id('total_price-' + s).value = fmt(tot);
+    $id('sum-' + s).value = fmt(tot - d);
+    $('#quantity-' + s).toggleClass('is-zero', q <= 0);
+    recalc();
+}
+
+function recalc(){
+    var item = 0, sum = 0, disc = 0;
+    $('#table-transaction tr, #table-retur tr').each(function(){
+        var k = String($(this).data('k')), n = $(this).data('n'), s = k + n;
+        var p = num($id('price-' + s).value), q = qtyNum($id('quantity-' + s).value), d = num($id('discount-' + s).value);
+        var sg = k ? -1 : 1;
+        item += sg * r2(p * q);
+        sum  += sg * (r2(p * q) - d);
+        disc += d;
+    });
+    var fd = num($('#total_discount_price').val());
+    var total = r2(sum - fd);
+
+    $('#total_item_price').val(fmt(item));
+    $('#total_discount_items_price').val(fmt(disc));
+    $('#total_sum_price').val(fmt(total));
+    $('#show_item_price').text(fmt(item));
+    $('#show_discount_items').text(fmt(disc));
+
+    paintSuggestions(total);
+
+    var paidTxt = $.trim($('#money_paid').val());
+    var back = paidTxt === '' ? 0 : r2(num(paidTxt) - total);
+    $('#money_returned').val(fmt(back));
+    $('#show_change').text((back < 0 ? 'Kurang ' : '') + fmt(Math.abs(back))).toggleClass('short', back < 0);
+}
+
+/* ═══════ SARAN NILAI BAYAR: uang pas, lalu pembulatan ke atas (2rb, 5rb, 10rb, 20rb, 50rb, 100rb) ═══ */
+var pay_options = [];
+function paintSuggestions(total){
+    var opts = [];
+    if (total > 0) {
+        opts.push(total);
+        [1000, 2000, 5000, 10000, 20000, 50000, 100000].forEach(function(d){
+            var v = Math.ceil(total / d) * d;
+            if (v > total && opts.indexOf(v) === -1) opts.push(v);
         });
-
-        document.addEventListener('keydown', function(event) {
-            if (event.keyCode == 113) {  //F2
-                $("#all_barcode").focus();
-            }
-            else if (event.keyCode == 115) { //F4
-                $("#search_good").focus();
-            }
-            else if (event.keyCode == 119) { //F8
-                $("#money_paid").focus();
-            }
-        }, true);
-
-        $('#modal_search').on('shown.bs.modal', function() {
-          $('#search_good').focus();
-        })
-
-        function fillItem(name, good)
-        {
-            var bool = false;
-            var type = '';
-            var items = total_item;
-
-            if(name == 'all_barcode_retur')
-            {
-                type = 'retur_s';
-                items = total_item_retur;
-            }
-
-            if(good.length != 0)
-            {
-                for (var i = 1; i <= items; i++)
-                {
-                    if(document.getElementById("barcode-" + type + i))
-                    {
-                        if(document.getElementById("barcode-" + type + i).value != '' && document.getElementById("barcode-" + type + i).value == good.getPcsSellingPrice.id && document.getElementById("price-" + type + i).value == good.getPcsSellingPrice.selling_price)
-                        {
-                            temp_total = document.getElementById("quantity-" + type + i).value;
-                            temp_total = parseInt(temp_total) + 1;
-                            document.getElementById("quantity-" + type + i).value = temp_total;
-                            bool = true;
-
-                            editPrice(name, i);
-                            break;
-                        }
-                    }
-                }
-
-                if(bool == false)
-                {
-                    document.getElementById("name-" + type + items).value = good.id;
-                    document.getElementById("name_temp-" + type + items).value = good.name + " " + good.getPcsSellingPrice.name;
-                    document.getElementById("barcode-" + type + items).value = good.getPcsSellingPrice.id;
-                    document.getElementById("quantity-" + type + items).value = 1;
-
-                    document.getElementById("price-" + type + items).value = good.getPcsSellingPrice.selling_price;
-                    document.getElementById("discount-" + type + items).value = '0';
-                    document.getElementById("buy_price-" + type + items).value = good.getPcsSellingPrice.buy_price;
-                    document.getElementById("total_price-" + type + items).value = good.getPcsSellingPrice.selling_price;
-
-                    $("#row-data-" + items).show();
-                    editPrice(name, items);
-
-                    document.getElementById(name).value = '';
-                    $("#" + name).focus();
-
-                }
-                document.getElementById(name).value = '';
-                $("#" + name).focus();
-            }
-            else
-            {
-                alert('Barang tidak ditemukan');
-                document.getElementById("barcode-" + type + index).value = '';
-                document.getElementById("name-" + type + index).focus();
-            }
-        }
-
-        function searchByKeyword(name, good_unit_id)
-        {
-            type = '';
-            if(name == 'all_barcode_retur')
-            {
-                type = '_retur';
-            }
-            
-            $.ajax({
-              url: "{!! url($role . '/good/searchByGoodUnit/') !!}/" + good_unit_id,
-              success: function(result){
-                var good = result.good;
-                if(good.stock <= 0)
-                {
-                    document.getElementById("message").style.display = "block";
-                    htmlResult2 = "> " + good.name + " stock: " + good.stock + "<br>";
-                    $("#empty-item").append(htmlResult2);
-                }
-                fillItem(name, result.good);
-                $('#modal_search' + type).modal('hide');
-                $('#search_good' + type).val('');
-                $('#result_good' + type).val('');
-            },
-              error: function(){
-              }
-            });
-        }
-
-        function searchByBarcode(name) 
-        {
-            $.ajax({
-              url: "{!! url($role . '/good/searchByBarcode/') !!}/" + $("#" + name).val(),
-              success: function(result){
-                console.log(result);
-                var good = result.good;
-                if(good != null)
-                {
-                    fillItem(name, result.good)
-                }
-              }, 
-              error: function(){
-              }
-            });
-        }
-
-        function checkDiscount(name_div, index)
-        {
-            console.log(name_div + ' ' + index);
-            // type = '';
-            // if(name_div == 'all_barcode_retur')
-            // {
-            //     type = 'retur_s';
-            // }
-            // console.log(type + ' ' + index);
-            // good_id = document.getElementById("name-" + type + index).value;
-            // name = document.getElementById("name_temp-" + type + index).value;
-            // quantity = document.getElementById("quantity-" + type + index).value;
-            // price = document.getElementById("price-" + type + index).value;
-            // $.ajax({
-            //   url: "{!! url($role . '/good/checkDiscount/') !!}/" + good_id + '/' + quantity + '/' + price,
-            //   success: function(result){
-            //     var discount = result.discount;
-
-            //     document.getElementById("discount-" + type + index).value = discount;
-
-            //     if(discount != '0')
-            //     {
-            //         document.getElementById("row-data-" + type + index).style.background = 'green';
-            //     }
-
-            //     if(result.stock < quantity)
-            //     {
-            //         document.getElementById("message").style.display = "block";
-            //         htmlResult2 = "> " + name + " stock: " + result.stock + "<br>";
-            //         $("#empty-item").append(htmlResult2);
-            //     }
-
-                editPrice(name_div, index);
-            //   },
-            //   error: function(){
-            //   }
-            // });
-        }
-
-        function changeTotal()
-        {
-            total_item_price = parseInt(0);
-            total_discount_price = parseInt(0);
-            total_sum_price = parseInt(0);
-            total_discount_items = parseInt(0);
-
-            for (var i = 1; i <= total_item; i++)
-            {
-                if(document.getElementById("barcode-" + i))
-                {
-                    if(document.getElementById("barcode-" + i).value != '')
-                    {
-                        items = document.getElementById("price-" + i).value * document.getElementById("quantity-" + i).value;
-
-                        total_item_price += parseInt(items);
-
-                        sums = document.getElementById("sum-" + i).value;
-                        sums = sums.replace(/,/g,'');
-
-                        total_sum_price += parseInt(sums);
-
-                        discount = document.getElementById("discount-" + i).value;
-                        discount = discount.replace(/,/g,'');
-
-                        total_discount_items += parseInt(discount);
-                    }
-                }
-            }
-
-            for (var i = 1; i <= total_item_retur; i++)
-            {
-                if(document.getElementById("barcode-retur_s" + i))
-                {
-                    if(document.getElementById("barcode-retur_s" + i).value != '')
-                    {
-                        items = document.getElementById("price-retur_s" + i).value * document.getElementById("quantity-retur_s" + i).value;
-
-                        total_item_price -= parseInt(items);
-
-                        sums = document.getElementById("sum-retur_s" + i).value;
-                        sums = sums.replace(/,/g,'');
-
-                        total_sum_price -= parseInt(sums);
-
-                        discount = document.getElementById("discount-retur_s" + i).value;
-                        discount = discount.replace(/,/g,'');
-
-                        total_discount_items += parseInt(discount);
-                    }
-                }
-            }
-
-            discount = document.getElementById("total_discount_price").value;
-            discount = discount.replace(/,/g,'');
-            total_sum_price = parseInt(total_sum_price) - parseInt(discount);
-
-            document.getElementById("total_item_price").value = total_item_price;
-            document.getElementById("total_discount_items_price").value = total_discount_items;
-            document.getElementById("total_sum_price").value = total_sum_price - $('#voucher_nominal').val();
-
-            formatNumber("total_item_price");
-            formatNumber("total_discount_items_price");
-            formatNumber("total_sum_price");
-
-            changeReturn();
-        }
-
-        function changeReturn()
-        {
-            total = document.getElementById("money_paid").value;
-            total = total.replace(/,/g,'');
-
-            sum = document.getElementById("total_sum_price").value;
-            sum = sum.replace(/,/g,'');
-            money_returned = parseInt(total) - parseInt(sum);
-
-            document.getElementById("money_returned").value = money_returned;
-            formatNumber("money_returned");
-        }
-
-        function submitForm(btn)
-        {
-            if($('#money_paid').val() != '' && $('#total_discount_price').val() != '')
-            {
-                if(parseInt(unFormatNumber($('#money_paid').val())) < parseInt(unFormatNumber($('#total_sum_price').val())) && ($('#all_member').val() == '1' && $('#member_name').val() == ''))
-                {
-                    alert('Jumlah pembayaran kurang dari total belanja. Silahkan pilih member');
-                }
-                else
-                {
-                    btn.disabled = true;
-                    document.getElementById('transaction-form').submit();
-                    // alert('hay');
-                }
-            }
-            else
-            {
-                alert('Silahkan masukkan jumlah uang dan potongan toko');
-            }
-        }
-
-        function formatNumber(name)
-        {
-            num = document.getElementById(name).value;
-            num = num.toString().replace(/,/g,'');
-            document.getElementById(name).value = num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
-        }
-
-        function unFormatNumber(num)
-        {
-            return num.replace(/,/g,'');
-        }
-
-        function deleteItem(index)
-        {
-            $("#row-data" + index).remove();
-            changeTotal();
-            for (var i = 1; i <= total_item; i++)
-            {}
-        }
-
-        function editPrice(name, index)
-        {
-            temp1=parseInt(index)+1
-            var type = '';
-            var items = total_item;
-            var td_rusak = '';
-            if(name == 'all_barcode_retur')
-            {
-                type = 'retur_s';
-                items = total_item_retur;
-                td_rusak = '<td><select class="form-control select2" style="width: 100%;" name="conditionsretur_s[]" id="conditionretur_s' + temp1 + '"><option value="rusak">Rusak</option><option value="not">Tidak Rusak</option></select></td>';
-            }
-            console.log(name);
-
-            document.getElementById("total_price-" + type + index).value = (unFormatNumber(document.getElementById("price-" + type + index).value) * unFormatNumber(document.getElementById("quantity-" + type + index).value));
-
-            document.getElementById("sum-" + type + index).value = document.getElementById("total_price-" + type + index).value - unFormatNumber(document.getElementById("discount-" + type + index).value);
-
-            formatNumber("total_price-" + type + index);
-            formatNumber("sum-" + type + index);
-            formatNumber("discount-" + type + index);
-
-            changeTotal();
-
-            @if(isSuperadmin())
-                htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td>' + temp1 + '</td><td style="display: none"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1 + '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1+'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1+'" onchange="editPrice(\'' + name + '\', \'' + type + temp1 + '\')" onkeyup="editPrice(\'' + name + '\', \'' + type + temp1 + '\')"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1+ '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1+'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+'" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
-            @else
-                htmlResult = '<tr id="row-data' + "-" + type + temp1 + '"><td>' + temp1 + '</td><td style="display: none"><input type="text" name="barcodes' + type + '[]" class="form-control" id="barcode-' + type + temp1+ '" readonly="readonly"></td><td width="30%"><textarea  class="form-control" readonly="readonly" id="name_temp-' + type + temp1 + '" name="name_temps' + type + '[]" type="text" style="height: 70px"></textarea><input id="name-' + type + temp1 + '" name="names' + type + '[]" type="text" style="display:none"></td>' + td_rusak + '<td><input type="text" name="quantities' + type + '[]" class="form-control" id="quantity-' + type + temp1 +'" onchange="checkDiscount(\'' + name + '\', \'' + temp1 + '\')" onkeyup="checkDiscount(\'' + name + '\', \'' + temp1 + '\')"></td><td><input id="buy_price-' + type + temp1 + '" name="buy_prices' + type + '[]" type="text" style="display:none"><input class="form-control" readonly="readonly" id="price-' + type +temp1 + '" name="prices' + type + '[]" type="text"></td><td><input type="text" name="discounts' + type + '[]" class="form-control" id="discount-' + type + temp1 +'" readonly="readonly" value="0"></td><td><input class="form-control" readonly="readonly" id="total_price-' + type + temp1 + '" name="total_prices' + type + '[]" type="text"></td><td><input class="form-control" readonly="readonly" id="sum-' + type + temp1 +'" name="sums' + type + '[]" type="text"></td><td><i class="fa fa-times red" id="delete-' + type + temp1+ '" onclick="deleteItem(\'-' + type + temp1 + '\')"></i></td></tr>';
-            @endif
-            htmlResult += "<script>$('#type-" + type + temp1 + "').select2();<\/script>";
-           
-            if(index == items)
-            {
-                if(name == 'all_barcode_retur')
-                {
-                    total_item_retur += 1;
-                    $("#table-transaction-retur").prepend(htmlResult);
-                }
-                else
-                {
-                    total_item += 1;
-                    $("#table-transaction").prepend(htmlResult);
-                }
-
-                $("#row-data-" + total_item).hide();
-            }
-            document.getElementById(name).value = '';
-            $("#" + name).focus();
-
-        }
-
-        function ajaxFunction(name)
-        {
-            type = '';
-            if(name == 'all_barcode_retur')
-            {
-                type = '_retur';
-            }
-            
-            $('#modal_search' + type).modal('show');   
-
-              $.ajax({
-                url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + $("#search_good" + type).val(),
-                success: function(result){
-                    htmlResult = '';
-
-                    htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
-                  var r = result.good_units;
-
-                  for (var i = 0; i < r.length; i++) {
-                    if(r[i].stock == 0) 
-                    {
-                        color = '#D1D3D4';
-                    }
-                    else if(r[i].stock < 0) 
-                    {
-                        color = '#D9C4B0';
-                    }
-                    else
-                    {
-                        color = '#9EBC8A';
-                    }
-                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
-                  }
-                  $("#result_good" + type).html(htmlResult);
-                  $('.modal-body').css('height',$( window ).height()*0.5);
-                },
-                error: function(){
-                    console.log('error');
-                }
-              });
-        }
-
-        function searchMember()
-        {            
-            $('#modal_member').modal('show');   
-
-              $.ajax({
-                url: "{!! url($role . '/member/searchByName/') !!}/" + $("#search_member").val(),
-                success: function(result){
-                    htmlResult = '';
-
-                    htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
-                  var r = result.members;
-
-                  for (var i = 0; i < r.length; i++) {
-                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; padding: 5px;' onclick='setMember(\"" + r[i].id + "\",\"" + r[i].name + "\")'>" + r[i].name + " (" + r[i].address + ")</textarea>";
-                  }
-                  $("#result_member").html(htmlResult);
-                  $("#search_member").val('');
-                  $("#member_id").val('1');
-                  $('.modal-body').css('height',$( window ).height()*0.5);
-                },
-                error: function(){
-                    console.log('error');
-                }
-              });
-        }
-
-        function setMember(id, name)
-        {
-            $('#member_id').val(id);
-            $("#search_member").val(name);
-            $('#modal_member').modal('hide');
-        }
-
-        function ajaxButton(keyword)
-        {
-            name = "all_barcode";
-            $('#modal_search').modal('show');   
-              $.ajax({
-                url: "{!! url($role . '/good/searchByKeywordGoodUnit/') !!}/" + keyword,
-                success: function(result){
-                    htmlResult = '';
-
-                    htmlResult += "<style type='text/css'>.modal-div:hover { background-color: white; }</style>";
-                  var r = result.good_units;
-
-                  for (var i = 0; i < r.length; i++) {
-                    if((i%2) == 0) 
-                    {
-                        color = '#FFF1CE';
-                    }
-                    else color = "#FDEFF4";
-                    htmlResult += "<textarea class='col-sm-12 modal-div' style='display:inline-block; color:black; cursor: pointer; min-height:40px; max-height:80px; background-color:" + color + "; padding: 5px;' onclick='searchByKeyword(\"" + name + "\",\"" + r[i].good_unit_id + "\")'>" + r[i].name + " " + r[i].unit + "</textarea>";
-                  }
-                  $("#result_good").html(htmlResult);
-                  $('.modal-body').css('height',$( window ).height()*0.5);
-                },
-                error: function(){
-                    console.log('error');
-                }
-              });
-        }
-
-        function checkVoucher()
-        {
-            if(total_item == 1 && total_item_retur == 1)
-            {
-                alert('Silahkan pilih barang');
-            }
-            else
-            {
-
-              $.ajax({
-                url: "{!! url($role . '/voucher/searchByCode/') !!}/" + $('#voucher').val(),
-                success: function(result){
-                    var r = result.voucher;
-                    console.log(result);
-                    if(result.voucher != null)
-                    {
-                        if(r.type == 'discount')
-                        {
-                            $("#voucher_result").html("Diskon sebesar " + r.nominal + " %");
-                            potongan = parseInt(unFormatNumber($('#total_sum_price').val())) * r.nominal / 100;
-                            total = parseInt(unFormatNumber($('#total_sum_price').val())) - potongan;
-                            $('#voucher_result').css('background-color', '#DADDB1');
-                            $('#voucher_result').css('height',$( window ).height()*0.1);
-                        }
-                        else
-                        {
-                            $("#voucher_result").html("Potongan sebesar Rp" + r.nominal);
-                            potongan = r.nominal;
-                            total = parseInt(unFormatNumber($('#total_sum_price').val())) - potongan;
-                            $('#voucher_result').css('background-color', '#DADDB1');
-                            $('#voucher_result').css('height',$( window ).height()*0.1);
-                        }
-                        $('#total_sum_price').val(total);
-                        $('#voucher_nominal').val(potongan);
-                    }
-                    else
-                    {
-                      $("#voucher_result").html(result.message);
-                      $('#voucher_result').css('background-color', '#FF6969');
-                      $('#voucher_result').css('height',$( window ).height()*0.1);
-                      $('#voucher_nominal').val(0);
-                    }
-                },
-                error: function(){
-                    console.log('error');
-                }
-              }); 
-            }
-        }
-
-        function startCamera()
-        {    
-            $('#preview').show();
-          scanner.addListener('scan', function (content) {
-            console.log(content);
-            $.ajax({
-                url: "{!! url($role . '/member/search/') !!}/" + content,
-                success: function(result){
-                    if(result.member != null)
-                    {
-                        $("#all_member").val(result.member.id).change(); 
-                    }
-                    else
-                    {
-                        alert('Member tidak ditemukan');
-                    }
-                    scanner.stop();
-                    $('#preview').hide();
-                },
-                error: function(){
-                    console.log('error');
-                }
-              });
-          });
-          Instascan.Camera.getCameras().then(function (cameras) {
-            if (cameras.length > 0) {
-              scanner.start(cameras[0]);
+        opts = opts.slice(0, 6);
+    }
+    pay_options = opts;
+    var h = '';
+    for (var i = 0; i < opts.length; i++) {
+        h += '<button type="button" class="pay-chip' + (i === 0 ? ' exact' : '') + '" data-i="' + i + '" tabindex="-1">'
+           + (i === 0 ? 'Uang pas ' : '') + esc(fmt(opts[i])) + '<kbd>Alt+' + (i + 1) + '</kbd></button>';
+    }
+    $('#pay-sugg').html(h);
+}
+function pickPay(i){
+    if (pay_options[i] === undefined) return;
+    $('#money_paid').val(fmt(pay_options[i]));
+    recalc();
+    $('#money_paid').focus().select();
+}
+$(document).on('mousedown', '.pay-chip', function(e){ e.preventDefault(); });
+$(document).on('click', '.pay-chip', function(){ pickPay(parseInt($(this).data('i'), 10)); });
+document.addEventListener('keydown', function(e){
+    if (e.altKey && !e.ctrlKey && e.keyCode >= 49 && e.keyCode <= 54) { e.preventDefault(); pickPay(e.keyCode - 49); }
+}, true);
+
+/* ═══════ PENCARIAN TERPADU ═══════════════════════════════════════════════
+   - Angka saja (>= 6 digit) dianggap barcode: HANYA diproses saat Enter (scanner mengirim Enter),
+     cocok -> langsung masuk tabel, fokus tetap di kolom cari agar bisa scan terus.
+   - Selain itu keyword: hasil tampil di panel (nama, harga, stok), bisa dicentang beberapa sekaligus.
+   ═══════════════════════════════════════════════════════════════════════ */
+function focusSearch(){ $('#all_search').focus().select(); }
+function isBarcodeLike(v){ return /^\d{6,}$/.test(v); }
+
+function onSearchInput(){
+    clearTimeout(sr.timer);
+    var v = $.trim($('#all_search').val());
+    if (!v) { sr.seq++; abortSearch(); closeResults(); return; }
+    if (isBarcodeLike(v)) { closeResults(); return; }          /* tunggu Enter dari scanner */
+    if (v.length < MIN_KEYWORD) {                               /* kurang dari 3 huruf: belum cari, batalkan pencarian lama */
+        sr.seq++; abortSearch();
+        showHint('Ketik minimal ' + MIN_KEYWORD + ' huruf untuk mencari...');
+        return;
+    }
+    sr.timer = setTimeout(function(){ keywordSearch(v, false); }, 350);
+}
+
+var MIN_KEYWORD = 3;
+function abortSearch(){ if (sr.xhr && sr.xhr.abort) { try { sr.xhr.abort(); } catch (e) {} } sr.xhr = null; }
+function showHint(msg){
+    sr.open = true; sr.query = ''; sr.items = []; sr.active = -1;
+    $('#sr-panel').show();
+    $('#sr-info').text('');
+    $('#sr-list').html('<div class="sr-state">' + esc(msg) + '</div>');
+    updateSrFoot();
+}
+
+function handleSearchEnter(){
+    clearTimeout(sr.timer);
+    var v = $.trim($('#all_search').val());
+    if (!v) return;
+
+    if (isBarcodeLike(v)) { barcodeSearch(v); return; }
+
+    if (v.length < MIN_KEYWORD) { showHint('Ketik minimal ' + MIN_KEYWORD + ' huruf untuk mencari...'); return; }
+
+    if (!sr.open || sr.query !== v) { keywordSearch(v, true); return; }
+
+    var ids = checkedItems();
+    if (!ids.length) { if (sr.active >= 0 && sr.items[sr.active]) ids = [sr.items[sr.active]]; }
+    if (ids.length) addPicked(ids);
+}
+
+function barcodeSearch(v){
+    $('#all_search').val('');                                 /* siap untuk scan berikutnya */
+    closeResults();
+    $.ajax({
+        url: URL_BARCODE + encodeURIComponent(v),
+        success: function(r){
+            var g = r && r.good;
+            if (g && g.getPcsSellingPrice) {
+                var u = g.getPcsSellingPrice;
+                addRow({ good_id:g.id, good_unit_id:u.id, name:g.name, unit:u.name, code:g.code, price:u.selling_price, buy_price:u.buy_price, stock:g.stock });
+                focusSearch();
             } else {
-              console.error('No cameras found.');
+                notify('Barcode ' + v + ' tidak ditemukan', 'error');
+                $('#all_search').val(v);
+                keywordSearch(v, false);
             }
-          }).catch(function (e) {
-            console.error(e);
-          });
-        }
+        },
+        error: function(){ notify('Gagal mengambil data barcode ' + v, 'error'); $('#all_search').val(v).select(); }
+    });
+}
 
-        function stopCamera()
-        {
-          // let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
-            scanner.stop();
-            $('#preview').hide();
-        }
-    </script>
+function keywordSearch(v, viaEnter){
+    var seq = ++sr.seq;
+    sr.open = true; sr.query = v;
+    $('#sr-panel').show();
+    $('#sr-info').text('');
+    $('#sr-list').html('<div class="sr-state"><i class="fa fa-spinner fa-spin"></i> Mencari...</div>');
+    abortSearch();                                              /* permintaan lama yang belum selesai dibatalkan */
+    sr.xhr = $.ajax({
+        url: URL_KEYWORD + encodeURIComponent(v),
+        success: function(res){ if (seq === sr.seq) renderResults(res.good_units || [], v, viaEnter); },
+        error: function(xhr, st){ if (st === 'abort') return; if (seq === sr.seq) $('#sr-list').html('<div class="sr-state" style="color:#DC2626">Gagal mengambil data.</div>'); }
+    });
+}
+
+function renderResults(list, v, viaEnter){
+    sr.items = [];
+    for (var i = 0; i < list.length; i++) {
+        var u = list[i];
+        sr.items.push({ good_id:u.good_id, good_unit_id:u.good_unit_id, name:u.name, unit:u.unit, code:u.code || '',
+                        price:u.selling_price, buy_price:u.buy_price, stock:u.stock, checked:false });
+    }
+    if (!sr.items.length) {
+        sr.active = -1;
+        $('#sr-list').html('<div class="sr-state">Tidak ada hasil untuk "' + esc(v) + '".</div>');
+        $('#sr-info').text('0 hasil');
+        updateSrFoot();
+        return;
+    }
+    if (viaEnter && sr.items.length === 1) { addPicked([sr.items[0]]); return; }   /* Enter + 1 hasil -> langsung masuk */
+    sr.active = 0;
+    paintResults();
+}
+
+function paintResults(){
+    var scroll = $('#sr-list').scrollTop(), h = '';
+    for (var i = 0; i < sr.items.length; i++) {
+        var it = sr.items[i], st = parseFloat(it.stock);
+        var sc = st < 0 ? 'minus' : (st === 0 ? 'zero' : '');
+        h += '<div class="sr-item' + (it.checked ? ' checked' : '') + (i === sr.active ? ' active' : '') + '" data-i="' + i + '">'
+           +   '<input type="checkbox" tabindex="-1"' + (it.checked ? ' checked' : '') + '>'
+           +   '<span class="sr-name">' + esc(it.name + ' ' + it.unit) + '</span>'
+           +   (it.code ? '<span class="sr-code">' + esc(it.code) + '</span>' : '')
+           +   '<span class="sr-price">' + esc(fmt(num(it.price))) + '</span>'
+           +   '<span class="sr-stock ' + sc + '">' + (st < 0 ? 'minus ' : (st === 0 ? 'kosong' : 'stok ')) + (st === 0 ? '' : esc(fmt(st))) + '</span>'
+           + '</div>';
+    }
+    $('#sr-list').html(h).scrollTop(scroll);
+    $('#sr-info').text(sr.items.length + ' hasil');
+    updateSrFoot();
+    var el = $('#sr-list .sr-item.active')[0];
+    if (el && el.scrollIntoView) el.scrollIntoView({ block:'nearest' });
+}
+
+function checkedItems(){ return $.grep(sr.items, function(it){ return it.checked; }); }
+function updateSrFoot(){ var n = checkedItems().length; $('#sr-count').text(n); $('#sr-add').toggleClass('is-empty', n === 0); }
+
+function toggleCheck(i, force){
+    var it = sr.items[i]; if (!it) return;
+    it.checked = (force === undefined) ? !it.checked : force;
+    $('#sr-list .sr-item').eq(i).toggleClass('checked', it.checked).find('input').prop('checked', it.checked);
+    updateSrFoot();
+}
+function setActive(i){
+    sr.active = i;
+    var $it = $('#sr-list .sr-item').removeClass('active').eq(i).addClass('active');
+    if ($it[0] && $it[0].scrollIntoView) $it[0].scrollIntoView({ block:'nearest' });
+}
+function moveActive(d){ var i = sr.active + d; if (i >= 0 && i < sr.items.length) setActive(i); }
+function srCheckAll(){ for (var i = 0; i < sr.items.length; i++) sr.items[i].checked = true; paintResults(); }
+function srAddChecked(){
+    var ids = checkedItems();
+    if (!ids.length && sr.items[sr.active]) ids = [sr.items[sr.active]];
+    if (ids.length) addPicked(ids);
+}
+function closeResults(){ sr.open = false; sr.items = []; sr.active = -1; sr.query = ''; $('#sr-panel').hide(); }
+
+function addPicked(items){
+    clearTimeout(sr.timer);
+    sr.seq++;
+    $('#all_search').val('');
+    closeResults();
+    for (var i = 0; i < items.length; i++) addRow(items[i]);
+    focusSearch();
+}
+
+function onSearchKeydown(e){
+    var k = e.keyCode;
+    if (k === 13) { e.preventDefault(); handleSearchEnter(); return; }
+    var val = $.trim($('#all_search').val());
+
+    if (!sr.open) {
+        if (k === 40 || k === 38) {
+            e.preventDefault();
+            if (e.repeat) return;
+            if (k === 40) {
+                if (val && !isBarcodeLike(val)) { if (val.length >= MIN_KEYWORD) keywordSearch(val, false); else showHint('Ketik minimal ' + MIN_KEYWORD + ' huruf untuk mencari...'); }
+                else focusFirstRow();
+            }
+        } else if (k === 27) { $('#all_search').val(''); }
+        return;
+    }
+    if (k === 40 || k === 38) {
+        e.preventDefault();
+        if (e.shiftKey) toggleCheck(sr.active, true);
+        moveActive(k === 40 ? 1 : -1);
+    } else if (k === 45) { e.preventDefault(); toggleCheck(sr.active); }
+    else if (k === 27) { e.preventDefault(); closeResults(); }
+}
+
+/* ═══════ KEYBOARD DI TABEL (sama seperti loading) ════════════════════════
+   Enter / Shift+Enter : kolom berikutnya / sebelumnya (Jumlah -> Potongan -> baris berikutnya -> kolom cari)
+   Panah atas/bawah    : baris atas / bawah di kolom yang sama
+   Panah kiri/kanan    : kolom sebelah saat isi kolom terblok / kursor di tepi
+   Esc                 : kembali ke kolom cari       Alt+Delete : hapus baris ini
+   ═══════════════════════════════════════════════════════════════════════ */
+var FLOW_TYPES = ['quantity', 'discount'];
+var ROW_TYPES  = ['condition', 'quantity', 'discount'];
+
+function dataRows(){ return $('#table-transaction tr, #table-retur tr'); }
+
+function ctl($tr, type){
+    var el = $tr.find('[id^="' + type + '-"]')[0];
+    if (!el || el.readOnly) return null;
+    return el;
+}
+function focusCtl(el){ if (!el) return false; el.focus(); if (el.scrollIntoView) el.scrollIntoView({ block:'nearest' }); return true; }
+function focusFirstRow(){
+    var $rows = dataRows();
+    if (!$rows.length) { notify('Belum ada barang di tabel', 'info'); return; }
+    focusCtl(ctl($rows.eq(0), 'quantity'));
+}
+function visibleTypes($tr, types){ var out = []; for (var i = 0; i < types.length; i++) { if (ctl($tr, types[i])) out.push(types[i]); } return out; }
+
+function moveFlow(idx, type, dir){
+    var $tr = $('#row-' + idx), flow = visibleTypes($tr, FLOW_TYPES);
+    var cur = flow.indexOf(type === 'condition' ? 'quantity' : type);
+    var $rows = dataRows(), ri = $rows.index($tr);
+    if (dir > 0) {
+        if (cur + 1 < flow.length) { focusCtl(ctl($tr, flow[cur + 1])); return; }
+        if (ri + 1 >= $rows.length) { focusSearch(); return; }
+        focusCtl(ctl($rows.eq(ri + 1), 'quantity'));
+    } else {
+        if (cur - 1 >= 0) { focusCtl(ctl($tr, flow[cur - 1])); return; }
+        if (ri - 1 < 0) { focusSearch(); return; }
+        var $prev = $rows.eq(ri - 1), pf = visibleTypes($prev, FLOW_TYPES);
+        focusCtl(ctl($prev, pf[pf.length - 1] || 'quantity'));
+    }
+}
+function moveVertical(idx, type, d){
+    var $rows = dataRows(), ri = $rows.index($('#row-' + idx)) + d;
+    if (ri < 0) { focusSearch(); return; }
+    if (ri >= $rows.length) return;
+    focusCtl(ctl($rows.eq(ri), type));
+}
+function moveHorizontal(idx, type, d){
+    var $tr = $('#row-' + idx), types = visibleTypes($tr, ROW_TYPES), p = types.indexOf(type) + d;
+    if (p >= 0 && p < types.length) focusCtl(ctl($tr, types[p]));
+}
+
+function handleTableKey(e, t, type, idx){
+    var k = e.keyCode, m = /^(retur_s)?(\d+)$/.exec(idx), kind = m[1] || '', n = parseInt(m[2], 10);
+
+    if (k === 27) { e.preventDefault(); focusSearch(); return; }
+    if (e.altKey && k === 46) { e.preventDefault(); deleteRow(kind, n); return; }
+    if (e.repeat && (k === 13 || (k >= 37 && k <= 40))) { e.preventDefault(); return; }
+
+    if (k === 13) {
+        e.preventDefault(); e.stopPropagation();
+        if (type === 'quantity' && qtyNum(t.value) <= 0) { notify('Jumlah harus lebih dari 0', 'warning'); return; }
+        if (type === 'discount') fmtField(t.id);
+        moveFlow(idx, type, e.shiftKey ? -1 : 1);
+        return;
+    }
+    if (t.tagName === 'SELECT') {
+        if (k === 39 || k === 37) { e.preventDefault(); moveHorizontal(idx, type, k === 39 ? 1 : -1); }
+        return;
+    }
+    if (k === 40 || k === 38) { e.preventDefault(); moveVertical(idx, type, k === 40 ? 1 : -1); return; }
+    if (k === 39 || k === 37) {
+        var len = t.value.length, s = t.selectionStart, en = t.selectionEnd, all = (s === 0 && en === len);
+        if (k === 39 && (all || (s === len && en === len))) { e.preventDefault(); moveHorizontal(idx, type, 1); }
+        if (k === 37 && (all || (s === 0 && en === 0)))     { e.preventDefault(); moveHorizontal(idx, type, -1); }
+    }
+}
+
+$(document).ready(function(){
+    document.addEventListener('keydown', function(e){
+        var t = e.target;
+        if (!t || !t.closest || !t.closest('#table-transaction, #table-retur')) return;
+        if (t.tagName !== 'INPUT' && t.tagName !== 'SELECT') return;
+        var m = /^(quantity|discount|condition)-((?:retur_s)?\d+)$/.exec(t.id);
+        if (!m) return;
+        handleTableKey(e, t, m[1], m[2]);
+    }, true);
+
+    /* isi kolom otomatis terblok saat fokus: ketik langsung menimpa (mencegah jumlah tertempel "12" jadi "112") */
+    $(document).on('focus', '#table-transaction input.fc, #table-retur input.fc', function(){
+        var el = this; el._sel = true; el.select();
+        setTimeout(function(){ el.select(); }, 0);
+    });
+    $(document).on('mouseup', '#table-transaction input.fc, #table-retur input.fc', function(e){
+        if (this._sel) { this._sel = false; e.preventDefault(); }
+    });
+    $(document).on('blur', '#table-transaction input[id^="discount-"], #table-retur input[id^="discount-"]', function(){ if (this.value !== '') this.value = fmt(num(this.value)); });
+    $(document).on('blur', '#table-transaction input[id^="quantity-"], #table-retur input[id^="quantity-"]', function(){
+        var q = qtyNum(this.value); this.value = q > 0 ? String(r2(q)) : this.value;
+    });
+
+    /* klik di luar panel = tutup; klik di panel tidak memindahkan fokus dari kolom cari */
+    $(document).on('mousedown', function(e){ if (!$(e.target).closest('#sr-wrap').length) closeResults(); });
+    $('#sr-panel').on('mousedown', function(e){ e.preventDefault(); });
+    $('#sr-list').on('click', '.sr-item', function(){ var i = parseInt($(this).data('i'), 10); sr.active = i; toggleCheck(i); });
+    $('#sr-list').on('dblclick', '.sr-item', function(){ var it = sr.items[parseInt($(this).data('i'), 10)]; if (it) addPicked([it]); });
+
+    /* pembayaran: Enter proses, Esc kembali ke cari */
+    $('#money_paid').on('keydown', function(e){
+        if (e.keyCode === 13 && e.ctrlKey) { return; }                 /* Ctrl+Enter ditangani shortcut global */
+        if (e.keyCode === 13) { e.preventDefault(); fmtField('money_paid'); submitForm(); }
+        else if (e.keyCode === 27) { e.preventDefault(); focusSearch(); }
+    });
+    $('#total_discount_price').on('keydown', function(e){
+        if (e.keyCode === 13) { e.preventDefault(); fmtField('total_discount_price'); $('#money_paid').focus(); }
+        else if (e.keyCode === 27) { e.preventDefault(); focusSearch(); }
+    });
+
+    /* shortcut global */
+    document.addEventListener('keydown', function(e){
+        var tag = (e.target.tagName || '').toLowerCase();
+        var typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
+        if (e.keyCode === 113 || e.keyCode === 115) { e.preventDefault(); focusSearch(); }          // F2 / F4 -> cari
+        else if (e.keyCode === 114) { e.preventDefault(); focusFirstRow(); }                         // F3 -> tabel
+        else if (e.keyCode === 117) { e.preventDefault(); setMode(mode === '' ? 'retur_s' : ''); }   // F6 -> jual/retur
+        else if (e.keyCode === 119) { e.preventDefault(); $('#money_paid').focus().select(); }       // F8 -> bayar
+        else if (e.key === '/' && !typing) { e.preventDefault(); focusSearch(); }
+        else if (e.ctrlKey && e.keyCode === 13) { e.preventDefault(); submitForm(); }                // Ctrl+Enter -> proses
+    }, true);
+});
+
+/* ═══════ MEMBER ══════════════════════════════════════════════════════════ */
+var mem = { items:[], active:-1, open:false };
+function onMemberInput(){ setMember('1', '', true); }
+function setMember(id, name, keepText){
+    $('#member_id').val(id);
+    $('#mem-tag').text(id === '1' ? 'Umum' : name).toggleClass('picked', id !== '1');
+    if (!keepText) $('#member_q').val(id === '1' ? '' : name);
+    closeMembers();
+}
+function closeMembers(){ mem.open = false; mem.items = []; mem.active = -1; $('#mem-list').hide().empty(); }
+function paintMembers(){
+    var h = '';
+    for (var i = 0; i < mem.items.length; i++) {
+        var m = mem.items[i];
+        h += '<div class="mem-item' + (i === mem.active ? ' active' : '') + '" data-i="' + i + '">' + esc(m.name) + (m.address ? '<small>' + esc(m.address) + '</small>' : '') + '</div>';
+    }
+    $('#mem-list').html(h || '<div class="mem-item">Member tidak ditemukan</div>').show();
+    mem.open = true;
+}
+function onMemberKey(e){
+    var k = e.keyCode;
+    if (k === 13) {
+        e.preventDefault();
+        if (mem.open && mem.items[mem.active]) { var m = mem.items[mem.active]; setMember(String(m.id), m.name); $('#money_paid').focus(); return; }
+        var q = $.trim($('#member_q').val());
+        if (!q) { setMember('1', ''); return; }
+        $.ajax({ url: URL_MEMBERS + encodeURIComponent(q), success: function(r){ mem.items = r.members || []; mem.active = mem.items.length ? 0 : -1; paintMembers(); } });
+    } else if (mem.open && (k === 40 || k === 38)) {
+        e.preventDefault();
+        var i = mem.active + (k === 40 ? 1 : -1);
+        if (i >= 0 && i < mem.items.length) { mem.active = i; paintMembers(); }
+    } else if (k === 27) { e.preventDefault(); if (mem.open) closeMembers(); else focusSearch(); }
+}
+$(document).on('mousedown', '.mem-item', function(e){
+    e.preventDefault();
+    var m = mem.items[parseInt($(this).data('i'), 10)];
+    if (m) setMember(String(m.id), m.name);
+});
+
+/* scan kartu member (kamera) - script dimuat saat dipakai */
+var scanner = null;
+function loadScanner(cb){
+    if (window.Instascan) { cb(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://rawgit.com/schmich/instascan-builds/master/instascan.min.js';
+    s.onload = cb;
+    s.onerror = function(){ notify('Scanner kamera tidak tersedia. Ketik nama member saja.', 'warning'); };
+    document.head.appendChild(s);
+}
+function startCamera(){
+    loadScanner(function(){
+        try {
+            if (!scanner) {
+                scanner = new Instascan.Scanner({ video: $id('preview') });
+                scanner.addListener('scan', function(content){
+                    $.ajax({ url: URL_MEMBER_CODE + encodeURIComponent(content), success: function(r){
+                        if (r.member) { setMember(String(r.member.id), r.member.name); } else { notify('Member tidak ditemukan', 'warning'); }
+                        stopCamera();
+                    } });
+                });
+            }
+            $('#preview').show();
+            Instascan.Camera.getCameras().then(function(c){ if (c.length) scanner.start(c[0]); else notify('Kamera tidak ditemukan', 'warning'); });
+        } catch (err) { notify('Kamera tidak bisa dijalankan', 'error'); }
+    });
+}
+function stopCamera(){ try { if (scanner) scanner.stop(); } catch (err) {} $('#preview').hide(); }
+
+/* ═══════ PROSES ══════════════════════════════════════════════════════════ */
+function submitForm(){
+    if (window._submitting) return;
+    var $rows = dataRows();
+    if (!$('#table-transaction tr').length && !$('#table-retur tr').length) { notify('Pilih minimal satu barang', 'warning'); focusSearch(); return; }
+
+    var bad = null;
+    $rows.each(function(){
+        var k = String($(this).data('k')), n = $(this).data('n');
+        if (qtyNum($id('quantity-' + k + n).value) <= 0) { bad = $id('quantity-' + k + n); return false; }
+    });
+    if (bad) { notify('Jumlah harus lebih dari 0', 'error'); focusCtl(bad); return; }
+
+    var paidTxt = $.trim($('#money_paid').val());
+    if (paidTxt === '') { notify('Isi jumlah uang yang dibayar', 'warning'); $('#money_paid').focus(); return; }
+    if ($.trim($('#total_discount_price').val()) === '') $('#total_discount_price').val('0');
+
+    var total = num($('#total_sum_price').val());
+    if (num(paidTxt) < total && $('#member_id').val() === '1') {
+        notify('Uang kurang dari total belanja. Pilih member (hutang) atau perbaiki jumlah bayar.', 'error');
+        $('#member_q').focus();
+        return;
+    }
+
+    window._submitting = true;
+    $('#btn-process').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
+
+    /* semua angka dikirim sebagai angka biasa tanpa pemisah ribuan */
+    $('#transaction-form').find('input').filter(function(){
+        return /^(prices|quantities|discounts|sums|total_prices|buy_prices)(retur_s)?\[\]$|^(total_item_price|total_discount_items_price|total_discount_price|total_sum_price|money_paid|money_returned)$/.test(this.name || '');
+    }).each(function(){
+        if (this.value !== '') this.value = /^quantities/.test(this.name) ? plain(qtyNum(this.value)) : plain(num(this.value));
+    });
+    $id('transaction-form').submit();
+}
+</script>
 @endsection

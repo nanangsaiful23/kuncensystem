@@ -331,7 +331,7 @@ trait TransactionControllerBase
 
             // lockForUpdate: two cashiers adding to the same daily journal at
             // the same moment must not overwrite each other's amount.
-            $journal = Journal::whereDate('journal_date', date('Y-m-d'))
+            $journal = Journal::where('journal_date', date('Y-m-d'))
                               ->where('type', 'transaction')
                               ->where('debit_account_id', $data_journal['debit_account_id'])
                               ->where('credit_account_id', Account::where('code', '4101')->first()->id)
@@ -379,7 +379,7 @@ trait TransactionControllerBase
         // Reverse and retur journals are also type 'hpp' but go the other
         // way; adding today's sales to one of them booked the whole day's
         // HPP as an increase of inventory (13 Jun 2024, 3 May 2025, 23 Jul 2025).
-        $hpp_journal = Journal::whereDate('journal_date', date('Y-m-d'))
+        $hpp_journal = Journal::where('journal_date', date('Y-m-d'))
                               ->where('type', 'hpp')
                               ->where('debit_account_id', Account::where('code', '5101')->first()->id)
                               ->where('credit_account_id', Account::where('code', '1141')->first()->id)
@@ -418,7 +418,7 @@ trait TransactionControllerBase
             {
                 $data_piutang['credit_account_id']   = Account::where('code', '1112')->first()->id;
             }
-            $piutang = Journal::whereDate('journal_date', date('Y-m-d'))
+            $piutang = Journal::where('journal_date', date('Y-m-d'))
                               ->where('type', 'piutang')
                               ->where('name', 'like', 'Piutang dagang member ' . $transaction->member->name . ' (ID member ' . $transaction->member->id . ') %')
                               ->where('credit_account_id', $data_piutang['credit_account_id'])
@@ -460,7 +460,7 @@ trait TransactionControllerBase
 
                 $payment = PiutangPayment::create($data_member);
 
-                $piutang = Journal::whereDate('journal_date', date('Y-m-d'))
+                $piutang = Journal::where('journal_date', date('Y-m-d'))
                                   ->where('type', 'piutang_transaction')
                                   ->where('name', 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')')
                                   ->where('debit_account_id', $data_piutang_member['debit_account_id'])

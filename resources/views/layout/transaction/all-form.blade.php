@@ -85,7 +85,7 @@
             <td>
                 <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 
-                @include('layout' . '.delete-modal', ['id' => $transaction->id, 'data' => $transaction->created_at, 'formName' => 'delete-form-' . $transaction->id])
+                @include('layout' . '.delete-modal', ['id' => $transaction->id, 'data' => 'transaksi #' . $transaction->id . ' (' . $transaction->created_at . ', total ' . showRupiah($transaction->total_sum_price) . ')', 'formName' => 'delete-form-' . $transaction->id])
 
                 <form id="delete-form-{{$transaction->id}}" action="{{ url($role . '/transaction/' . $transaction->id . '/delete') }}" method="POST" style="display: none;">
                   {{ csrf_field() }}

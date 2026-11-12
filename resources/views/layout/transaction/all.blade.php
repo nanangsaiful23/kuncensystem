@@ -110,6 +110,11 @@
       $("#search-btn").click(function(){
           ajaxFunction();
       });
+
+      /* Hapus / reverse: fokus awal di tombol "Close" (Esc juga menutup) supaya Enter tidak tidak sengaja menghapus */
+      $(document).on('shown.bs.modal', '.modal-reverse, [id^="modal-danger-"]', function(){
+        $(this).find('.modal-footer .pull-left').focus();
+      });
     });
 
     function changeDate()

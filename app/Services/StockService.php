@@ -30,21 +30,26 @@ class StockService
      */
     public static function history(int $goodId): array
     {
+        // Deleted loadings/transactions are few. Excluding them with a literal id
+        // list lets MySQL read only the covering index of the detail table
+        // (idx_td_stock / idx_gld_stock) instead of joining the parent table once
+        // per detail row, which took seconds per good on a big history.
+        $deletedLoadings     = DB::table('good_loadings')->whereNotNull('deleted_at')->pluck('id')->all();
+        $deletedTransactions = DB::table('transactions')->whereNotNull('deleted_at')->pluck('id')->all();
+
         $loaded = DB::table('good_loading_details')
             ->join('good_units', 'good_units.id', '=', 'good_loading_details.good_unit_id')
-            ->join('good_loadings', 'good_loadings.id', '=', 'good_loading_details.good_loading_id')
             ->where('good_units.good_id', $goodId)
-            ->whereNull('good_loadings.deleted_at')
             ->whereNull('good_loading_details.deleted_at')
+            ->when($deletedLoadings, fn ($q) => $q->whereNotIn('good_loading_details.good_loading_id', $deletedLoadings))
             ->sum('good_loading_details.real_quantity');
 
         $sold = DB::table('transaction_details')
             ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
             ->where('good_units.good_id', $goodId)
             ->whereRaw("coalesce(transaction_details.type, '') <> 'retur'")
-            ->whereNull('transactions.deleted_at')
             ->whereNull('transaction_details.deleted_at')
+            ->when($deletedTransactions, fn ($q) => $q->whereNotIn('transaction_details.transaction_id', $deletedTransactions))
             ->sum('transaction_details.real_quantity');
 
         return [(float) $loaded, (float) $sold];
