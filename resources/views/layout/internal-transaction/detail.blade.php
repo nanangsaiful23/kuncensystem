@@ -28,7 +28,7 @@
                         <div class="form-group">
                             {!! Form::label('type', 'Tipe', array('class' => 'col-sm-2 control-label')) !!}
                             <div class="col-sm-4">
-                                {!! Form::text('type', $transaction->type_name()->code . ' - ' . $transaction->type_name()->name, array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                                {!! Form::text('type', $transaction->type_name()->code . ' - ' . $transaction->type_name()->name . ($transaction->type == '5215' ? ' (' . \App\Services\StockOutflow::lossReasonLabel($transaction->loss_reason) . ')' : ''), array('class' => 'form-control', 'readonly' => 'readonly')) !!}
                             </div>
                         </div>
                         <div class="form-group">

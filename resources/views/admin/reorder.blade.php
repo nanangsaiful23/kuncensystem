@@ -301,10 +301,12 @@
     <em>Qty Order</em> adalah jumlah yang disarankan dipesan agar stok cukup untuk ±14 hari ke depan,
     sudah dibulatkan ke satuan kemasan (dus/pak) jika tersedia. Lead time pengiriman masih berupa
     <strong>asumsi 5 hari</strong> — angka ini akan lebih akurat bila dicatat per distributor.
-    <br>🔄 <strong>Barang bertanda "Ada Retur"</strong> berarti stoknya turun sebagian karena diretur ke
-    distributor (bukan karena laku). Qty order sudah dihitung dari <em>stok efektif jual</em>
-    (stok aktual + qty yang diretur), sehingga barang yang habis murni karena retur
-    <strong>tidak akan direkomendasikan untuk di-order kembali</strong>.
+    <br>🔎 <strong>Barang bertanda "Tinjau Dulu"</strong> stoknya menipis/habis terutama <strong>bukan karena laku</strong>:
+    {{ (int) (\App\Models\ReorderRepository::NON_SALE_DOMINANT_SHARE * 100) }}% atau lebih stok yang keluar dalam periode ini
+    disebabkan expired, rusak, hilang/selisih opname, atau diretur ke distributor. Barang seperti ini
+    <strong>tidak direkomendasikan untuk di-order</strong> (Qty Order 0) dan hanya tampil bila
+    "hanya yang perlu order" tidak dicentang. Penyebab expired/rusak/hilang diisi lewat
+    <em>Transaksi Internal → 5215 Biaya Penyusutan Barang → Penyebab barang keluar</em>.
 </div>
 
 {{-- Filter --}}
@@ -372,11 +374,11 @@
         <div class="kv" style="font-size:1.05rem">Rp {{ number_format($s['total_biaya']/1000000, 1) }}jt</div>
         <div class="ks">total semua order</div>
     </div>
-    @if(($s['retur_count'] ?? 0) > 0)
+    @if(($s['review_count'] ?? 0) > 0)
     <div class="ro-kpi" style="border-left:5px solid #7c3aed">
-        <div class="kl">Ada Retur</div>
-        <div class="kv" style="color:#7c3aed">{{ number_format($s['retur_count']) }}</div>
-        <div class="ks">stok turun karena diretur ke dist.</div>
+        <div class="kl">Tinjau Dulu</div>
+        <div class="kv" style="color:#7c3aed">{{ number_format($s['review_count']) }}</div>
+        <div class="ks">habis karena expired / rusak / hilang / retur — tidak direkomendasikan</div>
     </div>
     @endif
 </div>
@@ -468,12 +470,12 @@
         <tbody>
         @foreach($group->items as $it)
         @php
-            $badgeClass = $it->urgensi === 1 ? 'b-urgent' : ($it->urgensi === 2 ? 'b-soon' : 'b-safe');
+            $badgeClass = $it->urgensi === 1 ? 'b-urgent' : ($it->urgensi === 2 ? 'b-soon' : ($it->urgensi === 3 ? 'b-retur' : 'b-safe'));
             $rowClass   = $it->urgensi === 1 ? 'row-urgent' : '';
         @endphp
         <tr class="{{ $rowClass }}">
             <td class="ro-chk-col">
-                <input type="checkbox" class="ro-row-chk ro-export-chk" checked
+                <input type="checkbox" class="ro-row-chk ro-export-chk" {{ $it->habis_bukan_laku ? '' : 'checked' }}
                     data-good-id="{{ $it->good_id }}">
             </td>
             <td>
@@ -491,12 +493,13 @@
             <td class="tr">
                 {{ number_format($it->stok_sekarang, 0, ',', '.') }}
                 <div class="ro-stock-line">{{ number_format($it->avg_qty_per_day, 1) }}/hari</div>
-                @if($it->ada_retur)
-                <div class="ro-retur-note"
-                    data-ro-tip="{{ $it->qty_diretur }} pcs diretur ke distributor dalam periode ini. Stok efektif untuk analisis: {{ number_format($it->stok_efektif_jual, 0) }} pcs.">
-                    🔄 {{ $it->qty_diretur }} pcs diretur ke dist.
-                </div>
+                @foreach(\App\Services\StockOutflow::NON_SALE as $r)
+                @if($it->keluar[$r] > 0)
+                <div class="ro-retur-note" data-ro-tip="Stok keluar periode ini: {{ $it->keluar_teks }}. {{ $it->non_sale_persen }}% keluar bukan karena laku.">
+                    {{ \App\Services\StockOutflow::LABELS[$r] }}: {{ number_format($it->keluar[$r], 0, ',', '.') }}
+                </div><br>
                 @endif
+                @endforeach
             </td>
             <td class="tr">{{ number_format($it->min_stock, 0, ',', '.') }}</td>
             <td class="tr">{{ number_format($it->target_stock, 0, ',', '.') }}</td>
@@ -524,14 +527,13 @@
             </td>
             <td>
                 <span class="ro-badge-tag {{ $badgeClass }}">
-                    {{ $it->urgensi === 1 ? '🚨' : ($it->urgensi === 2 ? '⏳' : '✅') }}
+                    {{ $it->urgensi === 1 ? '🚨' : ($it->urgensi === 2 ? '⏳' : ($it->urgensi === 3 ? '🔎' : '✅')) }}
                     {{ $it->urgensi_label }}
                 </span>
-                @if($it->ada_retur)
-                <span class="ro-badge-tag b-retur" style="margin-top:.3rem"
-                    data-ro-tip="Stok turun {{ $it->qty_diretur }} pcs karena diretur ke distributor (bukan karena laku). Qty order sudah dihitung dari stok efektif jual.">
-                    🔄 Ada Retur
-                </span>
+                @if($it->habis_bukan_laku)
+                <div class="ro-retur-note" data-ro-tip="Stok keluar periode ini: {{ $it->keluar_teks }}. {{ $it->non_sale_persen }}% keluar bukan karena laku.">
+                    Habis terutama karena {{ strtolower(\App\Services\StockOutflow::LABELS[$it->penyebab_utama]) }} ({{ $it->non_sale_persen }}% bukan karena laku)
+                </div>
                 @endif
             </td>
             <td class="ro-chk-col">

@@ -70,6 +70,7 @@
                   <th style="width: 15%; text-align: center;" class="col-act">Action <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-cat', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-cat', 'show')"></i></th>
                 </tr>
               </thead>
+              @php $outflows = \App\Services\StockOutflow::forDisplay($goods); @endphp
               <tbody>
                 @foreach($goods as $good)
                   <tr>
@@ -88,8 +89,9 @@
                     </td>
                     <td class="col-stock">
                       <i class="fa fa-cubes brown" aria-hidden="true"></i> {{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}<br>
-                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->total_transaction . ' ' . $good->base_unit()->unit->code }}<br>
-                      <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->total_loading . ' ' . $good->base_unit()->unit->code }}
+                      <i class="fa fa-truck pink" aria-hidden="true"></i> {{ $good->total_loading . ' ' . $good->base_unit()->unit->code }}<br>
+                      <i class="fa fa-money green" aria-hidden="true"></i> {{ $good->total_transaction . ' ' . $good->base_unit()->unit->code }} <small>(total keluar)</small>
+                      @include('layout.good.outflow', ['row' => $outflows[$good->id] ?? [], 'unit' => $good->base_unit()->unit->code])
                     </td>
                     <td class="col-price">
                       @foreach($good->good_units as $unit)
@@ -187,7 +189,7 @@
                 htmlResult += "<br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat loading</a><br><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" class=\"btn btn-warning\" target=\"_blank()\">Riwayat penjualan</a></td>";
               }
 
-              htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + " " + r[i].unit + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + " " + r[i].unit + "<br></td><td>";
+              htmlResult += "<td><i class=\"fa fa-cubes brown\" aria-hidden=\"true\"></i> " + r[i].stock + " " + r[i].unit + "<br><i class=\"fa fa-money green\" aria-hidden=\"true\"></i> " + r[i].transaction + " " + r[i].unit + "<br><i class=\"fa fa-truck pink\" aria-hidden=\"true\"></i> " + r[i].loading + " " + r[i].unit + "<br><small>" + (r[i].outflow_text || '') + "</small></td><td>";
 
               for (var j = 0; j < r[i].good_units.length; j++) {
                 htmlResult += "<b>" + r[i].good_units[j].price + " /" + r[i].good_units[j].unit_name + "<br></b>";

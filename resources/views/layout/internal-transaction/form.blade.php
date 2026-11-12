@@ -59,6 +59,7 @@
                         <option value="5225">5225 - Biaya Dapur & Pasar</option>
                     <!-- </div> -->
                 </select>
+                @include('layout.internal-transaction.loss-reason')
             </div>
         </div>
         <div class="form-group col-sm-7">

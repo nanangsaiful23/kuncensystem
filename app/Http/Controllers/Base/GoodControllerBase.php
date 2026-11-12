@@ -163,8 +163,11 @@ trait GoodControllerBase
                      // ->with('brand')
                      ->get();
 
+        $outflows = \App\Services\StockOutflow::forDisplay($goods);
+
         foreach($goods as $good)
         {
+            $good->outflow_text = \App\Services\StockOutflow::summary($outflows[$good->id] ?? [], $good->base_unit()->unit->code);
             $good->last_loading_date = displayDate($good->last_loading);
             $good->last_transaction_date = displayDate($good->last_transaction);
             $good->brand_name = $good->brand == null ? "" : $good->brand->name;

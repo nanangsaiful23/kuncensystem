@@ -67,7 +67,7 @@
                     @if($transaction->type == 'stock_opname')
                       <td style="background-color: yellow;">{{ $transaction->type }}</td>
                     @else
-                      <td>{{ $transaction->type_name()->code . ' - ' . $transaction->type_name()->name }}</td>  
+                      <td>{{ $transaction->type_name()->code . ' - ' . $transaction->type_name()->name }}@if($transaction->type == '5215') <br><small><b>Penyebab: {{ \App\Services\StockOutflow::lossReasonLabel($transaction->loss_reason) }}</b></small>@endif</td>  
                     @endif
                     <td>{{ $transaction->created_at }}</td>
                     <td>{{ $transaction->note }}</td>

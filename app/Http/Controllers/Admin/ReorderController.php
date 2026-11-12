@@ -206,6 +206,11 @@ class ReorderController extends Controller
                     'Estimasi Harga Beli/Satuan',
                     'Estimasi Total Biaya',
                     'Urgensi',
+                    'Terjual (periode)',
+                    'Retur ke Distributor',
+                    'Expired',
+                    'Rusak',
+                    'Hilang / Selisih Opname',
                 ]);
 
                 foreach ($group->items as $it) {
@@ -225,6 +230,11 @@ class ReorderController extends Controller
                         $it->harga_beli_per_unit,
                         $it->estimasi_biaya,
                         $it->urgensi_label,
+                        $it->qty_terjual,
+                        $it->keluar['retur'],
+                        $it->keluar['expired'],
+                        $it->keluar['rusak'],
+                        $it->keluar['hilang'],
                     ]);
                 }
 

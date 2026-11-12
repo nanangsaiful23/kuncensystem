@@ -798,6 +798,7 @@
         <!-- PRODUCT LIST -->
         <div class="product-list" id="productList">
 
+          @php $outflows = \App\Services\StockOutflow::forDisplay($goods); @endphp
           @foreach($goods as $good)
             <div class="product-card">
               <input type="checkbox" class="product-checkbox">
@@ -836,6 +837,8 @@
                     <a href="{{ url($role . '/good/' . $good->id . '/transaction/2023-01-01/' . date('Y-m-d') . '/10') }}" target="_blank()">T: {{ $good->total_transaction }}</a>
                   </span>
                 </div>
+                {{-- T (total keluar) dirinci per penyebab --}}
+                @include('layout.good.outflow', ['row' => $outflows[$good->id] ?? [], 'unit' => $good->base_unit()->unit->code])
               </div>
               <div class="price-col">
                 <!-- <div class="price-label">HARGA JUAL</div> -->
@@ -987,7 +990,7 @@
             else
               htmlResult += 'in';
             
-            htmlResult += '">' + r[i].stock + '</div><div class="stock-unit">' + r[i].unit + '</div><div class="stock-breakdown"><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" target=\"_blank()\"><span class=\"stock-pill\" data-tip=\"Loading\">L: " + r[i].loading + '</span></a><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" target=\"_blank()\"><span class=\"stock-pill\" data-tip=\"Transaksi\">T: " + r[i].transaction + '</span></a></div></div><div class="price-col">';
+            htmlResult += '">' + r[i].stock + '</div><div class="stock-unit">' + r[i].unit + '</div><div class="stock-breakdown"><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/loading/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" target=\"_blank()\"><span class=\"stock-pill\" data-tip=\"Loading\">L: " + r[i].loading + '</span></a><a href=\"' + window.location.origin + "/" + role + "/good/" + r[i].id + "/transaction/2023-01-01/" + "{{ date('Y-m-d') }}" + "/10\" target=\"_blank()\"><span class=\"stock-pill\" data-tip=\"Transaksi\">T: " + r[i].transaction + '</span></a></div><div style="font-size:12px;line-height:1.5;margin-top:4px;">' + (r[i].outflow_text || '') + '</div></div><div class="price-col">';
 
             for (var j = 0; j < r[i].good_units.length; j++) {
               htmlResult += '<div class="price-sell">' + r[i].good_units[j].price + " /" + r[i].good_units[j].unit_name + '</div>';

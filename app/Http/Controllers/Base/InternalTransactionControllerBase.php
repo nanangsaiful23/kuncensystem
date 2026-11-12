@@ -15,9 +15,23 @@ use App\Models\Member;
 use App\Models\PiutangPayment;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Services\StockOutflow;
 
-trait InternalTransactionControllerBase 
+trait InternalTransactionControllerBase
 {
+    /**
+     * Penyebab barang keluar (hilang / expired / rusak). Hanya berlaku untuk
+     * transaksi 5215 - Biaya Penyusutan Barang; jenis lain dikosongkan.
+     */
+    private function lossReasonData(Request $request): array
+    {
+        if (! StockOutflow::hasLossReason()) {
+            return [];
+        }
+
+        return ['loss_reason' => $request->type == '5215' ? StockOutflow::lossReason($request->loss_reason) : null];
+    }
+
     public function indexInternalTransactionBase($role, $role_id, $start_date, $end_date, $pagination)
     {
         if($pagination == 'all')
@@ -102,6 +116,7 @@ trait InternalTransactionControllerBase
         $data_transaction['store']   = config('app.name');
         $data_transaction['payment'] = $request->payment;
         $data_transaction['note']    = $request->note;
+        $data_transaction += $this->lossReasonData($request);
 
         if($data_transaction['payment'] != '1112')
         {
@@ -156,7 +171,7 @@ trait InternalTransactionControllerBase
             $data_pb['type']               = 'penyusutan';
             $data_pb['type_id']            = $transaction->id;
             $data_pb['journal_date']       = date('Y-m-d');
-            $data_pb['name']               = 'Barang hilang (ID transaksi ' . $transaction->id . ')';
+            $data_pb['name']               = 'Barang ' . StockOutflow::lossReason($request->loss_reason) . ' (ID transaksi ' . $transaction->id . ')';
             $data_pb['debit_account_id']   = Account::where('code', '5215')->first()->id;
             $data_pb['debit']              = $data_transaction['total_sum_price'];
             $data_pb['credit_account_id']  = Account::where('code', '1141')->first()->id;
@@ -261,6 +276,7 @@ trait InternalTransactionControllerBase
         $data_transaction['payment']    = $transaction->payment;
         $data_transaction['member_id'] = $transaction->member_id;
         $data_transaction['note']    = $request->note;
+        $data_transaction += $this->lossReasonData($request);
         
         $last_sum = $transaction->total_sum_price;
         $transaction->update($data_transaction);
@@ -312,7 +328,7 @@ trait InternalTransactionControllerBase
                 $data_pb['type']               = 'penyusutan';
                 $data_pb['type_id']            = $transaction->id;
                 $data_pb['journal_date']       = date('Y-m-d');
-                $data_pb['name']               = 'Barang hilang (ID transaksi ' . $transaction->id . ')';
+                $data_pb['name']               = 'Barang ' . StockOutflow::lossReason($request->loss_reason) . ' (ID transaksi ' . $transaction->id . ')';
                 $data_pb['debit_account_id']   = Account::where('code', '5215')->first()->id;
                 $data_pb['debit']              = $data_transaction['total_sum_price'];
                 $data_pb['credit_account_id']  = Account::where('code', '1141')->first()->id;

@@ -480,6 +480,7 @@ DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE `transactions` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `type` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `loss_reason` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `role` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `role_id` bigint(20) DEFAULT NULL,
   `member_id` bigint(20) unsigned DEFAULT NULL,

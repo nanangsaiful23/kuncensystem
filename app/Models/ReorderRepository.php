@@ -11,6 +11,7 @@ use App\Models\Distributor;
 use App\Models\TransactionDetail;
 use App\Models\GoodLoading;
 use App\Models\GoodLoadingDetail;
+use App\Services\StockOutflow;
 
 class ReorderRepository
 {
@@ -51,6 +52,15 @@ class ReorderRepository
      * tapi didefinisikan independen supaya halaman ini bisa dipanggil sendiri.
      */
     const DEFAULT_ANALYSIS_DAYS = 90;
+
+    /**
+     * Batas "habis bukan karena laku". Jika dalam periode analisis porsi stok
+     * yang keluar karena expired + rusak + hilang + retur ke distributor
+     * mencapai angka ini (0.5 = separuh) dari seluruh stok keluar
+     * (terjual + bukan-laku), barang TIDAK direkomendasikan order walaupun
+     * stoknya kosong — ditandai "Tinjau Dulu".
+     */
+    const NON_SALE_DOMINANT_SHARE = 0.5;
 
     // =========================================================================
     // QUERY UTAMA
@@ -97,39 +107,18 @@ class ReorderRepository
             ->get()
             ->keyBy('good_id');
 
-        // ── Agregasi retur barang ke DISTRIBUTOR per good dalam periode ───────
+        // ── Stok keluar per penyebab dalam periode (terjual / retur ke
+        //    distributor / expired / rusak / hilang / lainnya) ────────────────
         //
-        //    `transactions.type = 'retur_item'` = barang dikembalikan ke
-        //    distributor (bukan retur dari pembeli ke toko).
+        //    `goods.last_stock` turun untuk SEMUA penyebab, bukan hanya karena
+        //    laku. Kalau hanya melihat "stok sudah kosong", barang yang habis
+        //    karena kadaluarsa, hilang, atau dikembalikan ke distributor ikut
+        //    direkomendasikan — padahal itu tanda barangnya kurang laku atau
+        //    bermasalah, bukan tanda perlu ditambah.
         //
-        //    Kenapa perlu dipisah dari salesAgg:
-        //    Stok barang yang diretur ke distributor BERKURANG, sehingga
-        //    `goods.last_stock` (stok aktual saat ini) ikut turun. Akibatnya
-        //    sistem bisa salah membaca "stok rendah = perlu order", padahal
-        //    stok habis bukan karena laku — melainkan karena dikembalikan ke
-        //    distributor (misal: kadaluarsa, cacat, salah kirim).
-        //
-        //    Dengan data ini kita bisa hitung `stok_efektif_jual`:
-        //      stok_efektif_jual = stok_sekarang + total_qty_diretur
-        //    → stok "seharusnya" kalau tidak ada retur ke distributor,
-        //      yang dipakai sebagai dasar apakah barang benar-benar perlu
-        //      di-order lagi atau tidak.
-        $returAgg = TransactionDetail::join(
-                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
-            )
-            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->where('transactions.type', 'retur_item')
-            ->whereNull('transactions.deleted_at')
-            ->whereNull('transaction_details.deleted_at')
-            ->whereBetween('transactions.created_at', [$start, $end])
-            ->select(
-                'good_units.good_id',
-                DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) AS total_qty_diretur'),
-                DB::raw('COUNT(DISTINCT transactions.id)                     AS total_retur')
-            )
-            ->groupBy('good_units.good_id')
-            ->get()
-            ->keyBy('good_id');
+        //    Rincian ini dipakai untuk menentukan barang habis KARENA APA
+        //    (lihat NON_SALE_DOMINANT_SHARE).
+        $outflowAgg = StockOutflow::byGood(null, $start, $end);
 
         // ── Ambil goods aktif (belum discontinued), beserta base unit & harga,
         //    plus seluruh unit kemasan yang tersedia (untuk pembulatan order) ──
@@ -206,27 +195,41 @@ class ReorderRepository
             ->join('units AS u',          'u.id',  '=', 'gu.unit_id')
             ->whereNull('gld.deleted_at')
             ->whereNull('gl.deleted_at')
+            // STRAIGHT_JOIN: paksa MySQL mulai dari good_loading_details sesuai
+            // urutan join di atas. Tanpa ini optimizer memilih mulai dari tabel
+            // units dan query butuh ±15 detik (vs ±0,5 detik).
             ->select(
-                'gu.good_id',
+                DB::raw('STRAIGHT_JOIN gu.good_id'),
+                'gld.id AS detail_id',
                 'gl.loading_date',
                 'gld.real_quantity',
                 'gld.quantity',
                 'u.name     AS unit_name',
                 'u.quantity AS unit_qty'
             )
-            ->orderBy('gu.good_id')
-            ->orderByDesc('gl.loading_date')
             ->get()
-            ->groupBy('good_id')
-            ->map(function ($rows) {
-                return $rows->first(); // baris pertama = loading_date terbaru (sudah di-order desc)
-            });
+            // Loading terbaru per barang dipilih di PHP. Mengurutkan puluhan ribu
+            // baris hasil join di MySQL (ORDER BY good_id, loading_date) memakan
+            // belasan detik; satu kali lintasan di sini jauh lebih cepat.
+            ->reduce(function ($latest, $row) {
+                $current = $latest[$row->good_id] ?? null;
+
+                if ($current === null
+                    || $row->loading_date > $current->loading_date
+                    || ($row->loading_date == $current->loading_date && $row->detail_id > $current->detail_id)) {
+                    $latest[$row->good_id] = $row;
+                }
+
+                return $latest;
+            }, []);
+        $lastLoadingRaw = collect($lastLoadingRaw);
 
         // ── Ambil daftar distributor untuk pengelompokan ──────────────────────
         $distributors = Distributor::whereNull('deleted_at')->get()->keyBy('id');
 
         // ── Hitung rekomendasi per barang ─────────────────────────────────────
         $items = collect();
+        $reviewCount = 0; // barang yang habis bukan karena laku
 
         foreach ($goodsRaw as $good) {
             $gid       = $good->good_id;
@@ -236,23 +239,40 @@ class ReorderRepository
             $stok      = (float) $good->stok_sekarang;
             $hargaBeli = (float) ($good->harga_beli ?? 0);
 
-            // ── Data retur ke distributor dalam periode ───────────────────────
-            $retur          = $returAgg->get($gid);
-            $qtyDiretur     = $retur ? (float) $retur->total_qty_diretur : 0;
-            $totalReturTrx  = $retur ? (int)   $retur->total_retur       : 0;
-            $adaRetur       = $qtyDiretur > 0;
+            // ── Stok keluar bukan karena laku dalam periode ───────────────────
+            $outflow    = $outflowAgg[$gid] ?? StockOutflow::emptyRow();
+            $qtyNonSale = StockOutflow::nonSale($outflow);
+            $qtyKeluar  = $totalQty + $qtyNonSale;
+            $nonSaleShare = $qtyKeluar > 0 ? $qtyNonSale / $qtyKeluar : 0;
 
-            // Stok efektif untuk analisis penjualan:
-            // Stok saat ini + qty yang diretur ke distributor = stok "seharusnya"
-            // jika tidak ada retur. Dipakai sebagai dasar apakah barang benar-
-            // benar perlu di-order, bukan sekadar "stok berkurang karena retur".
-            $stokEfektifJual = $stok + $qtyDiretur;
+            // Penyebab bukan-laku yang paling besar (untuk label)
+            $penyebab = null;
+            foreach (StockOutflow::NON_SALE as $reason) {
+                if ($outflow[$reason] > 0 && ($penyebab === null || $outflow[$reason] > $outflow[$penyebab])) {
+                    $penyebab = $reason;
+                }
+            }
 
             $avgQtyPerDay = $days > 0 ? $totalQty / $days : 0;
 
-            // Hitung kebutuhan order berdasarkan stok efektif (bukan stok aktual),
-            // supaya barang yang habis karena retur tidak direkomendasikan order.
-            $calc = $this->calculate($avgQtyPerDay, $totalTrx, $stokEfektifJual);
+            // Kebutuhan order dihitung dari penjualan saja (rata-rata jual/hari)
+            // dan stok aktual.
+            $calc = $this->calculate($avgQtyPerDay, $totalTrx, $stok);
+
+            // Barang yang stoknya menipis/habis TERUTAMA karena expired, rusak,
+            // hilang atau diretur — bukan karena laku — tidak direkomendasikan
+            // order. Ditandai "Tinjau Dulu" supaya diputuskan manual.
+            $habisBukanLaku = $qtyNonSale > 0
+                && $nonSaleShare >= self::NON_SALE_DOMINANT_SHARE
+                && ($calc['perlu_order'] || $stok <= 0);
+
+            if ($habisBukanLaku) {
+                $reviewCount++;
+                $calc['perlu_order']   = false;
+                $calc['reorder_qty']   = 0;
+                $calc['urgensi']       = 3;
+                $calc['urgensi_label'] = 'Tinjau Dulu';
+            }
 
             // Lewati barang yang tidak perlu di-order, kecuali diminta tampilkan semua
             if ($onlyNeeded && !$calc['perlu_order']) {
@@ -291,10 +311,13 @@ class ReorderRepository
                 'distributor_id'      => $distId,
                 'distributor_nama'    => $distName,
                 'stok_sekarang'       => $stok,
-                'stok_efektif_jual'   => $stokEfektifJual,  // stok + qty yg diretur, utk analisis
-                'ada_retur'           => $adaRetur,          // true jika ada retur ke dist dlm periode
-                'qty_diretur'         => (int) $qtyDiretur,  // total qty pcs yang diretur ke dist
-                'total_retur_trx'     => $totalReturTrx,     // berapa kali transaksi retur
+                'qty_terjual'         => $totalQty,            // terjual dalam periode
+                'keluar'              => $outflow,             // stok keluar per penyebab dlm periode
+                'keluar_teks'         => $this->outflowText($totalQty, $outflow),
+                'qty_non_sale'        => $qtyNonSale,          // retur + expired + rusak + hilang
+                'non_sale_persen'     => (int) round($nonSaleShare * 100),
+                'penyebab_utama'      => $penyebab,            // penyebab bukan-laku terbesar (atau null)
+                'habis_bukan_laku'    => $habisBukanLaku,      // true = tidak direkomendasikan order
                 'avg_qty_per_day'     => round($avgQtyPerDay, 2),
                 'total_transaksi'     => $totalTrx,
                 'lead_time_days'      => $calc['lead_time_days'],
@@ -308,7 +331,7 @@ class ReorderRepository
                 'harga_beli'          => $hargaBeli,
                 'harga_beli_per_unit' => round($hargaBeli * $converted['unit_qty'], 0), // harga per satuan kemasan
                 'estimasi_biaya'      => round($converted['qty'] * $hargaBeli * $converted['unit_qty'], 0),
-                'urgensi'             => $calc['urgensi'],         // 1=segera 2=mendekati 0=aman
+                'urgensi'             => $calc['urgensi'],         // 1=segera 2=mendekati 3=tinjau dulu 0=aman
                 'urgensi_label'       => $calc['urgensi_label'],
                 'tipe'                => $calc['tipe'],            // fast/slow/baru
                 'last_loading_date'   => $llDate,                  // null jika belum pernah loading
@@ -327,7 +350,7 @@ class ReorderRepository
                 $sorted = $groupItems
                     ->sortBy(function ($item) {
                         // urgensi 1 harus tampil paling atas, jadi dibalik urutannya
-                        $urgensiRank = $item->urgensi === 1 ? 0 : ($item->urgensi === 2 ? 1 : 2);
+                        $urgensiRank = [1 => 0, 2 => 1, 3 => 2][$item->urgensi] ?? 3;
                         return sprintf('%d_%s', $urgensiRank, $item->nama);
                     })
                     ->values();
@@ -350,7 +373,8 @@ class ReorderRepository
             'total_biaya'       => $items->sum('estimasi_biaya'),
             'urgent_count'      => $items->where('urgensi', 1)->count(),
             'soon_count'        => $items->where('urgensi', 2)->count(),
-            'retur_count'       => $items->where('ada_retur', true)->count(),
+            // dihitung dari SEMUA barang, termasuk yang disembunyikan filter "hanya yang perlu order"
+            'review_count'      => $reviewCount,
             'days'              => $days,
         ];
 
@@ -438,6 +462,20 @@ class ReorderRepository
             'urgensi_label'  => $label,
             'tipe'           => $tipe,
         ];
+    }
+
+    /** Ringkasan stok keluar dalam periode, mis. "terjual 14, expired 3". */
+    private function outflowText(float $terjual, array $outflow): string
+    {
+        $parts = ['terjual ' . number_format($terjual, 0, ',', '.')];
+
+        foreach (StockOutflow::NON_SALE as $reason) {
+            if ($outflow[$reason] > 0) {
+                $parts[] = strtolower(StockOutflow::LABELS[$reason]) . ' ' . number_format($outflow[$reason], 0, ',', '.');
+            }
+        }
+
+        return implode(', ', $parts);
     }
 
     /**

@@ -72,12 +72,16 @@
                                 <h3>{{ $good->total_loading . ' ' . $good->base_unit()->unit->code }}</h3>
                             </div>
                             <div class="col-sm-4">
-                                <h4>Total Terjual</h4>
+                                <h4>Total Keluar</h4>
                                 <h3>{{ $good->total_transaction . ' ' . $good->base_unit()->unit->code }}</h3>
                             </div>
                             <div class="col-sm-4">
                                 <h4>Sisa Barang</h4>
                                 <h3>{{ $good->last_stock . ' ' . $good->base_unit()->unit->code }}</h3>
+                            </div>
+                            <div class="col-sm-12" style="padding-bottom: 8px;">
+                                <b>Barang keluar karena:</b>
+                                @include('layout.good.outflow', ['row' => \App\Services\StockOutflow::forDisplay([$good])[$good->id], 'unit' => $good->base_unit()->unit->code])
                             </div>
                         </div>
                         @if(isSuperadmin())

@@ -14,3 +14,4 @@ yarn-error.log
 # local helper files
 /vendor.zip
 /docs/cek-hosting.php
+/.claude
