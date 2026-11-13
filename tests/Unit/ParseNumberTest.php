@@ -40,6 +40,20 @@ class ParseNumberTest extends TestCase
         $this->assertSame($expected, parseNumber($input));
     }
 
+    #[DataProvider('cases')]
+    public function test_unformatNumber_follows_the_same_rules(mixed $input, ?float $expected): void
+    {
+        $this->assertSame($expected, unformatNumber($input));
+    }
+
+    public function test_unformatNumber_no_longer_turns_indonesian_thousands_into_decimals(): void
+    {
+        // Old behaviour: str_replace(',', '') made "12.500" -> "12.5".
+        $this->assertSame(12500.0, unformatNumber('12.500'));
+        $this->assertSame(1234.5, unformatNumber('1.234,5'));
+        $this->assertSame(0.0, (float) unformatNumber(null));
+    }
+
     public function test_browser_version_gives_the_same_results(): void
     {
         $node = trim((string) shell_exec(PHP_OS_FAMILY === 'Windows' ? 'where node 2>NUL' : 'command -v node 2>/dev/null'));

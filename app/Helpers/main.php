@@ -247,9 +247,16 @@
         return $user !== null && in_array($user->role ?? null, ['supervisor', 'superadmin'], true);
     }
 
+    /**
+     * Old name, kept so the ~80 call sites keep working. It used to only strip
+     * commas, so "12.500" became 12.5 while parseNumber() read it as 12500.
+     * Now there is ONE set of rules: this is parseNumber().
+     * Returns a float, or null for an empty / non-numeric value (which is a
+     * real NULL for a DECIMAL column and 0 for checkNull()).
+     */
     function unformatNumber($number)
     {
-        return str_replace(",", "", $number);
+        return parseNumber($number);
     }
 
     /**
