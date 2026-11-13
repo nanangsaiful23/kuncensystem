@@ -57,6 +57,11 @@
 .sdk-result.warn { display: block; background: var(--warn-bg); color: var(--warn); }
 .sdk-result .big { font-size: 24px; font-weight: 700; }
 .sdk-result .det { font-size: 14px; color: var(--ink2); margin-top: 4px; }
+.sdk-system { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--blue-bg); text-align: center; }
+.sdk-system-num { font-size: 28px; font-weight: 700; color: #1e3a8a; line-height: 1.2; }
+.sdk-system-num small { font-size: 15px; font-weight: 600; color: #1e3a8a; }
+.sdk-live { min-height: 22px; margin-top: 6px; text-align: center; font-size: 15px; font-weight: 600; }
+.sdk-live.ok { color: var(--ok); } .sdk-live.bad { color: var(--bad); } .sdk-live.warn { color: var(--warn); }
 #sdk-reader { width: 100%; border-radius: 10px; overflow: hidden; background: #000; }
 #sdk-reader video { width: 100% !important; display: block; }
 .sdk-suggest { border: 1px solid var(--bdr); border-radius: 10px; margin-top: 6px; overflow: hidden; display: none; }

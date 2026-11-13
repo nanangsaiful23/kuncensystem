@@ -18,7 +18,7 @@ class StockInspection extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'role', 'role_id', 'note', 'finished_at',
+        'role', 'role_id', 'note', 'finished_at', 'stock_opname_id',
     ];
 
     protected $casts = [

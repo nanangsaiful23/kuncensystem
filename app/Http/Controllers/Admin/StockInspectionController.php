@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Base\StockOpnameControllerBase;
 
 use App\Models\Category;
 use App\Models\Good;
@@ -17,14 +19,15 @@ use App\Services\StockService;
  * Sidak stok toko (dipakai dari HP).
  *
  * Supervisor membuka satu sesi sidak, lalu untuk tiap barang: scan barcode /
- * minta barang acak / cari nama -> hitung fisik di rak -> simpan. Stok sistem
- * baru ditampilkan SETELAH jumlah fisik disimpan (hitung buta), supaya angka
- * fisik tidak ikut-ikutan angka sistem.
+ * minta barang acak / cari nama -> lihat stok sistem (jumlah seharusnya) ->
+ * hitung fisik di rak -> simpan.
  *
  * Sidak hanya mencatat selisih. Stok tidak diubah; koreksi lewat Stock Opname.
  */
 class StockInspectionController extends Controller
 {
+    use StockOpnameControllerBase;
+
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
@@ -217,6 +220,67 @@ class StockInspectionController extends Controller
         return redirect()->route('admin.sidak.show', $inspection->id);
     }
 
+    /**
+     * Jadikan barang yang selisih pada sidak yang sudah selesai sebagai satu
+     * Stock Opname (stok dikoreksi + jurnal dibuat, lewat alur opname biasa).
+     * Hanya bisa sekali per sidak.
+     *
+     * Yang dipakai adalah SELISIH-nya, bukan angka fisik mentah: stok baru =
+     * stok sistem saat ini + selisih sidak. Jadi penjualan / loading yang
+     * terjadi setelah barang dihitung tidak ikut terhapus.
+     */
+    public function toStockOpname($id)
+    {
+        $stockOpname = DB::transaction(function () use ($id) {
+            // kunci baris supaya dua kali tekan tidak membuat dua opname
+            $inspection = StockInspection::lockForUpdate()->findOrFail($id);
+
+            abort_unless($inspection->isFinished(), 409, 'Selesaikan sidak dulu.');
+            abort_if($inspection->stock_opname_id !== null, 409, 'Sidak ini sudah dijadikan Stock Opname.');
+
+            $names = $units = $oldStocks = $newStocks = [];
+
+            foreach ($inspection->details()->where('difference', '<>', 0)->get() as $detail) {
+                $good     = Good::find($detail->good_id);
+                $goodUnit = GoodUnit::with('unit')->find($detail->good_unit_id);
+
+                // barang / satuannya sudah dihapus sejak sidak: tidak bisa dikoreksi
+                if ($good === null || $goodUnit === null || $goodUnit->unit === null) {
+                    continue;
+                }
+
+                $current = round(StockService::stock($good) * StockService::smallestQuantity($good)
+                    / max((float) $goodUnit->unit->quantity, 0.000001), 3);
+
+                $names[]     = $good->id;
+                $units[]     = $goodUnit->unit_id;
+                $oldStocks[] = $current;
+                $newStocks[] = round($current + (float) $detail->difference, 3);
+            }
+
+            abort_if(count($names) === 0, 422, 'Tidak ada barang selisih yang bisa dikoreksi.');
+
+            $request = new Request([
+                'note'       => 'Sidak stok #' . $inspection->id,
+                'checker'    => \Auth::user()->name,
+                'names'      => $names,
+                'units'      => $units,
+                'old_stocks' => $oldStocks,
+                'new_stocks' => $newStocks,
+            ]);
+
+            $stockOpname = $this->storeStockOpnameBase('admin', \Auth::user()->id, $request);
+
+            $inspection->update(['stock_opname_id' => $stockOpname->id]);
+
+            return $stockOpname;
+        });
+
+        session(['alert' => 'add', 'data' => 'stock opname dari sidak stok']);
+
+        return redirect('/admin/stock-opname/' . $stockOpname->id . '/detail');
+    }
+
     // ------------------------------------------------------------------
 
     private function openInspection($id): StockInspection
@@ -239,7 +303,7 @@ class StockInspectionController extends Controller
         return $good->getPcsSellingPrice();
     }
 
-    /** Data barang untuk form hitung. Sengaja TANPA stok sistem (hitung buta). */
+    /** Data barang untuk form hitung, termasuk stok sistem (jumlah seharusnya). */
     private function itemResponse(StockInspection $inspection, Good $good)
     {
         $unit = $this->smallestUnit($good);
@@ -258,6 +322,7 @@ class StockInspectionController extends Controller
             'name'     => $good->getFullName(),
             'category' => optional($good->category)->name,
             'unit'     => $unit->name,
+            'system_stock' => StockService::stock($good),
             'checked'  => $checked ? (float) $checked->real_stock : null,
         ]);
     }

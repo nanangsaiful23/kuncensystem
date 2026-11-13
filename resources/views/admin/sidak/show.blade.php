@@ -73,10 +73,16 @@
         <div class="sdk-card" id="count-card" style="display:none">
             <div class="sdk-name" id="it-name"></div>
             <div class="sdk-meta" id="it-meta"></div>
+            <div class="sdk-system">
+                <div class="sdk-item-sub">Stok sistem (seharusnya)</div>
+                <div class="sdk-system-num"><span id="it-system" style="color:inherit"></span> <small id="it-system-unit"></small></div>
+            </div>
             <div class="sdk-msg info" id="it-checked" style="display:none;margin:10px 0 0"></div>
 
             <label class="sdk-label" for="real-stock">Jumlah fisik di rak (<span id="it-unit" style="color:inherit"></span>)</label>
             <input class="sdk-input sdk-qty" id="real-stock" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+
+            <div class="sdk-live" id="it-live"></div>
 
             <label class="sdk-label" for="it-note">Catatan (boleh kosong)</label>
             <input class="sdk-input" id="it-note" maxlength="255" placeholder="contoh: 2 pcs rusak di gudang">
@@ -100,8 +106,22 @@
     </div>
 
     @if($finished)
+        @php $selisih = $summary['minus'] + $summary['plus']; @endphp
+        @if($inspection->stock_opname_id)
+            <div class="sdk-msg info" style="display:block">
+                Selisih sidak ini sudah dikoreksi lewat
+                <a href="{{ url('/admin/stock-opname/' . $inspection->stock_opname_id . '/detail') }}" style="color:#1e3a8a;font-weight:700;text-decoration:underline">Stock Opname #{{ $inspection->stock_opname_id }}</a>.
+            </div>
+        @elseif($selisih > 0)
+            <form method="POST" action="{{ route('admin.sidak.opname', $inspection->id) }}" id="opname-form" data-count="{{ $selisih }}" style="margin-bottom:10px">
+                {{ csrf_field() }}
+                <button type="submit" class="sdk-btn sdk-btn-prim"><i class="fa fa-search-plus"></i> Jadikan Stock Opname ({{ $selisih }} barang selisih)</button>
+            </form>
+            <p class="sdk-sub" style="text-align:center">Stok belum berubah. Tombol di atas mengoreksi stok {{ $selisih }} barang yang selisih dan membuat jurnalnya, sama seperti Stock Opname.</p>
+        @else
+            <p class="sdk-sub" style="text-align:center">Semua barang cocok, tidak ada stok yang perlu dikoreksi.</p>
+        @endif
         <a class="sdk-btn" href="{{ route('admin.sidak.index') }}"><i class="fa fa-arrow-left"></i> Kembali ke daftar sidak</a>
-        <p class="sdk-sub" style="margin-top:12px;text-align:center">Stok di sistem tidak berubah. Untuk mengoreksi barang yang selisih, gunakan menu Stock Opname.</p>
     @else
         <form method="POST" action="{{ route('admin.sidak.finish', $inspection->id) }}" id="finish-form">
             {{ csrf_field() }}
@@ -160,7 +180,19 @@
 
     renderSummary();
     renderList();
-    if (FINISHED) { return; }
+    if (FINISHED) {
+        var opname = $id('opname-form');
+        if (opname) {
+            opname.addEventListener('submit', function (e) {
+                if (!confirm('Koreksi stok ' + opname.getAttribute('data-count') + ' barang yang selisih sesuai hasil sidak ini? Stok dan jurnal akan berubah, dan hanya bisa dilakukan sekali.')) {
+                    e.preventDefault();
+                    return;
+                }
+                opname.querySelector('button').disabled = true;
+            });
+        }
+        return;
+    }
 
     // ---------------------------------------------------------------- ajax
     function api(method, path, body) {
@@ -199,6 +231,10 @@
         $id('it-name').textContent = item.name;
         $id('it-meta').textContent = item.code + (item.category ? ' · ' + item.category : '');
         $id('it-unit').textContent = item.unit;
+        $id('it-system').textContent = num(item.system_stock);
+        $id('it-system-unit').textContent = item.unit;
+        $id('it-live').textContent = '';
+        $id('it-live').className = 'sdk-live';
         var checked = $id('it-checked');
         if (item.checked !== null) {
             checked.style.display = 'block';
@@ -253,6 +289,16 @@
             })
             .catch(function (e) { showMsg(e.message); })
             .then(function () { btn.disabled = false; });
+    });
+
+    // selisih langsung terlihat saat jumlah fisik diketik
+    $id('real-stock').addEventListener('input', function () {
+        var live = $id('it-live');
+        var raw = this.value.trim();
+        if (!current || raw === '' || isNaN(Number(raw))) { live.textContent = ''; live.className = 'sdk-live'; return; }
+        var diff = Math.round((Number(raw) - current.system_stock) * 1000) / 1000;
+        live.className = 'sdk-live ' + tone(diff);
+        live.textContent = diff === 0 ? 'Cocok dengan sistem' : (diff < 0 ? 'Kurang ' : 'Lebih ') + num(Math.abs(diff)) + ' ' + current.unit + ' dari sistem';
     });
 
     $id('real-stock').addEventListener('keydown', function (e) {

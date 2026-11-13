@@ -239,6 +239,7 @@ Route::group(['prefix' => 'sidak-stok'], function () {
 	Route::post('/{id}/cek', 'StockInspectionController@check')->whereNumber('id');
 	Route::delete('/{id}/cek/{detail_id}', 'StockInspectionController@removeDetail')->whereNumber(['id', 'detail_id']);
 	Route::post('/{id}/selesai', 'StockInspectionController@finish')->name('sidak.finish')->whereNumber('id');
+	Route::post('/{id}/stock-opname', 'StockInspectionController@toStockOpname')->name('sidak.opname')->whereNumber('id');
 });
 
 Route::group(['prefix' => 'transaction'], function () {
