@@ -227,6 +227,20 @@ Route::group(['prefix' => 'stock-opname'], function () {
 	Route::get('/{start_date}/{end_date}/{pagination}', 'StockOpnameController@index');
 });
 
+// Sidak stok toko (supervisor, lewat HP) — hanya mencatat selisih, stok tidak diubah
+Route::group(['prefix' => 'sidak-stok'], function () {
+	Route::get('/', 'StockInspectionController@index')->name('sidak.index');
+	Route::post('/', 'StockInspectionController@store')->name('sidak.store');
+	Route::get('/{id}', 'StockInspectionController@show')->name('sidak.show')->whereNumber('id');
+	Route::get('/{id}/barcode', 'StockInspectionController@findByCode')->whereNumber('id');
+	Route::get('/{id}/acak', 'StockInspectionController@random')->whereNumber('id');
+	Route::get('/{id}/cari', 'StockInspectionController@search')->whereNumber('id');
+	Route::get('/{id}/barang/{good_id}', 'StockInspectionController@item')->whereNumber(['id', 'good_id']);
+	Route::post('/{id}/cek', 'StockInspectionController@check')->whereNumber('id');
+	Route::delete('/{id}/cek/{detail_id}', 'StockInspectionController@removeDetail')->whereNumber(['id', 'detail_id']);
+	Route::post('/{id}/selesai', 'StockInspectionController@finish')->name('sidak.finish')->whereNumber('id');
+});
+
 Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/create', 'TransactionController@create');
 	Route::get('/createTouch', 'TransactionController@createTouch');

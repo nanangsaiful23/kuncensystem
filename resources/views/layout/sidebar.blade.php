@@ -65,6 +65,9 @@
             @endif
         </ul>
       </li>
+      @if($role == 'admin' && isSupervisor())
+        <li class="{{ Request::segment(2) == 'sidak-stok' ? 'active' : ''  }}"><a href="{{ url('/admin/sidak-stok') }}"><i class="fa fa-barcode"></i> <span>Sidak Stok Toko</span></a></li>
+      @endif
       @if($role == 'admin')
         <li class="treeview {{ (Request::segment(2) == 'stock-opname' ) ? 'active' : ''  }}">
           <a href="#">
