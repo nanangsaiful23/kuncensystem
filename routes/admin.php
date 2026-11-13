@@ -245,6 +245,7 @@ Route::group(['prefix' => 'sidak-stok'], function () {
 Route::group(['prefix' => 'transaction'], function () {
 	Route::get('/create', 'TransactionController@create');
 	Route::get('/createTouch', 'TransactionController@createTouch');
+	Route::get('/createMobile', 'TransactionController@createMobile');
 	Route::get('/createGpt', 'TransactionController@createGpt');
     Route::post('/store', 'TransactionController@store')->name('transaction.store');
     Route::post('/storeMoney', 'TransactionController@storeMoney')->name('transaction.storeMoney');

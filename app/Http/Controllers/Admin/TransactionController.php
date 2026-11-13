@@ -85,6 +85,18 @@ class TransactionController extends Controller
         return view('admin.layout.page', compact('default'));
     }
 
+    /** Tambah transaksi dengan tampilan khusus layar HP (form & penyimpanan sama dengan create). */
+    public function createMobile()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Tambah transaksi';
+        $default['page'] = 'transaction';
+        $default['section'] = 'create-mobile';
+
+        return view('admin.layout.page', compact('default'));
+    }
+
     public function store(Request $request)
     {
         // dd($request);die;
