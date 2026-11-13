@@ -44,8 +44,12 @@
             </div>
 
             <div id="scan-box" style="display:none;margin-top:12px">
+                <div id="camera-row" style="display:none;margin-bottom:8px">
+                    <label class="sdk-label" for="camera-select" style="margin-top:0">Kamera</label>
+                    <select class="sdk-input" id="camera-select"></select>
+                </div>
                 <div id="sdk-reader"></div>
-                <div class="sdk-item-sub" style="text-align:center;margin:8px 0">Arahkan kamera ke barcode barang</div>
+                <div class="sdk-item-sub" style="text-align:center;margin:8px 0">Arahkan kamera ke barcode, jarak sekitar 10–15 cm, sampai gambarnya tajam</div>
                 <button type="button" class="sdk-btn sdk-btn-sm" id="btn-scan-stop" style="width:100%">Tutup kamera</button>
             </div>
 
@@ -334,6 +338,35 @@
     // -------------------------------------------------------- scan barcode
     var scanner  = null;
     var scanning = false;
+    var cameras  = null;          // daftar kamera HP, diisi setelah izin diberikan
+    var CAM_KEY  = 'sidak-camera';
+
+    function savedCamera() { try { return localStorage.getItem(CAM_KEY); } catch (e) { return null; } }
+    function saveCamera(id) { try { localStorage.setItem(CAM_KEY, id); } catch (e) {} }
+
+    function isBack(label) { return /back|rear|belakang|environment/i.test(label || ''); }
+
+    /** Kamera belakang utama: yang tersimpan, kalau tidak ada kamera belakang pertama. */
+    function pickCamera(list) {
+        var saved = savedCamera();
+        for (var i = 0; i < list.length; i++) { if (list[i].id === saved) { return saved; } }
+        var back = list.filter(function (c) { return isBack(c.label); });
+        // HP dengan banyak lensa: lensa utama biasanya berlabel "camera 0" / "camera2 0"
+        var main = back.filter(function (c) { return /\b0\b/.test(c.label); })[0];
+        if (main) { return main.id; }
+        if (back.length) { return back[0].id; }
+        return list.length ? list[list.length - 1].id : null;
+    }
+
+    function fillCameraSelect(selected) {
+        var sel = $id('camera-select');
+        sel.innerHTML = cameras.map(function (c, i) {
+            var label = c.label || ('Kamera ' + (i + 1));
+            return '<option value="' + esc(c.id) + '">' + esc(label) + (isBack(c.label) ? ' (belakang)' : '') + '</option>';
+        }).join('');
+        sel.value = selected;
+        $id('camera-row').style.display = cameras.length > 1 ? 'block' : 'none';
+    }
 
     function stopScan() {
         $id('scan-box').style.display = 'none';
@@ -342,6 +375,53 @@
             return scanner.stop().catch(function () {});
         }
         return Promise.resolve();
+    }
+
+    function cameraError(err) {
+        $id('scan-box').style.display = 'none';
+        var denied = String(err).indexOf('NotAllowed') !== -1 || String(err).indexOf('Permission') !== -1;
+        showMsg(denied
+            ? 'Izin kamera ditolak. Izinkan kamera untuk situs ini di pengaturan browser, atau ketik barcode secara manual.'
+            : 'Kamera tidak bisa dibuka. Ketik barcode secara manual di bawah.');
+    }
+
+    /** Nyalakan kamera tertentu dengan resolusi tinggi supaya garis barcode terbaca. */
+    function runCamera(cameraId) {
+        if (!scanner) {
+            var F = Html5QrcodeSupportedFormats;
+            scanner = new Html5Qrcode('sdk-reader', {
+                formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.CODABAR, F.QR_CODE],
+                experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+                verbose: false
+            });
+        }
+
+        var video = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+        if (cameraId) { video.deviceId = { exact: cameraId }; } else { video.facingMode = { ideal: 'environment' }; }
+
+        // Tanpa qrbox: seluruh gambar kamera dipindai, jadi barcode tidak harus
+        // pas di dalam kotak kecil.
+        return scanner.start(
+            cameraId ? cameraId : { facingMode: 'environment' },
+            { fps: 15, videoConstraints: video },
+            function (code) {
+                if (!scanning) { return; }
+                if (navigator.vibrate) { navigator.vibrate(80); }
+                stopScan().then(function () { lookupCode(code, 'scan'); });
+            },
+            function () {}
+        ).then(function () {
+            scanning = true;
+            // Fokus terus-menerus + sedikit zoom: barcode kecil jadi tajam
+            // tanpa HP harus ditempel ke barang.
+            try {
+                var caps = scanner.getRunningTrackCapabilities();
+                var adv = {};
+                if (caps.focusMode && caps.focusMode.indexOf('continuous') !== -1) { adv.focusMode = 'continuous'; }
+                if (caps.zoom && caps.zoom.max >= 2) { adv.zoom = Math.max(caps.zoom.min || 1, 2); }
+                if (Object.keys(adv).length) { scanner.applyVideoConstraints({ advanced: [adv] }).catch(function () {}); }
+            } catch (e) {}
+        });
     }
 
     function startScan() {
@@ -356,34 +436,23 @@
         showMsg('');
         $id('scan-box').style.display = 'block';
 
-        if (!scanner) {
-            var F = Html5QrcodeSupportedFormats;
-            scanner = new Html5Qrcode('sdk-reader', {
-                formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF, F.QR_CODE],
-                experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-                verbose: false
-            });
-        }
+        var ready = cameras
+            ? Promise.resolve(cameras)
+            : Html5Qrcode.getCameras().then(function (list) { cameras = list || []; return cameras; });
 
-        scanner.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: function (w, h) { return { width: Math.floor(w * 0.9), height: Math.floor(Math.min(h * 0.6, w * 0.45)) }; } },
-            function (code) {
-                if (!scanning) { return; }
-                if (navigator.vibrate) { navigator.vibrate(80); }
-                stopScan().then(function () { lookupCode(code, 'scan'); });
-            },
-            function () {}
-        ).then(function () {
-            scanning = true;
-        }).catch(function (err) {
-            $id('scan-box').style.display = 'none';
-            var denied = String(err).indexOf('NotAllowed') !== -1 || String(err).indexOf('Permission') !== -1;
-            showMsg(denied
-                ? 'Izin kamera ditolak. Izinkan kamera untuk situs ini di pengaturan browser, atau ketik barcode secara manual.'
-                : 'Kamera tidak bisa dibuka. Ketik barcode secara manual di bawah.');
-        });
+        ready.then(function (list) {
+            var id = pickCamera(list);
+            if (list.length) { fillCameraSelect(id); }
+            return runCamera(id);
+        }).catch(cameraError);
     }
+
+    $id('camera-select').addEventListener('change', function () {
+        var id = this.value;
+        saveCamera(id);
+        var stop = (scanner && scanning) ? (scanning = false, scanner.stop().catch(function () {})) : Promise.resolve();
+        stop.then(function () { return runCamera(id); }).catch(cameraError);
+    });
 
     $id('btn-scan').addEventListener('click', function () {
         if (scanning) { stopScan(); } else { startScan(); }
