@@ -61,7 +61,7 @@
 								<img src="{{asset('assets/images/logo-qr-bawah.png')}}">
 							</div>
 							<div class="col-sm-7" style=" height: 100; background-color: #EE7214; text-align: center; border-radius: 20px; height: 150px">
-								<h4 style="font-size: 40px;">Untuk Pemesanan Hubungi</h4><br>
+								<h4 style="font-size: 40px;">Untuk Information Hubungi</h4><br>
 								<h3 style="margin-top: -10px; font-weight: 600; font-size: 50px"><b>{{ config('app.phone_number') }}</h3>
 							</div>
 						</div>

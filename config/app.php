@@ -12,7 +12,8 @@ return [
 
     'offline_address' => env('APP_OFFADD', 'Getasan'),
 
-    'phone_number' => env('APP_PHONE', '0823-2292-2654'),
+    // `APP_PHONE=` kosong di .env terbaca sebagai "", jadi pakai ?: agar default tetap dipakai
+    'phone_number' => env('APP_PHONE') ?: '0823-2292-2654',
 
     'app_color' => env('APP_COLOR', ''),
 
