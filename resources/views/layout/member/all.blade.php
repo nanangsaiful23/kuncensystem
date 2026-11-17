@@ -55,6 +55,7 @@
                       <td>
                         {{ $member->id }}<br>
                         <a href="{{ url($role . '/member/' . $member->id . '/showQrCode') }}" target="_blank()" class="btn btn-warning">QR Code</a>
+                        <a href="{{ url($role . '/member/' . $member->id . '/downloadQrCode') }}" target="_blank" class="btn btn-success" style="margin-top: 4px">Download HP</a>
                       </td>
                     @endif
                     <td>{{ $member->name }}</td>

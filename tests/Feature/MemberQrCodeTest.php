@@ -44,4 +44,23 @@ class MemberQrCodeTest extends TestCase
         $this->assertStringContainsString('<svg', $html);
         $this->assertStringContainsString('Budi', $html);
     }
+
+    public function test_member_qr_phone_download_page_renders(): void
+    {
+        $member = new Member();
+        $member->id = 192;
+        $member->name = 'Budi "Kuncen"';
+        $member->address = 'Jl. Kuncen';
+
+        $qr_rows = ['101', '010', '101'];
+        $file_name = 'qr-member-192-budi-kuncen.png';
+
+        $html = view('layout.member.qr-code-download', compact('member', 'qr_rows', 'file_name'))->render();
+
+        $this->assertStringContainsString('width="1080" height="1920"', $html);
+        $this->assertStringContainsString('["101","010","101"]', $html);
+        $this->assertStringContainsString('qr-member-192-budi-kuncen.png', $html);
+        // nama di-escape sebagai JSON sehingga kutip tidak merusak script
+        $this->assertStringContainsString('name: ' . json_encode($member->name, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), $html);
+    }
 }

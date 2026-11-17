@@ -148,20 +148,31 @@ class MemberController extends Controller
         return view('layout.member.qr-code', compact('member'));
     }
 
+    /**
+     * Kartu QR member ukuran layar HP portrait (1080x1920 PNG).
+     * Gambar dirender di browser (canvas) supaya server tidak butuh GD/Imagick.
+     */
     public function downloadQrCode($member_id)
     {
-//         $member = Member::find($member_id);
-// $pdf = \PDF::loadView('layout.member.qr-code');
-// return $pdf->download('member.pdf');
-//         $snappy = \App::make('snappy.pdf');
+        $member = Member::findOrFail($member_id);
 
-//         $snappy->generateFromHtml($html, '/tmp/member.pdf');
-//         $file= '/tmp/member.pdf';
+        $matrix = \BaconQrCode\Encoder\Encoder::encode(
+            (string) $member->id,
+            \BaconQrCode\Common\ErrorCorrectionLevel::L(),
+            \BaconQrCode\Encoder\Encoder::DEFAULT_BYTE_MODE_ECODING
+        )->getMatrix();
 
-//         $headers = array(
-//           'Content-Type: application/pdf',
-//         );
+        $qr_rows = [];
+        foreach ($matrix->getArray() as $row) {
+            $line = '';
+            foreach ($row as $cell) {
+                $line .= $cell === 1 ? '1' : '0';
+            }
+            $qr_rows[] = $line;
+        }
 
-//         return \Response::download($file, 'filename.pdf', $headers)->deleteFileAfterSend(true);
+        $file_name = 'qr-member-' . $member->id . '-' . \Illuminate\Support\Str::slug($member->name) . '.png';
+
+        return view('layout.member.qr-code-download', compact('member', 'qr_rows', 'file_name'));
     }
 }

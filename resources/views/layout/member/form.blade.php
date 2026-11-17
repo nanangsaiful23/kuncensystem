@@ -68,6 +68,7 @@
                     @elseif($SubmitButtonText == 'View')
                         <a href="{{ url($role . '/member/' . $member->id . '/edit') }}" class="btn form-control">Ubah Data Member</a>
                         <a href="{{ url($role . '/member/' . $member->id . '/showQrCode') }}" target="_blank()" class="btn btn-warning form-control" style="margin-top: 20px">QR Code</a>
+                        <a href="{{ url($role . '/member/' . $member->id . '/downloadQrCode') }}" target="_blank" class="btn btn-success form-control" style="margin-top: 10px">Download QR (Ukuran HP)</a>
                     @endif
                 </div>
             </div>

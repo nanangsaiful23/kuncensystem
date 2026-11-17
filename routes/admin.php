@@ -172,6 +172,7 @@ Route::group(['prefix' => 'member'], function () {
 	Route::get('/searchByName/{name}', 'MemberController@searchByName');
 	Route::get('/{member_id}/detail', 'MemberController@detail');
 	Route::get('/{member_id}/showQrCode', 'MemberController@showQrCode');
+	Route::get('/{member_id}/downloadQrCode', 'MemberController@downloadQrCode');
 	Route::get('/{member_id}/transaction/{start_date}/{end_date}/{pagination}', 'MemberController@transaction');
 	Route::get('/{member_id}/payment/{start_date}/{end_date}/{pagination}', 'MemberController@payment');
 	Route::get('/{member_id}/edit', 'MemberController@edit');
