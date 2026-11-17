@@ -9,8 +9,7 @@ Route::group(['prefix' => 'admin'], function () {
   Route::post('/login', 'Admin\Auth\LoginController@login');
   Route::post('/logout', 'Admin\Auth\LoginController@logout')->name('admin.logout');
 
-  Route::get('/register', 'Admin\Auth\RegisterController@showRegistrationForm')->name('admin.register');
-  Route::post('/register', 'Admin\Auth\RegisterController@register');
+  // Tidak ada pendaftaran mandiri: akun admin dibuat oleh pengelola, bukan lewat halaman publik.
 
   Route::post('/password/email', 'Admin\Auth\ForgotPasswordController@sendResetLinkEmail')->name('admin.password.request');
   Route::post('/password/reset', 'Admin\Auth\ResetPasswordController@reset')->name('admin.password.email');
@@ -23,8 +22,7 @@ Route::group(['prefix' => 'cashier'], function () {
   Route::post('/login', 'Cashier\Auth\LoginController@login');
   Route::post('/logout', 'Cashier\Auth\LoginController@logout')->name('cashier.logout');
 
-  Route::get('/register', 'Cashier\Auth\RegisterController@showRegistrationForm')->name('cashier.register');
-  Route::post('/register', 'Cashier\Auth\RegisterController@register');
+  // Tidak ada pendaftaran mandiri: akun kasir dibuat oleh pengelola, bukan lewat halaman publik.
 
   Route::post('/password/email', 'Cashier\Auth\ForgotPasswordController@sendResetLinkEmail')->name('cashier.password.request');
   Route::post('/password/reset', 'Cashier\Auth\ResetPasswordController@reset')->name('cashier.password.email');

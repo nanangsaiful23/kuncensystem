@@ -42,6 +42,25 @@ class SmokeTest extends TestCase
         ];
     }
 
+    /** Nobody may create an admin or cashier account from a public page. */
+    #[DataProvider('registerPages')]
+    public function test_public_registration_is_closed(string $url): void
+    {
+        $this->get($url)->assertNotFound();
+        $this->post($url, [
+            'name' => 'x', 'email' => 'x@example.com',
+            'password' => 'secret123', 'password_confirmation' => 'secret123',
+        ])->assertNotFound();
+    }
+
+    public static function registerPages(): array
+    {
+        return [
+            'admin' => ['/admin/register'],
+            'cashier' => ['/cashier/register'],
+        ];
+    }
+
     public function test_good_photo_is_served_from_public_disk(): void
     {
         \Illuminate\Support\Facades\Storage::fake('public');
