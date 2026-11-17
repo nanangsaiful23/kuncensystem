@@ -626,3 +626,34 @@
 
         return $users;
     }
+
+    /**
+     * QR code as inline SVG, built straight from the BaconQrCode matrix.
+     * Unlike QrCode::generate() this needs no libxml/XMLWriter extension,
+     * which the production server does not have.
+     */
+    function qrCodeSvg($text, int $size = 200, int $margin = 0): string
+    {
+        $matrix = \BaconQrCode\Encoder\Encoder::encode(
+            (string) $text,
+            \BaconQrCode\Common\ErrorCorrectionLevel::L(),
+            \BaconQrCode\Encoder\Encoder::DEFAULT_BYTE_MODE_ECODING
+        )->getMatrix();
+
+        $n = $matrix->getWidth();
+        $box = $n + 2 * $margin;
+        $path = '';
+        for ($y = 0; $y < $n; $y++) {
+            $x = 0;
+            while ($x < $n) {
+                if ($matrix->get($x, $y) !== 1) { $x++; continue; }
+                $start = $x;
+                while ($x < $n && $matrix->get($x, $y) === 1) $x++;
+                $path .= 'M' . ($start + $margin) . ' ' . ($y + $margin) . 'h' . ($x - $start) . 'v1h-' . ($x - $start) . 'z';
+            }
+        }
+
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="' . $size . '" height="' . $size . '" viewBox="0 0 ' . $box . ' ' . $box . '" shape-rendering="crispEdges">'
+            . '<rect width="100%" height="100%" fill="#ffffff"/>'
+            . '<path fill="#000000" d="' . $path . '"/></svg>';
+    }

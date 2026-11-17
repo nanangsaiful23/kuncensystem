@@ -48,7 +48,7 @@
 							<img src="{{asset('assets/images/logo-qr-tengah.png')}}">
 						</div>
 						<div class="col-sm-12" style="margin-top: 10%; margin-left: 14%">
-							<div>{!! QrCode::size(799)->generate($member->id); !!}</div>
+							<div>{!! qrCodeSvg($member->id, 799) !!}</div>
 						</div>
 						<div class="col-sm-12" style="margin-top: 10%;">
 							<div style="text-align: center;">
