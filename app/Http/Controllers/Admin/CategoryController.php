@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Base\CategoryControllerBase;
 
 use App\Models\Category;
+use App\Services\RangkumanKategori;
 
 class CategoryController extends Controller
 {
@@ -29,6 +30,19 @@ class CategoryController extends Controller
         $categories = $this->indexCategoryBase($pagination);
 
         return view('admin.layout.page', compact('default', 'categories', 'pagination'));
+    }
+
+    public function summary()
+    {
+        [$default['type'], $default['color'], $default['data']] = alert();
+
+        $default['page_name'] = 'Rangkuman Kategori';
+        $default['page'] = 'category';
+        $default['section'] = 'summary';
+
+        $rangkuman = (new RangkumanKategori())->hitung();
+
+        return view('admin.layout.page', compact('default', 'rangkuman'));
     }
 
     public function create()
@@ -92,6 +106,6 @@ class CategoryController extends Controller
 
         session(['alert' => 'delete', 'data' => 'Kategori barang']);
 
-        return redirect('/admin/category/all/10');
+        return redirect('/admin/category/15');
     }
 }

@@ -48,6 +48,7 @@ Route::group(['prefix' => 'brand'], function () {
 });
 
 Route::group(['prefix' => 'category'], function () {
+	Route::get('/rangkuman', 'CategoryController@summary');
 	Route::get('/create', 'CategoryController@create');
 	Route::post('/store', 'CategoryController@store')->name('category.store');
 	Route::get('/{category_id}/detail', 'CategoryController@detail');

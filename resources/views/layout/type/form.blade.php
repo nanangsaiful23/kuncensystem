@@ -12,6 +12,17 @@
         </div>
 
         <div class="form-group">
+            {!! Form::label('category_id', 'Kategori Induk', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('kategori', optional($type->category)->name ?? '-', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::select('category_id', \App\Models\Category::orderBy('name')->pluck('name', 'id'), null, ['class' => 'form-control select2', 'required' => 'required', 'style' => 'width:100%', 'placeholder' => '- Pilih Kategori -']) !!}
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group">
             {!! Form::label('name', 'Nama', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')

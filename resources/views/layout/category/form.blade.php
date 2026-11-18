@@ -34,6 +34,17 @@
         </div>
 
         <div class="form-group">
+            {!! Form::label('main_category_id', 'Area', array('class' => 'col-sm-12')) !!}
+            <div class="col-sm-5">
+                @if($SubmitButtonText == 'View')
+                    {!! Form::text('area', optional($category->main_category)->name ?? '-', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                @else
+                    {!! Form::select('main_category_id', \App\Models\MainCategory::orderBy('name')->pluck('name', 'id'), null, ['class' => 'form-control select2', 'required' => 'required', 'style' => 'width:100%', 'placeholder' => '- Pilih Area -']) !!}
+                @endif
+            </div>
+        </div>
+
+        <div class="form-group">
             {!! Form::label('unit', 'Satuan', array('class' => 'col-sm-12')) !!}
             <div class="col-sm-5">
                 @if($SubmitButtonText == 'View')

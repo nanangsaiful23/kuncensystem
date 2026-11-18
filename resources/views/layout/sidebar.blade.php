@@ -67,7 +67,6 @@
       </li>
       @if($role == 'admin' && isSupervisor())
         <li class="{{ Request::segment(2) == 'sidak-stok' ? 'active' : ''  }}"><a href="{{ url('/admin/sidak-stok') }}"><i class="fa fa-barcode"></i> <span>Sidak Stok Toko</span></a></li>
-        <li class="{{ Request::segment(2) == 'penataan-kategori' ? 'active' : ''  }}"><a href="{{ url('/admin/penataan-kategori') }}"><i class="fa fa-sitemap"></i> <span>Penataan Kategori</span></a></li>
       @endif
       @if($role == 'admin')
         <li class="treeview {{ (Request::segment(2) == 'stock-opname' ) ? 'active' : ''  }}">
@@ -213,28 +212,21 @@
                 <li class="{{ Request::segment(2) == 'distributor' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/distributor/total_aset/desc/20') }}"><i class="fa fa-circle-o"></i> Daftar Distributor</a></li>
             </ul>
           </li>
-          <li class="treeview {{ (Request::segment(2) == 'type' ) ? 'active' : ''  }}">
+          @php $segKategori = Request::segment(2); $segKategori3 = Request::segment(3); @endphp
+          <li class="treeview {{ in_array($segKategori, ['category', 'type', 'penataan-kategori']) ? 'active' : ''  }}">
             <a href="#">
-                <i class="fa fa-gift"></i><span> Jenis Barang</span>
+                <i class="fa fa-sitemap"></i><span> Kategori &amp; Jenis</span>
               <span class="pull-right-container">
                 <i class="fa fa-angle-left pull-right"></i>
               </span>
             </a>
             <ul class="treeview-menu">
-                <li class="{{ Request::segment(2) == 'type' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/create') }}"><i class="fa fa-circle-o"></i> Tambah Jenis Barang</a></li>
-                <li class="{{ Request::segment(2) == 'type' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/name/asc/30') }}"><i class="fa fa-circle-o"></i> Daftar Jenis Barang</a></li>
-            </ul>
-          </li>
-          <li class="treeview {{ (Request::segment(2) == 'category' ) ? 'active' : ''  }}">
-            <a href="#">
-                <i class="fa fa-shopping-cart"></i><span> Kategori</span>
-              <span class="pull-right-container">
-                <i class="fa fa-angle-left pull-right"></i>
-              </span>
-            </a>
-            <ul class="treeview-menu">
-                <li class="{{ Request::segment(2) == 'category' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/create') }}"><i class="fa fa-circle-o"></i> Tambah Kategori</a></li>
-                <li class="{{ Request::segment(2) == 'category' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/15') }}"><i class="fa fa-circle-o"></i> Daftar Kategori</a></li>
+                <li class="{{ $segKategori == 'category' && $segKategori3 == 'rangkuman' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/rangkuman') }}"><i class="fa fa-pie-chart"></i> Rangkuman Kategori</a></li>
+                <li class="{{ $segKategori == 'category' && !in_array($segKategori3, ['create', 'rangkuman']) ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/15') }}"><i class="fa fa-circle-o"></i> Daftar Kategori</a></li>
+                <li class="{{ $segKategori == 'category' && $segKategori3 == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/category/create') }}"><i class="fa fa-circle-o"></i> Tambah Kategori</a></li>
+                <li class="{{ $segKategori == 'type' && $segKategori3 != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/name/asc/30') }}"><i class="fa fa-circle-o"></i> Daftar Jenis Barang</a></li>
+                <li class="{{ $segKategori == 'type' && $segKategori3 == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/type/create') }}"><i class="fa fa-circle-o"></i> Tambah Jenis Barang</a></li>
+                <li class="{{ $segKategori == 'penataan-kategori' ? 'active' : ''  }}"><a href="{{ url('/admin/penataan-kategori') }}"><i class="fa fa-random"></i> Penataan Kategori</a></li>
             </ul>
           </li>
           <li class="treeview {{ Request::segment(2) == 'unit' ? 'active' : ''  }}">
