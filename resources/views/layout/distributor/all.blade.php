@@ -11,7 +11,9 @@
             @include('layout.search-form')
           </div>
           <div class="box-body" style="overflow-x:scroll; color: black !important">
-            <h3>Total seluruh aset: {{ showRupiah($total) }}</h3>
+            @if(canMenu('info.total_aset'))
+              <h3>Total seluruh aset: {{ showRupiah($total) }}</h3>
+            @endif
             <table id="example1" class="table table-bordered table-striped">
               <thead>
               <tr>
@@ -103,12 +105,16 @@
         url: "{!! url($role . '/distributor/search/') !!}/" + $("#search-input").val(),
         success: function(result){
           console.log(result);
-          var htmlResult = "<thead><tr><th>ID</th><th>Nama</th><th>Lokasi</th><th>Total Aset</th><th>Total Untung</th><th>Total Rugi (Penyusutan & SO)</th><th>Persentase Rugi</th><th class='center'>Pembayaran Hutang</th><th class='center'>Detail</th><th class='center'>Ubah</th>@if($role == 'admin')<th class='center'>Hapus</th>@endif</tr></thead><tbody>";
+          var htmlResult = "<thead><tr><th>ID</th><th>Nama</th><th>Lokasi</th>@if(canMenu('info.laba'))<th>Total Aset</th><th>Total Untung</th><th>Total Rugi (Penyusutan & SO)</th><th>Persentase Rugi</th><th class='center'>Pembayaran Hutang</th>@endif<th class='center'>Detail</th><th class='center'>Ubah</th>@if($role == 'admin')<th class='center'>Hapus</th>@endif</tr></thead><tbody>";
           if(result != null)
           {
             var r = result.distributors;
             for (var i = 0; i < r.length; i++) {
-              htmlResult += "<tr><td>" + r[i].id + "</td><td>" + r[i].name + "</td><td>" + r[i].location + "</td><td>" + r[i].aset + "</td><td>" + r[i].untung + "</td><td>" + r[i].rugi + "</td><td>" + r[i].percentage + "</td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/creditPayment\"><i class=\"fa fa-dollar brown\" aria-hidden=\"true\"></i></a></td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/detail/aset\"><i class=\"fa fa-hand-o-right brown\" aria-hidden=\"true\"></i></a></td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/edit\"><i class=\"fa fa-file brown\" aria-hidden=\"true\"></i></a></td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td></tr>";
+              htmlResult += "<tr><td>" + r[i].id + "</td><td>" + r[i].name + "</td><td>" + r[i].location + "</td>"
+                @if(canMenu('info.laba'))
+                  + "<td>" + r[i].aset + "</td><td>" + r[i].untung + "</td><td>" + r[i].rugi + "</td><td>" + r[i].percentage + "</td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/creditPayment\"><i class=\"fa fa-dollar brown\" aria-hidden=\"true\"></i></a></td>"
+                @endif
+                + "<td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/detail/aset\"><i class=\"fa fa-hand-o-right brown\" aria-hidden=\"true\"></i></a></td><td class='center'><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/edit\"><i class=\"fa fa-file brown\" aria-hidden=\"true\"></i></a></td><td><a href=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/delete\" onclick=\"event.preventDefault(); document.getElementById('delete-form-" + r[i].id + "').submit();\"><i class=\"fa fa-times red\"></i></a><form id='delete-form-" + r[i].id + "' action=\"" + window.location.origin + "/" + '{{ $role }}' + "/distributor/" + r[i].id + "/delete\" method=\"POST\" style=\"display: none;\">" + '{{ csrf_field() }}' + '{{ method_field("DELETE") }}' + "</form></td></tr>";
             }
           }
 

@@ -24,6 +24,11 @@ trait DistributorControllerBase
         $distributors = Distributor::where('name', 'like', '%' . $keyword . '%')
                                    ->get();
 
+        // Aset/untung/rugi hanya untuk yang boleh melihat laba (Hak Akses Menu).
+        if (! canMenu('info.laba')) {
+            return $distributors->makeHidden(['total_aset', 'total_profit', 'total_rugi']);
+        }
+
         foreach($distributors as $distributor)
         {
             $distributor->aset   = showRupiah($distributor->getAsset());

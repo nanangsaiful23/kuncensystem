@@ -7,15 +7,41 @@
  * - Superadmin SELALU boleh membuka semua menu (tidak bisa ditutup).
  * - Role yang bisa diatur: lihat 'roles'. Akun admin yang role-nya kosong /
  *   selain supervisor & superadmin dihitung sebagai 'admin'.
+ * - 'grup'    : judul bagian di halaman pengaturan.
+ * - 'induk'   : nama menu induk di sidebar kalau ini sub menu (mis. Loading Barang).
  * - 'bawaan'  : nilai awal kalau superadmin belum pernah mengubahnya
  *               (sama dengan aturan lama sebelum halaman ini ada).
  * - 'paths'   : URL di bawah /admin/ yang ikut DITOLAK (403) kalau menu ditutup,
- *               pola memakai * (Str::is). Kosong = menu hanya disembunyikan.
+ *               pola memakai * (Str::is, * juga melewati "/").
+ *               Kosong = menu hanya disembunyikan.
+ * - 'kecuali' : URL yang cocok dengan 'paths' tapi milik sub menu lain.
  * - 'kasir'   : apakah menu tampil di sidebar kasir (tidak diatur di halaman).
+ * - 'catatan' : keterangan kecil di halaman pengaturan.
+ *
+ * Kalau satu URL cocok dengan beberapa menu, SEMUANYA harus boleh.
  *
  * Menambah menu baru: tambahkan satu baris di sini, lalu pakai
  * @if(canMenu('kunci')) di sidebar.
  */
+
+$semua      = ['supervisor' => true, 'admin' => true];
+$supervisor = ['supervisor' => true, 'admin' => false];
+$superadmin = ['supervisor' => false, 'admin' => false];
+
+/* Sub menu "Tambah X" (create + store) dan "Daftar X" (sisanya: daftar, detail, edit). */
+$tambahDaftar = function (string $key, string $prefix, string $grup, string $induk, string $nama, array $bawaan, array $ekstra = []) {
+    return [
+        "$key.tambah" => [
+            'grup' => $grup, 'induk' => $induk, 'label' => "Tambah $nama",
+            'bawaan' => $bawaan, 'paths' => ["$prefix/create", "$prefix/store"],
+        ] + $ekstra,
+        "$key.daftar" => [
+            'grup' => $grup, 'induk' => $induk, 'label' => "Daftar $nama",
+            'bawaan' => $bawaan, 'paths' => ["$prefix/*"], 'kecuali' => ["$prefix/create", "$prefix/store"],
+        ] + $ekstra,
+    ];
+};
+
 return [
 
     'roles' => [
@@ -33,224 +59,240 @@ return [
         'member/searchByName/*',
     ],
 
-    'menus' => [
+    'menus' => array_merge(
+        [
+            // ---------------- Menu utama ----------------
+            // Menu inti tanpa 'paths': hanya disembunyikan, URL-nya tetap jalan
+            // karena dipakai halaman kasir (pencarian barang/member lewat AJAX).
+            'cari_barang' => [
+                'grup' => 'Menu Utama', 'label' => 'CARI BARANG',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+            'kas.riwayat' => [
+                'grup' => 'Menu Utama', 'label' => 'Riwayat Kas di Tangan',
+                'bawaan' => $semua, 'paths' => ['cashFlow/*'],
+            ],
 
-        // ---------------- Menu utama ----------------
-        // Menu inti tanpa 'paths': hanya disembunyikan, URL-nya tetap jalan
-        // karena dipakai halaman kasir (pencarian barang/member lewat AJAX).
-        'cari_barang' => [
-            'grup' => 'Menu Utama', 'label' => 'CARI BARANG',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => [],
-        ],
-        'kas.riwayat' => [
-            'grup' => 'Menu Utama', 'label' => 'Riwayat Kas di Tangan',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['cashFlow/*'],
-        ],
+            // ---------------- Barang ----------------
+            'barang.daftar' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Daftar Barang',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+            'barang.expired' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Daftar Barang Expired',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => ['good/exp'],
+            ],
+            'barang.print_display' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Print Harga Barang Display',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => ['good/printDisplay'],
+            ],
+            'barang.stok_habis' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Stock Habis',
+                'bawaan' => $semua, 'paths' => ['good/zeroStock/*'],
+                'kecuali' => ['good/zeroStock/*/-1', 'good/zeroStock/export'],
+            ],
+            'barang.stok_minus' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Stock Minus',
+                'bawaan' => $semua, 'paths' => ['good/zeroStock/*/-1'],
+            ],
+            'barang.grosir' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Harga Grosir Tidak Sesuai',
+                'bawaan' => $semua, 'paths' => ['good/wholesalePrice'],
+            ],
+            'barang.rangkuman' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Rangkuman Barang',
+                'bawaan' => $supervisor, 'paths' => ['good/resume/*'],
+            ],
+            'barang.ganti_nama' => [
+                'grup' => 'Barang', 'induk' => 'Barang', 'label' => 'Ganti Nama Barang',
+                'bawaan' => $supervisor, 'paths' => ['good/changeNameImport'],
+            ],
+            'sidak' => [
+                'grup' => 'Barang', 'label' => 'Sidak Stok Toko',
+                'bawaan' => $supervisor, 'paths' => ['sidak-stok', 'sidak-stok/*'],
+            ],
+            'stock_opname.tambah' => [
+                'grup' => 'Barang', 'induk' => 'Stock Opname Barang', 'label' => 'Tambah Stock Opname Barang',
+                'bawaan' => $semua, 'paths' => ['stock-opname/create', 'stock-opname/store', 'stock-opname/minus-goods'],
+            ],
+            'stock_opname.daftar' => [
+                'grup' => 'Barang', 'induk' => 'Stock Opname Barang', 'label' => 'Daftar Stock Opname Barang',
+                'bawaan' => $semua, 'paths' => ['stock-opname/*'],
+                'kecuali' => ['stock-opname/create', 'stock-opname/store', 'stock-opname/minus-goods'],
+            ],
+            'loading.tambah' => [
+                'grup' => 'Barang', 'induk' => 'Loading Barang', 'label' => 'Tambah Loading Barang',
+                'bawaan' => $semua, 'paths' => ['good-loading/normal/create', 'good-loading/normal/createnew', 'good-loading/normal/store'],
+            ],
+            'loading.tambah_internal' => [
+                'grup' => 'Barang', 'induk' => 'Loading Barang', 'label' => 'Tambah Loading Barang Internal',
+                'bawaan' => $semua,
+                'paths' => ['good-loading/internal/create', 'good-loading/internal/createnew', 'good-loading/internal/store', 'good-loading/transaction-internal/*'],
+            ],
+            'loading.daftar' => [
+                'grup' => 'Barang', 'induk' => 'Loading Barang', 'label' => 'Daftar Loading Barang',
+                'bawaan' => $semua, 'paths' => ['good-loading/*'],
+                'kecuali' => ['good-loading/*/create', 'good-loading/*/createnew', 'good-loading/*/store', 'good-loading/transaction-internal/*', 'good-loading/excel', 'good-loading/storeExcel'],
+            ],
+            'loading.import' => [
+                'grup' => 'Barang', 'induk' => 'Loading Barang', 'label' => 'Import Data Excel',
+                'bawaan' => $semua, 'paths' => ['good-loading/excel', 'good-loading/storeExcel'],
+            ],
 
-        // ---------------- Barang ----------------
-        'barang.daftar' => [
-            'grup' => 'Barang', 'label' => 'Daftar Barang',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => [],
-        ],
-        'barang.expired' => [
-            'grup' => 'Barang', 'label' => 'Daftar Barang Expired',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => ['good/exp'],
-        ],
-        'barang.print_display' => [
-            'grup' => 'Barang', 'label' => 'Print Harga Barang Display',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => ['good/printDisplay'],
-        ],
-        'barang.stok_habis' => [
-            'grup' => 'Barang', 'label' => 'Stock Habis & Stock Minus',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['good/zeroStock/*'],
-        ],
-        'barang.grosir' => [
-            'grup' => 'Barang', 'label' => 'Harga Grosir Tidak Sesuai',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['good/wholesalePrice'],
-        ],
-        'barang.rangkuman' => [
-            'grup' => 'Barang', 'label' => 'Rangkuman Barang',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['good/resume/*'],
-        ],
-        'barang.ganti_nama' => [
-            'grup' => 'Barang', 'label' => 'Ganti Nama Barang',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['good/changeNameImport'],
-        ],
-        'sidak' => [
-            'grup' => 'Barang', 'label' => 'Sidak Stok Toko',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['sidak-stok', 'sidak-stok/*'],
-        ],
-        'stock_opname' => [
-            'grup' => 'Barang', 'label' => 'Stock Opname Barang',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['stock-opname/*'],
-        ],
-        'loading' => [
-            'grup' => 'Barang', 'label' => 'Loading Barang',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['good-loading/*'],
-        ],
-
-        // ---------------- Transaksi ----------------
-        'transaksi.tambah' => [
-            'grup' => 'Transaksi', 'label' => 'Tambah Transaksi (biasa, new page, HP)',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => [],
-        ],
-        'transaksi.daftar' => [
-            'grup' => 'Transaksi', 'label' => 'Daftar Transaksi',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => [],
-        ],
-        'transaksi.resume_total' => [
-            'grup' => 'Transaksi', 'label' => 'Resume Transaksi Total',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => ['transaction/resumeTotal/*'],
-        ],
-        'transaksi.resume_barang' => [
-            'grup' => 'Transaksi', 'label' => 'Resume Transaksi Per Barang',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['transaction/resume/*'],
-        ],
-        'transaksi_internal' => [
-            'grup' => 'Transaksi', 'label' => 'Transaksi Internal',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => ['internal-transaction/*'],
-        ],
-        'retur' => [
-            'grup' => 'Transaksi', 'label' => 'Barang Retur',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['retur/*'],
-        ],
-        'transaksi_lain' => [
-            'grup' => 'Transaksi', 'label' => 'Transaksi Lain (pemasukan)',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => ['other-transaction/*'],
-        ],
-        'biaya_lain' => [
-            'grup' => 'Transaksi', 'label' => 'Biaya Lain (pengeluaran)',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => ['other-payment/*'],
-        ],
-
-        // ---------------- Data master ----------------
-        'member.daftar' => [
-            'grup' => 'Data Master', 'label' => 'Daftar Member',
-            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
-            'paths' => [],
-        ],
-        'member.tambah' => [
-            'grup' => 'Data Master', 'label' => 'Tambah Member',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['member/create', 'member/store'],
-        ],
-        'delivery_fee' => [
-            'grup' => 'Data Master', 'label' => 'Delivery Fee',
-            'bawaan' => ['supervisor' => true, 'admin' => true],
-            'paths' => ['delivery-fee/*'],
-        ],
-        'brand' => [
-            'grup' => 'Data Master', 'label' => 'Brand',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['brand/*'],
-        ],
-        'distributor' => [
-            'grup' => 'Data Master', 'label' => 'Distributor',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['distributor/*'],
-        ],
-        'kategori' => [
-            'grup' => 'Data Master', 'label' => 'Kategori & Jenis Barang',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['category/*', 'type/*'],
-        ],
-        'kategori.penataan' => [
-            'grup' => 'Data Master', 'label' => 'Penataan Kategori',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['penataan-kategori', 'penataan-kategori/*'],
-        ],
-        'satuan' => [
-            'grup' => 'Data Master', 'label' => 'Satuan',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['unit/*'],
-        ],
-        'voucher' => [
-            'grup' => 'Data Master', 'label' => 'Voucher',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => ['voucher/*'],
-        ],
-
-        // ---------------- Laporan ----------------
-        'laporan.keuangan' => [
-            'grup' => 'Laporan', 'label' => 'Laporan Financial (Jurnal, Laba Rugi, Neraca)',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['journal/*', 'reports/financial', 'reports/financial/*', 'scale/*', 'scaleLedger/*', 'getScaleLedger/*'],
-        ],
-        'akun' => [
-            'grup' => 'Laporan', 'label' => 'Akun',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['account/*'],
-        ],
-        'grafik' => [
-            'grup' => 'Laporan', 'label' => 'Grafik Penjualan',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['salesGraph/*', 'getSalesGraph/*'],
-        ],
-        'laporan.pemilik' => [
-            'grup' => 'Laporan', 'label' => 'Ringkasan Pemilik',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['reports/owner', 'reports/owner/*'],
-        ],
-        'laporan.penjualan' => [
-            'grup' => 'Laporan', 'label' => 'Laporan Penjualan',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['reports/sales', 'reports/sales/*'],
-        ],
-        'laporan.perputaran' => [
-            'grup' => 'Laporan', 'label' => 'Perputaran Barang',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['reports/movement', 'reports/movement/*'],
-        ],
-        'laporan.reorder' => [
-            'grup' => 'Laporan', 'label' => 'Rekomendasi Reorder',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => ['reports/reorder', 'reports/reorder/*'],
-        ],
-
-        // ---------------- Informasi di dalam halaman ----------------
-        // Bukan menu: menentukan isi halaman yang tampil (menu tetap bisa dibuka).
-        'info.harga_beli' => [
-            'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat & ubah harga beli',
-            'catatan' => 'kolom harga beli / modal di daftar & detail barang, loading, transaksi internal, edit transaksi, rangkuman kategori',
-            'bawaan' => ['supervisor' => true, 'admin' => false],
-            'paths' => [],
-        ],
-        'info.laba' => [
-            'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat laba, HPP & untung',
-            'catatan' => 'untung per barang, laba loading, HPP & untung transaksi, harga beli di detail/riwayat transaksi, total untung/rugi distributor',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => [],
-        ],
-        'info.edit_hapus' => [
-            'grup' => 'Informasi di dalam halaman', 'label' => 'Edit & hapus transaksi, loading, member',
-            'catatan' => 'tombol Edit/Hapus di daftar transaksi, transaksi internal, loading barang dan member; URL edit/hapus ikut ditolak (ubah data member dari halaman detail member tetap boleh)',
-            'bawaan' => ['supervisor' => false, 'admin' => false],
-            'paths' => [
-                'transaction/*/edit', 'transaction/*/delete',
-                'internal-transaction/*/edit', 'internal-transaction/*/delete',
-                'good-loading/*/edit', 'good-loading/*/delete',
-                'member/*/delete',
+            // ---------------- Transaksi ----------------
+            'transaksi.tambah' => [
+                'grup' => 'Transaksi', 'induk' => 'Transaksi Barang', 'label' => 'Tambah Transaksi',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+            'transaksi.tambah_gpt' => [
+                'grup' => 'Transaksi', 'induk' => 'Transaksi Barang', 'label' => 'Tambah Transaksi (new page)',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+            'transaksi.tambah_hp' => [
+                'grup' => 'Transaksi', 'induk' => 'Transaksi Barang', 'label' => 'Tambah Transaksi (HP)',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+            'transaksi.daftar' => [
+                'grup' => 'Transaksi', 'induk' => 'Transaksi Barang', 'label' => 'Daftar Transaksi',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+            'transaksi.resume_total' => [
+                'grup' => 'Transaksi', 'induk' => 'Transaksi Barang', 'label' => 'Resume Transaksi Total',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => ['transaction/resumeTotal/*'],
+            ],
+            'transaksi.resume_barang' => [
+                'grup' => 'Transaksi', 'induk' => 'Transaksi Barang', 'label' => 'Resume Transaksi Per Barang',
+                'bawaan' => $superadmin, 'paths' => ['transaction/resume/*'],
             ],
         ],
-    ],
+        $tambahDaftar('transaksi_internal', 'internal-transaction', 'Transaksi', 'Transaksi Internal', 'Transaksi Internal', $semua, ['kasir' => true]),
+        [
+            'retur' => [
+                'grup' => 'Transaksi', 'label' => 'Barang Retur',
+                'bawaan' => $semua, 'paths' => ['retur/*'],
+            ],
+        ],
+        $tambahDaftar('transaksi_lain', 'other-transaction', 'Pemasukan & Pengeluaran Lain', 'Transaksi Lain (pemasukan)', 'Transaksi Lain', $semua, ['kasir' => true]),
+        $tambahDaftar('biaya_lain', 'other-payment', 'Pemasukan & Pengeluaran Lain', 'Biaya Lain (pengeluaran)', 'Biaya Lain', $semua, ['kasir' => true]),
+
+        // ---------------- Data master ----------------
+        [
+            'member.tambah' => [
+                'grup' => 'Data Master', 'induk' => 'Member', 'label' => 'Tambah Member',
+                'bawaan' => $superadmin, 'paths' => ['member/create', 'member/store'],
+            ],
+            'member.daftar' => [
+                'grup' => 'Data Master', 'induk' => 'Member', 'label' => 'Daftar Member',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => [],
+            ],
+        ],
+        $tambahDaftar('delivery_fee', 'delivery-fee', 'Data Master', 'Delivery Fee', 'Delivery Fee', $semua),
+        $tambahDaftar('brand', 'brand', 'Data Master', 'Brand', 'Brand', $supervisor),
+        $tambahDaftar('distributor', 'distributor', 'Data Master', 'Distributor', 'Distributor', $supervisor),
+        [
+            'kategori.rangkuman' => [
+                'grup' => 'Data Master', 'induk' => 'Kategori & Jenis', 'label' => 'Rangkuman Kategori',
+                'bawaan' => $supervisor, 'paths' => ['category/rangkuman'],
+            ],
+            'kategori.daftar' => [
+                'grup' => 'Data Master', 'induk' => 'Kategori & Jenis', 'label' => 'Daftar Kategori',
+                'bawaan' => $supervisor, 'paths' => ['category/*'],
+                'kecuali' => ['category/create', 'category/store', 'category/rangkuman'],
+            ],
+            'kategori.tambah' => [
+                'grup' => 'Data Master', 'induk' => 'Kategori & Jenis', 'label' => 'Tambah Kategori',
+                'bawaan' => $supervisor, 'paths' => ['category/create', 'category/store'],
+            ],
+            'jenis.daftar' => [
+                'grup' => 'Data Master', 'induk' => 'Kategori & Jenis', 'label' => 'Daftar Jenis Barang',
+                'bawaan' => $supervisor, 'paths' => ['type/*'], 'kecuali' => ['type/create', 'type/store'],
+            ],
+            'jenis.tambah' => [
+                'grup' => 'Data Master', 'induk' => 'Kategori & Jenis', 'label' => 'Tambah Jenis Barang',
+                'bawaan' => $supervisor, 'paths' => ['type/create', 'type/store'],
+            ],
+            'kategori.penataan' => [
+                'grup' => 'Data Master', 'induk' => 'Kategori & Jenis', 'label' => 'Penataan Kategori',
+                'bawaan' => $supervisor, 'paths' => ['penataan-kategori', 'penataan-kategori/*'],
+            ],
+        ],
+        $tambahDaftar('satuan', 'unit', 'Data Master', 'Satuan', 'Satuan', $supervisor),
+        $tambahDaftar('voucher', 'voucher', 'Data Master', 'Voucher', 'Voucher', $supervisor),
+
+        // ---------------- Laporan ----------------
+        [
+            'laporan.jurnal' => [
+                'grup' => 'Laporan', 'induk' => 'Laporan Financial', 'label' => 'Jurnal',
+                'bawaan' => $superadmin, 'paths' => ['journal/*'],
+            ],
+            'laporan.keuangan' => [
+                'grup' => 'Laporan', 'induk' => 'Laporan Financial', 'label' => 'Laba Rugi, Neraca Bulanan & Kas',
+                'bawaan' => $superadmin, 'paths' => ['reports/financial', 'reports/financial/*'],
+            ],
+            'laporan.neraca' => [
+                'grup' => 'Laporan', 'induk' => 'Laporan Financial', 'label' => 'Detail Neraca',
+                'bawaan' => $superadmin, 'paths' => ['scale/*'],
+            ],
+            'laporan.ledger' => [
+                'grup' => 'Laporan', 'induk' => 'Laporan Financial', 'label' => 'Grafik Ledger Neraca',
+                'bawaan' => $superadmin, 'paths' => ['scaleLedger/*', 'getScaleLedger/*'],
+            ],
+        ],
+        $tambahDaftar('akun', 'account', 'Laporan', 'Akun', 'Akun', $superadmin),
+        [
+            'grafik.bulan' => [
+                'grup' => 'Laporan', 'induk' => 'Grafik Penjualan', 'label' => 'Per Bulan',
+                'bawaan' => $superadmin, 'paths' => ['salesGraph/month/*', 'getSalesGraph/month/*'],
+            ],
+            'grafik.kategori' => [
+                'grup' => 'Laporan', 'induk' => 'Grafik Penjualan', 'label' => 'Per Kategori',
+                'bawaan' => $superadmin, 'paths' => ['salesGraph/category/*', 'getSalesGraph/category/*'],
+            ],
+            'laporan.pemilik' => [
+                'grup' => 'Laporan', 'label' => 'Ringkasan Pemilik',
+                'bawaan' => $superadmin, 'paths' => ['reports/owner', 'reports/owner/*'],
+            ],
+            'laporan.penjualan' => [
+                'grup' => 'Laporan', 'label' => 'Laporan Penjualan',
+                'bawaan' => $superadmin, 'paths' => ['reports/sales', 'reports/sales/*'],
+            ],
+            'laporan.perputaran' => [
+                'grup' => 'Laporan', 'label' => 'Perputaran Barang',
+                'bawaan' => $superadmin, 'paths' => ['reports/movement', 'reports/movement/*'],
+            ],
+            'laporan.reorder' => [
+                'grup' => 'Laporan', 'label' => 'Rekomendasi Reorder',
+                'bawaan' => $superadmin, 'paths' => ['reports/reorder', 'reports/reorder/*'],
+            ],
+
+            // ---------------- Informasi di dalam halaman ----------------
+            // Bukan menu: menentukan isi halaman yang tampil (menu tetap bisa dibuka).
+            'info.harga_beli' => [
+                'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat & ubah harga beli',
+                'catatan' => 'kolom harga beli / modal di daftar & detail barang, loading, transaksi internal, edit transaksi, rangkuman kategori',
+                'bawaan' => $supervisor, 'paths' => [],
+            ],
+            'info.laba' => [
+                'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat laba, HPP & untung',
+                'catatan' => 'untung per barang, laba loading, HPP & untung transaksi, harga beli di detail/riwayat transaksi, total aset/untung/rugi per distributor',
+                'bawaan' => $superadmin, 'paths' => [],
+            ],
+            'info.total_aset' => [
+                'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat total seluruh aset',
+                'catatan' => 'tulisan "Total seluruh aset: Rp..." di atas daftar distributor',
+                'bawaan' => $supervisor, 'paths' => [],
+            ],
+            'info.edit_hapus' => [
+                'grup' => 'Informasi di dalam halaman', 'label' => 'Edit & hapus transaksi, loading, member',
+                'catatan' => 'tombol Edit/Hapus di daftar transaksi, transaksi internal, loading barang dan member; URL edit/hapus ikut ditolak (ubah data member dari halaman detail member tetap boleh)',
+                'bawaan' => $superadmin,
+                'paths' => [
+                    'transaction/*/edit', 'transaction/*/delete',
+                    'internal-transaction/*/edit', 'internal-transaction/*/delete',
+                    'good-loading/*/edit', 'good-loading/*/delete',
+                    'member/*/delete',
+                ],
+            ],
+        ]
+    ),
 ];

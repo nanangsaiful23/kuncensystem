@@ -11,6 +11,9 @@
   .ha-table input[type=checkbox] { width: 20px; height: 20px; cursor: pointer; }
   .ha-catatan { color: #888; font-size: 12px; }
   .ha-semua { font-size: 12px; font-weight: normal; }
+  .ha-table tr.ha-induk td { font-weight: 600; background: #fafafa; }
+  .ha-table tr.ha-sub td:first-child { padding-left: 28px; }
+  .ha-cabang { color: #bbb; margin-right: 4px; }
   .ha-tombol { position: sticky; bottom: 0; background: #fff; padding: 12px 0; border-top: 1px solid #ddd; }
 </style>
 
@@ -61,9 +64,25 @@
         <tbody>
           @foreach($grup as $namaGrup => $menus)
             <tr class="ha-grup"><td colspan="{{ count($roles) + 2 }}">{{ $namaGrup }}</td></tr>
+            @php $indukSebelum = null; @endphp
             @foreach($menus as $key => $menu)
-              <tr>
+              @php $induk = $menu['induk'] ?? null; @endphp
+              @if($induk && $induk !== $indukSebelum)
+                <tr class="ha-induk">
+                  <td><i class="fa fa-folder-open-o"></i> {{ $induk }} <span class="ha-catatan">(sub menu di bawah)</span></td>
+                  @foreach($roles as $roleKey => $roleNama)
+                    <td class="ha-col">
+                      <input type="checkbox" class="ha-pilih-induk" data-role="{{ $roleKey }}" data-induk="{{ $induk }}"
+                             aria-label="Semua sub menu {{ $induk }} untuk {{ $roleNama }}" title="centang/hapus semua sub menu {{ $induk }}">
+                    </td>
+                  @endforeach
+                  <td class="ha-col"><i class="fa fa-check" style="color:#00a65a"></i></td>
+                </tr>
+              @endif
+              @php $indukSebelum = $induk; @endphp
+              <tr class="{{ $induk ? 'ha-sub' : '' }}">
                 <td>
+                  @if($induk)<span class="ha-cabang">└</span>@endif
                   {{ $menu['label'] }}
                   @if(! empty($menu['catatan']))
                     <div class="ha-catatan">{{ $menu['catatan'] }}</div>
@@ -74,7 +93,7 @@
                 @foreach($roles as $roleKey => $roleNama)
                   <td class="ha-col">
                     <input type="checkbox" name="akses[{{ $roleKey }}][{{ $key }}]" value="1"
-                           data-role="{{ $roleKey }}" aria-label="{{ $menu['label'] }} untuk {{ $roleNama }}"
+                           data-role="{{ $roleKey }}" data-induk="{{ $induk }}" aria-label="{{ $menu['label'] }} untuk {{ $roleNama }}"
                            {{ $menu['boleh'][$roleKey] ? 'checked' : '' }}>
                   </td>
                 @endforeach
@@ -96,17 +115,36 @@
 </div>
 
 <script>
-  document.querySelectorAll('.ha-pilih-semua').forEach(function (semua) {
-    var role = semua.dataset.role;
-    var kotak = document.querySelectorAll('input[name^="akses[' + role + ']"]');
+  // Kotak "semua" (per role) dan kotak menu induk (per sub menu) mencentang/menghapus
+  // kotak di bawahnya, dan ikut tercentang kalau semua kotak di bawahnya tercentang.
+  function pasangPilihSemua(pemilih, kotak) {
+    if (!kotak.length) return;
     var segarkan = function () {
-      semua.checked = Array.prototype.every.call(kotak, function (k) { return k.checked; });
+      var jumlah = Array.prototype.filter.call(kotak, function (k) { return k.checked; }).length;
+      pemilih.checked = jumlah === kotak.length;
+      pemilih.indeterminate = jumlah > 0 && jumlah < kotak.length;
     };
     segarkan();
     kotak.forEach(function (k) { k.addEventListener('change', segarkan); });
-    semua.addEventListener('change', function () {
-      kotak.forEach(function (k) { k.checked = semua.checked; });
+    pemilih.addEventListener('change', function () {
+      kotak.forEach(function (k) {
+        if (k.checked !== pemilih.checked) {
+          k.checked = pemilih.checked;
+          k.dispatchEvent(new Event('change'));
+        }
+      });
     });
+  }
+
+  document.querySelectorAll('.ha-pilih-semua').forEach(function (semua) {
+    pasangPilihSemua(semua, document.querySelectorAll('input[name^="akses[' + semua.dataset.role + ']"]'));
+  });
+  document.querySelectorAll('.ha-pilih-induk').forEach(function (induk) {
+    var kotak = Array.prototype.filter.call(
+      document.querySelectorAll('input[name^="akses[' + induk.dataset.role + ']"]'),
+      function (k) { return k.dataset.induk === induk.dataset.induk; }
+    );
+    pasangPilihSemua(induk, kotak);
   });
 </script>
 @endsection

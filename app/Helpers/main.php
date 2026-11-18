@@ -256,6 +256,12 @@
         return \App\Services\MenuAkses::boleh($key);
     }
 
+    /** Ada sub menu dari menu induk ini (mis. 'Loading Barang') yang boleh dibuka? */
+    function canInduk(string $induk)
+    {
+        return \App\Services\MenuAkses::bolehInduk($induk);
+    }
+
     /**
      * Old name, kept so the ~80 call sites keep working. It used to only strip
      * commas, so "12.500" became 12.5 while parseNumber() read it as 12500.

@@ -127,6 +127,18 @@ class MenuAkses
         return (bool) ($menu['bawaan'][$role] ?? false);
     }
 
+    /** Ada sub menu dari induk ini yang boleh? (untuk menampilkan menu induk di sidebar) */
+    public static function bolehInduk(string $induk): bool
+    {
+        foreach (self::menus() as $key => $menu) {
+            if (($menu['induk'] ?? null) === $induk && self::boleh($key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Menu yang menjaga URL ini (path tanpa awalan "admin/").
      * Kosong = URL tidak dijaga.
@@ -143,11 +155,8 @@ class MenuAkses
 
         $keys = [];
         foreach (self::menus() as $key => $menu) {
-            foreach ($menu['paths'] ?? [] as $pola) {
-                if (Str::is($pola, $path)) {
-                    $keys[] = $key;
-                    break;
-                }
+            if (Str::is($menu['paths'] ?? [], $path) && ! Str::is($menu['kecuali'] ?? [], $path)) {
+                $keys[] = $key;
             }
         }
 
@@ -171,6 +180,8 @@ class MenuAkses
         }
 
         DB::table('menu_permissions')->upsert($rows, ['role', 'menu_key'], ['allowed', 'updated_at']);
+        // Buang baris menu lama yang sudah tidak ada di config (mis. menu yang dipecah jadi sub menu).
+        DB::table('menu_permissions')->whereNotIn('menu_key', array_keys(self::menus()))->delete();
         self::lupakan();
     }
 
