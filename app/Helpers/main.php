@@ -248,6 +248,15 @@
     }
 
     /**
+     * Boleh membuka menu ini? Daftar menu: config/menu_akses.php,
+     * diatur superadmin di halaman Hak Akses Menu.
+     */
+    function canMenu(string $key)
+    {
+        return \App\Services\MenuAkses::boleh($key);
+    }
+
+    /**
      * Old name, kept so the ~80 call sites keep working. It used to only strip
      * commas, so "12.500" became 12.5 while parseNumber() read it as 12500.
      * Now there is ONE set of rules: this is parseNumber().

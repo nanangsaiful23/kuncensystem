@@ -245,6 +245,9 @@ Route::group(['prefix' => 'penataan-kategori'], function () {
 		->withoutMiddleware(\App\Http\Middleware\AtomicRequest::class);
 });
 
+Route::get('hak-akses', 'MenuAksesController@index')->name('menu-akses.index');
+Route::post('hak-akses', 'MenuAksesController@update')->name('menu-akses.update');
+
 Route::group(['prefix' => 'sidak-stok'], function () {
 	Route::get('/', 'StockInspectionController@index')->name('sidak.index');
 	Route::post('/', 'StockInspectionController@store')->name('sidak.store');

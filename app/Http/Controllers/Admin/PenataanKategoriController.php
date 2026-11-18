@@ -19,7 +19,7 @@ class PenataanKategoriController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            abort_unless(isSupervisor(), 403, 'Penataan kategori hanya untuk supervisor.');
+            abort_unless(canMenu('kategori.penataan'), 403, 'Menu Penataan Kategori ditutup untuk akun Anda.');
 
             return $next($request);
         });

@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->namespace('App\Http\Controllers\Cashier')
                 ->group(base_path('routes/cashier.php'));
 
-            Route::middleware(['web', 'admin', 'auth:admin'])
+            Route::middleware(['web', 'admin', 'auth:admin', 'menu.akses'])
                 ->prefix('admin')
                 ->as('admin.')
                 ->namespace('App\Http\Controllers\Admin')
@@ -42,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'cashier.guest' => \App\Http\Middleware\RedirectIfCashier::class,
             'admin' => \App\Http\Middleware\RedirectIfNotAdmin::class,
             'admin.guest' => \App\Http\Middleware\RedirectIfAdmin::class,
+            'menu.akses' => \App\Http\Middleware\CekAksesMenu::class,
         ]);
 
         // Old App\Http\Kernel: the api group was throttled to 60 requests/minute.

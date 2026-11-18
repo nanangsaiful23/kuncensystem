@@ -27,7 +27,7 @@ class FinancialReportController extends Controller
 
     public function index(Request $request)
     {
-        abort_unless(isSuperadmin(), 403); // the menu is only shown to superadmin
+        abort_unless(canMenu('laporan.keuangan'), 403);
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->get('end_date',   Carbon::now()->toDateString());
         $tab       = $request->get('tab', 'labarugi');

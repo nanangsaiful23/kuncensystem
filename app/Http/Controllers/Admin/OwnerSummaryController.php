@@ -17,7 +17,7 @@ class OwnerSummaryController extends Controller
 
     public function index(Request $request)
     {
-        abort_unless(isSuperadmin(), 403);
+        abort_unless(canMenu('laporan.pemilik'), 403);
 
         $date = Carbon::parse($request->get('date', date('Y-m-d')));
         if ($date->isFuture()) {

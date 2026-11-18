@@ -31,7 +31,7 @@ class StockInspectionController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            abort_unless(isSupervisor(), 403, 'Sidak stok hanya untuk supervisor.');
+            abort_unless(canMenu('sidak'), 403, 'Menu Sidak Stok ditutup untuk akun Anda.');
 
             return $next($request);
         });
