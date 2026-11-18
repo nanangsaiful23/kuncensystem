@@ -185,6 +185,17 @@ class PenataanKategoriTest extends TestCase
             $this->actingAs($super, 'admin')->post('/admin/penataan-kategori/terapkan', ['file' => $file])
                 ->assertSessionHasErrors('sudah_backup');
             $this->assertSame($before, $this->goods());
+
+            // lewat HTTP (dengan semua middleware web) -> diterapkan tanpa error transaksi
+            $path = $this->tmp('');
+            PemetaanBarang::tulisCsv($path, PemetaanBarang::KOLOM_PEMETAAN, (new PemetaanBarang())->usulan()['pemetaan']);
+            $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('p.csv', file_get_contents($path));
+            $this->actingAs($super, 'admin')
+                ->post('/admin/penataan-kategori/terapkan', ['file' => $file, 'sudah_backup' => '1'])
+                ->assertRedirect('/admin/penataan-kategori')
+                ->assertSessionHas('hasil', fn ($h) => $h['diubah'] === 6 && $h['dilewati'] === []);
+            $this->assertSame(['ijuk hitam', $this->type['Sapu'], $this->cat['CLEANTOOL']], $this->goods()[1]);
+            $this->assertSame(0, DB::transactionLevel());
         } finally {
             DB::table('admins')->whereIn('id', [$admin->id, $super->id])->delete();
         }

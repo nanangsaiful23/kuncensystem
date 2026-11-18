@@ -282,6 +282,12 @@ class PemetaanBarang
     /** Salin id/name/type_id/category_id semua barang ke tabel backup baru. */
     public function buatBackup(): string
     {
+        // CREATE TABLE meng-commit transaksi yang sedang terbuka secara diam-diam;
+        // tolak daripada perubahan berikutnya tidak lagi bisa dibatalkan.
+        if (DB::transactionLevel() > 0) {
+            throw new \LogicException('Backup tidak boleh dibuat di dalam transaksi database (route harus tanpa AtomicRequest).');
+        }
+
         $table = self::BACKUP_PREFIX . date('Ymd_His');
         DB::statement("CREATE TABLE `$table` AS SELECT `id`, `name`, `type_id`, `category_id` FROM `goods`");
 

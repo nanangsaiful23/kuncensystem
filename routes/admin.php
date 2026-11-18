@@ -233,7 +233,10 @@ Route::group(['prefix' => 'penataan-kategori'], function () {
 	Route::get('/', 'PenataanKategoriController@index')->name('penataan-kategori.index');
 	Route::get('/pemetaan.csv', 'PenataanKategoriController@unduhPemetaan')->name('penataan-kategori.pemetaan');
 	Route::get('/tidak-terpetakan.csv', 'PenataanKategoriController@unduhTidakTerpetakan')->name('penataan-kategori.tidak-terpetakan');
-	Route::post('/terapkan', 'PenataanKategoriController@terapkan')->name('penataan-kategori.terapkan');
+	// Tanpa AtomicRequest: penerapan membuat tabel backup (CREATE TABLE meng-commit
+	// transaksi yang terbuka), lalu mengatur transaksinya sendiri.
+	Route::post('/terapkan', 'PenataanKategoriController@terapkan')->name('penataan-kategori.terapkan')
+		->withoutMiddleware(\App\Http\Middleware\AtomicRequest::class);
 	Route::post('/pulihkan', 'PenataanKategoriController@pulihkan')->name('penataan-kategori.pulihkan');
 });
 
