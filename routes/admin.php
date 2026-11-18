@@ -239,6 +239,10 @@ Route::group(['prefix' => 'penataan-kategori'], function () {
 	Route::post('/terapkan', 'PenataanKategoriController@terapkan')->name('penataan-kategori.terapkan')
 		->withoutMiddleware(\App\Http\Middleware\AtomicRequest::class);
 	Route::post('/pulihkan', 'PenataanKategoriController@pulihkan')->name('penataan-kategori.pulihkan');
+	// Petakan jenis dengan klik (tanpa CSV); backup harian dibuat otomatis
+	Route::get('/klik', 'PenataanKategoriController@klik')->name('penataan-kategori.klik');
+	Route::post('/klik', 'PenataanKategoriController@simpanKlik')->name('penataan-kategori.klik.simpan')
+		->withoutMiddleware(\App\Http\Middleware\AtomicRequest::class);
 });
 
 Route::group(['prefix' => 'sidak-stok'], function () {

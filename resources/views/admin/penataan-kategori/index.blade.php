@@ -53,6 +53,12 @@
         </div>
     @endif
 
+    <div class="sdk-card" style="border-color:var(--blue)">
+        <h2>Cara cepat: petakan dengan klik</h2>
+        <p class="sdk-item-sub">Tanpa CSV. Cari kata di nama barang, centang semua hasilnya, pilih jenis dari daftar, lalu Terapkan.</p>
+        <a class="sdk-btn sdk-btn-prim" href="{{ route('admin.penataan-kategori.klik') }}"><i class="fa fa-mouse-pointer"></i> Buka Petakan Jenis</a>
+    </div>
+
     <div class="sdk-stats" style="grid-template-columns: repeat(2, 1fr)">
         <div class="sdk-stat ok"><b>{{ number_format($jumlahPemetaan, 0, ',', '.') }}</b><small>barang punya usulan</small></div>
         <div class="sdk-stat warn"><b>{{ number_format($jumlahTidak, 0, ',', '.') }}</b><small>barang tidak terpetakan</small></div>

@@ -76,6 +76,20 @@ class PemetaanBarang
         }
     }
 
+    /** Jenis aktif yang punya kategori induk: [id => ['name', 'kategori']], urut nama. */
+    public function daftarJenis(): array
+    {
+        $out = [];
+        foreach ($this->types as $id => $t) {
+            if (! $t['deleted'] && $t['category_id'] && isset($this->categories[$t['category_id']])) {
+                $out[$id] = ['name' => $t['name'], 'kategori' => $this->categories[$t['category_id']]['name']];
+            }
+        }
+        uasort($out, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
+
+        return $out;
+    }
+
     /** Masalah pada aturan.php (jenis/kategori yang tidak ada). */
     public function ruleErrors(): array
     {
@@ -319,6 +333,33 @@ class PemetaanBarang
             throw new \InvalidArgumentException('Kolom "jenis baru" tidak ditemukan. Pakai CSV usulan pemetaan.');
         }
 
+        return $this->terapkanBaris($rows, $this->buatBackup());
+    }
+
+    /**
+     * Backup untuk halaman Petakan Jenis (klik): satu tabel per hari, dibuat
+     * sebelum klik pertama hari itu, supaya tidak ada puluhan tabel backup.
+     */
+    public function backupHarian(): string
+    {
+        $table = self::BACKUP_PREFIX . 'klik_' . date('Ymd');
+        if (in_array($table, self::daftarBackup(), true)) {
+            return $table;
+        }
+        if (DB::transactionLevel() > 0) {
+            throw new \LogicException('Backup tidak boleh dibuat di dalam transaksi database (route harus tanpa AtomicRequest).');
+        }
+        DB::statement("CREATE TABLE `$table` AS SELECT `id`, `name`, `type_id`, `category_id` FROM `goods`");
+
+        return $table;
+    }
+
+    /**
+     * Terapkan baris berformat sama dengan CSV (kunci: id, nama, jenis baru,
+     * nama baru, kategori_lama_id, jenis_lama_id). Backup harus sudah dibuat.
+     */
+    public function terapkanBaris(array $rows, string $backup): array
+    {
         $plan = [];
         $skipped = [];
         foreach ($rows as $n => $r) {
@@ -344,7 +385,6 @@ class PemetaanBarang
             ];
         }
 
-        $backup = $this->buatBackup();
         $changed = $renamed = 0;
 
         DB::transaction(function () use ($plan, &$skipped, &$changed, &$renamed) {
