@@ -17,16 +17,10 @@ class CekAksesMenu
         $path = preg_replace('#^admin/?#', '', $request->path());
         $keys = MenuAkses::menuUntukPath($path);
 
-        if ($keys !== []) {
-            $boleh = false;
-            foreach ($keys as $key) {
-                if (MenuAkses::boleh($key)) {
-                    $boleh = true;
-                    break;
-                }
-            }
-
-            abort_unless($boleh, 403, 'Menu ini ditutup untuk akun Anda. Minta superadmin membukanya di Hak Akses Menu.');
+        // Semua menu yang cocok harus boleh: mis. good-loading/5/edit butuh
+        // menu Loading Barang DAN hak Edit & hapus.
+        foreach ($keys as $key) {
+            abort_unless(MenuAkses::boleh($key), 403, 'Menu ini ditutup untuk akun Anda. Minta superadmin membukanya di Hak Akses Menu.');
         }
 
         return $next($request);

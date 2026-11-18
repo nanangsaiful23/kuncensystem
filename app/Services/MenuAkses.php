@@ -24,16 +24,33 @@ class MenuAkses
 
     public static function menus(): array
     {
-        return config('menu_akses.menus', []);
+        return self::config()['menus'] ?? [];
     }
 
     public static function roles(): array
     {
-        return config('menu_akses.roles', []);
+        return self::config()['roles'] ?? [];
     }
 
-    /** Role admin yang sedang login: 'superadmin', 'supervisor' atau 'admin'. */
-    public static function roleSekarang(): ?string
+    /**
+     * Isi config/menu_akses.php. Dibaca langsung dari file kalau config Laravel
+     * sedang di-cache (bootstrap/cache/config.php lama yang belum kenal file ini).
+     */
+    private static function config(): array
+    {
+        $config = config('menu_akses');
+        if (! is_array($config)) {
+            $config = require config_path('menu_akses.php');
+            config(['menu_akses' => $config]);
+        }
+
+        return $config;
+    }
+
+    public const SESSION_LIHAT_SEBAGAI = 'menu_akses_lihat_sebagai';
+
+    /** Role admin asli yang sedang login: 'superadmin', 'supervisor' atau 'admin'. */
+    public static function roleAsli(): ?string
     {
         $user = Auth::guard('admin')->user();
         if ($user === null) {
@@ -42,6 +59,43 @@ class MenuAkses
         $role = $user->role ?? null;
 
         return in_array($role, ['superadmin', 'supervisor'], true) ? $role : 'admin';
+    }
+
+    /**
+     * Role yang dipakai untuk cek menu. Superadmin bisa "melihat sebagai"
+     * supervisor/admin untuk mencoba hasil pengaturan.
+     */
+    public static function roleSekarang(): ?string
+    {
+        $role = self::roleAsli();
+
+        return $role === 'superadmin' ? (self::lihatSebagai() ?? $role) : $role;
+    }
+
+    /** Role yang sedang dicoba superadmin, atau null. */
+    public static function lihatSebagai(): ?string
+    {
+        if (self::roleAsli() !== 'superadmin') {
+            return null;
+        }
+        $role = session(self::SESSION_LIHAT_SEBAGAI);
+
+        return array_key_exists((string) $role, self::roles()) ? $role : null;
+    }
+
+    /** Buat tabel kalau belum ada (server produksi tidak bisa menjalankan artisan). */
+    public static function pastikanTabel(): bool
+    {
+        if (self::tabelAda()) {
+            return true;
+        }
+        try {
+            (require database_path('migrations/2026_11_18_000002_create_menu_permissions_table.php'))->up();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return self::tabelAda();
     }
 
     /** Boleh membuka menu ini? Dipakai di sidebar lewat helper canMenu(). */
@@ -81,7 +135,7 @@ class MenuAkses
     {
         $path = trim($path, '/');
 
-        foreach (config('menu_akses.selalu_boleh', []) as $pola) {
+        foreach (self::config()['selalu_boleh'] ?? [] as $pola) {
             if (Str::is($pola, $path)) {
                 return [];
             }

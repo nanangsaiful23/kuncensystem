@@ -17,8 +17,17 @@
 <div class="content-wrapper">
 <div class="ha-wrap">
   <h3 style="margin-top:0">Hak Akses Menu</h3>
-  <p>Centang menu yang boleh dibuka setiap role. <b>Superadmin selalu bisa membuka semua menu.</b>
-     Menu yang tidak dicentang hilang dari sidebar, dan URL-nya ditolak kalau dibuka langsung.</p>
+  <p>Centang menu yang boleh dibuka setiap role. Menu yang tidak dicentang hilang dari sidebar, dan URL-nya ditolak kalau dibuka langsung.</p>
+  <div class="alert alert-info" style="margin-bottom:15px">
+    <b>Superadmin selalu melihat semua menu</b>, jadi sidebar Anda tidak berubah setelah Simpan.
+    Untuk mencoba hasilnya:
+    @foreach($roles as $roleKey => $roleNama)
+      <a class="btn btn-sm btn-default" style="margin-left:4px" href="{{ route('admin.menu-akses.lihat-sebagai', $roleKey) }}"><i class="fa fa-eye"></i> Lihat sebagai {{ $roleNama }}</a>
+    @endforeach
+    @if($lihatSebagai)
+      <a class="btn btn-sm btn-warning" style="margin-left:4px" href="{{ route('admin.menu-akses.lihat-sebagai', 'selesai') }}">Selesai mencoba</a>
+    @endif
+  </div>
 
   @if(session('menu_akses_ok'))
     <div class="alert alert-success">{{ session('menu_akses_ok') }}</div>
@@ -28,8 +37,8 @@
   @endif
   @if(! $tabelAda)
     <div class="alert alert-warning">
-      Tabel <code>menu_permissions</code> belum ada, jadi pengaturan belum bisa disimpan (saat ini semua memakai aturan bawaan).
-      Jalankan sekali file <code>docs/sql/2026-11-18-tambah-hak-akses-menu.sql</code> di phpMyAdmin.
+      Tabel <code>menu_permissions</code> belum ada dan gagal dibuat otomatis (akun database mungkin tidak boleh membuat tabel),
+      jadi pengaturan belum bisa disimpan. Jalankan sekali file <code>docs/sql/2026-11-18-tambah-hak-akses-menu.sql</code> di phpMyAdmin.
     </div>
   @endif
 
@@ -56,8 +65,10 @@
               <tr>
                 <td>
                   {{ $menu['label'] }}
-                  @if(empty($menu['paths']))
-                    <div class="ha-catatan">hanya disembunyikan dari sidebar</div>
+                  @if(! empty($menu['catatan']))
+                    <div class="ha-catatan">{{ $menu['catatan'] }}</div>
+                  @elseif(empty($menu['paths']))
+                    <div class="ha-catatan">hanya disembunyikan dari sidebar (halaman inti kasir)</div>
                   @endif
                 </td>
                 @foreach($roles as $roleKey => $roleNama)

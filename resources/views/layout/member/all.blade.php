@@ -42,7 +42,7 @@
                   <th>Sisa Hutang</th>
                 @endif
                 <th class="center">Detail</th>
-                @if(isSuperadmin())
+                @if(canMenu('info.edit_hapus'))
                   <th class="center">Ubah</th>
                   <th class="center">Hapus</th>
                 @endif
@@ -71,7 +71,7 @@
                       <td>{{ showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - ($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price'))) }}</td>
                     @endif
                     <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
-                    @if(isSuperadmin())
+                    @if(canMenu('info.edit_hapus'))
                       <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
                       <td class="center">
                         <button type="button" class="no-btn center" data-toggle="modal" data-target="#modal-danger-{{$member->id}}"><i class="fa fa-times" aria-hidden="true" style="color: red !important"></i></button>

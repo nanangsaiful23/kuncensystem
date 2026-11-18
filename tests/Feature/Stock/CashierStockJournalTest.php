@@ -164,6 +164,7 @@ class CashierStockJournalTest extends StockTestCase
         $loading = $this->load($pcs, 6, 10000);
         $this->assertSame(10.0, $this->stock($good));
 
+        $this->bolehEditHapus();
         $this->actingAs($this->admin(), 'admin')->delete('/admin/good-loading/' . $loading . '/delete')->assertRedirect();
 
         $this->assertSame(4.0, $this->stock($good));

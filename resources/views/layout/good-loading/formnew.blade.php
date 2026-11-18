@@ -63,7 +63,7 @@
                             <th class="col-unit">Satuan</th>
                             <th class="col-stock">Stok Lama</th>
                             <th class="col-stock">Stok Baru</th>
-                            @if(isSupervisor())
+                            @if(canMenu('info.harga_beli'))
                             <th class="col-price">Harga Beli</th>
                             <th class="col-price">Total</th>
                             <th class="col-price">Harga Jual</th>
@@ -108,7 +108,7 @@
                                 <div class="cell-txt sm" id="new_stock_display-{{ $i }}">—</div>
                                 <input type="hidden" name="new_stocks[]" id="new_stock-{{ $i }}">
                             </td>
-                            @if(isSupervisor())
+                            @if(canMenu('info.harga_beli'))
                             <td class="col-price"><input type="text" class="fc" name="prices[]"       id="price-{{ $i }}"       onchange="editBuyPrice('{{ $i }}')" onkeyup="editBuyPrice('{{ $i }}')"></td>
                             <td class="col-price"><input type="text" class="fc" name="total_prices[]" id="total_price-{{ $i }}" readonly></td>
                             <td class="col-price"><input type="text" class="fc" name="sell_prices[]"  id="sell_price-{{ $i }}"></td>
@@ -124,7 +124,7 @@
 
         {{-- SIDEBAR --}}
         <div class="panel-sidebar">
-            @if(isSupervisor())
+            @if(canMenu('info.harga_beli'))
             <button type="button" class="btn-add-good" data-toggle="modal" data-target="#modal-good">
                 <i class="fa fa-plus-circle"></i> Tambah Barang Baru
             </button>
@@ -164,7 +164,7 @@
                     <label>Catatan</label>
                     <textarea name="note" class="form-control" id="note" placeholder="Opsional..."></textarea>
                 </div>
-                @if(isSupervisor())
+                @if(canMenu('info.harga_beli'))
                 <div class="total-price-display">
                     <div class="lbl">Total Harga</div>
                     <div class="val" id="total_price_display">Rp 0</div>
@@ -189,7 +189,7 @@
 
 <div id="toast-box"></div>
 
-@if(isSupervisor())
+@if(canMenu('info.harga_beli'))
 <div class="modal fade" id="modal-good">
     <div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
@@ -305,7 +305,7 @@ var _uopts = '<option value="">Pilih satuan</option>'
     + '<option value="{{ $uid }}">{{ addslashes($uname) }}</option>'
     @endforeach
 ;
-var _sup = @if(isSupervisor()) true @else false @endif;
+var _sup = @if(canMenu('info.harga_beli')) true @else false @endif;
 var _canEditUnit = @if(isSuperadmin()) true @else false @endif;   /* hanya superadmin yang boleh ubah satuan */
 var _canEditName = @if(isset($canEditName) && $canEditName) true @else false @endif;   /* ubah nama barang (klik nama) */
 

@@ -37,7 +37,15 @@
   <section class="sidebar" id="side-menu">
     <ul class="sidebar-menu" data-widget="tree">
       <li class="header">MENU UTAMA</li>
-      <li class="{{ Request::segment(1) == 'search' ? 'active' : ''  }}"><a href="{{ url('/search/beras') }}" target="_blank()"><i class="fa fa-search"></i> CARI BARANG</a></li>
+      @if(\App\Services\MenuAkses::lihatSebagai())
+        <li style="background:#fff3cd; padding:8px 12px; font-size:12px; white-space:normal">
+          Melihat sebagai <b>{{ \App\Services\MenuAkses::roles()[\App\Services\MenuAkses::lihatSebagai()] }}</b>.
+          <a href="{{ route('admin.menu-akses.lihat-sebagai', 'selesai') }}" style="display:inline; padding:0; color:#0056b3; text-decoration:underline">Kembali ke superadmin</a>
+        </li>
+      @endif
+      @if(canMenu('cari_barang'))
+        <li class="{{ Request::segment(1) == 'search' ? 'active' : ''  }}"><a href="{{ url('/search/beras') }}" target="_blank()"><i class="fa fa-search"></i> CARI BARANG</a></li>
+      @endif
       @if(canMenu('kas.riwayat'))
         <li><a href="{{ url('/' . $role . '/cashFlow/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15') }}"><i class="fa fa-dollar"></i> Riwayat Kas di Tangan</a></li>
       @endif
@@ -49,7 +57,9 @@
           </span>
         </a>
         <ul class="treeview-menu">
-            <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'printDisplay' && Request::segment(3) != 'zeroStock' && Request::segment(3) != 'exp' && Request::segment(3) != 'transfer' && Request::segment(3) != 'wholesalePrice' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/all/goods.id/desc/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
+            @if(canMenu('barang.daftar'))
+              <li class="{{ Request::segment(2) == 'good' && Request::segment(3) != 'printDisplay' && Request::segment(3) != 'zeroStock' && Request::segment(3) != 'exp' && Request::segment(3) != 'transfer' && Request::segment(3) != 'wholesalePrice' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/all/all/all/goods.id/desc/20') }}"><i class="fa fa-circle-o"></i> Daftar Barang</a></li>
+            @endif
             @if(isSupervisor())
               <li class="{{ Request::segment(2) == 'good' && Request::segment(3) == 'transfer'  ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/good/transfer') }}"><i class="fa fa-circle-o"></i> Transfer Barang</a></li>
             @endif
@@ -111,6 +121,7 @@
           </ul>
         </li>
       @endif
+      @if(canMenu('transaksi.tambah') || canMenu('transaksi.daftar') || canMenu('transaksi.resume_total') || canMenu('transaksi.resume_barang'))
       <li class="treeview {{ (Request::segment(2) == 'transaction' ) ? 'active' : ''  }}">
         <a href="#">
             <i class="fa fa-money"></i><span> Transaksi Barang</span>
@@ -119,10 +130,14 @@
           </span>
         </a>
         <ul class="treeview-menu">
+          @if(canMenu('transaksi.tambah'))
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/create') }}"><i class="fa fa-circle-o"></i> Tambah Transaksi</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createGpt' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createGpt') }}" target="_blank()"><i class="fa fa-circle-o"></i> Tambah Transaksi (new page)</a></li>
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'createMobile' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/createMobile') }}"><i class="fa fa-mobile"></i> Tambah Transaksi (HP)</a></li>
+          @endif
+          @if(canMenu('transaksi.daftar'))
             <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) != 'create'&& Request::segment(3) != 'createGpt' && Request::segment(3) != 'createTouch' && Request::segment(3) != 'createMobile' && Request::segment(3) != 'resume' && Request::segment(3) != 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-circle-o"></i> Daftar Transaksi</a></li>
+          @endif
             @if(canMenu('transaksi.resume_total'))
               <li class="{{ Request::segment(2) == 'transaction' && Request::segment(3) == 'resumeTotal' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/transaction/resumeTotal/' . date('Y-m-d') . '/' . date('Y-m-d')) }}"><i class="fa fa-circle-o"></i> Resume Transaksi Total</a></li>
             @endif
@@ -131,6 +146,7 @@
             @endif
         </ul>
       </li>
+      @endif
       @if(canMenu('transaksi_internal'))
         <li class="treeview {{ (Request::segment(2) == 'internal-transaction' ) ? 'active' : ''  }}">
           <a href="#">
@@ -179,6 +195,7 @@
         </li>
       @endif
       <li class="header">MENU LAIN</li>
+      @if(canMenu('member.daftar') || canMenu('member.tambah'))
       <li class="treeview {{ (Request::segment(2) == 'member' ) ? 'active' : ''  }}">
         <a href="#">
             <i class="fa fa-users"></i><span> Member</span>
@@ -190,9 +207,12 @@
           @if(canMenu('member.tambah'))
             <li class="{{ Request::segment(2) == 'member' && Request::segment(3) == 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/create') }}"><i class="fa fa-circle-o"></i> Tambah Member</a></li>
           @endif
-          <li class="{{ Request::segment(2) == 'member' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/2020-01-01/' . date('Y-m-d') . '/name/asc/15') }}"><i class="fa fa-circle-o"></i> Daftar Member</a></li>
+          @if(canMenu('member.daftar'))
+            <li class="{{ Request::segment(2) == 'member' && Request::segment(3) != 'create' ? 'active' : ''  }}"><a href="{{ url('/' . $role . '/member/2020-01-01/' . date('Y-m-d') . '/name/asc/15') }}"><i class="fa fa-circle-o"></i> Daftar Member</a></li>
+          @endif
         </ul>
       </li>
+      @endif
       @if(canMenu('delivery_fee'))
         <li class="treeview {{ (Request::segment(2) == 'delivery-fee' ) ? 'active' : ''  }}">
           <a href="#">

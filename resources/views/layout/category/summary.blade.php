@@ -1,6 +1,6 @@
 @php
   $fmt = fn ($n) => number_format((float) $n, 0, ',', '.');
-  $lihatNilai = isSupervisor();
+  $lihatNilai = canMenu('info.harga_beli');
   $m = $rangkuman['masalah'];
   $jumlahMasalah = $m['kategori_dobel']->count() + $m['jenis_dobel']->count() + $m['jenis_tanpa_kategori']->count()
                  + $m['kategori_tanpa_area'] + ($m['barang_tanpa_kategori'] > 0 ? 1 : 0) + ($m['barang_tidak_cocok']->count() > 0 ? 1 : 0);
@@ -203,7 +203,7 @@
                 </table>
               @endif
 
-              @if($rangkuman['total']->tanpa_jenis && isSupervisor())
+              @if($rangkuman['total']->tanpa_jenis && canMenu('kategori.penataan'))
                 <p class="rk-muted">{{ $fmt($rangkuman['total']->tanpa_jenis) }} barang belum berjenis. Barang ini bisa dipetakan sekaligus lewat
                   <a href="{{ url('admin/penataan-kategori') }}">Penataan Kategori</a>.</p>
               @endif

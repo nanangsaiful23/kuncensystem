@@ -49,7 +49,7 @@
                 <th class="col-name">Nama Barang</th>
                 <th>Satuan</th>
                 <th class="col-qty" style="text-align:center">Jml</th>
-                @if(isSupervisor())
+                @if(canMenu('info.harga_beli'))
                   <th class="col-num" style="text-align:right">Harga Beli</th>
                   <th class="col-num" style="text-align:right">Harga Jual</th>
                   <th class="col-num" style="text-align:right">Total Diskon</th>
@@ -67,10 +67,10 @@
                   <td><input type="text" name="name_temps[]" class="fc" id="name_temp-{{ $i }}" value="{{ $detail->good_unit->good->name }}" readonly tabindex="-1" title="{{ $detail->good_unit->good->name }}" style="font-weight:600"></td>
                   <td><input type="text" name="units[]" class="fc" id="unit-{{ $i }}" value="{{ $detail->good_unit->unit->name }}" readonly tabindex="-1"></td>
                   <td class="col-qty"><input type="text" name="quantities[]" class="fc qty" id="quantity-{{ $i }}" value="{{ $detail->quantity }}" autocomplete="off" inputmode="decimal" oninput="editPrice('{{ $i }}')"></td>
-                  <td @if(!isSupervisor()) style="display:none" @endif><input type="text" name="buy_prices[]" class="fc num" id="buy-{{ $i }}" value="{{ $detail->buy_price }}" readonly tabindex="-1"></td>
-                  <td @if(!isSupervisor()) style="display:none" @endif><input type="text" name="selling_prices[]" class="fc num" id="selling_price-{{ $i }}" value="{{ $detail->selling_price }}" readonly tabindex="-1"></td>
-                  <td @if(!isSupervisor()) style="display:none" @endif><input type="text" name="discount_prices[]" class="fc num" id="discount_price-{{ $i }}" value="{{ $detail->discount_price }}" readonly tabindex="-1"></td>
-                  <td @if(!isSupervisor()) style="display:none" @endif><input type="text" name="sum_prices[]" class="fc num sum" id="sum_price-{{ $i }}" value="{{ $detail->sum_price }}" readonly tabindex="-1"></td>
+                  <td @if(!canMenu('info.harga_beli')) style="display:none" @endif><input type="text" name="buy_prices[]" class="fc num" id="buy-{{ $i }}" value="{{ $detail->buy_price }}" readonly tabindex="-1"></td>
+                  <td @if(!canMenu('info.harga_beli')) style="display:none" @endif><input type="text" name="selling_prices[]" class="fc num" id="selling_price-{{ $i }}" value="{{ $detail->selling_price }}" readonly tabindex="-1"></td>
+                  <td @if(!canMenu('info.harga_beli')) style="display:none" @endif><input type="text" name="discount_prices[]" class="fc num" id="discount_price-{{ $i }}" value="{{ $detail->discount_price }}" readonly tabindex="-1"></td>
+                  <td @if(!canMenu('info.harga_beli')) style="display:none" @endif><input type="text" name="sum_prices[]" class="fc num sum" id="sum_price-{{ $i }}" value="{{ $detail->sum_price }}" readonly tabindex="-1"></td>
                 </tr>
                 <?php $i++ ?>
               @endforeach

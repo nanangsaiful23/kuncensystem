@@ -247,6 +247,7 @@ Route::group(['prefix' => 'penataan-kategori'], function () {
 
 Route::get('hak-akses', 'MenuAksesController@index')->name('menu-akses.index');
 Route::post('hak-akses', 'MenuAksesController@update')->name('menu-akses.update');
+Route::get('hak-akses/lihat-sebagai/{role}', 'MenuAksesController@lihatSebagai')->name('menu-akses.lihat-sebagai');
 
 Route::group(['prefix' => 'sidak-stok'], function () {
 	Route::get('/', 'StockInspectionController@index')->name('sidak.index');

@@ -20,6 +20,10 @@ class MenuAksesController extends Controller
 
     public function index()
     {
+        // Dibuat di GET (bukan di POST): CREATE TABLE di MySQL menutup
+        // transaksi yang dibuka AtomicRequest untuk POST.
+        $tabelAda = MenuAkses::pastikanTabel();
+
         $roles = MenuAkses::roles();
         $grup  = [];
         foreach (MenuAkses::menus() as $key => $menu) {
@@ -31,16 +35,17 @@ class MenuAksesController extends Controller
         }
 
         return view('admin.menu-akses', [
-            'roles'    => $roles,
-            'grup'     => $grup,
-            'tabelAda' => MenuAkses::tabelAda(),
+            'roles'        => $roles,
+            'grup'         => $grup,
+            'tabelAda'     => $tabelAda,
+            'lihatSebagai' => MenuAkses::lihatSebagai(),
         ]);
     }
 
     public function update(Request $request)
     {
         if (! MenuAkses::tabelAda()) {
-            return back()->with('menu_akses_error', 'Tabel menu_permissions belum ada. Jalankan dulu docs/sql/2026-11-18-tambah-hak-akses-menu.sql di phpMyAdmin.');
+            return back()->with('menu_akses_error', 'Tabel menu_permissions belum ada dan gagal dibuat otomatis. Jalankan docs/sql/2026-11-18-tambah-hak-akses-menu.sql di phpMyAdmin.');
         }
 
         if ($request->input('aksi') === 'bawaan') {
@@ -51,6 +56,20 @@ class MenuAksesController extends Controller
 
         MenuAkses::simpan((array) $request->input('akses', []));
 
-        return redirect()->route('admin.menu-akses.index')->with('menu_akses_ok', 'Hak akses menu disimpan.');
+        return redirect()->route('admin.menu-akses.index')->with('menu_akses_ok', 'Hak akses menu disimpan. Superadmin tetap melihat semua menu; pakai tombol "Lihat sebagai" untuk mencoba hasilnya.');
+    }
+
+    /** Superadmin mencoba sidebar & akses sebagai role lain ('selesai' = kembali). */
+    public function lihatSebagai(string $role)
+    {
+        if (array_key_exists($role, MenuAkses::roles())) {
+            session([MenuAkses::SESSION_LIHAT_SEBAGAI => $role]);
+
+            return redirect('/admin')->with('menu_akses_ok', 'Sekarang melihat sebagai ' . MenuAkses::roles()[$role] . '.');
+        }
+
+        session()->forget(MenuAkses::SESSION_LIHAT_SEBAGAI);
+
+        return redirect()->route('admin.menu-akses.index');
     }
 }

@@ -51,7 +51,7 @@
                 <td>:</td>
                 <td style="text-align: right;">{{ showRupiah($all_normal->sum('total_sum_price') + $all_retur->sum('total_sum_price')) }}</td>
               </tr>
-              @if(isSuperadmin())
+              @if(canMenu('info.laba'))
                 <tr>
                   <td>HPP</td>
                   <td>:</td>

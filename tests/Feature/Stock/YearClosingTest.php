@@ -123,7 +123,8 @@ class YearClosingTest extends StockTestCase
             $this->assertArrayHasKey('periode', $e->errors());
         }
 
-        // an admin cannot delete last year's loading: nothing changes
+        // an admin (with the edit & delete right) cannot delete last year's loading: nothing changes
+        $this->bolehEditHapus();
         $this->actingAs($this->admin(), 'admin')
              ->delete('/admin/good-loading/' . $loading . '/delete')
              ->assertSessionHasErrors('periode');

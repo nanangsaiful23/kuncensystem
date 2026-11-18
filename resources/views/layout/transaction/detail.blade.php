@@ -12,7 +12,7 @@
         <span class="sdiv"></span>
         <a class="btn-page" id="act-back" href="{{ url($role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-arrow-left"></i> Daftar <kbd>Esc</kbd></a>
         <a class="btn-page" id="act-print" href="{{ url($role . '/transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print"></i> Cetak <kbd>P</kbd></a>
-        @if(isSuperadmin())
+        @if(canMenu('info.edit_hapus'))
           <a class="btn-page" id="act-edit" href="{{ url($role . '/transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-pencil"></i> Ubah <kbd>E</kbd></a>
         @endif
       </div>
@@ -28,7 +28,7 @@
         <div class="info-card big"><div class="k">Total Akhir</div><div class="v">{{ showRupiah($transaction->total_sum_price) }}</div></div>
         <div class="info-card"><div class="k">Uang Dibayar</div><div class="v">{{ showRupiah($transaction->money_paid) }}</div></div>
         <div class="info-card"><div class="k">Kembalian</div><div class="v">{{ showRupiah($transaction->money_returned) }}</div></div>
-        @if(isSuperadmin())
+        @if(canMenu('info.laba'))
           <div class="info-card"><div class="k">HPP</div><div class="v">{{ showRupiah($transaction->getHpp()) }}</div></div>
           <div class="info-card"><div class="k">Untung</div><div class="v">{{ showRupiah($transaction->getProfit()) }}</div></div>
         @endif
@@ -47,7 +47,7 @@
                 <th>Barcode</th>
                 <th class="col-name">Nama Barang</th>
                 <th class="col-qty" style="text-align:center">Jml</th>
-                @if(isSuperadmin())
+                @if(canMenu('info.laba'))
                   <th class="col-num" style="text-align:right">Harga Beli</th>
                 @endif
                 <th class="col-num" style="text-align:right">Harga Jual</th>
@@ -63,7 +63,7 @@
                   <td><a href="{{ url($role . '/good/' . $detail->good_unit->good->id . '/detail') }}" target="_blank">{{ $detail->good_unit->good->code }}</a></td>
                   <td><div class="cell-txt nm">{{ $detail->good_unit->good->getFullName() . ' ' . $detail->good_unit->unit->name }}@if($detail->type == 'retur') <small class="low">RETUR</small>@endif</div></td>
                   <td style="text-align:center;font-size:16px;font-weight:700">{{ $detail->quantity }}</td>
-                  @if(isSuperadmin())
+                  @if(canMenu('info.laba'))
                     <td style="text-align:right">{{ showRupiah($detail->buy_price) }}</td>
                   @endif
                   <td style="text-align:right">{{ showRupiah($detail->selling_price) }}</td>

@@ -1,7 +1,7 @@
 {{-- Ubah loading: same layout as the create page (layout/good-loading/style) --}}
 <?php
     $details = $good_loading->detailsWithDeleted();
-    $isSupervisor = isSupervisor();
+    $isSupervisor = canMenu('info.harga_beli');
     // 12500.00 -> "12.500", 2.50 -> "2,5"
     $num = function ($v) {
         $s = number_format((float) $v, 2, ',', '.');

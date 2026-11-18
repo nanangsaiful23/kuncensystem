@@ -64,7 +64,7 @@
                   <th style="width: 12%; text-align: center;" class="col-stock">Stock <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-stock', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-stock', 'show')"></i></th>
                   <th style="width: 15%; text-align: center;" class="col-price">Harga Jual <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-price', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-price', 'show')"></i></th>
                   <th style="width: 15%; text-align: center;" class="col-code">Kode <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-code', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-code', 'show')"></i></th>
-                  @if(isSupervisor())
+                  @if(canMenu('info.harga_beli'))
                     <th style="width: 10%; text-align: center;" class="col-buy-price">Harga Beli <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-buy-price', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-buy-price', 'show')"></i></th>
                   @endif
                   <th style="width: 15%; text-align: center;" class="col-act">Action <i class="fa fa-arrow-left" aria-hidden="true" onclick="display('col-cat', 'hide')"></i> <i class="fa fa-arrow-right" aria-hidden="true" onclick="display('col-cat', 'show')"></i></th>
@@ -96,7 +96,7 @@
                     <td class="col-price">
                       @foreach($good->good_units as $unit)
                         <b>{{ showRupiah($unit->selling_price) . ' /' . $unit->unit->name}}</b>
-                        @if(isSuperadmin())
+                        @if(canMenu('info.laba'))
                           <br>Untung: {{ showRupiah($unit->selling_price - $unit->buy_price) . ' (' . calculateProfit($unit->buy_price, $unit->selling_price) }}%)<br>
                         @endif
                         @if($role == 'admin')
@@ -112,7 +112,7 @@
                       @endforeach
                     </td>
                     <td class="col-code">{{ $good->code }}</td>
-                    @if(isSupervisor())
+                    @if(canMenu('info.harga_beli'))
                       <td class="col-buy-price">
                         @foreach($good->good_units as $unit)
                           {{ showRupiah($unit->buy_price) . ' /' . $unit->unit->name}}

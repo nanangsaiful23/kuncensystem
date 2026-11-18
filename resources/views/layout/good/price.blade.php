@@ -39,7 +39,7 @@
                 <th>Created at</th>
                 <th>PIC</th>
                 <th>Satuan</th>
-                @if(isSupervisor())
+                @if(canMenu('info.harga_beli'))
                   <th>Harga Beli Lama</th>
                   <th>Harga Beli Baru</th>
                 @endif
@@ -54,7 +54,7 @@
                     <td>{{ $price->created_at }}</td>
                     <td>{{ $price->actor()->name }}</td>
                     <td>{{ $price->good_unit->unit->code }}</td>
-                    @if(isSupervisor())
+                    @if(canMenu('info.harga_beli'))
                       <td style="text-align: right;">{{ showRupiah($price->old_buy_price) }}</td>
                       <td style="text-align: right;">{{ showRupiah($price->recent_buy_price) }}</td>
                     @endif

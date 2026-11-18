@@ -169,6 +169,17 @@ abstract class StockTestCase extends TestCase
         return Admin::find($id);
     }
 
+    /**
+     * Edit/hapus transaksi & loading butuh hak "Edit & hapus" (Hak Akses Menu),
+     * bawaannya hanya superadmin. Buka untuk supervisor dan admin di tes ini.
+     */
+    protected function bolehEditHapus(): void
+    {
+        $menus = config('menu_akses.menus');
+        $menus['info.edit_hapus']['bawaan'] = ['supervisor' => true, 'admin' => true];
+        config(['menu_akses.menus' => $menus]);
+    }
+
     protected function stock(int $goodId): float
     {
         return (float) DB::table('goods')->where('id', $goodId)->value('last_stock');

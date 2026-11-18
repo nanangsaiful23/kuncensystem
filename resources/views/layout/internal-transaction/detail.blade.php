@@ -76,7 +76,7 @@
                                 <th>Barcode</th>
                                 <th>Nama</th>
                                 <th>Jumlah</th>
-                                @if(isSupervisor())
+                                @if(canMenu('info.harga_beli'))
                                     <th>Harga Beli</th>
                                     <th>Harga Jual</th>
                                     <th>Total Diskon</th>
@@ -97,7 +97,7 @@
                                         <td>
                                             {{ $detail->quantity }}
                                         </td>
-                                        @if(isSupervisor())
+                                        @if(canMenu('info.harga_beli'))
                                             <td style="text-align: right;">
                                                 {{ showRupiah($detail->buy_price) }}
                                             </td>

@@ -55,7 +55,7 @@
                 <th>Kembalian</th>
                 <th class="center">Detail</th>
                 <th class="center">Print</th>
-                @if(isSuperadmin())
+                @if(canMenu('info.edit_hapus'))
                   <th class="center">Edit</th>
                   <th class="center">Hapus</th>
                 @endif
@@ -82,7 +82,7 @@
                     <td>{{ showRupiah($transaction->money_returned) }}</td>
                     <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
-                    @if(isSuperadmin())
+                    @if(canMenu('info.edit_hapus'))
                       <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-file tosca" aria-hidden="true"></i></a></td>
                       <td>
                           <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>

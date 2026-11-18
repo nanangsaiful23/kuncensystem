@@ -43,7 +43,7 @@
                     <th>Stock Lama</th>
                     <th>Jumlah</th>
                     <th>Stock Baru</th>
-                    @if(isSupervisor())
+                    @if(canMenu('info.harga_beli'))
                         <th>Harga</th>
                         <th>Potongan</th>
                         <th>Total Harga</th>
@@ -73,21 +73,21 @@
                         <td width="9%">
                             {!! Form::text('new_stocks[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'new_stock-'.$i)) !!}
                         </td>
-                        <td width="9%" @if(!isSupervisor()) style="display: none" @endif>
+                        <td width="9%" @if(!canMenu('info.harga_beli')) style="display: none" @endif>
                             {!! Form::text('buy_prices[]', null, array('id'=>'buy_price-' . $i, 'style' => 'display:none')) !!}
                             {!! Form::text('prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'price-'.$i)) !!}
                         </td>
-                        <td width="9%" @if(!isSupervisor()) style="display: none" @endif>
+                        <td width="9%" @if(!canMenu('info.harga_beli')) style="display: none" @endif>
                             @if(isSuperadmin())
                                 <input type="text" name="discounts[]" class="form-control" id="discount-{{ $i }}" onchange="editPrice('all_barcode', '{{ $i }}')" onkeypress="editPrice('all_barcode', '{{ $i }}')">
                             @else
                                 {!! Form::text('discounts[]', 0, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'discount-'.$i)) !!}
                             @endif
                         </td>
-                        <td width="9%" @if(!isSupervisor()) style="display: none" @endif>
+                        <td width="9%" @if(!canMenu('info.harga_beli')) style="display: none" @endif>
                             {!! Form::text('total_prices[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'total_price-'.$i)) !!}
                         </td>
-                        <td width="9%" @if(!isSupervisor()) style="display: none" @endif>
+                        <td width="9%" @if(!canMenu('info.harga_beli')) style="display: none" @endif>
                             {!! Form::text('sums[]', null, array('class' => 'form-control', 'readonly' => 'readonly', 'id' => 'sum-'.$i)) !!}
                         </td>
                         <td width="3%"><i class="fa fa-times red" id="delete-{{ $i }}" onclick="deleteItem('-{{ $i }}')"></i></td>

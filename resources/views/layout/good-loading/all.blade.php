@@ -296,7 +296,7 @@
                 <th>User</th>
                 <th class="tc">Detail</th>
                 <th class="tc">Print</th>
-                @if(isSuperadmin())
+                @if(canMenu('info.edit_hapus'))
                   <th class="tc">Edit</th>
                   <th class="tc">Hapus</th>
                 @endif
@@ -337,7 +337,7 @@
                       <i class="fa fa-print" aria-hidden="true"></i>
                     </a>
                   </td>
-                  @if(isSuperadmin())
+                  @if(canMenu('info.edit_hapus'))
                     <td class="tc">
                       <a class="gl-icon-link" href="{{ url($role . '/good-loading/' . $good_loading->id . '/edit') }}" title="Edit">
                         <i class="fa fa-file" aria-hidden="true"></i>

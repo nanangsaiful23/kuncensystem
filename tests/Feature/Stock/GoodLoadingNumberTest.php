@@ -70,6 +70,7 @@ class GoodLoadingNumberTest extends StockTestCase
         $loading = GoodLoading::latest('id')->first();
         $detail = GoodLoadingDetail::where('good_loading_id', $loading->id)->first();
 
+        $this->bolehEditHapus();
         $this->actingAs($admin, 'admin')
              ->put('/admin/good-loading/' . $loading->id . '/edit', [
                  'distributor_id' => 1, 'loading_date' => date('Y-m-d'), 'payment' => '1111', 'checker' => 'test', 'note' => 'uji angka',

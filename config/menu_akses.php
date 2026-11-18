@@ -36,6 +36,13 @@ return [
     'menus' => [
 
         // ---------------- Menu utama ----------------
+        // Menu inti tanpa 'paths': hanya disembunyikan, URL-nya tetap jalan
+        // karena dipakai halaman kasir (pencarian barang/member lewat AJAX).
+        'cari_barang' => [
+            'grup' => 'Menu Utama', 'label' => 'CARI BARANG',
+            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
+            'paths' => [],
+        ],
         'kas.riwayat' => [
             'grup' => 'Menu Utama', 'label' => 'Riwayat Kas di Tangan',
             'bawaan' => ['supervisor' => true, 'admin' => true],
@@ -43,6 +50,11 @@ return [
         ],
 
         // ---------------- Barang ----------------
+        'barang.daftar' => [
+            'grup' => 'Barang', 'label' => 'Daftar Barang',
+            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
+            'paths' => [],
+        ],
         'barang.expired' => [
             'grup' => 'Barang', 'label' => 'Daftar Barang Expired',
             'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
@@ -90,6 +102,16 @@ return [
         ],
 
         // ---------------- Transaksi ----------------
+        'transaksi.tambah' => [
+            'grup' => 'Transaksi', 'label' => 'Tambah Transaksi (biasa, new page, HP)',
+            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
+            'paths' => [],
+        ],
+        'transaksi.daftar' => [
+            'grup' => 'Transaksi', 'label' => 'Daftar Transaksi',
+            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
+            'paths' => [],
+        ],
         'transaksi.resume_total' => [
             'grup' => 'Transaksi', 'label' => 'Resume Transaksi Total',
             'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
@@ -122,6 +144,11 @@ return [
         ],
 
         // ---------------- Data master ----------------
+        'member.daftar' => [
+            'grup' => 'Data Master', 'label' => 'Daftar Member',
+            'bawaan' => ['supervisor' => true, 'admin' => true], 'kasir' => true,
+            'paths' => [],
+        ],
         'member.tambah' => [
             'grup' => 'Data Master', 'label' => 'Tambah Member',
             'bawaan' => ['supervisor' => false, 'admin' => false],
@@ -198,6 +225,32 @@ return [
             'grup' => 'Laporan', 'label' => 'Rekomendasi Reorder',
             'bawaan' => ['supervisor' => false, 'admin' => false],
             'paths' => ['reports/reorder', 'reports/reorder/*'],
+        ],
+
+        // ---------------- Informasi di dalam halaman ----------------
+        // Bukan menu: menentukan isi halaman yang tampil (menu tetap bisa dibuka).
+        'info.harga_beli' => [
+            'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat & ubah harga beli',
+            'catatan' => 'kolom harga beli / modal di daftar & detail barang, loading, transaksi internal, edit transaksi, rangkuman kategori',
+            'bawaan' => ['supervisor' => true, 'admin' => false],
+            'paths' => [],
+        ],
+        'info.laba' => [
+            'grup' => 'Informasi di dalam halaman', 'label' => 'Lihat laba, HPP & untung',
+            'catatan' => 'untung per barang, laba loading, HPP & untung transaksi, harga beli di detail/riwayat transaksi, total untung/rugi distributor',
+            'bawaan' => ['supervisor' => false, 'admin' => false],
+            'paths' => [],
+        ],
+        'info.edit_hapus' => [
+            'grup' => 'Informasi di dalam halaman', 'label' => 'Edit & hapus transaksi, loading, member',
+            'catatan' => 'tombol Edit/Hapus di daftar transaksi, transaksi internal, loading barang dan member; URL edit/hapus ikut ditolak (ubah data member dari halaman detail member tetap boleh)',
+            'bawaan' => ['supervisor' => false, 'admin' => false],
+            'paths' => [
+                'transaction/*/edit', 'transaction/*/delete',
+                'internal-transaction/*/edit', 'internal-transaction/*/delete',
+                'good-loading/*/edit', 'good-loading/*/delete',
+                'member/*/delete',
+            ],
         ],
     ],
 ];

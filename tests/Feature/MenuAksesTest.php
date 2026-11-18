@@ -155,6 +155,77 @@ class MenuAksesTest extends TestCase
         $this->assertFalse(MenuAkses::boleh('brand', 'supervisor'));
     }
 
+    public function test_halaman_membuat_tabel_kalau_belum_ada(): void
+    {
+        Schema::drop('menu_permissions');
+        MenuAkses::lupakan();
+        $this->login('superadmin');
+
+        $this->get('/admin/hak-akses')->assertOk()->assertDontSee('gagal dibuat otomatis');
+        $this->assertTrue(Schema::hasTable('menu_permissions'));
+    }
+
+    public function test_superadmin_lihat_sebagai_role_lain(): void
+    {
+        MenuAkses::simpan(['supervisor' => ['stock_opname' => '1']]);
+        $this->login('superadmin');
+        $this->assertTrue(canMenu('brand'));
+
+        $this->get('/admin/hak-akses/lihat-sebagai/supervisor')->assertRedirect('/admin');
+        $this->assertSame('supervisor', MenuAkses::roleSekarang());
+        $this->assertFalse(canMenu('brand'));
+        $this->assertTrue(isSuperadmin(), 'role asli tetap superadmin');
+        $this->get('/admin/brand/15')->assertForbidden();
+        $this->get('/admin/hak-akses')->assertOk()->assertSee('Selesai mencoba');
+
+        $this->get('/admin/hak-akses/lihat-sebagai/selesai')->assertRedirect(route('admin.menu-akses.index'));
+        $this->assertSame('superadmin', MenuAkses::roleSekarang());
+        $this->assertTrue(canMenu('brand'));
+    }
+
+    public function test_lihat_sebagai_tidak_berlaku_untuk_bukan_superadmin(): void
+    {
+        $this->login('supervisor');
+        session([MenuAkses::SESSION_LIHAT_SEBAGAI => 'admin']);
+
+        $this->assertSame('supervisor', MenuAkses::roleSekarang());
+        $this->get('/admin/hak-akses/lihat-sebagai/admin')->assertForbidden();
+    }
+
+    public function test_harga_beli_bisa_diatur(): void
+    {
+        $this->assertTrue(MenuAkses::boleh('info.harga_beli', 'supervisor'));
+        $this->assertFalse(MenuAkses::boleh('info.harga_beli', 'admin'));
+
+        MenuAkses::simpan(['supervisor' => ['brand' => '1']]);
+        $this->assertFalse(MenuAkses::boleh('info.harga_beli', 'supervisor'));
+    }
+
+    public function test_edit_hapus_butuh_menu_dan_hak_edit(): void
+    {
+        $this->assertSame(['loading', 'info.edit_hapus'], MenuAkses::menuUntukPath('good-loading/5/edit'));
+        $this->assertSame(['info.edit_hapus'], MenuAkses::menuUntukPath('transaction/5/delete'));
+        $this->assertSame([], MenuAkses::menuUntukPath('transaction/5/detail'));
+        $this->assertSame([], MenuAkses::menuUntukPath('member/5/edit'));
+
+        $this->login('supervisor');
+        $this->get('/admin/good-loading/5/edit')->assertForbidden();
+        $this->delete('/admin/transaction/5/delete')->assertForbidden();
+
+        MenuAkses::simpan(['supervisor' => ['info.edit_hapus' => '1']]);
+        $this->get('/admin/good-loading/5/edit')->assertForbidden(); // menu Loading ditutup
+
+        MenuAkses::simpan(['supervisor' => ['info.edit_hapus' => '1', 'loading' => '1']]);
+        $this->assertNotSame(403, $this->get('/admin/good-loading/5/edit')->getStatusCode());
+    }
+
+    public function test_laba_bawaan_hanya_superadmin(): void
+    {
+        $this->assertFalse(MenuAkses::boleh('info.laba', 'supervisor'));
+        $this->assertFalse(MenuAkses::boleh('info.laba', 'admin'));
+        $this->assertTrue(MenuAkses::boleh('info.laba', 'superadmin'));
+    }
+
     public function test_menu_yang_dibuka_lolos_middleware(): void
     {
         MenuAkses::simpan(['supervisor' => ['laporan.penjualan' => '1']]);
