@@ -229,6 +229,14 @@ Route::group(['prefix' => 'stock-opname'], function () {
 });
 
 // Sidak stok toko (supervisor, lewat HP) — hanya mencatat selisih, stok tidak diubah
+Route::group(['prefix' => 'penataan-kategori'], function () {
+	Route::get('/', 'PenataanKategoriController@index')->name('penataan-kategori.index');
+	Route::get('/pemetaan.csv', 'PenataanKategoriController@unduhPemetaan')->name('penataan-kategori.pemetaan');
+	Route::get('/tidak-terpetakan.csv', 'PenataanKategoriController@unduhTidakTerpetakan')->name('penataan-kategori.tidak-terpetakan');
+	Route::post('/terapkan', 'PenataanKategoriController@terapkan')->name('penataan-kategori.terapkan');
+	Route::post('/pulihkan', 'PenataanKategoriController@pulihkan')->name('penataan-kategori.pulihkan');
+});
+
 Route::group(['prefix' => 'sidak-stok'], function () {
 	Route::get('/', 'StockInspectionController@index')->name('sidak.index');
 	Route::post('/', 'StockInspectionController@store')->name('sidak.store');

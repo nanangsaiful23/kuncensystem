@@ -38,6 +38,7 @@ class SmokeTest extends TestCase
         return [
             'admin home' => ['/admin', '/admin/login'],
             'admin report' => ['/admin/reports/sales', '/admin/login'],
+            'admin penataan kategori' => ['/admin/penataan-kategori', '/admin/login'],
             'cashier home' => ['/cashier', '/cashier/login'],
         ];
     }

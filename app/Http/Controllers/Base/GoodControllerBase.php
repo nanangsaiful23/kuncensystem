@@ -489,22 +489,20 @@ trait GoodControllerBase
             if($pagination == 'all')
             {
                 $goods = Good::join('categories', 'categories.id', 'goods.category_id')
-                             ->join('sub_categories', 'sub_categories.category_id', 'categories.id')
                              ->leftjoin('distributors', 'distributors.id', 'goods.last_distributor_id')
                              ->select('goods.*')
                              ->where('goods.last_stock', '<=', $stock)
-                             ->whereRaw('sub_categories.main_category_id like ? AND goods.category_id like ? AND coalesce(distributors.location, "") like ? AND coalesce(goods.last_distributor_id, "") like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
+                             ->whereRaw('coalesce(categories.main_category_id, "") like ? AND goods.category_id like ? AND coalesce(distributors.location, "") like ? AND coalesce(goods.last_distributor_id, "") like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
                              ->orderBy('goods.last_loading', 'desc')
                              ->get();
             }
             else
             {
                 $goods = Good::join('categories', 'categories.id', 'goods.category_id')
-                             ->join('sub_categories', 'sub_categories.category_id', 'categories.id')
                              ->leftjoin('distributors', 'distributors.id', 'goods.last_distributor_id')
                              ->select('goods.*')
                              ->where('goods.last_stock', '<=', $stock)
-                             ->whereRaw('sub_categories.main_category_id like ? AND goods.category_id like ? AND coalesce(distributors.location, "") like ? AND coalesce(goods.last_distributor_id, "") like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
+                             ->whereRaw('coalesce(categories.main_category_id, "") like ? AND goods.category_id like ? AND coalesce(distributors.location, "") like ? AND coalesce(goods.last_distributor_id, "") like ?', array($whereMainCategory, $whereCategory, $whereLocation, $whereDistributor))
                              ->orderBy('goods.last_loading', 'desc')
                              ->paginate($pagination);
             }
