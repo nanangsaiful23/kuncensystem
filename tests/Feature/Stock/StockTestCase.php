@@ -170,13 +170,18 @@ abstract class StockTestCase extends TestCase
     }
 
     /**
-     * Edit/hapus transaksi & loading butuh hak "Edit & hapus" (Hak Akses Menu),
-     * bawaannya hanya superadmin. Buka untuk supervisor dan admin di tes ini.
+     * Edit/hapus transaksi & loading butuh hak per fungsi di Hak Akses Menu
+     * (aksi.*.edit / aksi.*.hapus), bawaannya hanya superadmin.
+     * Buka semuanya untuk supervisor dan admin di tes ini.
      */
     protected function bolehEditHapus(): void
     {
         $menus = config('menu_akses.menus');
-        $menus['info.edit_hapus']['bawaan'] = ['supervisor' => true, 'admin' => true];
+        foreach (array_keys($menus) as $key) {
+            if (str_starts_with($key, 'aksi.')) {
+                $menus[$key]['bawaan'] = ['supervisor' => true, 'admin' => true];
+            }
+        }
         config(['menu_akses.menus' => $menus]);
     }
 

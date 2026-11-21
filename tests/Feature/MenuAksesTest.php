@@ -204,8 +204,11 @@ class MenuAksesTest extends TestCase
 
     public function test_edit_hapus_butuh_menu_dan_hak_edit(): void
     {
-        $this->assertSame(['loading.daftar', 'info.edit_hapus'], MenuAkses::menuUntukPath('good-loading/5/edit'));
-        $this->assertSame(['info.edit_hapus'], MenuAkses::menuUntukPath('transaction/5/delete'));
+        $this->assertSame(['loading.daftar', 'aksi.loading.edit'], MenuAkses::menuUntukPath('good-loading/5/edit'));
+        $this->assertSame(['loading.daftar', 'aksi.loading.hapus'], MenuAkses::menuUntukPath('good-loading/5/delete'));
+        $this->assertSame(['aksi.transaksi.edit'], MenuAkses::menuUntukPath('transaction/5/edit'));
+        $this->assertSame(['aksi.transaksi.hapus'], MenuAkses::menuUntukPath('transaction/5/delete'));
+        $this->assertSame(['aksi.member.hapus'], MenuAkses::menuUntukPath('member/5/delete'));
         $this->assertSame([], MenuAkses::menuUntukPath('transaction/5/detail'));
         $this->assertSame([], MenuAkses::menuUntukPath('member/5/edit'));
 
@@ -213,11 +216,31 @@ class MenuAksesTest extends TestCase
         $this->get('/admin/good-loading/5/edit')->assertForbidden();
         $this->delete('/admin/transaction/5/delete')->assertForbidden();
 
-        MenuAkses::simpan(['supervisor' => ['info.edit_hapus' => '1']]);
-        $this->get('/admin/good-loading/5/edit')->assertForbidden(); // menu Loading ditutup
+        MenuAkses::simpan(['supervisor' => ['aksi.loading.edit' => '1']]);
+        $this->get('/admin/good-loading/5/edit')->assertForbidden(); // menu Daftar Loading ditutup
+    }
 
-        MenuAkses::simpan(['supervisor' => ['info.edit_hapus' => '1', 'loading.daftar' => '1']]);
+    /** Contoh dari pemakai: transaksi hanya lihat, loading lihat + edit (tanpa hapus). */
+    public function test_edit_hapus_dicentang_per_fungsi(): void
+    {
+        MenuAkses::simpan(['supervisor' => [
+            'transaksi.daftar' => '1',
+            'loading.daftar'   => '1', 'aksi.loading.edit' => '1',
+        ]]);
+        $this->login('supervisor');
+
+        $this->assertTrue(canMenu('aksi.loading.edit'));
+        $this->assertFalse(canMenu('aksi.loading.hapus'));
+        $this->assertFalse(canMenu('aksi.transaksi.edit'));
+        $this->assertFalse(canMenu('aksi.transaksi.hapus'));
+
         $this->assertNotSame(403, $this->get('/admin/good-loading/5/edit')->getStatusCode());
+        $this->delete('/admin/good-loading/5/delete')->assertForbidden();
+        $this->get('/admin/transaction/5/edit')->assertForbidden();
+        $this->delete('/admin/transaction/5/delete')->assertForbidden();
+
+        // menu induk sidebar tidak ikut terbuka karena hak edit
+        $this->assertFalse(canInduk('Transaksi Internal'));
     }
 
     public function test_sub_menu_dijaga_sendiri_sendiri(): void
@@ -245,7 +268,7 @@ class MenuAksesTest extends TestCase
             'salesGraph/month/2020-01-01/2026-01-31'        => ['grafik.bulan'],
             'getSalesGraph/category/2020-01-01/2026-01-31'  => ['grafik.kategori'],
             'internal-transaction/create'                   => ['transaksi_internal.tambah'],
-            'internal-transaction/5/edit'                   => ['transaksi_internal.daftar', 'info.edit_hapus'],
+            'internal-transaction/5/edit'                   => ['transaksi_internal.daftar', 'aksi.transaksi_internal.edit'],
         ];
         foreach ($cek as $path => $keys) {
             $this->assertSame($keys, MenuAkses::menuUntukPath($path), $path);

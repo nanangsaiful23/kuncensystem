@@ -282,16 +282,47 @@ return [
                 'catatan' => 'tulisan "Total seluruh aset: Rp..." di atas daftar distributor',
                 'bawaan' => $supervisor, 'paths' => [],
             ],
-            'info.edit_hapus' => [
-                'grup' => 'Informasi di dalam halaman', 'label' => 'Edit & hapus transaksi, loading, member',
-                'catatan' => 'tombol Edit/Hapus di daftar transaksi, transaksi internal, loading barang dan member; URL edit/hapus ikut ditolak (ubah data member dari halaman detail member tetap boleh)',
-                'bawaan' => $superadmin,
-                'paths' => [
-                    'transaction/*/edit', 'transaction/*/delete',
-                    'internal-transaction/*/edit', 'internal-transaction/*/delete',
-                    'good-loading/*/edit', 'good-loading/*/delete',
-                    'member/*/delete',
-                ],
+        ],
+
+        // ---------------- Edit & hapus per fungsi ----------------
+        // Melihat daftar/detail diatur oleh sub menu "Daftar ..." di atas;
+        // di sini hanya tombol edit/hapus. URL-nya ikut ditolak kalau ditutup.
+        // Induk sengaja beda dengan nama menu sidebar, supaya canInduk() menu
+        // tidak ikut terbuka hanya karena hak edit.
+        [
+            'aksi.transaksi.edit' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Transaksi Barang (aksi)', 'label' => 'Edit transaksi',
+                'catatan' => 'tombol Edit di daftar transaksi dan tombol Ubah di detail transaksi',
+                'bawaan' => $superadmin, 'paths' => ['transaction/*/edit'],
+            ],
+            'aksi.transaksi.hapus' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Transaksi Barang (aksi)', 'label' => 'Hapus transaksi',
+                'bawaan' => $superadmin, 'paths' => ['transaction/*/delete'],
+            ],
+            'aksi.transaksi_internal.edit' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Transaksi Internal (aksi)', 'label' => 'Edit transaksi internal',
+                'bawaan' => $superadmin, 'paths' => ['internal-transaction/*/edit'],
+            ],
+            'aksi.transaksi_internal.hapus' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Transaksi Internal (aksi)', 'label' => 'Hapus transaksi internal',
+                'bawaan' => $superadmin, 'paths' => ['internal-transaction/*/delete'],
+            ],
+            'aksi.loading.edit' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Loading Barang (aksi)', 'label' => 'Edit loading barang',
+                'bawaan' => $superadmin, 'paths' => ['good-loading/*/edit'],
+            ],
+            'aksi.loading.hapus' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Loading Barang (aksi)', 'label' => 'Hapus loading barang',
+                'bawaan' => $superadmin, 'paths' => ['good-loading/*/delete'],
+            ],
+            'aksi.member.edit' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Member (aksi)', 'label' => 'Tombol Ubah di daftar member',
+                'catatan' => 'hanya tombol di daftar; ubah data dari halaman detail member tetap boleh untuk semua admin',
+                'bawaan' => $superadmin, 'paths' => [],
+            ],
+            'aksi.member.hapus' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Member (aksi)', 'label' => 'Hapus member',
+                'bawaan' => $superadmin, 'paths' => ['member/*/delete'],
             ],
         ]
     ),

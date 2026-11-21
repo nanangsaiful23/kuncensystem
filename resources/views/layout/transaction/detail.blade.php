@@ -12,7 +12,7 @@
         <span class="sdiv"></span>
         <a class="btn-page" id="act-back" href="{{ url($role . '/transaction/all/all/' . date('Y-m-d') . '/' . date('Y-m-d') . '/20') }}"><i class="fa fa-arrow-left"></i> Daftar <kbd>Esc</kbd></a>
         <a class="btn-page" id="act-print" href="{{ url($role . '/transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print"></i> Cetak <kbd>P</kbd></a>
-        @if(canMenu('info.edit_hapus'))
+        @if(canMenu('aksi.transaksi.edit'))
           <a class="btn-page" id="act-edit" href="{{ url($role . '/transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-pencil"></i> Ubah <kbd>E</kbd></a>
         @endif
       </div>

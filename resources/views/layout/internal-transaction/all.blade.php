@@ -55,8 +55,10 @@
                 <th>Kembalian</th>
                 <th class="center">Detail</th>
                 <th class="center">Print</th>
-                @if(canMenu('info.edit_hapus'))
+                @if(canMenu('aksi.transaksi_internal.edit'))
                   <th class="center">Edit</th>
+                @endif
+                @if(canMenu('aksi.transaksi_internal.hapus'))
                   <th class="center">Hapus</th>
                 @endif
               </tr>
@@ -82,8 +84,10 @@
                     <td>{{ showRupiah($transaction->money_returned) }}</td>
                     <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
                     <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/print') }}"><i class="fa fa-print tosca" aria-hidden="true"></i></a></td>
-                    @if(canMenu('info.edit_hapus'))
+                    @if(canMenu('aksi.transaksi_internal.edit'))
                       <td class="center"><a href="{{ url($role . '/internal-transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-file tosca" aria-hidden="true"></i></a></td>
+                    @endif
+                    @if(canMenu('aksi.transaksi_internal.hapus'))
                       <td>
                           <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 

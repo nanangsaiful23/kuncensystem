@@ -28,8 +28,10 @@
       @if($role == 'admin')
         <th class="center">Retur</th>
       @endif
-      @if(canMenu('info.edit_hapus'))
+      @if(canMenu('aksi.transaksi.edit'))
         <th class="center">Edit</th>
+      @endif
+      @if(canMenu('aksi.transaksi.hapus'))
         <th class="center">Hapus</th>
       @endif
     </tr>
@@ -80,8 +82,10 @@
             </form>
           </td>
           @endif
-          @if(canMenu('info.edit_hapus'))
+          @if(canMenu('aksi.transaksi.edit'))
             <td class="center"><a href="{{ url($role . '/transaction/' . $transaction->id . '/edit') }}"><i class="fa fa-file tosca" aria-hidden="true"></i></a></td>
+          @endif
+          @if(canMenu('aksi.transaksi.hapus'))
             <td>
                 <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$transaction->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 

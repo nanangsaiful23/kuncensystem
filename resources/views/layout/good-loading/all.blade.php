@@ -296,8 +296,10 @@
                 <th>User</th>
                 <th class="tc">Detail</th>
                 <th class="tc">Print</th>
-                @if(canMenu('info.edit_hapus'))
+                @if(canMenu('aksi.loading.edit'))
                   <th class="tc">Edit</th>
+                @endif
+                @if(canMenu('aksi.loading.hapus'))
                   <th class="tc">Hapus</th>
                 @endif
               </tr>
@@ -337,12 +339,14 @@
                       <i class="fa fa-print" aria-hidden="true"></i>
                     </a>
                   </td>
-                  @if(canMenu('info.edit_hapus'))
+                  @if(canMenu('aksi.loading.edit'))
                     <td class="tc">
                       <a class="gl-icon-link" href="{{ url($role . '/good-loading/' . $good_loading->id . '/edit') }}" title="Edit">
                         <i class="fa fa-file" aria-hidden="true"></i>
                       </a>
                     </td>
+                  @endif
+                  @if(canMenu('aksi.loading.hapus'))
                     <td class="tc">
                       <button type="button" class="gl-icon-del" data-toggle="modal" data-target="#modal-danger-{{ $good_loading->id }}" title="Hapus">
                         <i class="fa fa-times" aria-hidden="true"></i>

@@ -42,8 +42,10 @@
                   <th>Sisa Hutang</th>
                 @endif
                 <th class="center">Detail</th>
-                @if(canMenu('info.edit_hapus'))
+                @if(canMenu('aksi.member.edit'))
                   <th class="center">Ubah</th>
+                @endif
+                @if(canMenu('aksi.member.hapus'))
                   <th class="center">Hapus</th>
                 @endif
               </tr>
@@ -71,8 +73,10 @@
                       <td>{{ showRupiah($member->totalTransactionNormal()->sum('total_sum_price') - ($member->totalPayment()->sum('money') + $member->totalTransactionCash()->sum('total_sum_price'))) }}</td>
                     @endif
                     <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/detail') }}"><i class="fa fa-hand-o-right tosca" aria-hidden="true"></i></a></td>
-                    @if(canMenu('info.edit_hapus'))
+                    @if(canMenu('aksi.member.edit'))
                       <td class="center"><a href="{{ url($role . '/member/' . $member->id . '/edit') }}"><i class="fa fa-file orange" aria-hidden="true"></i></a></td>
+                    @endif
+                    @if(canMenu('aksi.member.hapus'))
                       <td class="center">
                         <button type="button" class="no-btn center" data-toggle="modal" data-target="#modal-danger-{{$member->id}}"><i class="fa fa-times" aria-hidden="true" style="color: red !important"></i></button>
 
