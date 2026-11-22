@@ -162,6 +162,7 @@
 <div id="toast-box"></div>
 
 @section('js-addon')
+@include('layout.transaction.unit-tier')
 <script>
 var CAN_DISCOUNT = @if($canDiscount) true @else false @endif;
 var URL_BARCODE  = "{!! url($role.'/good/searchByBarcode/') !!}/";
@@ -224,7 +225,8 @@ function rowHtml(k, n, it){
     }
     return '<tr id="row-' + s + '" class="group-odd' + (k ? ' retur-row' : '') + '" data-k="' + k + '" data-n="' + n + '">'
     + '<td class="col-no td-no" id="no-' + s + '"></td>'
-    + '<td class="col-name"><div class="cell-txt nm">' + esc(it.name + ' ' + it.unit) + '<small>' + esc(it.code || '') + stockTxt + '</small></div>'
+    + '<td class="col-name"><div class="cell-txt nm">' + esc(it.name + ' ' + it.unit) + '<small>' + esc(it.code || '') + stockTxt + '</small>'
+    +   (k ? '' : '<span class="tier-note" id="tier-' + s + '"></span>') + '</div>'
     +   '<input type="hidden" name="barcodes' + k + '[]" id="barcode-' + s + '" value="' + esc(it.good_unit_id) + '">'
     +   '<input type="hidden" name="names' + k + '[]" id="name-' + s + '" value="' + esc(it.good_id) + '">'
     +   '<input type="hidden" name="name_temps' + k + '[]" id="name_temp-' + s + '" value="' + esc(it.name + ' ' + it.unit) + '">'
@@ -308,7 +310,7 @@ function deleteRow(k, n){
 function calcRow(k, n){
     var s = k + n;
     var p = num($id('price-' + s).value), q = qtyNum($id('quantity-' + s).value), d = num($id('discount-' + s).value);
-    var tot = r2(p * q);
+    var tot = tierGross(k, n, r2(p * q));        /* jumlah cukup untuk satuan besar: pakai harganya (unit-tier) */
     $id('total_price-' + s).value = fmt(tot);
     $id('sum-' + s).value = fmt(tot - d);
     $('#quantity-' + s).toggleClass('is-zero', q <= 0);
@@ -319,10 +321,10 @@ function recalc(){
     var item = 0, sum = 0, disc = 0;
     $('#table-transaction tr, #table-retur tr').each(function(){
         var k = String($(this).data('k')), n = $(this).data('n'), s = k + n;
-        var p = num($id('price-' + s).value), q = qtyNum($id('quantity-' + s).value), d = num($id('discount-' + s).value);
+        var t = num($id('total_price-' + s).value), d = num($id('discount-' + s).value);
         var sg = k ? -1 : 1;
-        item += sg * r2(p * q);
-        sum  += sg * (r2(p * q) - d);
+        item += sg * t;
+        sum  += sg * (t - d);
         disc += d;
     });
     var fd = num($('#total_discount_price').val());
@@ -430,6 +432,7 @@ function barcodeSearch(v){
             var g = r && r.good;
             if (g && g.getPcsSellingPrice) {
                 var u = g.getPcsSellingPrice;
+                tierRememberGood(g);
                 addRow({ good_id:g.id, good_unit_id:u.id, name:g.name, unit:u.name, code:g.code, price:u.selling_price, buy_price:u.buy_price, stock:g.stock });
                 focusSearch();
             } else {
@@ -457,6 +460,7 @@ function keywordSearch(v, viaEnter){
 }
 
 function renderResults(list, v, viaEnter){
+    tierRememberList(list);
     sr.items = [];
     for (var i = 0; i < list.length; i++) {
         var u = list[i];
@@ -774,6 +778,8 @@ function submitForm(){
 
     window._submitting = true;
     $('#btn-process').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
+
+    tierExpand();      /* baris harga grosir -> satu baris per satuan (PAK5 x 1 + PCS x 1) */
 
     /* semua angka dikirim sebagai angka biasa tanpa pemisah ribuan */
     $('#transaction-form').find('input').filter(function(){

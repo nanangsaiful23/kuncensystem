@@ -94,11 +94,33 @@ trait GoodControllerBase
             $good_unit->name = $good_unit->unit->name;
             $good->getPcsSellingPrice = $good_unit;
             $good->stock = $good->last_stock;
+            $good->sale_units = $this->saleUnitsGoodBase($good->id);
 
             return $good;
         }
         else
             return null;
+    }
+
+    /**
+     * Semua satuan jual satu barang beserta isinya (units.quantity).
+     * Halaman kasir memakainya untuk otomatis memakai harga satuan besar:
+     * 6 PCS (3.500) dengan PAK5 (15.000) dihitung 1 PAK5 + 1 PCS.
+     */
+    private function saleUnitsGoodBase($good_id)
+    {
+        return GoodUnit::with('unit')
+                       ->where('good_id', $good_id)
+                       ->get()
+                       ->filter(fn ($good_unit) => $good_unit->unit != null)
+                       ->map(fn ($good_unit) => [
+                           'good_unit_id'  => $good_unit->id,
+                           'unit'          => $good_unit->unit->name,
+                           'unit_qty'      => $good_unit->unit->quantity,
+                           'selling_price' => $good_unit->selling_price,
+                           'buy_price'     => $good_unit->buy_price,
+                       ])
+                       ->values();
     }
 
     public function searchByIdGoodBase($good_id)
@@ -224,6 +246,7 @@ trait GoodControllerBase
                 $temp['unit_id'] = $unit->unit_id;
                 $temp['code'] = $good->code;
                 $temp['unit'] = $unit->unit->name;
+                $temp['unit_qty'] = $unit->unit->quantity;   // isi satuan: untuk harga satuan besar otomatis di kasir
                 $temp['buy_price'] = $unit->buy_price;
                 $temp['selling_price'] = $unit->selling_price;
                 $temp['stock'] = $good->last_stock;

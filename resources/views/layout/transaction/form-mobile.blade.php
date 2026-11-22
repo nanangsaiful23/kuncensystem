@@ -240,6 +240,7 @@
 
 @section('js-addon')
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+@include('layout.transaction.unit-tier')
 <script>
 var CAN_DISCOUNT = @if($canDiscount) true @else false @endif;
 var URL_BARCODE  = "{!! url($role.'/good/searchByBarcode/') !!}/";
@@ -295,7 +296,8 @@ function rowHtml(k, n, it){
     return '<div class="mtx-item' + (k ? ' retur' : '') + '" id="row-' + s + '" data-k="' + k + '" data-n="' + n + '">'
     + '<div class="mtx-item-top">'
     +   '<div class="mtx-item-main"><div class="mtx-item-name">' + esc(it.name + ' ' + it.unit) + '</div>'
-    +   '<div class="mtx-item-sub">@ ' + esc(fmt(num(it.price))) + (it.code ? ' &middot; ' + esc(it.code) : '') + stockTxt + '</div></div>'
+    +   '<div class="mtx-item-sub">@ ' + esc(fmt(num(it.price))) + (it.code ? ' &middot; ' + esc(it.code) : '') + stockTxt + '</div>'
+    +   (k ? '' : '<div class="tier-note" id="tier-' + s + '"></div>') + '</div>'
     +   '<button type="button" class="mtx-del" onclick="deleteRow(' + a + ')" title="Hapus"><i class="fa fa-trash"></i></button>'
     + '</div>'
     + cond
@@ -379,7 +381,7 @@ function stepQty(k, n, d){
 function calcRow(k, n){
     var s = k + n;
     var p = num($id('price-' + s).value), q = qtyNum($id('quantity-' + s).value), d = num($id('discount-' + s).value);
-    var tot = r2(p * q);
+    var tot = tierGross(k, n, r2(p * q));        /* jumlah cukup untuk satuan besar: pakai harganya (unit-tier) */
     $id('total_price-' + s).value = fmt(tot);
     $id('sum-' + s).value = fmt(tot - d);
     $id('sumtxt-' + s).textContent = (k ? '- ' : '') + fmt(tot - d);
@@ -391,10 +393,10 @@ function recalc(){
     var item = 0, sum = 0, disc = 0;
     dataRows().each(function(){
         var k = String($(this).data('k')), n = $(this).data('n'), s = k + n;
-        var p = num($id('price-' + s).value), q = qtyNum($id('quantity-' + s).value), d = num($id('discount-' + s).value);
+        var t = num($id('total_price-' + s).value), d = num($id('discount-' + s).value);
         var sg = k ? -1 : 1;
-        item += sg * r2(p * q);
-        sum  += sg * (r2(p * q) - d);
+        item += sg * t;
+        sum  += sg * (t - d);
         disc += d;
     });
     var fd = num($('#total_discount_price').val());
@@ -477,6 +479,7 @@ function barcodeSearch(v, typed){
             var g = r && r.good;
             if (g && g.getPcsSellingPrice) {
                 var u = g.getPcsSellingPrice;
+                tierRememberGood(g);
                 addRow({ good_id:g.id, good_unit_id:u.id, name:g.name, unit:u.name, code:g.code, price:u.selling_price, buy_price:u.buy_price, stock:g.stock });
             } else {
                 notify('Barcode ' + v + ' tidak ditemukan', 'error');
@@ -498,6 +501,7 @@ function keywordSearch(v){
 }
 
 function renderResults(list, v){
+    tierRememberList(list);
     sr.items = [];
     var h = '';
     for (var i = 0; i < list.length; i++) {
@@ -717,6 +721,8 @@ function submitForm(){
 
     window._submitting = true;
     $('#btn-process').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Memproses...');
+
+    tierExpand();      /* baris harga grosir -> satu baris per satuan (PAK5 x 1 + PCS x 1) */
 
     /* semua angka dikirim sebagai angka biasa tanpa pemisah ribuan */
     $('#transaction-form').find('input').filter(function(){
