@@ -179,7 +179,10 @@ class MenuAkses
             }
         }
 
-        DB::table('menu_permissions')->upsert($rows, ['role', 'menu_key'], ['allowed', 'updated_at']);
+        // Per 40 baris supaya tiap query tetap pendek.
+        foreach (array_chunk($rows, 40) as $potongan) {
+            DB::table('menu_permissions')->upsert($potongan, ['role', 'menu_key'], ['allowed', 'updated_at']);
+        }
         // Buang baris menu lama yang sudah tidak ada di config (mis. menu yang dipecah jadi sub menu).
         DB::table('menu_permissions')->whereNotIn('menu_key', array_keys(self::menus()))->delete();
         self::lupakan();

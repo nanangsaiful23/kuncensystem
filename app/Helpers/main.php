@@ -18,6 +18,22 @@
 
     use Illuminate\Support\Arr;
     use Illuminate\Support\Facades\DB;
+
+    // Server produksi tidak punya ekstensi mbstring, dan polyfill Symfony tidak
+    // menyediakan mb_strcut. Laravel memakainya saat mencatat query panjang
+    // (> 2000 karakter) ketika APP_DEBUG aktif, sehingga request gagal 500.
+    if (! function_exists('mb_strcut')) {
+        function mb_strcut(string $string, int $start, ?int $length = null, ?string $encoding = null): string
+        {
+            $potong = substr($string, $start, $length ?? strlen($string));
+            // Jangan memotong di tengah karakter UTF-8.
+            for ($i = 0; $i < 3 && $potong !== '' && ! preg_match('//u', $potong); $i++) {
+                $potong = substr($potong, 0, -1);
+            }
+
+            return $potong;
+        }
+    }
     use Illuminate\Support\Facades\Storage;
     use Intervention\Image\ImageManager;
 
