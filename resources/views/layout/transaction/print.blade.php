@@ -1,9 +1,10 @@
 <html>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=AR+One+Sans&family=Glegoo:wght@300;400;500;600">
+	{{-- Font dimuat tanpa menahan halaman: bila internet lambat/mati struk tetap tercetak dengan font cadangan. --}}
+	<link id="receipt-font" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Glegoo:wght@400;700&display=swap" media="none" onload="this.media='all'; window.receiptFontLoaded && window.receiptFontLoaded();" onerror="window.receiptFontFailed && window.receiptFontFailed();">
 	<style type="text/css">
 		body, table, th, td
 		{
-			font-family: "Glegoo" !important;
+			font-family: "Glegoo", Georgia, "Times New Roman", serif !important;
 /*			font-weight: bold;*/
 		}
 		table {
@@ -20,7 +21,6 @@
 		  border-top: 1px dashed;
 		}
 	</style>
-	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 	<body style="font-size: 10px;">
 		<div style="text-align: center;">
 			{{ config('app.name') }}<br>
@@ -126,14 +126,43 @@
 		</div>
 	</body>
 
-	<script type="text/javascript">		
-        $(document).ready (function (){
-        	window.print();
-        }); 
+	<script type="text/javascript">
+		// Tanpa jQuery/CDN: cetak begitu font siap (maks. 1,5 dtk), lalu langsung kembali
+		// ke halaman asal setelah dialog cetak ditutup, bukan menunggu 5 dtk tetap.
+		(function () {
+			var printed = false, left = false;
+			var backUrl = document.referrer || '{{ url($role . '/transaction/create') }}';
 
-	    window.setTimeout(function(){
-      		// window.location = window.location.origin + '/{{ $role }}/transaction/createTouch';
-      		window.location = document.referrer;
-	    }, 5000);
+			function goBack() {
+				if (left) return;
+				left = true;
+				window.location = backUrl;
+			}
+
+			function doPrint() {
+				if (printed) return;
+				printed = true;
+				window.print();
+				// print() menunggu dialog ditutup; jeda singkat agar antrean cetak selesai terkirim.
+				setTimeout(goBack, 700);
+			}
+
+			window.onafterprint = function () { setTimeout(goBack, 300); };
+
+			window.receiptFontLoaded = function () {
+				if (document.fonts && document.fonts.load) {
+					document.fonts.load('10px "Glegoo"').then(doPrint, doPrint);
+				} else {
+					doPrint();
+				}
+			};
+			window.receiptFontFailed = doPrint;
+
+			var font = document.getElementById('receipt-font');
+			if (font && font.sheet && font.media === 'all') window.receiptFontLoaded();
+
+			setTimeout(doPrint, 1500);   // font belum datang: cetak dengan font cadangan
+			setTimeout(goBack, 10000);   // jaga-jaga bila dialog cetak tidak pernah muncul
+		})();
 	</script>
 </html>

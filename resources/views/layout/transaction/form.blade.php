@@ -724,7 +724,7 @@ var scanner = null;
 function loadScanner(cb){
     if (window.Instascan) { cb(); return; }
     var s = document.createElement('script');
-    s.src = 'https://rawgit.com/schmich/instascan-builds/master/instascan.min.js';
+    s.src = "{{ asset('assets/instascan.min.js') }}";
     s.onload = cb;
     s.onerror = function(){ notify('Scanner kamera tidak tersedia. Ketik nama member saja.', 'warning'); };
     document.head.appendChild(s);

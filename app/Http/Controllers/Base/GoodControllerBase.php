@@ -196,15 +196,21 @@ trait GoodControllerBase
 
     public function searchByKeywordGoodUnitGoodBase($query)
     {
-        // $query = '%' . $query . '%';
+        // Dibatasi dan relasinya dimuat sekaligus: sebelumnya kata umum (mis. "air")
+        // mengambil semua barang yang cocok lalu menjalankan query tambahan per
+        // barang dan per satuan (ratusan-ribuan query) dan mengirim JSON besar
+        // lewat internet toko yang lambat.
+        $like  = '%' . $query . '%';
         $goods = Good::leftjoin('types', 'goods.type_id', 'types.id')
                      ->select('goods.*')
-                     // ->whereRaw("goods.code like ? OR goods.name like ? OR types.name like ? ", ['%'. $query . '%', '%'. $query . '%', '%'. $query . '%'])
-                     ->where('goods.code', 'like', '%'. $query . '%')
-                     ->orWhere('goods.name', 'like', '%'. $query . '%')
-                     ->orWhere('types.name', 'like', '%'. $query . '%')
-                     ->where('goods.deleted_at', '=', null)
+                     ->where(function ($q) use ($like) {
+                         $q->where('goods.code', 'like', $like)
+                           ->orWhere('goods.name', 'like', $like)
+                           ->orWhere('types.name', 'like', $like);
+                     })
+                     ->with(['type', 'good_units.unit'])
                      ->orderBy('goods.name')
+                     ->limit(100)
                      ->get();
 
         $units = [];
