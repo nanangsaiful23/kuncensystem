@@ -317,10 +317,26 @@ body.scanning #app, body.scanning .overlay, body.scanning #toast { display: none
 #scan-last { margin-top: 8px; font-weight: 700; min-height: 22px; }
 #scan-last.scan-ok { color: #86efac; }
 #scan-last.scan-bad { color: #fca5a5; }
+#scan-last.scan-info { color: #fde68a; }
+/* Kotak bidik tepat di tengah layar = tengah gambar kamera (posisi barcode dihitung dari sini). */
 .scan-frame {
-  align-self: center; width: 78vw; max-width: 340px; height: 42vw; max-height: 200px;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 84vw; max-width: 380px; height: 46vw; max-height: 220px;
   border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
 }
+#scan-overlay.aim .scan-frame { border-color: #86efac; }
+#scan-hint {
+  position: absolute; left: 50%; bottom: -40px; transform: translateX(-50%); white-space: nowrap;
+  padding: 6px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.7); color: #fde68a; font-weight: 700; font-size: 14px;
+}
+#scan-hint[hidden] { display: none; }
+#scan-marks { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+#scan-marks i {
+  position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%;
+  border: 2px solid #fff; background: #22c55e;
+}
+#scan-marks i.out { background: #9ca3af; opacity: 0.8; }
+.scan-top, .scan-foot { position: relative; z-index: 1; }
 .scan-foot { background: rgba(0, 0, 0, 0.72); }
 .scan-bottom { display: flex; padding: 14px 16px calc(14px + var(--safe-bottom)); }
 .scan-bottom .btn { flex: 1; min-height: 54px; }
@@ -337,6 +353,8 @@ body.scanning #app, body.scanning .overlay, body.scanning #toast { display: none
   font-size: 28px; font-weight: 700;
 }
 .si-btn.del { font-size: 15px; background: #fecaca; color: #7f1d1d; }
+.si-btn.flash { animation: si-flash 0.5s ease-in-out 2; }
+@keyframes si-flash { 50% { background: #fde68a; transform: scale(1.12); } }
 .si-qty {
   flex: 1; min-height: 56px; border: 2px solid #86efac; border-radius: 12px; background: rgba(255, 255, 255, 0.14);
   color: #fff; font-size: 22px;

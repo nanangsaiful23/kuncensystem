@@ -289,6 +289,7 @@ export function kasirView(root) {
     const overlay = document.getElementById('scan-overlay');
     const panel = document.getElementById('scan-item');
     let key = null; // baris keranjang dari scan terakhir
+    let lastGoodId = null; // barang scan terakhir: tidak dimasukkan lagi bila langsung di-scan ulang
     let typed = null; // isi papan angka; null = papan tertutup
     let n = 0;
     let seq = 0; // nomor scan, supaya hasil cek server tidak menimpa pesan scan yang lebih baru
@@ -371,8 +372,22 @@ export function kasirView(root) {
 
     function addScanned(g) {
       if (!g.units.length) return { ok: false, text: `✗ ${g.name}: belum ada harga jual` };
+      // Barang yang sama berturut-turut tidak dimasukkan lagi: barcode yang lama di depan kamera
+      // (atau terbaca ulang) tidak boleh menambah jumlah. Tambah jumlah lewat + atau ketik jumlah.
+      if (g.id === lastGoodId) {
+        const l = key ? findLine(key) : null;
+        if (!l) return { ok: null, silent: true, text: `${g.name} baru dihapus — tidak dimasukkan lagi` };
+        const plus = panel.querySelector('[data-s="inc"]');
+        if (plus) {
+          plus.classList.remove('flash');
+          void plus.offsetWidth; // ulang animasi
+          plus.classList.add('flash');
+        }
+        return { ok: null, silent: true, text: `Sudah di-scan (${qtyText(l.quantity)} ${l.unit}). Tambah jumlah: tekan +` };
+      }
       if (typed !== null) closePad();
       key = addGood(g, g.units[0], 1).key;
+      lastGoodId = g.id;
       n++;
       paint();
       return { ok: true, text: `✓ ${g.name}  (${n} scan)` };
@@ -386,7 +401,7 @@ export function kasirView(root) {
           if (good && !isScanning()) return toast(`Barcode ${code} sekarang ada di data barang. Scan ulang.`, 'warn', 4000);
           if (good) {
             const r = addScanned(good);
-            beep(r.ok);
+            if (!r.silent) beep(r.ok !== false);
             setScanText(r.text, r.ok);
           } else if (seq === mine && isScanning()) {
             setScanText(checked ? `✗ Barcode ${code} tidak terdaftar (sudah dicek ke server)` : `✗ Barcode ${code} tidak ada di data barang`, false);
@@ -398,8 +413,9 @@ export function kasirView(root) {
 
     try {
       await scan({
-        title: 'Scan barcode barang (bisa berkali-kali)',
+        title: 'Arahkan barcode ke dalam kotak hijau',
         continuous: true,
+        aim: true,
         isKnown: (code) => !!findByCode(code),
         onCode: (code) => {
           seq++;

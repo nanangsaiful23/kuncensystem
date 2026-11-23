@@ -26,6 +26,29 @@ const REPEAT_MS = 1000; // jarak minimal dua scan barcode yang sama (dua barang 
 // barang dikenal yang terlihat dalam KNOWN_NEAR_MS terakhir (salah baca muncul di sekitar barcode asli).
 const UNKNOWN_HOLD_MS = 600;
 const KNOWN_NEAR_MS = 1500;
+// Kotak bidik (aim): hanya barcode yang titik tengahnya di dalam kotak putih yang dibaca, supaya
+// barcode barang sebelah / QR / kode produksi di kemasan tidak ikut terbaca. Posisi dari kamera
+// hanya perkiraan (gambar kamera & layar beda perbandingan, bilah status), jadi diberi kelonggaran.
+const AIM_SLACK_X = 1.25; // kali setengah lebar kotak
+const AIM_SLACK_Y = 1.5; // kali setengah tinggi kotak
+const AIM_PAD_PX = 24;
+
+/** Barcode dalam satu gambar kamera: [{ code, x, y }] (px layar WebView; x/y null bila tanpa posisi). */
+function readBarcodes(ev) {
+  const dpr = window.devicePixelRatio || 1;
+  const out = new Map();
+  for (const b of (ev && ev.barcodes) || []) {
+    const code = b && b.rawValue;
+    if (!code || out.has(code)) continue;
+    const pts = Array.isArray(b.cornerPoints) && b.cornerPoints.length ? b.cornerPoints : null;
+    out.set(code, {
+      code,
+      x: pts ? pts.reduce((s, p) => s + Number(p[0]), 0) / pts.length / dpr : null,
+      y: pts ? pts.reduce((s, p) => s + Number(p[1]), 0) / pts.length / dpr : null,
+    });
+  }
+  return [...out.values()];
+}
 
 let active = null;
 let paused = false;
@@ -41,23 +64,25 @@ export function pauseScan(on) {
   paused = !!on;
 }
 
-/** Tulis pesan di bagian atas layar scan. ok: true hijau, false merah, null putih. */
+/** Tulis pesan di bagian atas layar scan. ok: true hijau, false merah, null kuning (info). */
 export function setScanText(text, ok = true) {
   const el = document.getElementById('scan-last');
   if (!el) return;
   el.textContent = text || '';
-  el.className = ok === true ? 'scan-ok' : ok === false ? 'scan-bad' : '';
+  el.className = ok === true ? 'scan-ok' : ok === false ? 'scan-bad' : 'scan-info';
 }
 
 /**
  * Buka kamera.
- *  onCode(code) -> untuk mode terus-menerus boleh mengembalikan { ok, text } yang ditampilkan di layar scan.
+ *  onCode(code) -> untuk mode terus-menerus boleh mengembalikan { ok, text, silent }:
+ *    ok true = berhasil (bip), false = gagal (tot-tot), null = info (kuning); silent = tanpa bunyi.
  *  isKnown(code) -> (opsional) true bila kode ada di data; dipakai untuk menyaring salah baca dan
  *    mendahulukan barcode yang dikenal bila beberapa barcode terlihat sekaligus.
+ *  aim: true = hanya baca barcode di dalam kotak bidik (kasir).
  *  continuous: true = kamera tetap terbuka untuk scan barang berikutnya (kasir), false = sekali (QR pasang).
  * Promise selesai saat kamera ditutup.
  */
-export async function scan({ title = 'Arahkan kamera ke barcode', continuous = false, onCode, isKnown = null }) {
+export async function scan({ title = 'Arahkan kamera ke barcode', continuous = false, onCode, isKnown = null, aim = false }) {
   if (active) return;
   if (!isNative) {
     const code = window.prompt('Mode browser (tanpa kamera): ketik isi barcode/QR');
@@ -72,9 +97,58 @@ export async function scan({ title = 'Arahkan kamera ke barcode', continuous = f
   }
 
   const overlay = document.getElementById('scan-overlay');
+  const frame = overlay.querySelector('.scan-frame');
+  const marks = document.getElementById('scan-marks');
+  const hint = document.getElementById('scan-hint');
   document.getElementById('scan-title').textContent = title;
   setScanText('', null);
+  overlay.classList.toggle('aim', !!aim);
   paused = false;
+
+  // Titik kecil di posisi barcode yang terlihat (hijau = di dalam kotak, abu-abu = diabaikan).
+  let marksTimer = null;
+  const clearMarks = () => {
+    clearTimeout(marksTimer);
+    if (marks) marks.innerHTML = '';
+    if (hint) hint.hidden = true;
+  };
+  function showMarks(list) {
+    if (!aim) return;
+    if (marks) {
+      marks.innerHTML = list
+        .filter((b) => b.x != null)
+        .map((b) => `<i class="${b.inside ? 'in' : 'out'}" style="left:${b.x}px;top:${b.y}px"></i>`)
+        .join('');
+    }
+    if (hint) hint.hidden = list.some((b) => b.inside);
+    clearTimeout(marksTimer);
+    marksTimer = setTimeout(clearMarks, 400);
+  }
+
+  /** Tandai barcode yang di dalam kotak bidik; hasil: yang di dalam, terdekat ke tengah kotak dulu. */
+  function inAim(list) {
+    const r = aim && frame ? frame.getBoundingClientRect() : null;
+    if (!r || !r.width) {
+      for (const b of list) b.inside = true;
+      return list;
+    }
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const rx = (r.width / 2) * AIM_SLACK_X + AIM_PAD_PX;
+    const ry = (r.height / 2) * AIM_SLACK_Y + AIM_PAD_PX;
+    for (const b of list) {
+      if (b.x == null) {
+        b.inside = true; // kamera tidak memberi posisi: jangan ditolak
+        b.dist = 0;
+        continue;
+      }
+      const nx = (b.x - cx) / rx;
+      const ny = (b.y - cy) / ry;
+      b.inside = Math.abs(nx) <= 1 && Math.abs(ny) <= 1;
+      b.dist = nx * nx + ny * ny;
+    }
+    return list.filter((b) => b.inside).sort((a, b) => a.dist - b.dist);
+  }
 
   return new Promise(async (resolve, reject) => {
     const recent = new Map(); // kode -> { at: kapan diproses, seen: terakhir terlihat }
@@ -95,6 +169,7 @@ export async function scan({ title = 'Arahkan kamera ke barcode', continuous = f
       }
       document.body.classList.remove('scanning');
       overlay.hidden = true;
+      clearMarks();
       if (error) reject(error);
       else resolve();
     };
@@ -133,9 +208,18 @@ export async function scan({ title = 'Arahkan kamera ke barcode', continuous = f
 
     listener = await BarcodeScanner.addListener('barcodesScanned', async (ev) => {
       if (!active) return;
-      const codes = [...new Set(((ev && ev.barcodes) || []).map((b) => b && b.rawValue).filter(Boolean))];
-      if (!codes.length) return;
+      const all = readBarcodes(ev);
+      if (!all.length) return;
       const now = Date.now();
+      if (paused) {
+        clearMarks();
+        choose(all.map((b) => b.code), now); // hanya menandai barcode yang terlihat
+        return;
+      }
+      const aimed = inAim(all);
+      showMarks(all);
+      const codes = aimed.map((b) => b.code);
+      if (!codes.length) return;
       if (isKnown && codes.some(isKnown)) lastKnownAt = now;
       if (handling) return;
       const code = choose(codes, now);
@@ -144,11 +228,11 @@ export async function scan({ title = 'Arahkan kamera ke barcode', continuous = f
       if (pending && pending.code === code) pending = null;
       handling = true;
       try {
-        const r = await onCode(code);
-        const ok = !r || r.ok !== false;
-        beep(ok);
-        if (r && r.text) setScanText(r.text, ok);
-        if (!continuous && ok) await stop();
+        const r = (await onCode(code)) || {};
+        const ok = r.ok === undefined ? true : r.ok;
+        if (!r.silent) beep(ok !== false);
+        if (r.text) setScanText(r.text, ok);
+        if (!continuous && ok === true) await stop();
       } finally {
         handling = false;
       }

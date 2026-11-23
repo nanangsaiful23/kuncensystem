@@ -17,7 +17,9 @@
         <div id="scan-title">Arahkan kamera ke barcode</div>
         <div id="scan-last"></div>
       </div>
-      <div class="scan-frame"></div>
+      <!-- Kotak bidik di tengah kamera; titik = posisi barcode yang terlihat. -->
+      <div class="scan-frame"><div id="scan-hint" hidden>Arahkan barcode ke dalam kotak</div></div>
+      <div id="scan-marks"></div>
       <div class="scan-foot">
         <!-- Barang terakhir yang ter-scan + ubah jumlah (diisi layar kasir). -->
         <div id="scan-item" hidden></div>
