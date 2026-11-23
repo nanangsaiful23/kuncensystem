@@ -72,6 +72,11 @@ async function boot() {
 // Jumlah transaksi belum terkirim -> peringatan saat jendela ditutup (electron/main.js).
 bus.on('sync', () => bridge && bridge.setPending(syncInfo.pending));
 bus.on('device', (d) => d && d.code && (document.title = `Kasir PC — ${d.code}`));
+// Transaksi yang dihapus admin di web ikut dihapus dari riwayat: beri tahu kasir.
+bus.on('removed', (list) => {
+  const what = list.length === 1 ? `Transaksi ${list[0].receipt_no}` : `${list.length} transaksi`;
+  toast(`${what} dihapus admin di web, ikut dihapus dari riwayat.`, 'warn', 5000);
+});
 window.addEventListener('focus', checkPrinter);
 
 // ---- Keyboard untuk komponen Kasir HP yang dibuat untuk layar sentuh ----

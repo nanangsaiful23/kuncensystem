@@ -4,7 +4,7 @@ import * as db from '../db.js';
 import { go, session } from '../router.js';
 import { openSheet, busy, toast, confirmBox } from '../ui.js';
 import { esc, fmtDateTime, ago } from '../util.js';
-import { conn, ping, syncInfo, syncNow, pullData, SLOW_MS } from '../sync.js';
+import { conn, ping, syncInfo, syncNow, pullData, removedNote, SLOW_MS } from '../sync.js';
 import { goodsCount, membersCount } from '../catalog.js';
 import { printer } from '../native.js';
 import { printTest } from '../sales.js';
@@ -226,7 +226,11 @@ export function pengaturanView(root) {
     }
     if (act === 'sync') {
       const r = await syncNow({ catalog: 'force' });
-      toast(r.error ? r.error.message : `Sinkron selesai: ${r.sent} terkirim${r.rejected ? `, ${r.rejected} ditolak` : ''}`, r.error ? 'error' : 'ok', 4000);
+      toast(
+        r.error ? r.error.message : `Sinkron selesai: ${r.sent} terkirim${r.rejected ? `, ${r.rejected} ditolak` : ''}${removedNote(r)}`,
+        r.error ? 'error' : r.removed ? 'warn' : 'ok',
+        r.removed ? 5000 : 4000
+      );
       render();
     }
     if (act === 'redownload') {

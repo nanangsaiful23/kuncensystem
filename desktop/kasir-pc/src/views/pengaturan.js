@@ -5,7 +5,7 @@ import * as db from '@hp/db.js';
 import { go, session } from '@hp/router.js';
 import { openSheet, busy, toast, confirmBox } from '@hp/ui.js';
 import { esc, fmtDateTime, ago } from '@hp/util.js';
-import { conn, ping, syncInfo, syncNow, pullData, SLOW_MS } from '@hp/sync.js';
+import { conn, ping, syncInfo, syncNow, pullData, removedNote, SLOW_MS } from '@hp/sync.js';
 import { goodsCount, membersCount } from '@hp/catalog.js';
 import { mountStatus, CONN_LABEL } from '@hp/status.js';
 import { bus } from '@hp/bus.js';
@@ -253,7 +253,11 @@ export function pengaturanView(root) {
     }
     if (act === 'sync') {
       const r = await syncNow({ catalog: 'force' });
-      toast(r.error ? r.error.message : `Sinkron selesai: ${r.sent} terkirim${r.rejected ? `, ${r.rejected} ditolak` : ''}`, r.error ? 'error' : 'ok', 4000);
+      toast(
+        r.error ? r.error.message : `Sinkron selesai: ${r.sent} terkirim${r.rejected ? `, ${r.rejected} ditolak` : ''}${removedNote(r)}`,
+        r.error ? 'error' : r.removed ? 'warn' : 'ok',
+        r.removed ? 5000 : 4000
+      );
       render();
     }
     if (act === 'redownload') {

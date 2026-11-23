@@ -23,17 +23,58 @@ use Illuminate\Validation\ValidationException;
  *
  * Hasil per transaksi:
  *   saved     : tersimpan sekarang
- *   duplicate : client_uuid sudah pernah tersimpan (kiriman ulang) -> aman
+ *   duplicate : client_uuid sudah pernah tersimpan (kiriman ulang) -> aman;
+ *               cancelled = true bila admin sudah menghapus/membatalkannya di web
  *   rejected  : data tidak bisa diterima; dicatat di pos_sync_rejects untuk admin
  *   error     : gangguan server; HP boleh mengirim ulang nanti
  */
 class TransactionSyncController extends Controller
 {
     use TransactionControllerBase;
+    use ReadsSince;
 
     public const MAX_PER_REQUEST = 20;
     public const MAX_AGE_DAYS    = 7;
     public const NON_MEMBER_ID   = 1; // member "Non Member"
+
+    /** Jenis transaksi setelah admin menghapus ("deleted") atau membatalkan ("not valid") di web. */
+    public const CANCELLED_TYPES = ['deleted', 'not valid'];
+    /** Tarikan penuh daftar batal: HP sendiri membuang transaksi terkirim yang lebih lama dari 60 hari. */
+    public const CANCELLED_FULL_DAYS = 62;
+
+    /**
+     * Transaksi Kasir HP/PC yang sudah dihapus atau dibatalkan admin di web, supaya
+     * HP/PC ikut menghapusnya dari riwayat. HP hanya menghapus client_uuid yang ada
+     * di HP itu, jadi daftar tidak dibatasi per perangkat (tetap benar walau HP
+     * pernah dipasang ulang sebagai perangkat lain).
+     *
+     * Tanpa ?since= : semua dari 62 hari terakhir. Dengan ?since= : yang berubah sejak itu.
+     */
+    public function cancelled(Request $request)
+    {
+        [$since, $serverTime] = $this->since($request);
+
+        $rows = DB::table('transactions')
+            ->whereNotNull('client_uuid')
+            ->where(fn ($q) => $q->whereIn('type', self::CANCELLED_TYPES)->orWhereNotNull('deleted_at'));
+
+        if ($since) {
+            $rows->where(fn ($q) => $q->where('updated_at', '>', $since)->orWhere('deleted_at', '>', $since));
+        } else {
+            $rows->where('created_at', '>=', now()->subDays(self::CANCELLED_FULL_DAYS));
+        }
+
+        return response()->json([
+            'server_time' => $serverTime,
+            'full'        => $since === null,
+            'cancelled'   => $rows->orderBy('id')->get(['id', 'client_uuid', 'receipt_no', 'type', 'deleted_at'])->map(fn ($t) => [
+                'client_uuid'    => $t->client_uuid,
+                'transaction_id' => (int) $t->id,
+                'receipt_no'     => $t->receipt_no,
+                'status'         => $t->deleted_at !== null ? 'deleted' : $t->type,
+            ])->values(),
+        ]);
+    }
 
     public function store(Request $request)
     {
@@ -66,8 +107,8 @@ class TransactionSyncController extends Controller
             return $this->reject($device, $sale, 'client_uuid kosong atau bukan UUID.');
         }
 
-        if ($id = $this->savedId($uuid)) {
-            return ['client_uuid' => $uuid, 'status' => 'duplicate', 'transaction_id' => $id];
+        if ($saved = $this->saved($uuid)) {
+            return $this->duplicate($uuid, $saved);
         }
 
         // Sudah pernah ditolak dan belum dibereskan admin: jangan dicatat dua kali.
@@ -97,8 +138,8 @@ class TransactionSyncController extends Controller
             });
         } catch (UniqueConstraintViolationException $e) {
             // Kiriman yang sama sedang/baru saja diproses request lain.
-            if ($id = $this->savedId($uuid)) {
-                return ['client_uuid' => $uuid, 'status' => 'duplicate', 'transaction_id' => $id];
+            if ($saved = $this->saved($uuid)) {
+                return $this->duplicate($uuid, $saved);
             }
             report($e);
 
@@ -115,12 +156,20 @@ class TransactionSyncController extends Controller
         return ['client_uuid' => $uuid, 'status' => 'saved', 'transaction_id' => $transaction->id];
     }
 
-    private function savedId(string $uuid): ?int
+    private function saved(string $uuid): ?object
     {
         // Termasuk transaksi yang sudah dihapus admin: kiriman ulang tidak boleh memunculkannya lagi.
-        $id = DB::table('transactions')->where('client_uuid', $uuid)->value('id');
+        return DB::table('transactions')->where('client_uuid', $uuid)->first(['id', 'type', 'deleted_at']);
+    }
 
-        return $id ? (int) $id : null;
+    private function duplicate(string $uuid, object $saved): array
+    {
+        return [
+            'client_uuid'    => $uuid,
+            'status'         => 'duplicate',
+            'transaction_id' => (int) $saved->id,
+            'cancelled'      => $saved->deleted_at !== null || in_array($saved->type, self::CANCELLED_TYPES, true),
+        ];
     }
 
     /**

@@ -1,6 +1,7 @@
 // Status sambungan (ping berkala) dan sinkronisasi:
 //  - kirim transaksi yang belum terkirim (maks. 20 per kiriman)
 //  - unduh perubahan katalog & member (pakai ?since=server_time terakhir)
+//  - transaksi yang dihapus/dibatalkan admin di web ikut dihapus dari riwayat di sini
 
 import { App } from '@capacitor/app';
 import { api } from './api.js';
@@ -13,6 +14,7 @@ export const MAX_AGE_DAYS = 7; // server menolak transaksi lebih lama dari ini
 export const WARN_AGE_DAYS = 5; // mulai mengingatkan kasir
 const PING_EVERY_MS = 15000;
 const CATALOG_EVERY_MS = 10 * 60 * 1000;
+const CANCEL_EVERY_MS = 2 * 60 * 1000; // cek transaksi yang dihapus admin di web
 const BATCH = 20;
 
 /** state: unknown | online | slow | offline | denied */
@@ -106,6 +108,9 @@ const toPayload = (s) => ({
 
 let running = null;
 
+/** Tambahan untuk ringkasan "Sinkron selesai" (kalau tidak, pemberitahuan hapus tertimpa). */
+export const removedNote = (r) => (r && r.removed ? ` — ${r.removed} transaksi dihapus admin di web` : '');
+
 /**
  * Sinkronkan sekarang. catalog: 'auto' (bila sudah waktunya) | 'force' (selalu cek perubahan) | 'full' | 'none'.
  * Hasil: { sent, rejected, errors, error }
@@ -123,7 +128,7 @@ export function syncNow(opts = {}) {
 async function doSync({ catalog = 'auto' } = {}) {
   syncInfo.running = true;
   bus.emit('sync', syncInfo);
-  const result = { sent: 0, rejected: 0, errors: 0, error: null, contacted: false };
+  const result = { sent: 0, rejected: 0, errors: 0, removed: 0, error: null, contacted: false };
   const tried = new Set();
   try {
     for (;;) {
@@ -138,12 +143,15 @@ async function doSync({ catalog = 'auto' } = {}) {
       const results = Array.isArray(res.results) ? res.results : [];
       const byUuid = new Map(results.map((r) => [r.client_uuid, r]));
       const now = Date.now();
+      const gone = []; // sudah ada di server tetapi sudah dihapus admin di web
       batch.forEach((s, i) => {
         tried.add(s.client_uuid);
         const r = byUuid.get(s.client_uuid) || results[i];
         s.attempts = (s.attempts || 0) + 1;
         s.last_attempt_at = now;
-        if (r && (r.status === 'saved' || r.status === 'duplicate')) {
+        if (r && r.status === 'duplicate' && r.cancelled) {
+          gone.push(s);
+        } else if (r && (r.status === 'saved' || r.status === 'duplicate')) {
           s.status = 'sent';
           s.transaction_id = r.transaction_id;
           s.sent_at = now;
@@ -159,8 +167,17 @@ async function doSync({ catalog = 'auto' } = {}) {
           result.errors++;
         }
       });
-      await db.bulk('sales', batch);
+      await db.bulk('sales', batch.filter((s) => !gone.includes(s)), gone.map((s) => s.client_uuid));
+      if (gone.length) {
+        result.removed += gone.length;
+        bus.emit('removed', gone);
+      }
       await refreshCounts();
+    }
+
+    if (catalog === 'force' || catalog === 'full' || Date.now() - (db.kv('cancelAt') || 0) > CANCEL_EVERY_MS) {
+      result.removed += (await pullCancelled()).length;
+      result.contacted = true;
     }
 
     if (catalog !== 'none') {
@@ -188,6 +205,36 @@ async function doSync({ catalog = 'auto' } = {}) {
   await refreshCounts();
   bus.emit('synced', result);
   return result;
+}
+
+/**
+ * Hapus dari riwayat di sini transaksi yang sudah dihapus/dibatalkan admin di web.
+ * Server lama (belum punya fitur ini) atau gangguan server tidak menghentikan sinkron;
+ * dicoba lagi pada pengecekan berikutnya. Hasil: daftar transaksi yang dihapus.
+ */
+export async function pullCancelled() {
+  let r;
+  try {
+    r = await api.cancelled(db.kv('cancelSince'));
+  } catch (e) {
+    if (['network', 'timeout', 'device_unknown', 'device_inactive'].includes(e.kind)) throw e;
+    console.warn('Cek transaksi dihapus admin gagal:', e.message);
+    await db.setKv('cancelAt', Date.now());
+    return [];
+  }
+  const removed = [];
+  for (const c of r.cancelled || []) {
+    const s = c && c.client_uuid ? await db.get('sales', c.client_uuid) : null;
+    if (s) removed.push(s);
+  }
+  if (removed.length) {
+    await db.bulk('sales', [], removed.map((s) => s.client_uuid));
+    bus.emit('removed', removed);
+    await refreshCounts();
+  }
+  if (r.server_time) await db.setKv('cancelSince', r.server_time);
+  await db.setKv('cancelAt', Date.now());
+  return removed;
 }
 
 /** Unduh katalog & member. full=true: ambil semua dari awal. */
@@ -249,7 +296,8 @@ async function tick() {
   if (!r.ok) return;
   await refreshCounts();
   const catalogDue = Date.now() - (db.kv('catalogAt') || 0) > CATALOG_EVERY_MS;
-  if (syncInfo.pending > 0 || catalogDue) syncNow({ catalog: 'auto' });
+  const cancelDue = Date.now() - (db.kv('cancelAt') || 0) > CANCEL_EVERY_MS;
+  if (syncInfo.pending > 0 || catalogDue || cancelDue) syncNow({ catalog: 'auto' });
 }
 
 /** Mulai cek sambungan berkala + sinkron otomatis selama aplikasi terbuka. */

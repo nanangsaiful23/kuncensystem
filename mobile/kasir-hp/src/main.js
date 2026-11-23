@@ -8,6 +8,7 @@ import { startMonitor, refreshCounts, pruneOldSales } from './sync.js';
 import { printer, isNative } from './native.js';
 import { register, go, currentView } from './router.js';
 import { closeTopSheet, toast } from './ui.js';
+import { bus } from './bus.js';
 import { isScanning, stopScan } from './scanner.js';
 
 import { pairView } from './views/pair.js';
@@ -54,6 +55,12 @@ export function connectSavedPrinter() {
     printer.connect(p.address).catch(() => {});
   }
 }
+
+// Transaksi yang dihapus admin di web ikut dihapus dari riwayat: beri tahu kasir.
+bus.on('removed', (list) => {
+  const what = list.length === 1 ? `Transaksi ${list[0].receipt_no}` : `${list.length} transaksi`;
+  toast(`${what} dihapus admin di web, ikut dihapus dari riwayat.`, 'warn', 5000);
+});
 
 // Tombol kembali Android
 try {

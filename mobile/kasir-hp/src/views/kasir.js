@@ -10,7 +10,7 @@ import { tierPlan, tierText } from '../tier.js';
 import { mountStatus } from '../status.js';
 import { bus } from '../bus.js';
 import { scan } from '../scanner.js';
-import { syncNow } from '../sync.js';
+import { syncNow, removedNote } from '../sync.js';
 import { App } from '@capacitor/app';
 
 /** "Harga grosir: 1 PAK5 + 1 PCS (hemat 2.500)" bila jumlahnya cukup untuk satuan besar. */
@@ -304,7 +304,7 @@ export function kasirView(root) {
       if (m.dataset.m === 'lock') go('lock');
       if (m.dataset.m === 'sync') {
         const r = await syncNow({ catalog: 'force' });
-        toast(r.error ? r.error.message : 'Sinkron selesai ✓', r.error ? 'error' : 'ok', 3500);
+        toast(r.error ? r.error.message : 'Sinkron selesai ✓' + removedNote(r), r.error ? 'error' : r.removed ? 'warn' : 'ok', r.removed ? 5000 : 3500);
       }
     });
   }

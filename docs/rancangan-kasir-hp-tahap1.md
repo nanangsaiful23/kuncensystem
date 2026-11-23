@@ -132,6 +132,7 @@ Prefix: `/api/pos/v1`. Semua JSON. Rate limit wajar (mis. 60/menit/perangkat).
 | GET | `/catalog?since=` | token | Data barang & satuan & harga (penuh atau perubahan sejak waktu tertentu) |
 | GET | `/members?since=` | token | Data member (penuh atau perubahan) |
 | POST | `/transactions` | token | Kirim 1–20 transaksi sekaligus |
+| GET | `/transactions/cancelled?since=` | token | Transaksi HP/PC yang sudah dihapus/dibatalkan admin di web (`type` = `deleted` / `not valid`), supaya HP/PC ikut menghapusnya dari riwayat. Tanpa `since`: 62 hari terakhir. Ditambahkan 23 Nov 2026. |
 
 ### 4.1 `GET /catalog`
 
@@ -210,7 +211,8 @@ Jawaban per transaksi (urutan sama):
 
 Controller baru `Api\Pos\TransactionSyncController`. Untuk setiap transaksi:
 
-1. **Cek dobel**: kalau `client_uuid` sudah ada di `transactions` → `duplicate`.
+1. **Cek dobel**: kalau `client_uuid` sudah ada di `transactions` → `duplicate`
+   (dengan `cancelled: true` bila admin sudah menghapus/membatalkannya; HP lalu ikut menghapusnya).
 2. **Validasi**:
    - `cashier_id` ada dan aktif.
    - `member_id` kosong atau ada di tabel `members` (tidak ada pembuatan member baru;

@@ -308,6 +308,47 @@ class KasirHpApiTest extends StockTestCase
         $this->assertEquals(7, $this->stock($good));
     }
 
+    public function test_transaksi_dihapus_atau_dibatalkan_di_web_dilaporkan_ke_hp(): void
+    {
+        [$good, $pcs] = $this->makeGood('Mie', 1000, 1500);
+        $this->load($pcs, 10, 1000);
+        $hapus = $this->sale([[$pcs, 1, 1500]]);
+        $batal = $this->sale([[$pcs, 2, 1500]], ['receipt_no' => 'HP1-' . date('Ymd') . '-0002']);
+        $tetap = $this->sale([[$pcs, 3, 1500]], ['receipt_no' => 'HP1-' . date('Ymd') . '-0003']);
+        [$idHapus, $idBatal] = array_column($this->send($hapus, $batal, $tetap)->json('results'), 'transaction_id');
+
+        $before = $this->api()->getJson('/api/pos/v1/transactions/cancelled')->assertOk()
+                       ->assertJsonPath('full', true)->assertJsonCount(0, 'cancelled');
+        $since = $before->json('server_time');
+
+        $super = $this->admin('superadmin');
+        $this->actingAs($super, 'admin')->delete('/admin/transaction/' . $idHapus . '/delete')->assertRedirect();
+        $this->actingAs($super, 'admin')->put('/admin/transaction/' . $idBatal . '/reverse')->assertRedirect();
+        $this->assertEquals(7, $this->stock($good)); // stok dua transaksi itu kembali
+
+        // Tarikan penuh (HP baru diperbarui) dan tarikan perubahan sejak cek terakhir.
+        foreach ([null, $since] as $s) {
+            $list = $this->api()->getJson('/api/pos/v1/transactions/cancelled' . ($s ? '?since=' . urlencode($s) : ''))
+                         ->assertOk()->json('cancelled');
+            $this->assertEqualsCanonicalizing([
+                ['client_uuid' => $hapus['client_uuid'], 'transaction_id' => $idHapus, 'receipt_no' => $hapus['receipt_no'], 'status' => 'deleted'],
+                ['client_uuid' => $batal['client_uuid'], 'transaction_id' => $idBatal, 'receipt_no' => $batal['receipt_no'], 'status' => 'not valid'],
+            ], $list);
+        }
+
+        // Tidak ada perubahan setelah itu: daftar kosong.
+        $this->api()->getJson('/api/pos/v1/transactions/cancelled?since=' . urlencode(now()->addMinute()->toIso8601String()))
+             ->assertOk()->assertJsonPath('full', false)->assertJsonCount(0, 'cancelled');
+
+        // HP yang belum menerima jawaban lalu mengirim ulang: tetap tidak dobel, dan diberi tahu sudah dihapus.
+        $results = $this->send($hapus, $tetap)->json('results');
+        $this->assertSame(['duplicate', 'duplicate'], array_column($results, 'status'));
+        $this->assertSame([true, false], array_column($results, 'cancelled'));
+        $this->assertEquals(7, $this->stock($good));
+
+        $this->withHeader('Authorization', 'Bearer salah')->getJson('/api/pos/v1/transactions/cancelled')->assertUnauthorized();
+    }
+
     public function test_halaman_admin_kasir_hp_superadmin(): void
     {
         $this->actingAs($this->admin('admin'), 'admin')->get('/admin/kasir-hp')->assertForbidden();
