@@ -16,7 +16,7 @@ Kebutuhan: **Windows 10 atau 11, 64-bit**. (Windows 7/8 tidak didukung Electron 
 
 ### 1. Pasang aplikasi
 
-1. Jalankan `KasirPC-Setup-1.0.0.exe` → ikuti langkahnya. Muncul shortcut **Kasir PC** di desktop.
+1. Jalankan `KasirPC-Setup-<versi>.exe` (mis. `KasirPC-Setup-1.1.0.exe`) → ikuti langkahnya. Muncul shortcut **Kasir PC** di desktop.
 2. Kalau Windows menampilkan "Windows melindungi PC Anda" (SmartScreen): klik **Info selengkapnya** →
    **Tetap jalankan**. (Installer ini dibuat sendiri, belum ditandatangani sertifikat.)
 3. Update berikutnya: jalankan installer versi baru. Data & transaksi di komputer tetap ada.
@@ -38,29 +38,43 @@ Sama seperti Kasir HP: pertama kali **Tambah kasir** dengan email/username + pas
 
 ### 4. Melayani pembeli (keyboard)
 
+Susunan layar dan tombol pintasnya **sama dengan Tambah Transaksi di web**, jadi kasir tidak perlu
+belajar ulang: kolom cari di atas, tabel barang (yang terbaru di paling atas), member / pembayaran /
+catatan di bawah tabel, dan panel pembayaran di kanan. Hampir semuanya bisa tanpa mouse.
+
+**Alur cepat:** scan barang satu per satu → `F8` → ketik uang (atau `Alt+1` uang pas) → `Enter` →
+`Enter` lagi untuk transaksi baru.
+
 | Tombol | Fungsi |
 |---|---|
-| Scan barcode | Barang langsung masuk keranjang (scanner USB bekerja seperti keyboard + Enter) |
-| `F2` | Ke kolom cari. Ketik nama/kode → `↑` `↓` pilih → `Enter` |
-| `5*kode` / `5*nama` | Tambah dengan jumlah 5 (mis. scan sesudah mengetik `5*`) |
-| `Alt+1`…`Alt+9` | Di daftar hasil: tambah dengan satuan ke-1…9 (PCS, PAK, DUS, …) |
-| `↑` `↓` (kolom cari kosong) | Pilih baris keranjang |
-| `+` / `−` (kolom cari kosong) | Tambah / kurangi jumlah baris terpilih |
-| `F3` | Ubah jumlah baris terpilih (boleh desimal, mis. `0,5`) |
-| `Del` (kolom cari kosong) | Hapus baris terpilih |
-| `F4` | Pilih member (hanya dari daftar; tidak bisa menambah member baru) |
-| `F6` | Potongan akhir |
-| `F7` | Ganti Tunai / Transfer (transfer: centang "Transfer sudah masuk") |
-| `F8` | Uang diterima → `Enter` = simpan |
-| `F12` atau `Ctrl+Enter` | Simpan (& cetak bila printer dipilih) |
-| `Enter` / `Esc` sesudah simpan | Transaksi baru |
-| `F9` | Riwayat transaksi (cetak ulang struk, lihat yang belum terkirim/ditolak) |
+| Scan barcode | Barang langsung masuk tabel. Barcode yang sama: jumlahnya bertambah |
+| `F2` / `F4` / `/` | Ke kolom cari |
+| Ketik nama → `↑` `↓` | Pilih barang di daftar hasil; `←` `→` ganti satuan (PCS, PAK, DUS…); `Enter` tambahkan |
+| `Insert` / `Shift+↑↓` | Centang beberapa barang sekaligus, lalu `Enter` |
+| `5*kode` / `5*nama` | Tambah dengan jumlah 5 |
+| `+` / `−` (kolom cari kosong) | Tambah / kurangi jumlah baris terakhir |
+| `F3` atau `↓` (kolom cari kosong) | Ke kolom Jumlah baris paling atas |
+| Di tabel: `Enter` / `↑` `↓` / `←` `→` | Baris berikut / baris atas-bawah / Jumlah ↔ Potongan; `Esc` kembali ke cari |
+| Di tabel: `Alt+←` `Alt+→` | Ganti satuan baris itu |
+| Di tabel: `Alt+Del` | Hapus baris |
+| `F7` | Member: ketik nama/toko/no. HP → `↑` `↓` → `Enter` (langsung ke Bayar). Kosongkan = umum |
+| Pembayaran | `Tab` ke tombol Tunai/Transfer, `←` `→` untuk mengganti |
+| `F8` | Bayar (transfer: centang "Transfer sudah masuk" dengan `Spasi`) |
+| `Alt+1`…`Alt+6` | Uang cepat: uang pas, lalu pembulatan ke atas |
+| `Enter` di Bayar, `Ctrl+Enter`, atau `F12` | Proses transaksi (cetak struk bila "Cetak struk" dicentang) |
+| Sesudah proses: `Enter` / `Esc` | Transaksi baru; `P` cetak ulang struk |
+| `F9` | Riwayat transaksi (cetak ulang, lihat yang belum terkirim/ditolak) |
 | `Ctrl+L` | Ganti kasir / kunci |
-| `Ctrl` `+` / `−` / `0` | Perbesar / perkecil / normal tampilan; `F11` layar penuh |
+| `Ctrl` `+` / `−` / `0`, `F11` | Ukuran tampilan, layar penuh |
 
-Satuan, jumlah, dan diskon per baris juga bisa diubah langsung di tabel keranjang dengan mouse.
-Uang bayar harus ≥ total (tidak ada piutang). Kembalian ≥ Rp500.000 diminta konfirmasi, dan angka
-uang yang sangat besar (barcode ter-scan di kolom uang) ditolak.
+**Harga grosir otomatis** (sama dengan web): ketik jumlah di satuan kecil, misalnya PCS × 6, maka harga satuan
+besar dipakai bila lebih murah. Contoh: PCS 3.500 dan PCS5 15.000 → 6 PCS = 1 PCS5 + 1 PCS = 18.500, dengan keterangan
+"Harga grosir: 1 PCS5 + 1 PCS (hemat 2.500)". Saat disimpan, baris itu dikirim per satuan (PCS5 × 1 dan PCS × 1)
+supaya stok, HPP, dan struk sama seperti transaksi web.
+
+Retur (`F6` di web) hanya bisa di kasir web. Barcode yang tidak sengaja ter-scan saat kursor ada di
+kolom lain (Bayar, Jumlah, Member) tetap masuk sebagai barang dan isi kolom itu dikembalikan.
+Uang bayar harus ≥ total (tidak ada hutang). Kembalian ≥ Rp500.000 diminta konfirmasi.
 
 ### 5. Printer struk
 

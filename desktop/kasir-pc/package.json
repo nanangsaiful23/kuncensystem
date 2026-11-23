@@ -1,7 +1,7 @@
 {
   "name": "kasir-pc",
   "productName": "Kasir PC",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Kasir PC (Windows) untuk NTN Mart / Kuncen Mart - transaksi penjualan yang tetap jalan saat offline",
   "author": "NTN Mart",

@@ -1,7 +1,8 @@
 // Simpan transaksi di HP (tidak pernah menunggu server) + cetak struk.
 
 import * as db from './db.js';
-import { cart, lineGross, subtotal, grandTotal } from './cart.js';
+import { cart, subtotal, grandTotal } from './cart.js';
+import { lineItems } from './tier.js';
 import { uuidv4, isoLocal, ymd, dayKey, round2 } from './util.js';
 import { buildReceipt, buildTestPage } from './receipt.js';
 import { printer } from './native.js';
@@ -38,17 +39,8 @@ export async function saveSale({ cashier, moneyPaid }) {
     member_id: cart.memberId || null,
     member_name: cart.memberId ? cart.memberName : null,
     payment: cart.payment,
-    items: cart.lines.map((l) => ({
-      good_unit_id: l.good_unit_id,
-      good_id: l.good_id,
-      name: l.name,
-      code: l.code,
-      unit: l.unit,
-      quantity: round2(l.quantity),
-      price: l.price,
-      discount: l.discount || 0,
-      gross: lineGross(l),
-    })),
+    // Baris dengan harga grosir dipecah satu item per satuan (PAK5 x 1 + PCS x 1), sama seperti kasir web.
+    items: cart.lines.reduce((all, l) => all.concat(lineItems(l)), []), // (bukan flatMap: WebView HP lama)
     subtotal: subtotal(),
     total_discount: cart.totalDiscount || 0,
     total,

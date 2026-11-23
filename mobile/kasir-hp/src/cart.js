@@ -1,9 +1,11 @@
 // Keranjang belanja yang sedang dilayani + perhitungan total
-// (rumus sama dengan server: baris = round(harga x jumlah, 2) - diskon baris).
+// (rumus sama dengan server: baris = round(harga x jumlah, 2) - diskon baris), termasuk
+// harga satuan besar otomatis seperti kasir web (tier.js): 6 PCS = 1 PAK5 + 1 PCS.
 
 import { round2 } from './util.js';
 import * as db from './db.js';
 import { bus } from './bus.js';
+import { tierPlan } from './tier.js';
 
 export const cart = {
   lines: [], // [{ key, good_id, name, code, units, good_unit_id, unit, price, quantity, discount }]
@@ -16,7 +18,13 @@ export const cart = {
 
 let seq = 0;
 
-export const lineGross = (l) => round2(l.price * l.quantity);
+/** Harga baris sebelum potongan; memakai harga satuan besar bila jumlahnya cukup (harga grosir). */
+export const lineGross = (l) => {
+  const plan = tierPlan(l);
+  return plan ? plan.total : round2(l.price * l.quantity);
+};
+/** Harga baris tanpa harga grosir (untuk menampilkan berapa yang dihemat). */
+export const lineNormal = (l) => round2(l.price * l.quantity);
 export const lineSum = (l) => round2(lineGross(l) - (l.discount || 0));
 export const subtotal = () => round2(cart.lines.reduce((a, l) => a + lineSum(l), 0));
 export const grandTotal = () => round2(subtotal() - (cart.totalDiscount || 0));

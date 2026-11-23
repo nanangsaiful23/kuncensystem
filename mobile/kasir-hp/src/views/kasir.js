@@ -5,12 +5,19 @@ import { go, session } from '../router.js';
 import { openSheet, toast, confirmBox, moneyInput } from '../ui.js';
 import { esc, rp, qtyText, parseQty, debounce, round2 } from '../util.js';
 import { searchGoods, findByCode, goodsCount } from '../catalog.js';
-import { cart, addGood, updateLine, removeLine, resetCart, findLine, lineSum, grandTotal, itemCount } from '../cart.js';
+import { cart, addGood, updateLine, removeLine, resetCart, findLine, lineSum, lineGross, grandTotal, itemCount } from '../cart.js';
+import { tierPlan, tierText } from '../tier.js';
 import { mountStatus } from '../status.js';
 import { bus } from '../bus.js';
 import { scan } from '../scanner.js';
 import { syncNow } from '../sync.js';
 import { App } from '@capacitor/app';
+
+/** "Harga grosir: 1 PAK5 + 1 PCS (hemat 2.500)" bila jumlahnya cukup untuk satuan besar. */
+const tierNote = (l) => {
+  const plan = tierPlan(l);
+  return plan ? `<div class="tier-note">Harga grosir: <b>${esc(tierText(plan))}</b> (hemat ${rp(plan.saved)})</div>` : '';
+};
 
 const unitChips = (g) =>
   g.units
@@ -74,6 +81,7 @@ export function kasirView(root) {
           <div class="line-main" data-a="edit">
             <div class="line-name">${esc(l.name)}</div>
             <div class="line-sub">${esc(l.unit)} × ${rp(l.price)}${l.discount ? ` <span class="disc">diskon -${rp(l.discount)}</span>` : ''}</div>
+            ${tierNote(l)}
           </div>
           <div class="qty">
             <button type="button" data-a="dec">−</button>
@@ -215,7 +223,8 @@ export function kasirView(root) {
     const price = () => Number((l.units.find((u) => u.good_unit_id === unitId) || {}).selling_price) || 0;
     const calc = () => {
       const qv = parseQty(b.querySelector('#eq').value);
-      const gross = isNaN(qv) ? 0 : round2(price() * qv);
+      // termasuk harga grosir otomatis (satuan besar) bila jumlahnya cukup
+      const gross = isNaN(qv) ? 0 : lineGross({ ...l, good_unit_id: unitId, price: price(), quantity: qv });
       b.querySelector('#esum').textContent = rp(gross - disc);
       return { qv, gross };
     };

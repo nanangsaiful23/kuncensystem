@@ -24,3 +24,6 @@ android/keystore.properties
 # Lain-lain
 .DS_Store
 *.log
+
+# APK & paket unggah server untuk dibagikan (bukan kode)
+release/

@@ -50,6 +50,8 @@ Update berikutnya: cukup pasang APK versi baru di atasnya. Data & transaksi di H
 - **Bayar** → pilih member (opsional, hanya dari daftar), potongan akhir, **Tunai** atau **Transfer**
   (centang "Transfer sudah masuk" setelah dicek), lalu **Simpan & Cetak**.
 - Uang bayar harus ≥ total (tidak ada piutang). Tidak ada voucher dan retur di HP.
+- **Harga grosir otomatis** sama dengan kasir web: PCS × 6 dengan PCS 3.500 dan PAK5 15.000 dihitung
+  1 PAK5 + 1 PCS = 18.500 (keterangan "Harga grosir" tampil di baris). Disimpan per satuan seperti web.
 
 ### 5. Mengecek sambungan
 
@@ -100,6 +102,7 @@ Penting:
 | API server | `src/api.js` (HTTP native `CapacitorHttp`: tanpa CORS, ada batas waktu) |
 | Sinkron & status sambungan | `src/sync.js`, `src/status.js` |
 | Simpan transaksi & cetak | `src/sales.js`, `src/receipt.js` (ESC/POS 32/48 kolom) |
+| Harga grosir otomatis (sama dengan web `unit-tier.blade.php`) | `src/tier.js`, dipakai `cart.js` & `sales.js` |
 | Scan kamera | `src/scanner.js` (`@capacitor-mlkit/barcode-scanning`, model ML Kit ikut di APK → offline) |
 | Native Android | `android/app/src/main/java/com/ntnmart/kasirhp/KasirNativePlugin.java`: token terenkripsi Android Keystore + printer Bluetooth Classic (SPP/RFCOMM) |
 
