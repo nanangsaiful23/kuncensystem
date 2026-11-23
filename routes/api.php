@@ -68,5 +68,6 @@ Route::prefix('pos/v1')->group(function () {
         Route::get('members', [PosCatalogController::class, 'members']);
         Route::post('transactions', [PosTransactionSyncController::class, 'store']);
         Route::get('transactions/cancelled', [PosTransactionSyncController::class, 'cancelled']);
+        Route::get('transactions/changed', [PosTransactionSyncController::class, 'changed']);
     });
 });

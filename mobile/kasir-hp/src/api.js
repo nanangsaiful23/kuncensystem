@@ -180,4 +180,5 @@ export const api = {
   members: (since) => request('GET', '/members', { query: { since }, timeout: 60000 }),
   transactions: (list) => request('POST', '/transactions', { data: { transactions: list }, timeout: 60000 }),
   cancelled: (since) => request('GET', '/transactions/cancelled', { query: { since }, timeout: 30000 }),
+  changed: (since) => request('GET', '/transactions/changed', { query: { since }, timeout: 60000 }),
 };

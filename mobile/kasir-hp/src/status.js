@@ -2,7 +2,7 @@
 
 import * as db from './db.js';
 import { bus } from './bus.js';
-import { conn, syncInfo, syncNow, removedNote, oldestPendingDays, WARN_AGE_DAYS, MAX_AGE_DAYS } from './sync.js';
+import { conn, syncInfo, syncNow, adminChanged, adminNote, oldestPendingDays, WARN_AGE_DAYS, MAX_AGE_DAYS } from './sync.js';
 import { printer } from './native.js';
 import { esc, fmtTime, ago } from './util.js';
 import { toast } from './ui.js';
@@ -95,7 +95,7 @@ export function mountStatus(root, navigate) {
       if (r.error) toast(r.error.message, 'error', 4000);
       else if (r.rejected) toast(`${r.sent} terkirim, ${r.rejected} ditolak server`, 'error', 4000);
       else if (r.errors) toast(`${r.sent} terkirim, ${r.errors} gagal (dicoba lagi nanti)`, 'warn', 4000);
-      else if (r.removed) toast((r.sent ? `${r.sent} transaksi terkirim ✓` : 'Sinkron selesai ✓') + removedNote(r), 'warn', 5000);
+      else if (adminChanged(r)) toast((r.sent ? `${r.sent} transaksi terkirim ✓` : 'Sinkron selesai ✓') + adminNote(r), 'warn', 5000);
       else toast(r.sent ? `${r.sent} transaksi terkirim ✓` : 'Sinkron selesai ✓', 'ok');
     }
   };

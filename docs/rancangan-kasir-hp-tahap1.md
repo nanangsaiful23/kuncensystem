@@ -133,6 +133,7 @@ Prefix: `/api/pos/v1`. Semua JSON. Rate limit wajar (mis. 60/menit/perangkat).
 | GET | `/members?since=` | token | Data member (penuh atau perubahan) |
 | POST | `/transactions` | token | Kirim 1–20 transaksi sekaligus |
 | GET | `/transactions/cancelled?since=` | token | Transaksi HP/PC yang sudah dihapus/dibatalkan admin di web (`type` = `deleted` / `not valid`), supaya HP/PC ikut menghapusnya dari riwayat. Tanpa `since`: 62 hari terakhir. Ditambahkan 23 Nov 2026. |
+| GET | `/transactions/changed?since=` | token | Isi terbaru transaksi HP/PC yang berubah di server (admin mengubah jumlah barang, member, catatan, uang bayar di web), supaya riwayat HP/PC ikut diperbarui. Hanya transaksi yang dijual hari ini & kemarin; yang baru masuk juga ikut, HP hanya memperbarui yang isinya berbeda (total tidak dibandingkan, selisih pembulatan bukan perubahan). Ditambahkan 23 Nov 2026. |
 
 ### 4.1 `GET /catalog`
 

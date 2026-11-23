@@ -12,7 +12,7 @@ export function saleRowHtml(s) {
   return `
     <button type="button" class="sale-row" data-uuid="${esc(s.client_uuid)}">
       <span class="sr-time">${fmtTime(s.sold_at)}</span>
-      <span class="sr-main"><b>${esc(s.receipt_no)}</b><br><small class="muted">${esc(s.cashier_name || '')}${s.member_name ? ' · ' + esc(s.member_name) : ''} · ${s.payment === 'transfer' ? 'Transfer' : 'Tunai'}</small></span>
+      <span class="sr-main"><b>${esc(s.receipt_no)}</b><br><small class="muted">${esc(s.cashier_name || '')}${s.member_name ? ' · ' + esc(s.member_name) : ''} · ${s.payment === 'transfer' ? 'Transfer' : 'Tunai'}${s.edited_at ? ' · ✎ diubah admin' : ''}</small></span>
       <span class="sr-right"><b>${rp(s.total)}</b><br>${statusHtml(s)}</span>
     </button>`;
 }
@@ -29,7 +29,10 @@ export function saleDetailHtml(s) {
     )
     .join('');
   let statusInfo = '';
-  if (s.status === 'sent') statusInfo = `<div class="alert a-green">✓ Sudah tersimpan di server (ID transaksi ${esc(s.transaction_id)}).</div>`;
+  if (s.status === 'sent')
+    statusInfo = `<div class="alert a-green">✓ Sudah tersimpan di server (ID transaksi ${esc(s.transaction_id)}).${
+      s.edited_at ? `<br><small>✎ Diubah admin di web ${fmtDateTime(s.edited_at)}; yang tampil di sini isi terbaru.</small>` : ''
+    }</div>`;
   else if (s.status === 'rejected')
     statusInfo = `<div class="alert a-red"><b>✗ Ditolak server:</b> ${esc(s.message || '')}<br>
       <small>Transaksi ini tercatat di halaman admin Kasir HP (Transaksi ditolak). Beri tahu admin; tidak dikirim ulang otomatis.</small></div>`;

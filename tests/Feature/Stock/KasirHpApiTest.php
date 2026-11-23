@@ -349,6 +349,68 @@ class KasirHpApiTest extends StockTestCase
         $this->withHeader('Authorization', 'Bearer salah')->getJson('/api/pos/v1/transactions/cancelled')->assertUnauthorized();
     }
 
+    public function test_transaksi_diubah_di_web_dikirim_ke_hp_dengan_isi_terbaru(): void
+    {
+        [$good, $pcs] = $this->makeGood('Mie', 1000, 1500);
+        $this->load($pcs, 10, 1000);
+        $ubah  = $this->sale([[$pcs, 2, 1500]]);
+        $tetap = $this->sale([[$pcs, 3, 1500]], ['receipt_no' => 'HP1-' . date('Ymd') . '-0002']);
+        $hapus = $this->sale([[$pcs, 1, 1500]], ['receipt_no' => 'HP1-' . date('Ymd') . '-0003']);
+        $lama  = $this->sale([[$pcs, 1, 1500]], ['receipt_no' => 'HP1-' . date('Ymd', strtotime('-3 days')) . '-0001', 'sold_at' => now()->subDays(3)->toIso8601String()]);
+        [$idUbah, , $idHapus] = array_column($this->send($ubah, $tetap, $hapus, $lama)->json('results'), 'transaction_id');
+
+        $super = $this->admin('superadmin');
+        $this->actingAs($super, 'admin')->delete('/admin/transaction/' . $idHapus . '/delete')->assertRedirect();
+
+        // Tarikan penuh: transaksi HP hari ini & kemarin dengan isinya; yang dihapus dan yang lama tidak.
+        $this->travel(1)->minutes();
+        $full = $this->api()->getJson('/api/pos/v1/transactions/changed')->assertOk()->assertJsonPath('full', true);
+        $this->assertEqualsCanonicalizing([$ubah['client_uuid'], $tetap['client_uuid']], array_column($full->json('changed'), 'client_uuid'));
+        $awal = collect($full->json('changed'))->firstWhere('client_uuid', $ubah['client_uuid']);
+        $this->assertSame(null, $awal['member_id']); // "Non Member" = tanpa member
+        $this->assertEquals(3000, $awal['total']);
+        $this->assertCount(1, $awal['items']);
+        $this->assertSame(['good_id' => $good, 'good_unit_id' => $pcs, 'code' => 'T-Mie', 'name' => 'Mie', 'unit' => 'PCS'],
+            array_intersect_key($awal['items'][0], array_flip(['good_id', 'good_unit_id', 'code', 'name', 'unit'])));
+        $this->assertEquals([2, 1500, 0, 3000], [$awal['items'][0]['quantity'], $awal['items'][0]['price'], $awal['items'][0]['discount'], $awal['items'][0]['sum']]);
+        $since = $full->json('server_time');
+
+        // Admin mengubah jumlah, member, catatan, dan uang bayar di web.
+        $this->travel(1)->minutes();
+        $member   = \App\Models\Member::create(['name' => 'Budi']);
+        $detailId = DB::table('transaction_details')->where('transaction_id', $idUbah)->value('id');
+        $this->actingAs($super, 'admin')->put('/admin/transaction/' . $idUbah . '/edit', [
+            'member_id' => $member->id, 'note' => 'dikoreksi admin',
+            'total_item_price' => '6000', 'total_discount_price' => '0', 'total_sum_price' => '6000',
+            'money_paid' => '10000', 'money_returned' => '4000',
+            'ids' => [$detailId], 'quantities' => ['4'], 'sum_prices' => ['6000'],
+        ])->assertRedirect();
+
+        $list = $this->api()->getJson('/api/pos/v1/transactions/changed?since=' . urlencode($since))
+                     ->assertOk()->assertJsonPath('full', false)->json('changed');
+        $this->assertCount(1, $list);
+        $baru = $list[0];
+        $this->assertSame([$ubah['client_uuid'], $idUbah, $ubah['receipt_no'], $member->id, 'Budi', 'dikoreksi admin'],
+            [$baru['client_uuid'], $baru['transaction_id'], $baru['receipt_no'], $baru['member_id'], $baru['member_name'], $baru['note']]);
+        $this->assertEquals([6000, 6000, 10000, 4000], [$baru['total_item'], $baru['total'], $baru['money_paid'], $baru['money_returned']]);
+        $this->assertEquals([4, 1500, 6000], [$baru['items'][0]['quantity'], $baru['items'][0]['price'], $baru['items'][0]['sum']]);
+        $this->assertEquals(10 - 4 - 3 - 1, $this->stock($good));
+
+        // Hanya baris barangnya yang berubah (angka transaksi sama): tetap terkirim.
+        $since2 = $this->api()->getJson('/api/pos/v1/transactions/changed?since=' . urlencode($since))->json('server_time');
+        $this->travel(1)->minutes();
+        DB::table('transaction_details')->where('id', DB::table('transaction_details')->where('transaction_id', $idUbah)->value('id'))
+            ->update(['quantity' => 4, 'updated_at' => now()]);
+        $this->assertSame([$ubah['client_uuid']], array_column(
+            $this->api()->getJson('/api/pos/v1/transactions/changed?since=' . urlencode($since2))->json('changed'), 'client_uuid'));
+
+        // Tidak ada perubahan setelah itu: daftar kosong.
+        $this->api()->getJson('/api/pos/v1/transactions/changed?since=' . urlencode(now()->addMinute()->toIso8601String()))
+             ->assertOk()->assertJsonCount(0, 'changed');
+
+        $this->withHeader('Authorization', 'Bearer salah')->getJson('/api/pos/v1/transactions/changed')->assertUnauthorized();
+    }
+
     public function test_halaman_admin_kasir_hp_superadmin(): void
     {
         $this->actingAs($this->admin('admin'), 'admin')->get('/admin/kasir-hp')->assertForbidden();

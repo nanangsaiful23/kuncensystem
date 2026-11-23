@@ -41,6 +41,11 @@ class TransactionSyncController extends Controller
     public const CANCELLED_TYPES = ['deleted', 'not valid'];
     /** Tarikan penuh daftar batal: HP sendiri membuang transaksi terkirim yang lebih lama dari 60 hari. */
     public const CANCELLED_FULL_DAYS = 62;
+    /**
+     * Daftar ubah hanya untuk transaksi yang dijual hari ini dan kemarin: riwayat HP hanya
+     * menampilkan transaksi hari ini, dan isi transaksi ikut dikirim (supaya tidak terlalu besar).
+     */
+    public const CHANGED_DAYS = 2;
 
     /**
      * Transaksi Kasir HP/PC yang sudah dihapus atau dibatalkan admin di web, supaya
@@ -73,6 +78,98 @@ class TransactionSyncController extends Controller
                 'receipt_no'     => $t->receipt_no,
                 'status'         => $t->deleted_at !== null ? 'deleted' : $t->type,
             ])->values(),
+        ]);
+    }
+
+    /**
+     * Isi terbaru transaksi Kasir HP/PC yang berubah di server, supaya riwayat di HP/PC
+     * ikut berubah bila admin mengubah transaksi di web (jumlah barang, member, catatan,
+     * uang bayar). Transaksi yang dihapus/dibatalkan tidak di sini (lihat cancelled()).
+     *
+     * Yang baru masuk dari HP juga ikut terkirim (updated_at-nya baru); HP membandingkan
+     * dengan isinya sendiri dan hanya memperbarui yang benar-benar berbeda. Tidak dibatasi
+     * per perangkat, dengan alasan yang sama seperti cancelled().
+     *
+     * Hanya transaksi yang dijual hari ini dan kemarin (CHANGED_DAYS). Tanpa ?since= : semuanya;
+     * dengan ?since= : yang transaksi atau baris barangnya berubah sejak itu.
+     */
+    public function changed(Request $request)
+    {
+        [$since, $serverTime] = $this->since($request);
+
+        $rows = DB::table('transactions')
+            ->whereNotNull('client_uuid')
+            ->whereNull('deleted_at')
+            ->where(fn ($q) => $q->whereNull('type')->orWhereNotIn('type', self::CANCELLED_TYPES))
+            ->where('created_at', '>=', now()->startOfDay()->subDays(self::CHANGED_DAYS - 1));
+
+        if ($since) {
+            // Admin mengubah jumlah barang: baris barangnya berubah walau angka transaksinya kebetulan sama.
+            $rows->where(fn ($q) => $q->where('updated_at', '>', $since)->orWhereExists(
+                fn ($d) => $d->selectRaw('1')->from('transaction_details')
+                             ->whereColumn('transaction_details.transaction_id', 'transactions.id')
+                             ->where('transaction_details.updated_at', '>', $since)
+            ));
+        }
+
+        $transactions = $rows->orderBy('id')->get([
+            'id', 'client_uuid', 'receipt_no', 'member_id', 'payment', 'total_item_price', 'total_discount_price',
+            'total_sum_price', 'money_paid', 'money_returned', 'note',
+        ]);
+        $ids = $transactions->pluck('id')->all();
+
+        $details = DB::table('transaction_details')
+            ->leftJoin('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
+            ->leftJoin('goods', 'goods.id', '=', 'good_units.good_id')
+            ->leftJoin('units', 'units.id', '=', 'good_units.unit_id')
+            ->whereIntegerInRaw('transaction_details.transaction_id', $ids)
+            ->whereNull('transaction_details.deleted_at')
+            ->orderBy('transaction_details.id')
+            ->get([
+                'transaction_details.transaction_id', 'transaction_details.good_unit_id', 'transaction_details.quantity',
+                'transaction_details.selling_price', 'transaction_details.discount_price', 'transaction_details.sum_price',
+                'good_units.good_id', 'goods.code', 'goods.name', 'units.code as unit_code', 'units.name as unit_name',
+            ])
+            ->groupBy('transaction_id');
+
+        $memberIds = $transactions->pluck('member_id')->filter()->unique()->values()->all();
+        $members   = DB::table('members')->whereIntegerInRaw('id', $memberIds)->pluck('name', 'id');
+
+        $num = fn ($v) => round((float) $v, 2);
+
+        return response()->json([
+            'server_time' => $serverTime,
+            'full'        => $since === null,
+            'changed'     => $transactions->map(function ($t) use ($details, $members, $num) {
+                // "Non Member" = tanpa member, sama seperti di HP.
+                $memberId = $t->member_id && (int) $t->member_id !== self::NON_MEMBER_ID ? (int) $t->member_id : null;
+
+                return [
+                    'client_uuid'    => $t->client_uuid,
+                    'transaction_id' => (int) $t->id,
+                    'receipt_no'     => $t->receipt_no,
+                    'member_id'      => $memberId,
+                    'member_name'    => $memberId ? ($members[$memberId] ?? null) : null,
+                    'payment'        => $t->payment,
+                    'total_item'     => $num($t->total_item_price),
+                    'total_discount' => $num($t->total_discount_price),
+                    'total'          => $num($t->total_sum_price),
+                    'money_paid'     => $num($t->money_paid),
+                    'money_returned' => $num($t->money_returned),
+                    'note'           => $t->note,
+                    'items'          => ($details[$t->id] ?? collect())->map(fn ($d) => [
+                        'good_id'      => $d->good_id !== null ? (int) $d->good_id : null,
+                        'good_unit_id' => (int) $d->good_unit_id,
+                        'code'         => $d->code,
+                        'name'         => $d->name,
+                        'unit'         => $d->unit_code ?: $d->unit_name,
+                        'quantity'     => $num($d->quantity),
+                        'price'        => $num($d->selling_price),
+                        'discount'     => $num($d->discount_price),
+                        'sum'          => $num($d->sum_price),
+                    ])->values(),
+                ];
+            })->values(),
         ]);
     }
 

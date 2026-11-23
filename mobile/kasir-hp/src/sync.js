@@ -2,19 +2,21 @@
 //  - kirim transaksi yang belum terkirim (maks. 20 per kiriman)
 //  - unduh perubahan katalog & member (pakai ?since=server_time terakhir)
 //  - transaksi yang dihapus/dibatalkan admin di web ikut dihapus dari riwayat di sini
+//  - transaksi yang diubah admin di web ikut diperbarui isinya di sini
 
 import { App } from '@capacitor/app';
 import { api } from './api.js';
 import * as db from './db.js';
 import { bus } from './bus.js';
 import { loadCatalog, loadMembers } from './catalog.js';
+import { mergeServerSale } from './edits.js';
 
 export const SLOW_MS = 2000; // ping lebih lama dari ini = "Lambat"
 export const MAX_AGE_DAYS = 7; // server menolak transaksi lebih lama dari ini
 export const WARN_AGE_DAYS = 5; // mulai mengingatkan kasir
 const PING_EVERY_MS = 15000;
 const CATALOG_EVERY_MS = 10 * 60 * 1000;
-const CANCEL_EVERY_MS = 2 * 60 * 1000; // cek transaksi yang dihapus admin di web
+const CANCEL_EVERY_MS = 2 * 60 * 1000; // cek transaksi yang dihapus/diubah admin di web
 const BATCH = 20;
 
 /** state: unknown | online | slow | offline | denied */
@@ -108,12 +110,20 @@ const toPayload = (s) => ({
 
 let running = null;
 
-/** Tambahan untuk ringkasan "Sinkron selesai" (kalau tidak, pemberitahuan hapus tertimpa). */
-export const removedNote = (r) => (r && r.removed ? ` — ${r.removed} transaksi dihapus admin di web` : '');
+/** Ada transaksi yang dihapus/diubah admin di web pada sinkron ini. */
+export const adminChanged = (r) => !!(r && (r.removed || r.edited));
+
+/** Tambahan untuk ringkasan "Sinkron selesai" (kalau tidak, pemberitahuan hapus/ubah tertimpa). */
+export function adminNote(r) {
+  const bits = [];
+  if (r && r.removed) bits.push(`${r.removed} transaksi dihapus`);
+  if (r && r.edited) bits.push(`${r.edited}${bits.length ? '' : ' transaksi'} diubah`);
+  return bits.length ? ` — ${bits.join(' & ')} admin di web` : '';
+}
 
 /**
  * Sinkronkan sekarang. catalog: 'auto' (bila sudah waktunya) | 'force' (selalu cek perubahan) | 'full' | 'none'.
- * Hasil: { sent, rejected, errors, error }
+ * Hasil: { sent, rejected, errors, removed, edited, error }
  */
 export function syncNow(opts = {}) {
   if (running) return running;
@@ -128,7 +138,7 @@ export function syncNow(opts = {}) {
 async function doSync({ catalog = 'auto' } = {}) {
   syncInfo.running = true;
   bus.emit('sync', syncInfo);
-  const result = { sent: 0, rejected: 0, errors: 0, removed: 0, error: null, contacted: false };
+  const result = { sent: 0, rejected: 0, errors: 0, removed: 0, edited: 0, error: null, contacted: false };
   const tried = new Set();
   try {
     for (;;) {
@@ -177,6 +187,7 @@ async function doSync({ catalog = 'auto' } = {}) {
 
     if (catalog === 'force' || catalog === 'full' || Date.now() - (db.kv('cancelAt') || 0) > CANCEL_EVERY_MS) {
       result.removed += (await pullCancelled()).length;
+      result.edited += (await pullEdited()).length;
       result.contacted = true;
     }
 
@@ -235,6 +246,46 @@ export async function pullCancelled() {
   if (r.server_time) await db.setKv('cancelSince', r.server_time);
   await db.setKv('cancelAt', Date.now());
   return removed;
+}
+
+/**
+ * Perbarui isi transaksi di riwayat yang diubah admin di web (jumlah barang, member,
+ * catatan, uang bayar). Server mengirim isi terbaru transaksi HP/PC yang berubah
+ * (hanya yang dijual hari ini & kemarin); yang isinya sama dengan di sini dilewati.
+ * Seperti pullCancelled(): server lama/gangguan server tidak menghentikan sinkron.
+ * Hasil: daftar transaksi yang diperbarui.
+ */
+export async function pullEdited() {
+  let r;
+  try {
+    r = await api.changed(db.kv('editSince'));
+  } catch (e) {
+    if (['network', 'timeout', 'device_unknown', 'device_inactive'].includes(e.kind)) throw e;
+    console.warn('Cek transaksi diubah admin gagal:', e.message);
+    return [];
+  }
+  const list = (r.changed || []).filter((c) => c && c.client_uuid);
+  // Baca & tulis dalam satu transaksi database: cetak ulang struk (jumlah cetak) tidak tertimpa.
+  const edited = list.length
+    ? await db.atomic(['sales'], async (os, req) => {
+        const out = [];
+        for (const c of list) {
+          const s = await req(os.sales.get(c.client_uuid));
+          const next = s && s.status !== 'rejected' ? mergeServerSale(s, c) : null;
+          if (next) {
+            os.sales.put(next);
+            out.push(next);
+          }
+        }
+        return out;
+      })
+    : [];
+  if (edited.length) {
+    bus.emit('edited', edited);
+    await refreshCounts();
+  }
+  if (r.server_time) await db.setKv('editSince', r.server_time);
+  return edited;
 }
 
 /** Unduh katalog & member. full=true: ambil semua dari awal. */

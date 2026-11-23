@@ -72,7 +72,7 @@ export function pairView(root, { canCancel = false } = {}) {
       if (oldServer !== server) {
         // Server lain: data barang, member, dan akun kasir lama tidak berlaku.
         await Promise.all([db.clear('goods'), db.clear('members'), db.clear('cashiers')]);
-        for (const k of ['catalogSince', 'membersSince', 'catalogAt', 'cancelSince', 'cancelAt', 'lastSyncAt', 'lastSyncError', 'cartDraft']) await db.setKv(k, null);
+        for (const k of ['catalogSince', 'membersSince', 'catalogAt', 'cancelSince', 'cancelAt', 'editSince', 'lastSyncAt', 'lastSyncError', 'cartDraft']) await db.setKv(k, null);
         await loadCatalog();
         await loadMembers();
       }

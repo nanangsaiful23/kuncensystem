@@ -61,6 +61,11 @@ bus.on('removed', (list) => {
   const what = list.length === 1 ? `Transaksi ${list[0].receipt_no}` : `${list.length} transaksi`;
   toast(`${what} dihapus admin di web, ikut dihapus dari riwayat.`, 'warn', 5000);
 });
+// Transaksi yang diubah admin di web (jumlah, member, catatan, uang bayar): riwayat ikut diperbarui.
+bus.on('edited', (list) => {
+  const what = list.length === 1 ? `Transaksi ${list[0].receipt_no}` : `${list.length} transaksi`;
+  toast(`${what} diubah admin di web, riwayat ikut diperbarui.`, 'warn', 5000);
+});
 
 // Tombol kembali Android
 try {
