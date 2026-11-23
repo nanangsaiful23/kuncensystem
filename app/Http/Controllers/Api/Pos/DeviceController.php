@@ -59,7 +59,8 @@ class DeviceController extends Controller
 
         $cashier = Cashier::where('email', $request->email)->first();
 
-        if ($cashier === null || ! Hash::check($request->password, $cashier->password)) {
+        // Cara cek password harus sama dengan login web kasir (Cashier\Auth\LoginController::credentials).
+        if ($cashier === null || ! Hash::check($request->password . Cashier::PASSWORD_SUFFIX, $cashier->password)) {
             return response()->json(['message' => 'Email atau password salah.'], 422);
         }
 

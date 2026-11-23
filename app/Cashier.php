@@ -13,6 +13,12 @@ class Cashier extends Authenticatable
     use Notifiable;
 
     /**
+     * Tambahan rahasia di belakang password sebelum di-hash/dicek (sama untuk login web kasir dan
+     * login Kasir HP/PC). Password di tabel cashiers = bcrypt(password . PASSWORD_SUFFIX).
+     */
+    public const PASSWORD_SUFFIX = 'k&4z~1e1R*';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array

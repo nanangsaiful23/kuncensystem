@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Stock;
 
+use App\Cashier;
 use App\Models\PosDevice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -138,11 +139,19 @@ class KasirHpApiTest extends StockTestCase
 
     public function test_login_kasir(): void
     {
-        $id = DB::table('cashiers')->insertGetId(['name' => 'Rina', 'email' => 'rina@test', 'password' => Hash::make('rahasia'), 'is_active' => 1]);
+        // Disimpan persis seperti akun kasir asli (password + PASSWORD_SUFFIX), bukan Hash::make polos.
+        $id = DB::table('cashiers')->insertGetId([
+            'name' => 'Rina', 'email' => 'rina@test', 'password' => Hash::make('rahasia' . Cashier::PASSWORD_SUFFIX), 'is_active' => 1,
+        ]);
+
+        // Login web kasir dan login Kasir HP/PC menerima password yang sama.
+        $this->post('/cashier/login', ['email' => 'rina@test', 'password' => 'rahasia'])->assertRedirect('/cashier');
+        $this->assertAuthenticated('cashier');
 
         $this->api()->postJson('/api/pos/v1/login', ['email' => 'rina@test', 'password' => 'rahasia'])
              ->assertOk()->assertJsonPath('cashier.id', $id)->assertJsonPath('cashier.name', 'Rina');
         $this->api()->postJson('/api/pos/v1/login', ['email' => 'rina@test', 'password' => 'salah'])->assertStatus(422);
+        $this->api()->postJson('/api/pos/v1/login', ['email' => 'rina@test', 'password' => 'rahasia' . Cashier::PASSWORD_SUFFIX])->assertStatus(422);
 
         DB::table('cashiers')->where('id', $id)->update(['is_active' => 0]);
         $this->api()->postJson('/api/pos/v1/login', ['email' => 'rina@test', 'password' => 'rahasia'])->assertStatus(403);

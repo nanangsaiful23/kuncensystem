@@ -79,7 +79,7 @@ class LoginController extends Controller
     protected function credentials(Request $request)
     {
         $data = $request->only('email', 'password');
-        $data['password'] = $data['password'] . 'k&4z~1e1R*';
+        $data['password'] = $data['password'] . \App\Cashier::PASSWORD_SUFFIX;
         return $data;
     }
 }
