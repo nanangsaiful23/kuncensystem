@@ -39,8 +39,9 @@
         </div>
     </div>
 
-    <div class="loading-body">
+    <div class="loading-body pos-body">
 
+      <div class="pos-left">
         {{-- TABEL --}}
         <div class="panel-table">
             <div class="panel-table-header">
@@ -86,6 +87,39 @@
             </div>
         </div>
 
+        {{-- INFO TRANSAKSI: member, jenis pembayaran, promo, keterangan (satu baris di bawah tabel, jauh dari tombol Proses) --}}
+        <div class="pos-info">
+            <div class="info-field f-member">
+                <label for="member_q">Member <span class="mem-tag" id="mem-tag">Umum</span></label>
+                <div class="info-inline">
+                    <div class="mem-wrap">
+                        <input type="text" id="member_q" class="form-control" autocomplete="off" placeholder="Ketik nama member, Enter" onkeydown="onMemberKey(event)" oninput="onMemberInput()">
+                        <input type="hidden" name="member_id" id="member_id" value="1">
+                        <div class="mem-list" id="mem-list"></div>
+                    </div>
+                    <button type="button" class="cam-btn" id="btn-cam" onclick="toggleCamera()" title="Scan kartu member dengan kamera"><i class="fa fa-camera"></i> <span>Scan</span></button>
+                </div>
+                <div class="cam-pop" id="cam-pop"><video id="preview"></video></div>
+            </div>
+            <div class="info-field f-pay">
+                <label for="payment">Jenis Pembayaran</label>
+                <select class="form-control" name="payment" id="payment">
+                    <option value="cash">Cash/Uang</option>
+                    <option value="transfer">Transfer</option>
+                </select>
+            </div>
+            <div class="info-field f-promo">
+                <label>&nbsp;</label>
+                <label class="promo-box"><input type="checkbox" name="is_promo" value="1"> Promo</label>
+            </div>
+            <div class="info-field f-note">
+                <label for="note">Keterangan</label>
+                <textarea name="note" class="form-control" id="note" rows="1" placeholder="Opsional..."></textarea>
+            </div>
+            <div class="info-hint"><i class="fa fa-info-circle"></i> Hutang: pilih Cash/Uang, isi uang sesuai yang diterima, lalu pilih member.</div>
+        </div>
+      </div>
+
         {{-- SIDEBAR PEMBAYARAN --}}
         <div class="panel-sidebar pos">
             <div class="pos-total">
@@ -100,7 +134,7 @@
                 <input type="hidden" name="total_discount_items_price" id="total_discount_items_price" value="0">
                 <input type="hidden" name="voucher_nominal" value="0">
                 {{ Form::hidden('type', 'normal') }}
-                <div class="field-row" style="margin-top:6px">
+                <div class="field-row inline-row" style="margin-top:6px">
                     <label for="total_discount_price">Potongan harga akhir</label>
                     <input type="text" name="total_discount_price" class="form-control" id="total_discount_price" value="0" autocomplete="off"
                            style="text-align:right" oninput="recalc()" onblur="fmtField('total_discount_price')">
@@ -114,40 +148,10 @@
                            oninput="recalc()" onblur="fmtField('money_paid')">
                 </div>
                 <div class="pay-sugg" id="pay-sugg"></div>
-                <div class="field-row">
+                <div class="field-row inline-row">
                     <label>Kembali</label>
                     <div class="pos-change" id="show_change">0</div>
                     <input type="hidden" name="money_returned" id="money_returned" value="0">
-                </div>
-            </div>
-
-            <div class="sidebar-card" style="flex:1;overflow-y:auto;">
-                <div class="field-row">
-                    <label>Member</label>
-                    <div class="mem-wrap">
-                        <input type="text" id="member_q" class="form-control" autocomplete="off" placeholder="Umum. Ketik nama member, Enter" onkeydown="onMemberKey(event)" oninput="onMemberInput()">
-                        <input type="hidden" name="member_id" id="member_id" value="1">
-                        <div class="mem-list" id="mem-list"></div>
-                    </div>
-                    <span class="mem-tag" id="mem-tag">Umum</span>
-                    <button type="button" class="sr-btn" style="margin-left:4px" onclick="startCamera()">Scan kartu</button>
-                    <button type="button" class="sr-btn" onclick="stopCamera()">Stop</button>
-                    <video id="preview" style="display:none;width:100%;margin-top:4px"></video>
-                </div>
-                <div class="field-row">
-                    <label>Jenis Pembayaran</label>
-                    <select class="form-control" name="payment" id="payment">
-                        <option value="cash">Cash/Uang</option>
-                        <option value="transfer">Transfer</option>
-                    </select>
-                    <small style="color:var(--clr-muted);font-size:11px">Hutang: pilih cash, isi uang sesuai yang diterima, dan pilih member.</small>
-                </div>
-                <div class="field-row">
-                    <label><input type="checkbox" name="is_promo" value="1" style="width:auto;height:auto;display:inline-block"> Promo</label>
-                </div>
-                <div class="field-row">
-                    <label>Keterangan</label>
-                    <textarea name="note" class="form-control" id="note" placeholder="Opsional..."></textarea>
                 </div>
             </div>
 
@@ -761,12 +765,21 @@ function startCamera(){
                     } });
                 });
             }
-            $('#preview').show();
-            Instascan.Camera.getCameras().then(function(c){ if (c.length) scanner.start(c[0]); else notify('Kamera tidak ditemukan', 'warning'); });
-        } catch (err) { notify('Kamera tidak bisa dijalankan', 'error'); }
+            Instascan.Camera.getCameras().then(function(c){
+                if (!c.length) { notify('Kamera tidak ditemukan', 'warning'); stopCamera(); return; }
+                scanner.start(c[0]);
+            });
+            $('#cam-pop').show();
+            $('#btn-cam').addClass('on').find('span').text('Stop');
+        } catch (err) { notify('Kamera tidak bisa dijalankan', 'error'); stopCamera(); }
     });
 }
-function stopCamera(){ try { if (scanner) scanner.stop(); } catch (err) {} $('#preview').hide(); }
+function stopCamera(){
+    try { if (scanner) scanner.stop(); } catch (err) {}
+    $('#cam-pop').hide();
+    $('#btn-cam').removeClass('on').find('span').text('Scan');
+}
+function toggleCamera(){ if ($('#btn-cam').hasClass('on')) stopCamera(); else startCamera(); }
 
 /* ═══════ PROSES ══════════════════════════════════════════════════════════ */
 function submitForm(){
