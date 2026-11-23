@@ -8,7 +8,7 @@ import { App } from '@capacitor/app';
 import { api } from './api.js';
 import * as db from './db.js';
 import { bus } from './bus.js';
-import { loadCatalog, loadMembers } from './catalog.js';
+import { loadCatalog, loadMembers, findByCode } from './catalog.js';
 import { mergeServerSale } from './edits.js';
 
 export const SLOW_MS = 2000; // ping lebih lama dari ini = "Lambat"
@@ -373,6 +373,29 @@ export function stopMonitor() {
   started = false;
   clearInterval(timer);
   window.removeEventListener('online', tick);
+}
+
+export const canReachServer = () => conn.state === 'online' || conn.state === 'slow';
+
+let lookup = null;
+let lookupAt = 0;
+/**
+ * Barcode tidak ada di data barang perangkat ini: mungkin barangnya baru ditambah / kodenya baru
+ * diubah di web (data barang di sini diperbarui tiap 10 menit). Tarik perubahan data barang dari
+ * server (paling sering sekali per 15 detik) lalu cari lagi.
+ * Hasil { good, checked }: checked = false bila tidak sempat dicek ke server (offline / baru saja dicek).
+ */
+export async function lookupOnServer(code) {
+  if (!lookup) {
+    if (!canReachServer() || Date.now() - lookupAt < 15000) return { good: findByCode(code), checked: false };
+    lookupAt = Date.now();
+    lookup = (async () => {
+      if (running) await running; // sinkron yang sedang jalan mungkin tanpa data barang
+      return syncNow({ catalog: 'force' });
+    })().finally(() => (lookup = null));
+  }
+  const r = await lookup;
+  return { good: findByCode(code), checked: !(r && r.error) };
 }
 
 /** Dipanggil setelah transaksi baru disimpan: kirim segera bila online. */

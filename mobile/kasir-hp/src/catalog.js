@@ -5,6 +5,12 @@ import * as db from './db.js';
 let goods = []; // [{id, code, name, units, _s}]
 let byId = new Map();
 let byCode = new Map();
+let byDigits = new Map(); // barcode angka tanpa 0 di depan -> barang (null = lebih dari satu barang)
+
+// Barcode yang sama bisa terbaca/tersimpan dengan jumlah angka 0 di depan yang berbeda:
+// UPC-A "089686010947" (Indomie) dibaca kamera sebagai EAN-13 "0089686010947", atau disimpan
+// tanpa 0 ("53314502111"). Hanya untuk kode angka >= 6 digit supaya kode toko pendek tidak tertukar.
+const digitsKey = (code) => (/^\d{6,}$/.test(code) ? code.replace(/^0+/, '') : null);
 let members = [];
 let membersById = new Map();
 
@@ -21,7 +27,13 @@ export async function loadCatalog() {
   goods.sort((a, b) => a.name.localeCompare(b.name));
   byId = new Map(goods.map((g) => [g.id, g]));
   byCode = new Map();
-  for (const g of goods) if (g.code) byCode.set(String(g.code).trim().toLowerCase(), g);
+  byDigits = new Map();
+  for (const g of goods) {
+    if (!g.code) continue;
+    byCode.set(g.code.toLowerCase(), g);
+    const k = digitsKey(g.code);
+    if (k) byDigits.set(k, byDigits.has(k) && byDigits.get(k) !== g ? null : g);
+  }
 }
 
 export async function loadMembers() {
@@ -38,9 +50,13 @@ export const membersCount = () => members.length;
 export const goodById = (id) => byId.get(id);
 export const memberById = (id) => membersById.get(id);
 
-/** Cari barang dengan kode/barcode persis (hasil scan). */
+/** Cari barang dengan kode/barcode persis (hasil scan); barcode angka boleh beda jumlah 0 di depan. */
 export function findByCode(code) {
-  return byCode.get(String(code || '').trim().toLowerCase()) || null;
+  const c = String(code || '').trim().toLowerCase();
+  const exact = byCode.get(c);
+  if (exact) return exact;
+  const k = digitsKey(c);
+  return (k && byDigits.get(k)) || null;
 }
 
 /** Cari barang: semua kata harus ada di nama/kode. Kode persis tampil paling atas. */

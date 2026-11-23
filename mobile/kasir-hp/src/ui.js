@@ -120,19 +120,54 @@ export function moneyInput(input, onChange) {
   });
 }
 
-/** Bunyi "bip" pendek (scan berhasil). */
+// ---- Suara scan (volume mengikuti volume MEDIA HP/komputer) ----
 let audioCtx = null;
+function audio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  audioCtx = audioCtx || new AC();
+  // Android menahan suara sebelum ada sentuhan / setelah aplikasi ke latar belakang.
+  if (audioCtx.state !== 'running' && audioCtx.resume) audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+
+/** Panggil di dalam sentuhan/klik (mis. tombol 📷) supaya bunyi scan berikutnya pasti boleh keluar. */
+export function primeAudio() {
+  try {
+    audio();
+  } catch (e) {
+    /* abaikan */
+  }
+}
+
+function tone(ctx, freq, start, dur, vol) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = 'square';
+  o.frequency.value = freq;
+  // naik-turun singkat supaya tidak "klik", lalu mulai sedikit di depan supaya awal bunyi tidak terpotong
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(vol, start + 0.004);
+  g.gain.setValueAtTime(vol, start + dur - 0.01);
+  g.gain.linearRampToValueAtTime(0, start + dur);
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start(start);
+  o.stop(start + dur + 0.02);
+}
+
+/** Bunyi scan: berhasil = "bip" nyaring seperti kasir minimarket, gagal = "tot-tot" rendah + getar. */
 export function beep(ok = true) {
   try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.frequency.value = ok ? 1900 : 320;
-    g.gain.value = 0.15;
-    o.connect(g);
-    g.connect(audioCtx.destination);
-    o.start();
-    o.stop(audioCtx.currentTime + (ok ? 0.08 : 0.25));
+    const ctx = audio();
+    if (ctx) {
+      const t = ctx.currentTime + 0.03;
+      if (ok) tone(ctx, 2700, t, 0.09, 0.3);
+      else {
+        tone(ctx, 400, t, 0.15, 0.35);
+        tone(ctx, 400, t + 0.21, 0.15, 0.35);
+      }
+    }
   } catch (e) {
     /* abaikan */
   }

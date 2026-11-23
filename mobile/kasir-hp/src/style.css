@@ -321,10 +321,38 @@ body.scanning #app, body.scanning .overlay, body.scanning #toast { display: none
   align-self: center; width: 78vw; max-width: 340px; height: 42vw; max-height: 200px;
   border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
 }
-.scan-bottom {
-  display: flex; padding: 16px 16px calc(16px + var(--safe-bottom)); background: rgba(0, 0, 0, 0.6);
-}
+.scan-foot { background: rgba(0, 0, 0, 0.72); }
+.scan-bottom { display: flex; padding: 14px 16px calc(14px + var(--safe-bottom)); }
 .scan-bottom .btn { flex: 1; min-height: 54px; }
+/* Barang terakhir yang ter-scan: ubah jumlah tanpa menutup kamera */
+#scan-item { padding: 12px 16px 0; color: #fff; }
+#scan-item .btn { color: var(--text); }
+#scan-item .btn-primary { color: #fff; }
+#scan-item[hidden] { display: none; }
+#scan-overlay.typing .scan-frame { display: none; } /* papan angka butuh tempat; kamera dijeda */
+.si-name { font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.si-row { display: flex; margin-top: 8px; }
+.si-btn {
+  min-width: 66px; min-height: 56px; border: 0; border-radius: 12px; background: #fff; color: #111;
+  font-size: 28px; font-weight: 700;
+}
+.si-btn.del { font-size: 15px; background: #fecaca; color: #7f1d1d; }
+.si-qty {
+  flex: 1; min-height: 56px; border: 2px solid #86efac; border-radius: 12px; background: rgba(255, 255, 255, 0.14);
+  color: #fff; font-size: 22px;
+}
+.si-qty small { display: block; font-size: 11px; opacity: 0.8; }
+.si-sum { margin-top: 6px; text-align: right; font-size: 14px; opacity: 0.9; }
+.si-show { margin: 6px 0 4px; text-align: center; font-size: 22px; }
+.si-show .ph { opacity: 0.45; }
+.si-keys { display: flex; flex-wrap: wrap; margin: 0 -4px; }
+.si-keys button {
+  width: calc(33.333% - 8px); margin: 4px; min-height: 48px; border: 0; border-radius: 10px;
+  background: #fff; color: #111; font-size: 24px; font-weight: 700;
+}
+.si-keys button:active, .si-btn:active { background: #d1fae5; }
+.si-pad-btns { display: flex; margin-top: 6px; }
+.si-pad-btns .btn { flex: 1; min-height: 50px; }
 
 /* ---- Jarak antar elemen pakai margin: WebView lama (< 84, HP murah yang tidak diperbarui)
         belum mendukung "gap" pada flexbox. ---- */
@@ -352,4 +380,5 @@ body.scanning #app, body.scanning .overlay, body.scanning #toast { display: none
 .row-between > * + * { margin-left: 10px; }
 .pin-dots i + i { margin-left: 14px; }
 .scan-bottom > * + * { margin-left: 12px; }
+.si-row > * + *, .si-pad-btns > * + * { margin-left: 8px; }
 .sheet-head > * + * { margin-left: 8px; }

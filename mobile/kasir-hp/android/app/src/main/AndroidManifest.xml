@@ -60,5 +60,7 @@
     <!-- Scan barcode dengan kamera -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Getar saat scan (navigator.vibrate di WebView butuh izin ini) -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 </manifest>

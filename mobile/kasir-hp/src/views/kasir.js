@@ -2,15 +2,18 @@
 
 import * as db from '../db.js';
 import { go, session } from '../router.js';
-import { openSheet, toast, confirmBox, moneyInput } from '../ui.js';
+import { openSheet, toast, confirmBox, moneyInput, beep, primeAudio } from '../ui.js';
 import { esc, rp, qtyText, parseQty, debounce, round2 } from '../util.js';
 import { searchGoods, findByCode, goodsCount } from '../catalog.js';
 import { cart, addGood, updateLine, removeLine, resetCart, findLine, lineSum, lineGross, grandTotal, itemCount } from '../cart.js';
 import { tierPlan, tierText } from '../tier.js';
 import { mountStatus } from '../status.js';
 import { bus } from '../bus.js';
-import { scan } from '../scanner.js';
-import { syncNow, adminChanged, adminNote } from '../sync.js';
+import { scan, isScanning, pauseScan, setScanText } from '../scanner.js';
+import { syncNow, adminChanged, adminNote, canReachServer, lookupOnServer } from '../sync.js';
+
+const BARCODE_RE = /^\d{6,}$/; // angka >= 6 digit = barcode (bukan nama barang)
+const PAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', '⌫'];
 import { App } from '@capacitor/app';
 
 /** "Harga grosir: 1 PAK5 + 1 PCS (hemat 2.500)" bila jumlahnya cukup untuk satuan besar. */
@@ -132,7 +135,23 @@ export function kasirView(root) {
     // Scanner barcode USB/Bluetooth mengetik kode lalu Enter.
     const g = findByCode(text) || (lastResults.length === 1 ? lastResults[0] : null);
     if (g) {
-      add(g, null, true);
+      beep(add(g, null, true));
+    } else if (BARCODE_RE.test(text)) {
+      // barcode tidak dikenal: jangan tampilkan barang yang "mirip"; cek ke server bila online
+      beep(false);
+      toast(`Barcode ${text} tidak ada di data barang${canReachServer() ? ' — mengecek server…' : ''}`, 'error', 4000);
+      results.hidden = true;
+      q.select(); // scan berikutnya langsung menimpa
+      if (canReachServer()) {
+        lookupOnServer(text).then(({ good, checked }) => {
+          if (good && good.units.length) {
+            addGood(good, good.units[0], 1);
+            if (q.value.trim() === text) q.value = '';
+            beep(true);
+            toast(`✓ ${good.name} masuk (data barang baru diperbarui)`, 'ok');
+          } else if (checked) toast(`Barcode ${text} tidak terdaftar, juga di server.`, 'error', 4000);
+        });
+      }
     } else {
       renderResults(searchGoods(text));
     }
@@ -264,23 +283,137 @@ export function kasirView(root) {
     });
   }
 
+  // ---- Scan kamera: kamera tetap terbuka; barang terakhir tampil di bawah dengan − jumlah + ----
   async function openScanner() {
+    primeAudio(); // masih di dalam sentuhan tombol 📷: izinkan bunyi bip selama scan
+    const overlay = document.getElementById('scan-overlay');
+    const panel = document.getElementById('scan-item');
+    let key = null; // baris keranjang dari scan terakhir
+    let typed = null; // isi papan angka; null = papan tertutup
+    let n = 0;
+    let seq = 0; // nomor scan, supaya hasil cek server tidak menimpa pesan scan yang lebih baru
+
+    const closePad = () => {
+      typed = null;
+      overlay.classList.remove('typing');
+      pauseScan(false);
+    };
+
+    function paint() {
+      const l = key ? findLine(key) : null;
+      panel.hidden = !l;
+      if (!l) {
+        panel.innerHTML = '';
+        return;
+      }
+      const head = `<div class="si-name">${esc(l.name)}</div>`;
+      if (typed !== null) {
+        panel.innerHTML = `${head}
+          <div class="si-show">Jumlah: ${typed ? `<b>${esc(typed)}</b>` : `<b class="ph">${qtyText(l.quantity)}</b>`} ${esc(l.unit)}</div>
+          <div class="si-keys">${PAD_KEYS.map((k) => `<button type="button" data-k="${k}">${k}</button>`).join('')}</div>
+          <div class="si-pad-btns">
+            <button type="button" class="btn" data-s="cancel">Batal</button>
+            <button type="button" class="btn btn-primary" data-s="ok">OK</button>
+          </div>`;
+        return;
+      }
+      const plan = tierPlan(l);
+      panel.innerHTML = `${head}
+        <div class="si-row">
+          <button type="button" class="si-btn ${l.quantity > 1 ? '' : 'del'}" data-s="dec">${l.quantity > 1 ? '−' : 'Hapus'}</button>
+          <button type="button" class="si-qty" data-s="pad"><b>${qtyText(l.quantity)}</b> ${esc(l.unit)}<small>ketuk untuk ketik jumlah</small></button>
+          <button type="button" class="si-btn" data-s="inc">+</button>
+        </div>
+        <div class="si-sum">${plan ? `harga grosir ${esc(tierText(plan))} · ` : ''}<b>${rp(lineSum(l))}</b></div>`;
+    }
+
+    panel.onclick = (e) => {
+      const b = e.target.closest('[data-s],[data-k]');
+      const l = key ? findLine(key) : null;
+      if (!b || !l) return;
+      const k = b.dataset.k;
+      if (k) {
+        if (k === '⌫') typed = typed.slice(0, -1);
+        else if (k === ',') typed = typed.includes(',') ? typed : (typed || '0') + ',';
+        else if (typed.length < 6) typed = typed === '0' ? k : typed + k;
+        paint();
+        return;
+      }
+      const s = b.dataset.s;
+      if (s === 'inc') updateLine(key, { quantity: l.quantity + 1 });
+      if (s === 'dec') {
+        if (l.quantity > 1) updateLine(key, { quantity: round2(l.quantity - 1) });
+        else {
+          removeLine(key);
+          key = null;
+          setScanText(`Dihapus: ${l.name}`, null);
+        }
+      }
+      if (s === 'pad') {
+        typed = '';
+        overlay.classList.add('typing');
+        pauseScan(true);
+      }
+      if (s === 'cancel') closePad();
+      if (s === 'ok') {
+        if (typed) {
+          const qv = parseQty(typed);
+          if (!(qv > 0)) {
+            beep(false);
+            return;
+          }
+          updateLine(key, { quantity: qv });
+        }
+        closePad();
+      }
+      paint();
+    };
+
+    function addScanned(g) {
+      if (!g.units.length) return { ok: false, text: `✗ ${g.name}: belum ada harga jual` };
+      if (typed !== null) closePad();
+      key = addGood(g, g.units[0], 1).key;
+      n++;
+      paint();
+      return { ok: true, text: `✓ ${g.name}  (${n} scan)` };
+    }
+
+    function unknownCode(code) {
+      const mine = seq;
+      const online = canReachServer();
+      if (online) {
+        lookupOnServer(code).then(({ good, checked }) => {
+          if (good && !isScanning()) return toast(`Barcode ${code} sekarang ada di data barang. Scan ulang.`, 'warn', 4000);
+          if (good) {
+            const r = addScanned(good);
+            beep(r.ok);
+            setScanText(r.text, r.ok);
+          } else if (seq === mine && isScanning()) {
+            setScanText(checked ? `✗ Barcode ${code} tidak terdaftar (sudah dicek ke server)` : `✗ Barcode ${code} tidak ada di data barang`, false);
+          }
+        });
+      }
+      return { ok: false, text: `✗ Barcode ${code} tidak ada di data barang${online ? ' — mengecek server…' : ''}` };
+    }
+
     try {
-      let n = 0;
       await scan({
         title: 'Scan barcode barang (bisa berkali-kali)',
         continuous: true,
+        isKnown: (code) => !!findByCode(code),
         onCode: (code) => {
+          seq++;
           const g = findByCode(code);
-          if (!g) return { ok: false, text: `✗ Barcode ${code} tidak ada di data barang` };
-          if (!g.units.length) return { ok: false, text: `✗ ${g.name}: belum ada harga` };
-          const line = addGood(g, g.units[0], 1);
-          n++;
-          return { ok: true, text: `✓ ${g.name} — ${qtyText(line.quantity)} ${line.unit}  (${n} scan)` };
+          return g ? addScanned(g) : unknownCode(code);
         },
       });
     } catch (e) {
       toast(e.message, 'error', 4000);
+    } finally {
+      closePad();
+      key = null;
+      paint();
+      panel.onclick = null;
     }
   }
 
