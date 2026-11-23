@@ -14,7 +14,9 @@
   - tidak pernah memecah ke satuan yang lebih kecil dari pilihan kasir;
   - potongan baris (jika ada) tetap berlaku di atas harga ini.
 
-  Butuh dari form: num, qtyNum, r2, fmt, esc, $id.
+  Juga berisi pengelompokan hasil cari: satu baris per barang dengan pilihan satuan.
+
+  Butuh dari form: num, qtyNum, r2, fmt, plain, esc, $id.
 --}}
 <style>
     .tier-note { display:block; margin-top:2px; font-size:12px; font-weight:600; color:#047857; }
@@ -23,6 +25,38 @@
 </style>
 <script>
 var TIER = { goods:{} };      /* good_id -> { name, units:[{ id, unit, qty, price, buy_price }] } */
+
+/* ═══════ DAFTAR CARI: satu baris per barang, satuannya jadi pilihan ═══════
+   Server mengirim satu baris per satuan; di sini dikumpulkan per barang.
+   Satuan bawaan = satuan isi 1 (pcs / kg), kalau tidak ada yang terkecil:
+   jumlah cukup diketik di satuan itu, harga satuan besar dihitung otomatis. */
+function goodsFromUnits(list){
+    var out = [], at = {};
+    for (var i = 0; i < list.length; i++) {
+        var u = list[i], g = at[u.good_id];
+        if (!g) {
+            g = at[u.good_id] = { good_id:u.good_id, name:u.name, code:u.code || '', stock:u.stock, units:[], sel:0, checked:false };
+            out.push(g);
+        }
+        g.units.push({ good_unit_id:u.good_unit_id, unit:u.unit, qty:num(u.unit_qty), price:u.selling_price, buy_price:u.buy_price });
+    }
+    $.each(out, function(i, g){
+        g.units.sort(function(a, b){ return a.qty - b.qty; });
+        $.each(g.units, function(j, u){ if (u.qty === 1) { g.sel = j; return false; } });
+    });
+    return out;
+}
+
+/* nama satuan + isinya bila belum tertulis: "Lusin (12)", tapi "10 pcs" / "2 Kg" apa adanya */
+function unitName(u){
+    return u.unit + (u.qty > 1 && String(u.unit).indexOf(String(u.qty)) === -1 ? ' (' + u.qty + ')' : '');
+}
+
+/* barang + satuan ke-j -> data baris untuk addRow */
+function unitPick(g, j){
+    var u = g.units[j] || g.units[g.sel];
+    return { good_id:g.good_id, good_unit_id:u.good_unit_id, name:g.name, unit:u.unit, code:g.code, price:u.price, buy_price:u.buy_price, stock:g.stock };
+}
 
 function tierUnit(u){
     return { id:String(u.good_unit_id), unit:u.unit, qty:num(u.unit_qty), price:num(u.selling_price), buy_price:u.buy_price };
@@ -81,7 +115,8 @@ function tierPlan(n){
 }
 
 function tierText(plan){
-    return $.map(plan.lines, function(l){ return fmt(l.q) + ' ' + l.u.unit; }).join(' + ');
+    /* "1 PAK5 + 1 PCS"; satuan yang diawali angka pakai x: "1x 1 Kg + 2x 100 Gram" */
+    return $.map(plan.lines, function(l){ return fmt(l.q) + (/^\d/.test(l.u.unit) ? 'x ' : ' ') + l.u.unit; }).join(' + ');
 }
 
 /* keterangan di baris: "Harga grosir: 1 PAK5 + 1 PCS (hemat 2,500)" */

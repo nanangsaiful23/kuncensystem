@@ -34,6 +34,15 @@
     .sr-item .sr-stock { font-size:12px; font-weight:700; flex:none; min-width:70px; text-align:right; color:var(--clr-success); }
     .sr-item .sr-stock.zero { color:#64748B; }
     .sr-item .sr-stock.minus { color:var(--clr-danger); }
+    /* satu baris per barang: nama di atas, satuan + harga di bawah (yang biru = yang masuk saat Enter) */
+    .sr-item .sr-main { flex:1; min-width:0; }
+    .sr-item .sr-line { display:flex; align-items:center; gap:8px; }
+    .sr-item .sr-units { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
+    .sr-item .sr-unit { font-size:12px; color:var(--clr-muted); background:#fff; border:1px solid var(--clr-border); border-radius:12px; padding:1px 9px; cursor:pointer; white-space:nowrap; }
+    .sr-item .sr-unit b { color:var(--clr-text); font-weight:700; }
+    .sr-item .sr-unit:hover { border-color:var(--clr-primary); }
+    .sr-item .sr-unit.on { background:var(--clr-primary); border-color:var(--clr-primary); color:#fff; }
+    .sr-item .sr-unit.on b { color:#fff; }
     .kbd-hint, .tbl-hint { font-size:12px; }
     kbd { font-size:11px; }
 

@@ -27,7 +27,7 @@
         <div class="sr-panel" id="sr-panel">
             <div class="sr-head">
                 <span id="sr-info"></span>
-                <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> pilih &middot; <kbd>Insert</kbd> / <kbd>Shift</kbd>+<kbd>&uarr;&darr;</kbd> centang &middot; <kbd>Enter</kbd> tambahkan &middot; <kbd>Esc</kbd> tutup</span>
+                <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> pilih &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> satuan &middot; <kbd>Insert</kbd> / <kbd>Shift</kbd>+<kbd>&uarr;&darr;</kbd> centang &middot; <kbd>Enter</kbd> tambahkan &middot; <kbd>Esc</kbd> tutup</span>
             </div>
             <div class="sr-list" id="sr-list"></div>
             <div class="sr-foot">
@@ -461,12 +461,7 @@ function keywordSearch(v, viaEnter){
 
 function renderResults(list, v, viaEnter){
     tierRememberList(list);
-    sr.items = [];
-    for (var i = 0; i < list.length; i++) {
-        var u = list[i];
-        sr.items.push({ good_id:u.good_id, good_unit_id:u.good_unit_id, name:u.name, unit:u.unit, code:u.code || '',
-                        price:u.selling_price, buy_price:u.buy_price, stock:u.stock, checked:false });
-    }
+    sr.items = goodsFromUnits(list);           /* satu baris per barang, satuan dipilih dengan <- -> (unit-tier) */
     if (!sr.items.length) {
         sr.active = -1;
         $('#sr-list').html('<div class="sr-state">Tidak ada hasil untuk "' + esc(v) + '".</div>');
@@ -484,16 +479,22 @@ function paintResults(){
     for (var i = 0; i < sr.items.length; i++) {
         var it = sr.items[i], st = parseFloat(it.stock);
         var sc = st < 0 ? 'minus' : (st === 0 ? 'zero' : '');
+        var units = '';
+        for (var j = 0; j < it.units.length; j++) {
+            var u = it.units[j];
+            units += '<span class="sr-unit' + (j === it.sel ? ' on' : '') + '" data-u="' + j + '">' + esc(unitName(u)) + ' <b>' + esc(fmt(num(u.price))) + '</b></span>';
+        }
         h += '<div class="sr-item' + (it.checked ? ' checked' : '') + (i === sr.active ? ' active' : '') + '" data-i="' + i + '">'
            +   '<input type="checkbox" tabindex="-1"' + (it.checked ? ' checked' : '') + '>'
-           +   '<span class="sr-name">' + esc(it.name + ' ' + it.unit) + '</span>'
-           +   (it.code ? '<span class="sr-code">' + esc(it.code) + '</span>' : '')
-           +   '<span class="sr-price">' + esc(fmt(num(it.price))) + '</span>'
-           +   '<span class="sr-stock ' + sc + '">' + (st < 0 ? 'minus ' : (st === 0 ? 'kosong' : 'stok ')) + (st === 0 ? '' : esc(fmt(st))) + '</span>'
+           +   '<div class="sr-main"><div class="sr-line">'
+           +     '<span class="sr-name">' + esc(it.name) + '</span>'
+           +     (it.code ? '<span class="sr-code">' + esc(it.code) + '</span>' : '')
+           +     '<span class="sr-stock ' + sc + '">' + (st < 0 ? 'minus ' : (st === 0 ? 'kosong' : 'stok ')) + (st === 0 ? '' : esc(fmt(st))) + '</span>'
+           +   '</div><div class="sr-units">' + units + '</div></div>'
            + '</div>';
     }
     $('#sr-list').html(h).scrollTop(scroll);
-    $('#sr-info').text(sr.items.length + ' hasil');
+    $('#sr-info').text(sr.items.length + ' barang');
     updateSrFoot();
     var el = $('#sr-list .sr-item.active')[0];
     if (el && el.scrollIntoView) el.scrollIntoView({ block:'nearest' });
@@ -514,6 +515,12 @@ function setActive(i){
     if ($it[0] && $it[0].scrollIntoView) $it[0].scrollIntoView({ block:'nearest' });
 }
 function moveActive(d){ var i = sr.active + d; if (i >= 0 && i < sr.items.length) setActive(i); }
+/* satuan barang yang aktif: <- -> atau klik satuan */
+function pickUnit(i, j){
+    var it = sr.items[i]; if (!it || j < 0 || j >= it.units.length) return;
+    it.sel = j;
+    $('#sr-list .sr-item').eq(i).find('.sr-unit').removeClass('on').eq(j).addClass('on');
+}
 function srCheckAll(){ for (var i = 0; i < sr.items.length; i++) sr.items[i].checked = true; paintResults(); }
 function srAddChecked(){
     var ids = checkedItems();
@@ -527,7 +534,7 @@ function addPicked(items){
     sr.seq++;
     $('#all_search').val('');
     closeResults();
-    for (var i = 0; i < items.length; i++) addRow(items[i]);
+    for (var i = 0; i < items.length; i++) addRow(unitPick(items[i], items[i].sel));
     focusSearch();
 }
 
@@ -551,6 +558,9 @@ function onSearchKeydown(e){
         e.preventDefault();
         if (e.shiftKey) toggleCheck(sr.active, true);
         moveActive(k === 40 ? 1 : -1);
+    } else if ((k === 37 || k === 39) && sr.items[sr.active] && sr.items[sr.active].units.length > 1) {
+        e.preventDefault();                                     /* <- -> ganti satuan (barang 1 satuan: kursor teks biasa) */
+        pickUnit(sr.active, sr.items[sr.active].sel + (k === 39 ? 1 : -1));
     } else if (k === 45) { e.preventDefault(); toggleCheck(sr.active); }
     else if (k === 27) { e.preventDefault(); closeResults(); }
 }
@@ -657,6 +667,12 @@ $(document).ready(function(){
     /* klik di luar panel = tutup; klik di panel tidak memindahkan fokus dari kolom cari */
     $(document).on('mousedown', function(e){ if (!$(e.target).closest('#sr-wrap').length) closeResults(); });
     $('#sr-panel').on('mousedown', function(e){ e.preventDefault(); });
+    $('#sr-list').on('click', '.sr-unit', function(e){        /* klik satuan: pilih satuan itu (tidak mencentang) */
+        e.stopPropagation();
+        var i = parseInt($(this).closest('.sr-item').data('i'), 10);
+        setActive(i);
+        pickUnit(i, parseInt($(this).data('u'), 10));
+    });
     $('#sr-list').on('click', '.sr-item', function(){ var i = parseInt($(this).data('i'), 10); sr.active = i; toggleCheck(i); });
     $('#sr-list').on('dblclick', '.sr-item', function(){ var it = sr.items[parseInt($(this).data('i'), 10)]; if (it) addPicked([it]); });
 

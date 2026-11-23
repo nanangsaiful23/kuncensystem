@@ -48,6 +48,14 @@
     .mtx-res-sub { font-size:12px; color:var(--ink2); }
     .mtx-res-sub .zero { color:var(--ink3); font-weight:700; } .mtx-res-sub .minus { color:var(--bad); font-weight:700; }
     .mtx-res-price { flex:none; font-size:15px; font-weight:700; }
+    /* satu baris per barang: ketuk nama = satuan biru, ketuk satuan lain = satuan itu */
+    .mtx-res { cursor:pointer; }
+    .mtx-units { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .mtx-unit { min-height:36px; padding:4px 12px; border:1px solid var(--bdr); border-radius:18px; background:#fff; color:var(--ink2); font-size:13px; white-space:nowrap; }
+    .mtx-unit b { color:var(--ink); margin-left:4px; }
+    .mtx-unit.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+    .mtx-unit.on b { color:#fff; }
+    .mtx-unit:active { background:var(--blue-bg); }
     .mtx-state { padding:14px 12px; text-align:center; color:var(--ink2); font-size:14px; }
 
     /* ---- daftar barang ---- */
@@ -502,17 +510,20 @@ function keywordSearch(v){
 
 function renderResults(list, v){
     tierRememberList(list);
-    sr.items = [];
+    sr.items = goodsFromUnits(list);           /* satu baris per barang, satuan jadi pilihan (unit-tier) */
     var h = '';
-    for (var i = 0; i < list.length; i++) {
-        var u = list[i], st = parseFloat(u.stock);
-        sr.items.push({ good_id:u.good_id, good_unit_id:u.good_unit_id, name:u.name, unit:u.unit, code:u.code || '', price:u.selling_price, buy_price:u.buy_price, stock:u.stock });
+    for (var i = 0; i < sr.items.length; i++) {
+        var g = sr.items[i], st = parseFloat(g.stock), units = '';
         var stock = st < 0 ? '<span class="minus">minus ' + esc(fmt(st)) + '</span>' : (st === 0 ? '<span class="zero">kosong</span>' : 'stok ' + esc(fmt(st)));
-        h += '<button type="button" class="mtx-res" data-i="' + i + '">'
-           +   '<span class="mtx-res-main"><span class="mtx-res-name">' + esc(u.name + ' ' + u.unit) + '</span>'
-           +   '<br><span class="mtx-res-sub">' + (u.code ? esc(u.code) + ' &middot; ' : '') + stock + '</span></span>'
-           +   '<span class="mtx-res-price">' + esc(fmt(num(u.selling_price))) + '</span>'
-           + '</button>';
+        for (var j = 0; j < g.units.length; j++) {
+            var u = g.units[j];
+            units += '<button type="button" class="mtx-unit' + (j === g.sel ? ' on' : '') + '" data-u="' + j + '">' + esc(unitName(u)) + '<b>' + esc(fmt(num(u.price))) + '</b></button>';
+        }
+        h += '<div class="mtx-res" data-i="' + i + '">'
+           +   '<div class="mtx-res-main"><span class="mtx-res-name">' + esc(g.name) + '</span>'
+           +   '<br><span class="mtx-res-sub">' + (g.code ? esc(g.code) + ' &middot; ' : '') + stock + '</span>'
+           +   '<div class="mtx-units">' + units + '</div></div>'
+           + '</div>';
     }
     if (!sr.items.length) { showState('Tidak ada hasil untuk "' + esc(v) + '".'); return; }
     $('#sr-list').html(h).scrollTop(0).show();
@@ -527,10 +538,12 @@ $(document).ready(function(){
     $('#member_q').on('keydown', function(e){ if (e.keyCode === 13) { e.preventDefault(); searchMember(); } });
     $('#money_paid, #total_discount_price').on('keydown', function(e){ if (e.keyCode === 13) { e.preventDefault(); this.blur(); } });
 
-    /* ketuk hasil = langsung masuk daftar */
-    $('#sr-list').on('click', '.mtx-res', function(){
-        var it = sr.items[parseInt($(this).data('i'), 10)];
-        if (!it) return;
+    /* ketuk hasil = langsung masuk daftar: ketuk nama = satuan biru, ketuk satuan = satuan itu */
+    $('#sr-list').on('click', '.mtx-res', function(e){
+        var g = sr.items[parseInt($(this).data('i'), 10)];
+        if (!g) return;
+        var $u = $(e.target).closest('.mtx-unit');
+        var it = unitPick(g, $u.length ? parseInt($u.data('u'), 10) : g.sel);
         clearTimeout(sr.timer); sr.seq++;
         $('#all_search').val('').blur();
         closeResults();
