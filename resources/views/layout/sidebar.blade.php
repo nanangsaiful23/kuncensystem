@@ -448,6 +448,7 @@
       @if(isSuperadmin())
         <li class="header">PENGATURAN</li>
         <li class="{{ Request::is('admin/hak-akses*') ? 'active' : '' }}"><a href="{{ route('admin.menu-akses.index') }}"><i class="fa fa-lock"></i> Hak Akses Menu</a></li>
+        <li class="{{ Request::is('admin/kasir-hp*') ? 'active' : '' }}"><a href="{{ route('admin.kasir-hp.index') }}"><i class="fa fa-mobile"></i> Kasir HP</a></li>
       @endif
     </ul>
   </section>

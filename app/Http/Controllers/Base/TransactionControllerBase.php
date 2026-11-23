@@ -238,8 +238,16 @@ trait TransactionControllerBase
         }
     }
 
-    public function storeTransactionBase($role, $role_id, Request $request)
+    /**
+     * $soldAt: only the Kasir HP API passes it (a sale made offline and sent
+     * later). Journals, details and the transaction are then dated on the day
+     * of the sale instead of the day it reached the server. Desktop callers
+     * leave it null: today, as before.
+     */
+    public function storeTransactionBase($role, $role_id, Request $request, ?\DateTimeInterface $soldAt = null)
     {
+        $today = $soldAt ? $soldAt->format('Y-m-d') : date('Y-m-d');
+
         if ($previous = $this->previousSubmission($request)) {
             return $previous;
         }
@@ -289,7 +297,11 @@ trait TransactionControllerBase
         $data_transaction['note']    = $request->note;
         $data_transaction['is_promo']= $request->is_promo;
 
-        $transaction = Transaction::create($data_transaction);
+        $transaction = new Transaction($data_transaction);
+        if ($soldAt) {
+            $transaction->created_at = $soldAt;
+        }
+        $transaction->save();
         $this->rememberSubmission($request, $transaction);
 
         #tabel transaction detail
@@ -312,10 +324,14 @@ trait TransactionControllerBase
                 $data_detail['discount_price'] = unformatNumber($request->discounts[$i]);
                 $data_detail['sum_price']      = unformatNumber($request->sums[$i]);
 
-                TransactionDetail::create($data_detail);
+                $detail = new TransactionDetail($data_detail);
+                if ($soldAt) {
+                    $detail->created_at = $soldAt;
+                }
+                $detail->save();
 
                 // Stock itself is recalculated from the details (StockService).
-                $good_unit->good->update(['last_transaction' => date('Y-m-d')]);
+                $good_unit->good->update(['last_transaction' => $today]);
 
                 $sum += $data_detail['sum_price'];
                 $hpp += $data_detail['buy_price'] * $data_detail['quantity'];
@@ -331,7 +347,7 @@ trait TransactionControllerBase
 
             // lockForUpdate: two cashiers adding to the same daily journal at
             // the same moment must not overwrite each other's amount.
-            $journal = Journal::where('journal_date', date('Y-m-d'))
+            $journal = Journal::where('journal_date', $today)
                               ->where('type', 'transaction')
                               ->where('debit_account_id', $data_journal['debit_account_id'])
                               ->where('credit_account_id', Account::where('code', '4101')->first()->id)
@@ -349,8 +365,8 @@ trait TransactionControllerBase
             else
             {
                 $data_journal['type']               = 'transaction';
-                $data_journal['journal_date']       = date('Y-m-d');
-                $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
+                $data_journal['journal_date']       = $today;
+                $data_journal['name']               = 'Penjualan tanggal ' . displayDate($today);
                 $data_journal['debit']              = $sum;
                 $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
                 $data_journal['credit']             = $sum;
@@ -364,8 +380,8 @@ trait TransactionControllerBase
 
             $data_journal['type']               = 'transaction';
             $data_journal['type_id']            = $transaction->id;
-            $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d')) . ' ID ' . $transaction->id;
+            $data_journal['journal_date']       = $today;
+            $data_journal['name']               = 'Penjualan tanggal ' . displayDate($today) . ' ID ' . $transaction->id;
             $data_journal['debit']              = $sum;
             $data_journal['credit_account_id']  = Account::where('code', '4101')->first()->id;
             $data_journal['credit']             = $sum;
@@ -379,11 +395,11 @@ trait TransactionControllerBase
         // Reverse and retur journals are also type 'hpp' but go the other
         // way; adding today's sales to one of them booked the whole day's
         // HPP as an increase of inventory (13 Jun 2024, 3 May 2025, 23 Jul 2025).
-        $hpp_journal = Journal::where('journal_date', date('Y-m-d'))
+        $hpp_journal = Journal::where('journal_date', $today)
                               ->where('type', 'hpp')
                               ->where('debit_account_id', Account::where('code', '5101')->first()->id)
                               ->where('credit_account_id', Account::where('code', '1141')->first()->id)
-                              ->where('name', 'Penjualan tanggal ' . displayDate(date('Y-m-d')))
+                              ->where('name', 'Penjualan tanggal ' . displayDate($today))
                               ->lockForUpdate()
                               ->first();
 
@@ -397,8 +413,8 @@ trait TransactionControllerBase
         else
         {
             $data_hpp['type']               = 'hpp';
-            $data_hpp['journal_date']       = date('Y-m-d');
-            $data_hpp['name']               = 'Penjualan tanggal ' . displayDate(date('Y-m-d'));
+            $data_hpp['journal_date']       = $today;
+            $data_hpp['name']               = 'Penjualan tanggal ' . displayDate($today);
             $data_hpp['debit_account_id']   = Account::where('code', '5101')->first()->id;
             $data_hpp['debit']              = $hpp;
             $data_hpp['credit_account_id']  = Account::where('code', '1141')->first()->id;
@@ -418,7 +434,7 @@ trait TransactionControllerBase
             {
                 $data_piutang['credit_account_id']   = Account::where('code', '1112')->first()->id;
             }
-            $piutang = Journal::where('journal_date', date('Y-m-d'))
+            $piutang = Journal::where('journal_date', $today)
                               ->where('type', 'piutang')
                               ->where('name', 'like', 'Piutang dagang member ' . $transaction->member->name . ' (ID member ' . $transaction->member->id . ') %')
                               ->where('credit_account_id', $data_piutang['credit_account_id'])
@@ -435,7 +451,7 @@ trait TransactionControllerBase
             else
             {
                 $data_piutang['type']               = 'piutang';
-                $data_piutang['journal_date']       = date('Y-m-d');
+                $data_piutang['journal_date']       = $today;
                 $data_piutang['name']               = 'Piutang dagang member ' . $transaction->member->name . ' (ID member ' . $transaction->member->id . ') -> ID transaksi ' . $transaction->id;
                 $data_piutang['debit_account_id']   = Account::where('code', '1131')->first()->id;
                 $data_piutang['debit']              = $sum;
@@ -455,12 +471,12 @@ trait TransactionControllerBase
                     $data_piutang_member['debit_account_id']   = Account::where('code', '1112')->first()->id;
                 }
                 $data_member['member_id']    = $transaction->member_id;
-                $data_member['payment_date'] = date('Y-m-d');
+                $data_member['payment_date'] = $today;
                 $data_member['money']        = $data_transaction['money_paid'];
 
                 $payment = PiutangPayment::create($data_member);
 
-                $piutang = Journal::where('journal_date', date('Y-m-d'))
+                $piutang = Journal::where('journal_date', $today)
                                   ->where('type', 'piutang_transaction')
                                   ->where('name', 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')')
                                   ->where('debit_account_id', $data_piutang_member['debit_account_id'])
@@ -476,7 +492,7 @@ trait TransactionControllerBase
                 else
                 {
                     $data_piutang_member['type']               = 'piutang_transaction';
-                    $data_piutang_member['journal_date']       = date('Y-m-d');
+                    $data_piutang_member['journal_date']       = $today;
                     $data_piutang_member['name']               = 'Pembayaran piutang member ' . $payment->member->name . ' (ID ' . $payment->member->id . ')';
                     $data_piutang_member['debit']              = $data_transaction['money_paid'];
                     $data_piutang_member['credit_account_id']  = Account::where('code', '1131')->first()->id;
@@ -547,7 +563,7 @@ trait TransactionControllerBase
                             'role'             => $role,
                             'role_id'          => $role_id,
                             'checker'          => 'Load by sistem',
-                            'loading_date'     => date('Y-m-d'),
+                            'loading_date'     => $today,
                             'distributor_id'   => $good_retur->last_distributor_id,
                             'total_item_price' => $data_detail_retur['buy_price'] * $data_detail_retur['quantity'],
                             // the transaction ID lets a reverse find this loading
@@ -568,7 +584,7 @@ trait TransactionControllerBase
                             'expiry_date'     => null,
                         ]);
 
-                        $good_retur->update(['last_loading' => date('Y-m-d')]);
+                        $good_retur->update(['last_loading' => $today]);
                     }
                 }
             }  
@@ -588,8 +604,8 @@ trait TransactionControllerBase
             // $sum_retur = $sum_retur - checkNull($data_transaction['total_discount_price']) - checkNull($data_transaction['voucher_nominal']);
 
             $data_journal_loading_retur['type']               = 'good_loading';
-            $data_journal_loading_retur['journal_date']       = date('Y-m-d');
-            $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_loading_retur['journal_date']       = $today;
+            $data_journal_loading_retur['name']               = 'Loading barang retur (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate($today);
             $data_journal_loading_retur['debit_account_id']   = Account::where('code', '4101')->first()->id;
             $data_journal_loading_retur['debit']              = unformatNumber($sum_retur);
             if(count(array_filter((array) $request->barcodes, fn ($v) => $v != null)) == 0)
@@ -599,8 +615,8 @@ trait TransactionControllerBase
             Journal::create($data_journal_loading_retur);
 
             $data_journal_retur['type']               = 'hpp';
-            $data_journal_retur['journal_date']       = date('Y-m-d');
-            $data_journal_retur['name']               = 'HPP retur barang (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_retur['journal_date']       = $today;
+            $data_journal_retur['name']               = 'HPP retur barang (ID transaksi ' . $transaction->id . ') tanggal ' . displayDate($today);
             $data_journal_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
             $data_journal_retur['debit']              = unformatNumber($hpp_retur);
             $data_journal_retur['credit_account_id']   = Account::where('code', '5101')->first()->id;

@@ -43,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\RedirectIfNotAdmin::class,
             'admin.guest' => \App\Http\Middleware\RedirectIfAdmin::class,
             'menu.akses' => \App\Http\Middleware\CekAksesMenu::class,
+            'pos.device' => \App\Http\Middleware\PosDeviceAuth::class,
         ]);
 
         // Old App\Http\Kernel: the api group was throttled to 60 requests/minute.

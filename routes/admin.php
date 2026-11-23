@@ -249,6 +249,13 @@ Route::get('hak-akses', 'MenuAksesController@index')->name('menu-akses.index');
 Route::post('hak-akses', 'MenuAksesController@update')->name('menu-akses.update');
 Route::get('hak-akses/lihat-sebagai/{role}', 'MenuAksesController@lihatSebagai')->name('menu-akses.lihat-sebagai');
 
+// Kasir HP (superadmin): perangkat & transaksi HP yang ditolak.
+Route::get('kasir-hp', 'KasirHpController@index')->name('kasir-hp.index');
+Route::post('kasir-hp', 'KasirHpController@store')->name('kasir-hp.store');
+Route::post('kasir-hp/{device}/kode-pasang', 'KasirHpController@pairCode')->name('kasir-hp.pair');
+Route::post('kasir-hp/{device}/aktif', 'KasirHpController@toggle')->name('kasir-hp.toggle');
+Route::post('kasir-hp/ditolak/{reject}', 'KasirHpController@resolve')->name('kasir-hp.resolve');
+
 Route::group(['prefix' => 'sidak-stok'], function () {
 	Route::get('/', 'StockInspectionController@index')->name('sidak.index');
 	Route::post('/', 'StockInspectionController@store')->name('sidak.store');
