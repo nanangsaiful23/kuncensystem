@@ -1,0 +1,22 @@
+{
+  "name": "kasir-hp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Kasir HP (APK Android) untuk NTN Mart / Kuncen Mart - transaksi penjualan local-first",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "sync": "vite build && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "^8.2.2",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "vite": "^8.3.8"
+  }
+}

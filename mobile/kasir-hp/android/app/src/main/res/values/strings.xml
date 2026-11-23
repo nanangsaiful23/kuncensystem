@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kasir HP</string>
+    <string name="title_activity_main">Kasir HP</string>
+    <string name="package_name">com.ntnmart.kasirhp</string>
+    <string name="custom_url_scheme">com.ntnmart.kasirhp</string>
+</resources>

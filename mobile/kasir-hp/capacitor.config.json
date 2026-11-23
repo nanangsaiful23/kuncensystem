@@ -1,0 +1,13 @@
+{
+  "appId": "com.ntnmart.kasirhp",
+  "appName": "Kasir HP",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": false }
+  }
+}

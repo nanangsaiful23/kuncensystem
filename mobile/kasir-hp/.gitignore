@@ -1,0 +1,26 @@
+# Paket npm & hasil build web
+node_modules/
+dist/
+
+# Hasil build Android
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/captures/
+*.apk
+*.aab
+
+# Kunci tanda tangan APK: JANGAN pernah masuk git
+*.jks
+*.keystore
+keystore.properties
+android/keystore.properties
+
+# Lain-lain
+.DS_Store
+*.log

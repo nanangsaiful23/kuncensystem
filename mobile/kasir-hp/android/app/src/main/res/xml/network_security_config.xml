@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kasir HP: http (tanpa enkripsi) diizinkan supaya bisa memakai server di jaringan
+  lokal toko / komputer uji (mis. http://192.168.1.5:8000). Untuk alamat internet,
+  aplikasi menolak http dan mewajibkan https (lihat normalizeServer di src/util.js).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

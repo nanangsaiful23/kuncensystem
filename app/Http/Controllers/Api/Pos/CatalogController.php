@@ -26,11 +26,13 @@ class CatalogController extends Controller
         if ($since) {
             $changedUnits = DB::table('good_units')
                 ->where(fn ($q) => $q->where('updated_at', '>', $since)->orWhere('deleted_at', '>', $since))
-                ->pluck('good_id');
+                ->pluck('good_id')->unique()->values()->all();
 
+            // *IntegerInRaw: MariaDB 10.4 mengembalikan 0 baris untuk IN (?, ?, ...) berisi >= 1000
+            // parameter (in_predicate_conversion_threshold). ID ditulis langsung sebagai angka.
             $goods->where(fn ($q) => $q->where('updated_at', '>', $since)
                                        ->orWhere('deleted_at', '>', $since)
-                                       ->orWhereIn('id', $changedUnits));
+                                       ->orWhereIntegerInRaw('id', $changedUnits));
         } else {
             $goods->whereNull('deleted_at');
         }
@@ -39,7 +41,7 @@ class CatalogController extends Controller
 
         $units = DB::table('good_units')
             ->join('units', 'units.id', '=', 'good_units.unit_id')
-            ->whereIn('good_units.good_id', $goods->pluck('id'))
+            ->whereIntegerInRaw('good_units.good_id', $goods->pluck('id')->all())
             ->whereNull('good_units.deleted_at')
             ->orderBy('units.quantity')
             ->get(['good_units.id', 'good_units.good_id', 'good_units.selling_price', 'units.code as unit_code', 'units.name as unit_name', 'units.quantity'])

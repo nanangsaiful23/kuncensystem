@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#0f5132" />
+    <title>Kasir HP</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app"><div class="boot">Memuat Kasir HP…</div></div>
+
+    <!-- Tampil saat kamera aktif (kamera dirender di belakang WebView). -->
+    <div id="scan-overlay" hidden>
+      <div class="scan-top">
+        <div id="scan-title">Arahkan kamera ke barcode</div>
+        <div id="scan-last"></div>
+      </div>
+      <div class="scan-frame"></div>
+      <div class="scan-bottom">
+        <button type="button" class="btn" id="scan-torch">Senter</button>
+        <button type="button" class="btn btn-primary" id="scan-done">Selesai</button>
+      </div>
+    </div>
+
+    <div id="toast" hidden></div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layar pembuka: hijau polos dengan ikon keranjang. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><color android:color="#0F7A45" /></item>
+    <item android:gravity="center" android:width="160dp" android:height="160dp" android:drawable="@drawable/kasir_icon_fg" />
+</layer-list>
