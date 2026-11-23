@@ -61,17 +61,21 @@ class PosDevice extends Model
         return hash('sha256', $token);
     }
 
-    /** Kode nota berikutnya: HP1, HP2, ... (termasuk yang sudah dihapus, supaya tidak dipakai ulang). */
-    public static function nextCode(): string
+    /**
+     * Kode nota berikutnya: HP1, HP2, ... untuk HP Android, PC1, PC2, ... untuk aplikasi Kasir PC
+     * (termasuk yang sudah dihapus, supaya tidak dipakai ulang).
+     */
+    public static function nextCode(string $prefix = 'HP'): string
     {
+        $prefix = $prefix === 'PC' ? 'PC' : 'HP';
         $n = 1;
         foreach (self::withTrashed()->pluck('code') as $code) {
-            if (preg_match('/^HP(\d+)$/', $code, $m)) {
+            if (preg_match('/^' . $prefix . '(\d+)$/', $code, $m)) {
                 $n = max($n, (int) $m[1] + 1);
             }
         }
 
-        return 'HP' . $n;
+        return $prefix . $n;
     }
 
     /** Kode pasang baru (6 angka), berlaku PAIR_MINUTES menit. Token lama tetap berlaku sampai HP memasang ulang. */

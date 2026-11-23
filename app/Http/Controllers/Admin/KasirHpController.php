@@ -57,11 +57,14 @@ class KasirHpController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:100']);
+        $request->validate([
+            'name'  => 'required|string|max:100',
+            'jenis' => 'nullable|in:hp,pc',
+        ]);
 
         $device = PosDevice::create([
             'name'       => $request->name,
-            'code'       => PosDevice::nextCode(),
+            'code'       => PosDevice::nextCode($request->jenis === 'pc' ? 'PC' : 'HP'),
             'is_active'  => true,
             'created_by' => \Auth::user()->id,
         ]);

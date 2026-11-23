@@ -22,7 +22,8 @@
 <div class="content-wrapper">
 <div class="kh-wrap">
   <h3 style="margin-top:0">Kasir HP</h3>
-  <p>HP Android yang boleh dipakai sebagai kasir tambahan (aplikasi Kasir HP). HP hanya bisa membuat transaksi penjualan
+  <p>HP Android (aplikasi Kasir HP) dan komputer (aplikasi Kasir PC untuk Windows) yang boleh dipakai sebagai kasir
+     yang tetap jalan saat internet mati. Perangkat ini hanya bisa membuat transaksi penjualan
      dan mengambil data barang, harga jual, dan member. Transaksi yang dibuat saat internet mati dikirim belakangan.</p>
 
   @if(session('kasir_hp_ok'))
@@ -45,7 +46,8 @@
           <div class="kh-pair-code">{{ $pair['code'] }}</div>
           <div class="kh-muted">Alamat server: <code>{{ url('/') }}</code></div>
           <div class="kh-muted">Berlaku {{ \App\Models\PosDevice::PAIR_MINUTES }} menit dan hanya sekali pakai.
-            Di aplikasi Kasir HP pilih "Pasang perangkat", lalu scan QR ini atau ketik kodenya.</div>
+            Di aplikasi Kasir HP pilih "Pasang perangkat", lalu scan QR ini atau ketik kodenya.
+            Di Kasir PC ketik alamat server dan kode ini.</div>
         </div>
       </div>
     </div>
@@ -95,7 +97,11 @@
 
     <form method="POST" action="{{ route('admin.kasir-hp.store') }}" class="kh-form-inline" style="margin-top:15px">
       {{ csrf_field() }}
-      <input type="text" name="name" class="form-control" placeholder="Nama HP, mis. HP Kasir 1 (Samsung A05)" maxlength="100" required>
+      <select name="jenis" class="form-control" style="width:auto" title="HP Android = aplikasi Kasir HP, Komputer = aplikasi Kasir PC (Windows)">
+        <option value="hp">HP Android (kode HP…)</option>
+        <option value="pc">Komputer / Kasir PC (kode PC…)</option>
+      </select>
+      <input type="text" name="name" class="form-control" placeholder="Nama perangkat, mis. HP Kasir 1 (Samsung A05) / PC Kasir Depan" maxlength="100" required>
       <button class="btn btn-primary"><i class="fa fa-plus"></i> Tambah perangkat</button>
     </form>
     @if($errors->any())

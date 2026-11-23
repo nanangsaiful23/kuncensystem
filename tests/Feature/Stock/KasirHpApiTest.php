@@ -322,6 +322,12 @@ class KasirHpApiTest extends StockTestCase
 
         $this->actingAs($super, 'admin')->get('/admin/kasir-hp')->assertOk()->assertSee($device->pair_code);
 
+        // Kasir PC (aplikasi Windows) mendapat kode sendiri: PC1, PC2, ...
+        $this->actingAs($super, 'admin')->post('/admin/kasir-hp', ['name' => 'PC Kasir Depan', 'jenis' => 'pc'])->assertRedirect('/admin/kasir-hp');
+        $this->assertSame('PC1', PosDevice::where('name', 'PC Kasir Depan')->value('code'));
+        $this->actingAs($super, 'admin')->post('/admin/kasir-hp', ['name' => 'HP Kasir 3', 'jenis' => 'hp'])->assertRedirect('/admin/kasir-hp');
+        $this->assertSame('HP3', PosDevice::where('name', 'HP Kasir 3')->value('code'));
+
         $this->actingAs($super, 'admin')->post('/admin/kasir-hp/' . $this->device->id . '/aktif')->assertRedirect();
         $this->assertFalse($this->device->fresh()->is_active);
     }
