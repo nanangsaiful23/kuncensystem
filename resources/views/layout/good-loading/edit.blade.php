@@ -59,7 +59,7 @@
                             $good = $detail->good_unit->good;
                             $parity[$good->id] = $parity[$good->id] ?? (count($parity) % 2 ? 'even' : 'odd');
                         ?>
-                        <tr id="row-data-{{ $i }}" class="group-{{ $parity[$good->id] }}" data-good="{{ $good->id }}">
+                        <tr id="row-data-{{ $i }}" class="group-{{ $parity[$good->id] }}" data-good="{{ $good->id }}" data-unit="{{ $detail->good_unit->unit->name }}">
                             <td class="col-no td-no">
                                 {{ $i }}
                                 <input type="hidden" name="ids[]" value="{{ $detail->id }}">
@@ -136,6 +136,7 @@
 
 @section('js-addon')
 @include('layout.good-loading.number-js')
+@include('layout.good.price-check-js')
 <script>
 var TOTAL_ROWS = {{ $details->count() }};
 var changed = {};   /* row number -> true; sent as "1;4;7" */
@@ -152,6 +153,30 @@ $(document).ready(function () {
 function markChanged(i) {
     changed[i] = true;
     $('#row-data-' + i).find('.fc:not([readonly])').addClass('changed');
+    checkRowPrice(i);
+}
+
+/* harga beli & harga jual baris yang diubah (layout/good/price-check-js) */
+function checkRowPrice(i) {
+    var b = document.getElementById('price-' + i), s = document.getElementById('sell_price-' + i);
+    if (b && s) markPriceInputs(b, s, priceProblem(b.value, s.value));
+}
+
+/* hanya baris yang diubah yang disimpan, jadi hanya baris itu yang dicek */
+function changedPriceChecks() {
+    var checks = [];
+    for (var i = 1; i <= TOTAL_ROWS; i++) {
+        if (!changed[i]) continue;
+        var unit = $('#row-data-' + i).data('unit');
+        checks.push({
+            label : $.trim($('#name_temp-' + i).val()) + (unit ? ' (' + unit + ')' : ''),
+            buy   : $('#price-' + i).val(),
+            sell  : $('#sell_price-' + i).val(),
+            buyEl : document.getElementById('price-' + i),
+            sellEl: document.getElementById('sell_price-' + i)
+        });
+    }
+    return checks;
 }
 
 function tidyNumber(el) { if (el.value !== '') el.value = numFmt(el.value); }
@@ -188,6 +213,7 @@ function submitForm() {
     if ($('#loading_date').val() === '') { alert('Isi tanggal pembelian'); return; }
     if ($('#payment').val() === '0000') { alert('Cek kembali jenis pembayaran'); }
     if (window._submitting) return;
+    if (!confirmPrices(changedPriceChecks())) return;
     window._submitting = true;
     $('#change').val(Object.keys(changed).join(';'));
     numNormalizeForm(document.getElementById('loading-form'));

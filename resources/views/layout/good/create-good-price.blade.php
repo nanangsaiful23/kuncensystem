@@ -23,14 +23,14 @@
                         <div class="form-group">
                             {!! Form::label('buy_price', 'Harga Beli Baru', array('class' => 'col-sm-12')) !!}
                             <div class="col-sm-5">
-                                <input type="text" name="buy_price" class="form-control" id="buy_price" required="required" onkeyup="formatNumber('buy_price')">
+                                <input type="text" name="buy_price" class="form-control" id="buy_price" required="required" onkeyup="formatNumber('buy_price')" oninput="checkPrice()" onchange="checkPrice()">
                             </div>
                         </div>
 
                         <div class="form-group">
                             {!! Form::label('selling_price', 'Harga Jual Baru', array('class' => 'col-sm-12')) !!}
                             <div class="col-sm-5">
-                                <input type="text" name="selling_price" class="form-control" id="selling_price" required="required" onkeyup="formatNumber('selling_price')">
+                                <input type="text" name="selling_price" class="form-control" id="selling_price" required="required" onkeyup="formatNumber('selling_price')" oninput="checkPrice()" onchange="checkPrice()">
                             </div>
                         </div>
 
@@ -53,10 +53,30 @@
               </div>
 
               @section('js-addon')
+                  @include('layout.good-loading.number-js')
+                  @include('layout.good.price-check-js')
                   <script type="text/javascript">
                       $(document).ready (function (){
                           $('.select2').select2();
+
+                          /* harga beli & harga jual dicek sebelum disimpan (layout/good/price-check-js) */
+                          $('#buy_price').closest('form').on('submit', function (e) {
+                              var unit = $.trim($('#unit_id option:selected').text());
+                              var ok = confirmPrices([{
+                                  label : 'Satuan ' + (unit || '?'),
+                                  buy   : $('#buy_price').val(),
+                                  sell  : $('#selling_price').val(),
+                                  buyEl : document.getElementById('buy_price'),
+                                  sellEl: document.getElementById('selling_price')
+                              }]);
+                              if (!ok) e.preventDefault();
+                          });
                       });
+
+                      function checkPrice()
+                      {
+                          markPriceFormGroups(document.getElementById('buy_price'), document.getElementById('selling_price'));
+                      }
 
                       function formatNumber(name)
                       {

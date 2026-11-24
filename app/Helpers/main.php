@@ -366,6 +366,63 @@
         return $item == NULL || $item == 'NULL' || $item == "" ? "" : $item;
     }
 
+    /** 12500 -> "Rp 12.500", 2.5 -> "Rp 2,5" (cara tampil di halaman loading) */
+    function rupiahShort($money)
+    {
+        $s = number_format((float) $money, 2, ',', '.');
+
+        return 'Rp ' . rtrim(rtrim($s, '0'), ',');
+    }
+
+    /**
+     * Cek harga beli dan harga jual satu satuan barang (loading, ganti harga,
+     * tambah harga, barang baru). Mengembalikan alasan kenapa harga tidak boleh
+     * disimpan, atau null bila harganya benar:
+     *   - harga beli dan harga jual wajib diisi dan lebih dari 0
+     *   - harga jual tidak boleh lebih kecil dari harga beli (jual rugi)
+     * Aturan yang sama dipakai di browser: layout/good/price-check-js.blade.php
+     * (di sana harga jual = harga beli hanya diberi peringatan).
+     */
+    function buySellPriceProblem($buy_price, $sell_price)
+    {
+        $buy  = parseNumber($buy_price);
+        $sell = parseNumber($sell_price);
+
+        if ($buy === null || round($buy, 2) <= 0) {
+            return 'harga beli masih kosong atau 0';
+        }
+        if ($sell === null || round($sell, 2) <= 0) {
+            return 'harga jual masih kosong atau 0';
+        }
+        if (round($sell, 2) < round($buy, 2)) {
+            return 'harga jual ' . rupiahShort($sell) . ' lebih kecil dari harga beli ' . rupiahShort($buy)
+                 . ' (rugi ' . rupiahShort(round($buy, 2) - round($sell, 2)) . ')';
+        }
+
+        return null;
+    }
+
+    /**
+     * Batalkan penyimpanan bila ada harga yang salah. $rows berisi
+     * ['label' => 'Nama barang (SATUAN)', 'buy' => harga beli, 'sell' => harga jual].
+     * Form biasa kembali ke halaman sebelumnya dengan pesan error,
+     * request AJAX mendapat 422 berisi pesan yang sama.
+     */
+    function abortOnBadPrices(array $rows)
+    {
+        $messages = [];
+        foreach ($rows as $row) {
+            $problem = buySellPriceProblem($row['buy'] ?? null, $row['sell'] ?? null);
+            if ($problem !== null) {
+                $messages[] = $row['label'] . ': ' . $problem;
+            }
+        }
+
+        if ($messages) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['harga' => $messages]);
+        }
+    }
+
     function calculateProfit($buy_price, $sell_price)
     {
         if($buy_price != null && $buy_price != 0)

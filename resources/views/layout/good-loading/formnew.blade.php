@@ -108,11 +108,11 @@
                                 <div class="cell-txt sm" id="new_stock_display-{{ $i }}">—</div>
                                 <input type="hidden" name="new_stocks[]" id="new_stock-{{ $i }}">
                             </td>
-                            @if(canMenu('info.harga_beli'))
-                            <td class="col-price"><input type="text" class="fc" name="prices[]"       id="price-{{ $i }}"       onchange="editBuyPrice('{{ $i }}')" onkeyup="editBuyPrice('{{ $i }}')"></td>
-                            <td class="col-price"><input type="text" class="fc" name="total_prices[]" id="total_price-{{ $i }}" readonly></td>
-                            <td class="col-price"><input type="text" class="fc" name="sell_prices[]"  id="sell_price-{{ $i }}"></td>
-                            @endif
+                            {{-- kolom harga selalu ada (disembunyikan tanpa hak lihat harga beli), sama seperti buildRow() --}}
+                            <?php $ps = canMenu('info.harga_beli') ? '' : ' style="display:none"'; ?>
+                            <td class="col-price"{!! $ps !!}><input type="text" class="fc" name="prices[]"       id="price-{{ $i }}"       onchange="editBuyPrice('{{ $i }}')" onkeyup="editBuyPrice('{{ $i }}')"></td>
+                            <td class="col-price"{!! $ps !!}><input type="text" class="fc" name="total_prices[]" id="total_price-{{ $i }}" readonly></td>
+                            <td class="col-price"{!! $ps !!}><input type="text" class="fc" name="sell_prices[]"  id="sell_price-{{ $i }}" oninput="checkRowPrice('{{ $i }}')"></td>
                             <td class="col-act td-merged"         id="td-act-{{ $i }}"       rowspan="1">
                                 <button type="button" class="btn-delete" onclick="deleteGroup('{{ $i }}')" title="Hapus"><i class="fa fa-trash"></i></button>
                             </td>
@@ -218,6 +218,7 @@
 
 @section('js-addon')
 @include('layout.good-loading.number-js')
+@include('layout.good.price-check-js')
 <script>
 /* ═══════ STATE ═══════════════════════════════════════════════════════════ */
 var next_idx        = 2;
@@ -345,7 +346,7 @@ function buildRow(i) {
     /* Harga */
     +'<td class="col-price"'+ps+'><input type="text" class="fc" name="prices[]"       id="price-'+i+'"       onchange="editBuyPrice('+i+')" onkeyup="editBuyPrice('+i+')"></td>'
     +'<td class="col-price"'+ps+'><input type="text" class="fc" name="total_prices[]" id="total_price-'+i+'" readonly></td>'
-    +'<td class="col-price"'+ps+'><input type="text" class="fc" name="sell_prices[]"  id="sell_price-'+i+'"></td>'
+    +'<td class="col-price"'+ps+'><input type="text" class="fc" name="sell_prices[]"  id="sell_price-'+i+'" oninput="checkRowPrice('+i+')"></td>'
     /* MERGED action */
     +'<td class="col-act td-merged" id="td-act-'+i+'" rowspan="1">'
     +  '<button type="button" class="btn-delete" onclick="deleteGroup('+i+')" title="Hapus"><i class="fa fa-trash"></i></button>'
@@ -1035,6 +1036,7 @@ function editPrice(i){
     if(row_group[i]) $('#quantity-'+i).toggleClass('is-zero', q<=0).attr('title', q<=0 ? 'Jumlah 0: hanya harga yang diperbarui, stok tetap' : '');
     changeTotal();
     var gid=row_group[i]; if(gid) refreshNewStock(gid);
+    checkRowPrice(i);
 }
 
 function editBuyPrice(i){
@@ -1049,6 +1051,7 @@ function editBuyPrice(i){
                 var np=b*bp;
                 $('#price-'+ri).val(numFmt(np));
                 $('#total_price-'+ri).val(fmt(np*(numParse($('#quantity-'+ri).val())||0)));
+                checkRowPrice(ri);
             }
         });
     }
@@ -1071,8 +1074,46 @@ function changePriceByUnit(i){
             $('#sell_price-'+i).val(numFmt(gu?gu.selling_price:0));
             $('#total_price-'+i).val(fmt(numParse(gu?gu.buy_price:0)*(numParse($('#quantity-'+i).val())||0)));
             changeTotal();
+            checkRowPrice(i);
         }
     });
+}
+
+/* ═══════ CEK HARGA BELI & HARGA JUAL (layout/good/price-check-js) ═══════
+   Kolom merah = harga salah (tidak bisa disimpan), kuning = harga jual sama dengan harga beli.
+   ═══════════════════════════════════════════════════════════════════════ */
+function checkRowPrice(i){
+    i=parseInt(i);
+    var b=document.getElementById('price-'+i), s=document.getElementById('sell_price-'+i);
+    if(!b||!s) return;
+    markPriceInputs(b, s, row_group[i] ? priceProblem(b.value, s.value) : null);
+}
+
+/* form Tambah Barang Baru: tandai langsung saat harga diketik */
+$(document).ready(function(){
+    $('#modal-good').on('input change', '#price, #selling_price', function(){
+        markPriceFormGroups(document.getElementById('price'), document.getElementById('selling_price'));
+    });
+});
+
+/* semua baris barang di tabel, urut dari atas */
+function loadingPriceChecks(){
+    var checks=[];
+    $('#table-transaction tr').each(function(){
+        var m=/^row-data-(\d+)$/.exec(this.id);
+        if(!m) return;
+        var idx=parseInt(m[1],10), gid=row_group[idx];
+        if(!gid) return;
+        var unit=$.trim($('#unit-'+idx+' option:selected').text());
+        checks.push({
+            label : group_map[gid].name+(unit?' ('+unit+')':''),
+            buy   : $('#price-'+idx).val(),
+            sell  : $('#sell_price-'+idx).val(),
+            buyEl : document.getElementById('price-'+idx),
+            sellEl: document.getElementById('sell_price-'+idx)
+        });
+    });
+    return checks;
 }
 
 /* ═══════ ADD NEW GOOD ═══════════════════════════════════════════════════ */
@@ -1084,6 +1125,8 @@ function addNewGood(){
     if(!$('#price').val()){ok=false;alert('Isi harga beli');}
     if(!$('#selling_price').val()){ok=false;alert('Isi harga jual');}
     if(!ok) return;
+    if(!confirmPrices([{ label:$.trim($('#name').val()), buy:$('#price').val(), sell:$('#selling_price').val(),
+                         buyEl:document.getElementById('price'), sellEl:document.getElementById('selling_price') }])) return;
     $.ajax({ url:"{!! url($role.'/good/store/') !!}", type:'POST',
         headers:{'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')},
         data:{role:'{{ $role }}',category_id:$('#category_id').val(),type_id:$('#type_id').val(),code:$('#code').val(),name:$('#name').val(),brand_id:$('#brand_id').val(),unit_id:$('#unit_id').val(),price:numPlain($('#price').val()),selling_price:numPlain($('#selling_price').val())},
@@ -1094,7 +1137,11 @@ function addNewGood(){
             $('#code,#name,#price,#selling_price').val('');
             $('#modal-good').modal('hide');
             setTimeout(function(){ focusSearch(); }, 400);
-        }, error:function(){ alert('Harga harus berupa angka.'); }
+        }, error:function(xhr){
+            var e=xhr.responseJSON&&xhr.responseJSON.errors, lines=[];
+            for(var k in e){ lines=lines.concat(e[k]); }
+            alert(lines.length ? lines.join('\n') : 'Harga harus berupa angka.');
+        }
     });
 }
 
@@ -1105,6 +1152,7 @@ function submitForm(){
     if($('#loading_date').val()===''){ok=false;alert('Isi tanggal pembelian');}
     if(total_real_item===0){ok=false;alert('Pilih minimal satu barang');}
     if($('#payment').val()==='0000'){alert('Cek jenis pembayaran');}
+    if(ok && !window._submitting && !confirmPrices(loadingPriceChecks())) ok=false;
     if(ok){
         if(window._submitting) return;
         window._submitting=true;

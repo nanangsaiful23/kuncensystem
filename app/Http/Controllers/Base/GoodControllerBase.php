@@ -314,6 +314,11 @@ trait GoodControllerBase
             'price' => array('required', 'numeric', 'min:0'),
             'selling_price' => array('required', 'numeric', 'min:0'),
         ]);
+        abortOnBadPrices([[
+            'label' => trim((string) $request->input('name')) ?: 'Barang baru',
+            'buy'   => $request->input('price'),
+            'sell'  => $request->input('selling_price'),
+        ]]);
 
         $data = $request->input();
         if($data['category_id'] == null)
@@ -547,6 +552,11 @@ trait GoodControllerBase
             'buy_price' => array('required', 'regex:/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/'),
             'selling_price' => array('required', 'regex:/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:(\.|,)\d+)?$/'),
         ]);
+        abortOnBadPrices([[
+            'label' => 'Satuan ' . (optional(Unit::find($request->unit_id))->name ?? '?'),
+            'buy'   => $request->buy_price,
+            'sell'  => $request->selling_price,
+        ]]);
 
         $data = $request->input();
         $data['buy_price'] = unformatNumber($request->buy_price);
@@ -595,6 +605,16 @@ trait GoodControllerBase
 
         $good = Good::find($good_id);
         $laba_goods = [];
+
+        $checks = [];
+        foreach ((array) $request->good_unit_ids as $i => $good_unit_id) {
+            $checks[] = [
+                'label' => 'Satuan ' . (optional(optional(GoodUnit::find($good_unit_id))->unit)->name ?? '?'),
+                'buy'   => $request->buy_prices[$i] ?? null,
+                'sell'  => $request->selling_prices[$i] ?? null,
+            ];
+        }
+        abortOnBadPrices($checks);
 
         for($i = 0; $i < sizeof($request->good_unit_ids); $i++)
         {
