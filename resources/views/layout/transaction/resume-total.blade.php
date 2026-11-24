@@ -92,6 +92,12 @@
                 <!-- {!! Form::submit('Simpan', ['class' => 'btn btn-success btn-flat btn-block form-control col-sm-5'])  !!} -->
               </div>
             {!! Form::close() !!}
+            @if(canMenu('kas.tutup'))
+              <div class="col-sm-12" style="margin-top:10px">
+                Akhir hari? Pakai <a href="{{ url($role . '/cash-closing') }}"><b>Tutup Kasir</b></a>:
+                hitung uang di laci, selisihnya dicatat, lalu uang diserahkan ke owner.
+              </div>
+            @endif
             <div class="form-group">
               <div class="col-sm-12">
                 <h3 id="balance"></h3>

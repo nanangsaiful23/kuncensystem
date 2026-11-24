@@ -122,6 +122,10 @@ class MainController extends Controller
 
         $yesterday = Carbon::yesterday();
         $last_cash_flow = Journal::where('type', 'cash_draw')->whereDate('journal_date', $yesterday)->first();
+        // Tutup kasir tanpa penyerahan uang ke owner tidak membuat jurnal penarikan.
+        if ($last_cash_flow === null && \App\Models\CashClosing::tabelAda()) {
+            $last_cash_flow = \App\Models\CashClosing::whereDate('closing_date', $yesterday)->first();
+        }
 
         return view('admin.index', compact('default', 'transactions', 'other_transactions', 'good_prices', 'cash_account', 'cash_in', 'cash_out', 'total', 'last_cash_flow'));
     }

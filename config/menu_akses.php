@@ -72,6 +72,11 @@ return [
                 'grup' => 'Menu Utama', 'label' => 'Riwayat Kas di Tangan',
                 'bawaan' => $semua, 'paths' => ['cashFlow/*'],
             ],
+            'kas.tutup' => [
+                'grup' => 'Menu Utama', 'label' => 'Tutup Kasir',
+                'catatan' => 'hitung uang di laci, catat selisih, serahkan uang ke owner',
+                'bawaan' => $semua, 'kasir' => true, 'paths' => ['cash-closing', 'cash-closing/*'],
+            ],
 
             // ---------------- Barang ----------------
             'barang.daftar' => [
@@ -323,6 +328,11 @@ return [
             'aksi.member.hapus' => [
                 'grup' => 'Edit & Hapus', 'induk' => 'Member (aksi)', 'label' => 'Hapus member',
                 'bawaan' => $superadmin, 'paths' => ['member/*/delete'],
+            ],
+            'aksi.tutup_kasir.batal' => [
+                'grup' => 'Edit & Hapus', 'induk' => 'Tutup Kasir (aksi)', 'label' => 'Batalkan tutup kasir hari ini',
+                'catatan' => 'jurnal selisih dan penarikannya ikut dihapus, lalu kasir bisa ditutup ulang',
+                'bawaan' => $superadmin, 'paths' => ['cash-closing/*/cancel'],
             ],
         ]
     ),

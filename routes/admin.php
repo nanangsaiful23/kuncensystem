@@ -11,6 +11,9 @@ Route::get('/getScaleLedger/{start_date}/{end_date}/{param}', 'MainController@ge
 Route::post('/scaleLedger/{start_date}/{end_date}', 'MainController@storeScaleLedger')->name('storeScaleLedger');
 Route::get('/scaleLedger/detail/{account_id}/{start_date}/{end_date}', 'MainController@scaleLedgerAccountDetail')->name('scaleLedger.detail');
 Route::get('cashFlow/{start_date}/{end_date}/{pagination}', 'MainController@cashFlow');
+Route::get('cash-closing', 'CashClosingController@index')->name('cash-closing.index');
+Route::post('cash-closing', 'CashClosingController@store')->name('cash-closing.store');
+Route::post('cash-closing/{id}/cancel', 'CashClosingController@cancel')->name('cash-closing.cancel')->whereNumber('id');
 Route::get('/reports/sales', 'SalesReportController@index')->name('reports.sales');
 Route::get('/reports/owner', 'OwnerSummaryController@index')->name('reports.owner');
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');

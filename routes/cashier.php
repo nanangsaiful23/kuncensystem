@@ -2,6 +2,8 @@
 
 Route::get('/', 'MainController@index');
 Route::get('image/{directory}/{url}', 'MainController@getImage');
+Route::get('cash-closing', 'CashClosingController@index')->name('cash-closing.index');
+Route::post('cash-closing', 'CashClosingController@store')->name('cash-closing.store');
 
 Route::group(['prefix' => 'good'], function () {
 

@@ -537,7 +537,7 @@
 
     function getJournalTypes()
     {
-        $types = ['all' => 'Seluruh tipe', 'transaction' => 'Transaksi', 'hpp' => 'HPP', 'good_loading' => 'Loading barang', 'other_payment' => 'Biaya lain', 'operasional' => 'Operasional', 'cash_draw' => 'Penarikan uang', 'modal pemilik' => 'Modal pemilik', 'penyusutan' => 'Penyusutan', 'retur' => 'Retur', 'internal_cash_flow' => 'Perpindahan uang', 'credit_payment' => 'Pembayaran hutang'];
+        $types = ['all' => 'Seluruh tipe', 'transaction' => 'Transaksi', 'hpp' => 'HPP', 'good_loading' => 'Loading barang', 'other_payment' => 'Biaya lain', 'operasional' => 'Operasional', 'cash_draw' => 'Penarikan uang', 'cash_adjustment' => 'Selisih kas','modal pemilik' => 'Modal pemilik', 'penyusutan' => 'Penyusutan', 'retur' => 'Retur', 'internal_cash_flow' => 'Perpindahan uang', 'credit_payment' => 'Pembayaran hutang'];
 
         return $types;
     }
