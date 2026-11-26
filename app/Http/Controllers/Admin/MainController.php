@@ -361,6 +361,7 @@ class MainController extends Controller
                                 DB::raw('COALESCE(SUM(CASE WHEN journals.debit_account_id = accounts.id THEN journals.debit ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN journals.credit_account_id = accounts.id THEN journals.credit ELSE 0 END), 0) as debit'),
                                 'accounts.name'
                             )
+                            ->whereNull('journals.deleted_at') // jurnal yang dihapus/dibatalkan tidak dihitung
                             ->whereDate('journals.journal_date', '>=', $periodStart)
                             ->whereDate('journals.journal_date', '<=', $periodEnd)
                             ->whereIn('accounts.id', $data_params)
@@ -378,6 +379,7 @@ class MainController extends Controller
                                 DB::raw('COALESCE(SUM(CASE WHEN journals.credit_account_id = accounts.id THEN journals.credit ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN journals.debit_account_id = accounts.id THEN journals.debit ELSE 0 END), 0) as debit'),
                                 'accounts.name'
                             )
+                            ->whereNull('journals.deleted_at') // jurnal yang dihapus/dibatalkan tidak dihitung
                             ->whereDate('journals.journal_date', '>=', $periodStart)
                             ->whereDate('journals.journal_date', '<=', $periodEnd)
                             ->whereIn('accounts.id', ['20'])

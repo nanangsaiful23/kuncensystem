@@ -26,17 +26,23 @@ trait JournalControllerBase
         else
             $whereDate = 'journals.created_at';
 
+        // Dibuat ATAU diubah di periode ini. Dalam kurung: Laravel menambahkan
+        // "AND deleted_at IS NULL" di belakang; tanpa kurung jurnal yang sudah
+        // dihapus (mis. tutup kasir yang dibatalkan) ikut tampil.
+        $periode = '((DATE(journals.created_at) >= ? AND DATE(journals.created_at) <= ?) OR (DATE(journals.updated_at) >= ? AND DATE(journals.updated_at) <= ?))';
+        $tanggal = [$start_date, $end_date, $start_date, $end_date];
+
         if($pagination == 'all')
         {
             if($code == 'all' && $type == 'all')
             { 
-               $journals = Journal::whereRaw('(DATE(journals.created_at) >= "' . $start_date . '" AND DATE(journals.created_at) <= "' . $end_date . '") OR (DATE(journals.updated_at) >= "' . $start_date . '" AND DATE(journals.updated_at) <= "' . $end_date . '")')
+               $journals = Journal::whereRaw($periode, $tanggal)
                                   ->orderBy($sort, $order)
                                   ->get(); 
             }
             else
             {
-                $journals = Journal::whereRaw("((DATE(journals.created_at) >= '" . $start_date . "' AND DATE(journals.created_at) <= '" . $end_date . "') OR (DATE(journals.updated_at) >= '" . $start_date . "' AND DATE(journals.updated_at) <= '" . $end_date . "')) AND coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
+                $journals = Journal::whereRaw($periode . " AND coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array_merge($tanggal, [$whereType, $whereAcccount, $whereAcccount]))
                                       ->orderBy($sort, $order)
                                       ->get();
             }
@@ -45,13 +51,13 @@ trait JournalControllerBase
         { 
             if($code == 'all' && $type == 'all')
             { 
-               $journals = Journal::whereRaw('(DATE(journals.created_at) >= "' . $start_date . '" AND DATE(journals.created_at) <= "' . $end_date . '") OR (DATE(journals.updated_at) >= "' . $start_date . '" AND DATE(journals.updated_at) <= "' . $end_date . '")')
+               $journals = Journal::whereRaw($periode, $tanggal)
                                   ->orderBy($sort, $order)
                                   ->paginate($pagination); 
             }
             else
             {
-                $journals = Journal::whereRaw("((DATE(journals.created_at) >= '" . $start_date . "' AND DATE(journals.created_at) <= '" . $end_date . "') OR (DATE(journals.updated_at) >= '" . $start_date . "' AND DATE(journals.updated_at) <= '" . $end_date . "')) AND coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array($whereType, $whereAcccount, $whereAcccount))
+                $journals = Journal::whereRaw($periode . " AND coalesce(journals.type, '') like ? AND (coalesce(journals.debit_account_id, '') like ? OR coalesce(journals.credit_account_id, '') like ? )", array_merge($tanggal, [$whereType, $whereAcccount, $whereAcccount]))
                                       ->orderBy($sort, $order)
                                       ->paginate($pagination);
             }
