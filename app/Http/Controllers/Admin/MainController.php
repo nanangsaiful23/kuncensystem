@@ -135,6 +135,9 @@ class MainController extends Controller
         }
         $cek['boleh'] = canMenu('kas.cek_kecocokan');
 
+        // Tabel pencatatan penyebab stok minus & riwayat edit/hapus (dibuat sekali, dari GET).
+        \App\Models\StockMinusLog::pastikanTabel();
+
         return view('admin.index', compact('default', 'transactions', 'other_transactions', 'good_prices', 'cash_account', 'cash_in', 'cash_out', 'total', 'last_cash_flow', 'cek'));
     }
 

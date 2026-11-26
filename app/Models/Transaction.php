@@ -36,14 +36,14 @@ class Transaction extends Model
     {
         // Deleting or restoring the whole document changes the stock of
         // every good in it (see StockService).
-        $sync = function (self $model) {
+        $sync = function (self $model, string $aksi) {
             foreach ($model->details()->withTrashed()->pluck('good_unit_id')->unique() as $goodUnitId) {
-                \App\Services\StockService::queueGoodUnit($goodUnitId);
+                \App\Services\StockService::queueGoodUnit($goodUnitId, ['aksi' => $aksi, 'transaction_id' => (int) $model->id]);
             }
         };
 
-        static::deleted($sync);
-        static::restored($sync);
+        static::deleted(fn (self $model) => $sync($model, 'hapus_transaksi'));
+        static::restored(fn (self $model) => $sync($model, 'transaksi'));
     }
 
     public function details()

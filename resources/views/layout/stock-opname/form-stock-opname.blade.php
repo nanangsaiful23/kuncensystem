@@ -553,7 +553,9 @@
                 html += '<tr>'
                       + '<td><input type="checkbox" class="minus-chk" data-idx="' + i + '" onclick="autoCheckOnRealInput(' + i + ')"></td>'
                       + '<td>' + (g.code || '-') + '</td>'
-                      + '<td>' + g.name + '</td>'
+                      + '<td>' + g.name
+                      + (g.penyebab ? '<div style="font-size:12px;color:#64748b">Jadi minus: ' + $('<div>').text(g.penyebab).html() + '</div>' : '')
+                      + '</td>'
                       + '<td>' + (g.unit_name || '-') + '</td>'
                       + '<td class="mg-stock-neg">' + g.last_stock + '</td>'
                       + '<td><input type="text" class="mg-real-input" data-idx="' + i + '" placeholder="cth: 12" '

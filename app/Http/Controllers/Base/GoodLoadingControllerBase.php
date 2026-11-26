@@ -7,6 +7,7 @@ use App\Imports\LoadingImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Account;
+use App\Models\ActionLog;
 use App\Models\Distributor;
 use App\Models\Good;
 use App\Models\GoodLoading;
@@ -611,6 +612,9 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         $data_loading['payment']      = $data['payment'];
 
         $good_loading = GoodLoading::find($good_loading_id);
+        // untuk catatan siapa yang mengedit dan apa yang berubah (action_logs)
+        $jumlah_sebelum = ActionLog::jumlahBaris(GoodLoadingDetail::class, 'good_loading_id', $good_loading->id);
+        $total_sebelum  = $good_loading->total_item_price;
 
         if($good_loading->distributor_id != $data['distributor_id'])
         {
@@ -741,7 +745,10 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         }
         $this->syncLoadingRoundingJournal($good_loading, $data_journal['credit_account_id'], $data['loading_date']);
 
-       return $good_loading; 
+        ActionLog::catatEdit('edit_loading', $good_loading, GoodLoadingDetail::class, $jumlah_sebelum,
+                             $total_sebelum, $good_loading->total_item_price, $role, $role_id);
+
+       return $good_loading;
     }
 
     public function deleteGoodLoadingBase($good_loading_id)
@@ -756,6 +763,12 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
                ->get()->each->delete(); // one by one, so the period lock sees each journal
 
         $good_loading->delete();
+
+        // The deleted loading has no page any more, so the note says what it was.
+        // Who deleted it: the account that is logged in.
+        ActionLog::catat('hapus_loading', ['good_loading_id' => $good_loading->id],
+            'Loading ' . ($good_loading->distributor->name ?? '-') . ' tanggal ' . displayDate($good_loading->loading_date)
+            . ', ' . $good_loading->details()->count() . ' baris barang, total ' . showRupiah($good_loading->total_item_price));
 
         return true;
     }

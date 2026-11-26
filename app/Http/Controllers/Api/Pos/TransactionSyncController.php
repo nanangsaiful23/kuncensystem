@@ -10,6 +10,7 @@ use App\Models\GoodUnit;
 use App\Models\Member;
 use App\Models\PosDevice;
 use App\Models\PosSyncReject;
+use App\Services\StockService;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -224,7 +225,11 @@ class TransactionSyncController extends Controller
 
         try {
             $transaction = DB::transaction(function () use ($device, $clean, $soldAt, $uuid) {
-                $transaction = $this->storeTransactionBase('cashier', $clean['cashier_id'], $this->desktopRequest($clean), $soldAt);
+                // Tidak ada akun yang login di API: stok yang jadi minus dicatat atas nama kasirnya.
+                $transaction = StockService::denganSebab(
+                    ['aksi' => 'kasir_hp', 'role' => 'cashier', 'role_id' => (int) $clean['cashier_id']],
+                    fn () => $this->storeTransactionBase('cashier', $clean['cashier_id'], $this->desktopRequest($clean), $soldAt)
+                );
 
                 $transaction->forceFill([
                     'client_uuid'   => $uuid,

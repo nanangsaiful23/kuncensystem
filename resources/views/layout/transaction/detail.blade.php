@@ -76,6 +76,8 @@
         </div>
       </div>
 
+      @include('layout.action-log', ['logs' => \App\Models\ActionLog::untuk('transaction_id', $transaction->id)])
+
     </div>
   </section>
 </div>

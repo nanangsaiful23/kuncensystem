@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 use App\Models\Account;
+use App\Models\ActionLog;
 use App\Models\Good;
 use App\Models\GoodLoading;
 use App\Models\GoodLoadingDetail;
@@ -18,8 +19,9 @@ use App\Models\PiutangPayment;
 use App\Models\ReturItem;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Services\StockService;
 
-trait TransactionControllerBase 
+trait TransactionControllerBase
 {
     public function indexTransactionBase($role, $role_id, $start_date, $end_date, $pagination)
     {
@@ -659,14 +661,36 @@ trait TransactionControllerBase
      * sales with the day's journal) that was often wrong, e.g. when the retur
      * was worth more than the goods bought; then the stock came back but the
      * journal did not, or a retur stayed on the shelf after the cancel.
+     *
+     * Who cancelled it is written to action_logs. Taking a returned good off
+     * the shelf again can make the stock minus; that is blamed on this cancel.
      */
     public function reverseTransactionBase($role, $role_id, $status, $transaction_id)
+    {
+        $aksi = $status == 'deleted' ? 'hapus_transaksi' : 'batal_transaksi';
+
+        $transaction = StockService::denganSebab(
+            ['aksi' => $aksi, 'transaction_id' => (int) $transaction_id, 'role' => $role, 'role_id' => $role_id],
+            fn () => $this->undoTransaction($role, $role_id, $status, $transaction_id)
+        );
+
+        if ($transaction) {
+            ActionLog::catat($aksi, ['transaction_id' => $transaction->id],
+                'Nota #' . $transaction->id . ', ' . count($transaction->details) . ' baris barang, total ' . showRupiah($transaction->total_sum_price),
+                $role, $role_id);
+        }
+
+        return true;
+    }
+
+    /** reverseTransactionBase() without the log. Returns the transaction, or null when there was nothing to undo. */
+    private function undoTransaction($role, $role_id, $status, $transaction_id): ?Transaction
     {
         $transaction = Transaction::lockForUpdate()->find($transaction_id);
 
         // Already cancelled (double click / second tab): nothing to do again.
         if ($transaction == null || in_array($transaction->type, ['not valid', 'deleted'])) {
-            return true;
+            return null;
         }
 
         $journal_status = $status == 'deleted' ? 'delete' : 'reverse';
@@ -777,7 +801,7 @@ trait TransactionControllerBase
 
         $transaction->update(['type' => $status]);
 
-        return true;
+        return $transaction;
     }
 
     public function resumeTransactionBase($type, $category_id, $distributor_id, $start_date, $end_date, $pagination)
@@ -967,6 +991,10 @@ trait TransactionControllerBase
         $sum = 0;
 
         $transaction = Transaction::find($transaction_id);
+        // untuk catatan siapa yang mengedit dan apa yang berubah (action_logs)
+        $jumlah_sebelum = ActionLog::jumlahBaris(TransactionDetail::class, 'transaction_id', $transaction->id);
+        $total_sebelum  = $transaction->total_sum_price;
+
         if($request->member_name != null)
         {
             $data_member_new['name'] = $request->member_name;
@@ -1062,6 +1090,9 @@ trait TransactionControllerBase
 
         $journal->update($data_journal);
 
-       return $transaction; 
+        ActionLog::catatEdit('edit_transaksi', $transaction, TransactionDetail::class, $jumlah_sebelum,
+                             $total_sebelum, $transaction->total_sum_price, $role, $role_id);
+
+       return $transaction;
     }
 }

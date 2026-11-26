@@ -181,6 +181,11 @@ class OwnerSummaryRepository
             ->sortByDesc('value')->values();
         $earners = $goods->filter(fn ($g) => $g->laba != 0)->sortByDesc('laba')->values();
         $negative = $goods->filter(fn ($g) => $g->stock < 0)->sortBy('stock')->values();
+        // Akun yang membuat stoknya minus, kalau tercatat (hanya yang ditampilkan).
+        $penyebab = StockMinusLog::terbukaUntuk($negative->take(15)->pluck('id')->all());
+        foreach ($negative as $g) {
+            $g->penyebab = isset($penyebab[$g->id]) ? $penyebab[$g->id]->teks() : null;
+        }
 
         $purchases = GoodLoading::join('distributors', 'distributors.id', '=', 'good_loadings.distributor_id')
             ->whereNull('good_loadings.deleted_at')

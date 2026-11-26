@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Good;
 use App\Models\GoodUnit;
+use App\Models\StockMinusLog;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,11 +20,41 @@ use Illuminate\Support\Facades\DB;
  * app already uses for last_stock). They are recalculated from history after
  * every change instead of being incremented by hand, so they can no longer
  * drift away from getStock().
+ *
+ * Every recalculation also keeps App\Models\StockMinusLog up to date: when a
+ * good goes below zero, the action and account that caused it are stored.
+ * The cause is taken when the good is queued (the model events pass a hint
+ * such as the transaction id; denganSebab() names the action for a whole
+ * block), because the recalculation itself only runs after the commit.
  */
 class StockService
 {
     /** @var array<int, true> goods waiting to be recalculated */
     private static array $queue = [];
+
+    /** @var array<int, array> cause of the change, per queued good */
+    private static array $sebab = [];
+
+    /** Cause of the action that is running now (see denganSebab()). */
+    private static array $konteks = [];
+
+    /**
+     * Run $fn with a known cause for stock changes, e.g.
+     * ['aksi' => 'batal_transaksi', 'transaction_id' => 5, 'role' => 'admin', 'role_id' => 1].
+     * A good that goes below zero during $fn is logged with this action and
+     * account. Nested calls: the outermost one wins.
+     */
+    public static function denganSebab(array $sebab, callable $fn)
+    {
+        $lama = self::$konteks;
+        self::$konteks = $lama + array_filter($sebab, fn ($v) => $v !== null && $v !== '');
+
+        try {
+            return $fn();
+        } finally {
+            self::$konteks = $lama;
+        }
+    }
 
     /**
      * Raw history in the smallest unit (real_quantity): [loaded, sold].
@@ -206,7 +237,7 @@ class StockService
      * Recalculate one good right now. Writes with the query builder so no
      * model events fire. Returns [old counters, new counters].
      */
-    public static function sync(int $goodId): ?array
+    public static function sync(int $goodId, ?array $sebab = null): ?array
     {
         $good = Good::withTrashed()->find($goodId);
 
@@ -225,7 +256,26 @@ class StockService
             DB::table('goods')->where('id', $goodId)->update($new);
         }
 
+        if ($good->deleted_at === null) {
+            // Called directly (sync stock button, artisan): a recalculation.
+            self::catatMinus($goodId, $new['last_stock'], $sebab ?? self::$konteks + ['aksi' => 'hitung_ulang']);
+        }
+
         return [$old, $new];
+    }
+
+    /** Logging must never break the stock recalculation itself. */
+    private static function catatMinus(int $goodId, float $stok, array $sebab): void
+    {
+        if (! StockMinusLog::tabelAda()) {
+            return;
+        }
+
+        try {
+            StockMinusLog::perbarui($goodId, $stok, $sebab);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**
@@ -234,7 +284,7 @@ class StockService
      * means the sums see every committed row, so two cashiers selling the same
      * good at the same moment still end with the right stock.
      */
-    public static function queue(?int $goodId): void
+    public static function queue(?int $goodId, array $petunjuk = []): void
     {
         if (! $goodId) {
             return;
@@ -242,25 +292,32 @@ class StockService
 
         self::$queue[$goodId] = true;
 
+        // Newer values win, older ones fill the gaps (a later queue from the
+        // good's own saved event carries no transaction id).
+        $baru = array_filter(self::$konteks + $petunjuk, fn ($v) => $v !== null && $v !== '');
+        self::$sebab[$goodId] = $baru + (self::$sebab[$goodId] ?? []);
+
         DB::afterCommit(fn () => self::flush());
     }
 
-    public static function queueGoodUnit(?int $goodUnitId): void
+    public static function queueGoodUnit(?int $goodUnitId, array $petunjuk = []): void
     {
         if (! $goodUnitId) {
             return;
         }
 
-        self::queue(GoodUnit::withTrashed()->whereKey($goodUnitId)->value('good_id'));
+        self::queue(GoodUnit::withTrashed()->whereKey($goodUnitId)->value('good_id'), $petunjuk);
     }
 
     public static function flush(): void
     {
         $ids = array_keys(self::$queue);
+        $sebab = self::$sebab;
         self::$queue = [];
+        self::$sebab = [];
 
         foreach ($ids as $id) {
-            self::sync($id);
+            self::sync($id, ($sebab[$id] ?? []) + ['aksi' => 'lainnya']);
         }
     }
 }

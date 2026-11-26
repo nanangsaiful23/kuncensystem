@@ -135,6 +135,8 @@
                     {!! Form::close() !!}
                     Total item = {{ $i-1 }}<br>
                     Total qty = {{ $good_loading->detailsWithDeleted()->sum('quantity') }}
+
+                    @include('layout.action-log', ['logs' => \App\Models\ActionLog::untuk('good_loading_id', $good_loading->id)])
                 </div>
             </div>
         </div>

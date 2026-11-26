@@ -17,6 +17,8 @@ use Illuminate\Support\Str;
  */
 class KasirHpApiTest extends StockTestCase
 {
+    use TabelTutupKasir; // stock_minus_logs: akun yang membuat stok minus
+
     private static bool $posTablesReady = false;
 
     private string $token;
@@ -34,6 +36,7 @@ class KasirHpApiTest extends StockTestCase
                 // Database tes tidak ada: parent::setUp() akan melewati tes.
             }
         }
+        $this->siapkanTabelTutupKasir();
 
         parent::setUp();
 
@@ -409,6 +412,23 @@ class KasirHpApiTest extends StockTestCase
              ->assertOk()->assertJsonCount(0, 'changed');
 
         $this->withHeader('Authorization', 'Bearer salah')->getJson('/api/pos/v1/transactions/changed')->assertUnauthorized();
+    }
+
+    public function test_transaksi_hp_yang_membuat_stok_minus_dicatat_atas_nama_kasirnya(): void
+    {
+        [$good, $pcs] = $this->makeGood('Roti', 1000, 1500);
+        $this->load($pcs, 1, 1000);
+        $sari = $this->cashier();
+        DB::table('cashiers')->where('id', $sari->id)->update(['name' => 'Sari']);
+
+        $id = $this->send($this->sale([[$pcs, 3, 1500]], ['cashier_id' => $sari->id]))->assertOk()
+                   ->assertJsonPath('results.0.status', 'saved')->json('results.0.transaction_id');
+
+        $this->assertEquals(-2, $this->stock($good));
+        $log = \App\Models\StockMinusLog::where('good_id', $good)->whereNull('ended_at')->sole();
+        $this->assertSame(['kasir_hp', $id, 'cashier', $sari->id, 'Sari'],
+            [$log->action, $log->transaction_id, $log->role, $log->role_id, $log->actor_name]);
+        $this->assertStringStartsWith('Transaksi Kasir HP/PC oleh Sari (nota #' . $id . ')', $log->teks());
     }
 
     public function test_halaman_admin_kasir_hp_superadmin(): void

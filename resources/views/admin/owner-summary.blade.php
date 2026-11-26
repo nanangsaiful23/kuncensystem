@@ -215,7 +215,8 @@
               <thead><tr><th>Barang</th><th class="n">Stok</th><th>Terakhir loading</th></tr></thead>
               <tbody>
               @forelse($negative->take(15) as $g)
-                <tr><td>{{ $g->name }}</td><td class="n neg">{{ $num($g->stock, 1) }} {{ $g->satuan }}</td>
+                <tr><td>{{ $g->name }}@if($g->penyebab)<br><small class="hint">Jadi minus: {{ $g->penyebab }}</small>@endif</td>
+                  <td class="n neg">{{ $num($g->stock, 1) }} {{ $g->satuan }}</td>
                   <td>{{ $g->last_loading ? \Carbon\Carbon::parse($g->last_loading)->format('d-m-Y') : '-' }}</td></tr>
               @empty
                 <tr><td colspan="3">Tidak ada.</td></tr>

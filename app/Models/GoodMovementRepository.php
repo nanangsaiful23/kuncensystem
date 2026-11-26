@@ -446,7 +446,7 @@ class GoodMovementRepository
      */
     public function getNegativeStockGoods(int $limit = 50): \Illuminate\Support\Collection
     {
-        return Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
+        $goods = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
             ->whereNull('goods.deleted_at')
             ->where('goods.last_stock', '<', 0)
@@ -461,6 +461,16 @@ class GoodMovementRepository
             ->orderBy('goods.last_stock', 'asc') // paling minus duluan
             ->limit($limit)
             ->get();
+
+        // Akun yang membuat stoknya minus, kalau tercatat (StockMinusLog).
+        $penyebab = StockMinusLog::terbukaUntuk($goods->pluck('good_id')->all());
+        foreach ($goods as $g) {
+            $log = $penyebab[$g->good_id] ?? null;
+            $g->penyebab     = $log ? $log->teks() : null;
+            $g->penyebab_url = $log ? $log->url() : null;
+        }
+
+        return $goods;
     }
 
     public function countNegativeStock(): int

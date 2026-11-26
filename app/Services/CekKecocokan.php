@@ -7,6 +7,7 @@ use App\Models\Good;
 use App\Models\PosDevice;
 use App\Models\PosSyncReject;
 use App\Models\ReconciliationCheck;
+use App\Models\StockMinusLog;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -407,8 +408,12 @@ class CekKecocokan
             $rincian[] = ['teks' => $g->name . ': stok tercatat ' . $angka($g->last_stock) . ', hitungan dari loading & transaksi '
                 . $angka($hitung[$g->id]['last_stock']), 'url' => 'admin/good/' . $g->id . '/detail'];
         }
+        // Akun yang membuat stoknya minus (StockMinusLog), kalau tercatat.
+        $penyebab = StockMinusLog::terbukaUntuk($minus->take(self::MAKS_RINCIAN)->pluck('id')->all());
         foreach ($minus as $g) {
-            $rincian[] = ['teks' => $g->name . ': stok minus ' . $angka($g->last_stock), 'url' => 'admin/good/' . $g->id . '/detail'];
+            $log = $penyebab[$g->id] ?? null;
+            $rincian[] = ['teks' => $g->name . ': stok minus ' . $angka($g->last_stock) . ($log ? ', jadi minus: ' . $log->teks() : ''),
+                'url' => 'admin/good/' . $g->id . '/detail'];
         }
 
         $pesan = [];

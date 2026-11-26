@@ -75,7 +75,10 @@ class StockOpnameController extends Controller
             ->limit(500)
             ->get();
 
-        $result = $goods->map(function ($good) {
+        // Akun yang membuat stoknya minus, kalau tercatat.
+        $penyebab = \App\Models\StockMinusLog::terbukaUntuk($goods->pluck('id')->all());
+
+        $result = $goods->map(function ($good) use ($penyebab) {
             // Pakai fallback satuan yang sama seperti dipakai di seluruh
             // sistem (Good::getPcsSellingPrice) supaya konsisten dengan
             // satuan yang dipakai saat input stock opname manual.
@@ -89,6 +92,7 @@ class StockOpnameController extends Controller
                 'unit_id'    => $unit->unit_id  ?? null,
                 'unit_name'  => $unit->name     ?? '-',
                 'unit_qty'   => $unit->quantity ?? 1,
+                'penyebab'   => isset($penyebab[$good->id]) ? $penyebab[$good->id]->teks() : null,
             ];
         })->values();
 

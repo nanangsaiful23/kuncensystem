@@ -3,7 +3,8 @@
 namespace Tests\Feature\Stock;
 
 /**
- * Tabel cash_closings (Tutup Kasir) dan reconciliation_checks (Cek Kecocokan)
+ * Tabel cash_closings (Tutup Kasir), reconciliation_checks (Cek Kecocokan),
+ * stock_minus_logs & action_logs (penyebab stok minus, riwayat edit/hapus)
  * dibuat sekali dari file SQL di docs/sql lewat koneksi PDO terpisah, sebelum
  * transaksi tes dimulai. DDL di koneksi tes akan meng-commit transaksi tes,
  * sehingga data tes tertinggal di database.
@@ -33,10 +34,11 @@ trait TabelTutupKasir
         }
 
         // Selalu buat ulang dari file SQL terbaru (database tes saja).
-        $pdo->exec('DROP TABLE IF EXISTS `cash_closings`');
-        $pdo->exec('DROP TABLE IF EXISTS `reconciliation_checks`');
+        foreach (['cash_closings', 'reconciliation_checks', 'stock_minus_logs', 'action_logs'] as $tabel) {
+            $pdo->exec('DROP TABLE IF EXISTS `' . $tabel . '`');
+        }
         $punyaPembuat = $pdo->query("show columns from journals like 'created_by_role'")->fetch() !== false;
-        foreach (['2026-11-24-tutup-kasir.sql', '2026-11-26-cek-kecocokan.sql'] as $file) {
+        foreach (['2026-11-24-tutup-kasir.sql', '2026-11-26-cek-kecocokan.sql', '2026-11-26-catat-stok-minus.sql'] as $file) {
             $sql = preg_replace('/^--.*$/m', '', file_get_contents(dirname(__DIR__, 3) . '/docs/sql/' . $file));
             foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
                 if (str_contains($statement, '`migrations`') || ($punyaPembuat && str_starts_with($statement, 'ALTER TABLE `journals`'))) {
@@ -45,5 +47,6 @@ trait TabelTutupKasir
                 $pdo->exec($statement);
             }
         }
+        \App\Models\StockMinusLog::lupakanTabel(); // tes sebelumnya mungkin sudah mengingat "tabel tidak ada"
     }
 }

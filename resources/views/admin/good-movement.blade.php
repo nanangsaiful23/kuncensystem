@@ -320,7 +320,7 @@
 <details class="gm-negstock">
     <summary>⚠️ {{ $negativeStockCount }} barang memiliki STOK MINUS — data ini bisa membuat perhitungan pergerakan/reorder salah. Klik untuk lihat & rapikan lewat Stock Opname.</summary>
     <table>
-        <thead><tr><th>Barang</th><th>Kategori</th><th>Merk</th><th class="tr">Stok Sistem</th></tr></thead>
+        <thead><tr><th>Barang</th><th>Kategori</th><th>Merk</th><th class="tr">Stok Sistem</th><th>Jadi Minus Karena</th></tr></thead>
         <tbody>
         @foreach($negativeStockGoods as $ng)
             <tr>
@@ -328,6 +328,13 @@
                 <td>{{ $ng->kategori ?? '-' }}</td>
                 <td>{{ $ng->merk ?? '-' }}</td>
                 <td class="tr" style="color:#dc2626;font-weight:700">{{ number_format($ng->stok) }}</td>
+                <td>
+                    @if($ng->penyebab_url)
+                        <a href="{{ url($ng->penyebab_url) }}">{{ $ng->penyebab }}</a>
+                    @else
+                        {{ $ng->penyebab ?? '-' }}
+                    @endif
+                </td>
             </tr>
         @endforeach
         </tbody>

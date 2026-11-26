@@ -23,11 +23,17 @@ class GoodLoadingDetail extends Model
     protected static function booted(): void
     {
         // Keep goods.last_stock in step with the history (see StockService).
+        // The hint says which action to blame when the stock goes minus.
         $sync = function (self $detail) {
-            \App\Services\StockService::queueGoodUnit($detail->good_unit_id);
+            $petunjuk = [
+                'aksi'            => $detail->wasRecentlyCreated ? 'loading' : 'edit_loading',
+                'good_loading_id' => (int) $detail->good_loading_id,
+            ];
+
+            \App\Services\StockService::queueGoodUnit($detail->good_unit_id, $petunjuk);
 
             if ($detail->wasChanged('good_unit_id')) {
-                \App\Services\StockService::queueGoodUnit($detail->getOriginal('good_unit_id'));
+                \App\Services\StockService::queueGoodUnit($detail->getOriginal('good_unit_id'), $petunjuk);
             }
         };
 
