@@ -27,13 +27,14 @@ trait ReturControllerBase
             {
                 if($status == null)
                 {
-                    $items = ReturItem::select(DB::raw('COUNT(retur_items.id) as total'), 'distributors.name as distributor_name', 'goods.name as good_name', 'units.name as unit_name', 'retur_items.created_at', 'retur_items.good_unit_id as id')
+                    $items = ReturItem::select(DB::raw('COUNT(retur_items.id) as total'), 'distributors.name as distributor_name', 'goods.name as good_name', 'types.name as type_name', 'units.name as unit_name', 'retur_items.created_at', 'retur_items.good_unit_id as id')
                                       ->join('goods', 'goods.id', 'retur_items.good_id')
+                                      ->leftJoin('types', 'types.id', 'goods.type_id')
                                       ->join('distributors', 'distributors.id', 'retur_items.last_distributor_id')
                                       ->join('good_units', 'good_units.id', 'retur_items.good_unit_id')
                                       ->join('units', 'units.id', 'good_units.unit_id')
                                       ->where('returned_type', null)
-                                      ->groupBy('retur_items.good_unit_id', 'distributors.name', 'goods.name', 'retur_items.created_at', 'units.name')->get();
+                                      ->groupBy('retur_items.good_unit_id', 'distributors.name', 'goods.name', 'types.name', 'retur_items.created_at', 'units.name')->get();
                 }
                 else
                     $items = ReturItem::where('returned_type', $status)->get();
@@ -42,13 +43,14 @@ trait ReturControllerBase
             {
                 if($status == null)
                 {
-                    $items = ReturItem::select(DB::raw('COUNT(retur_items.id) as total'), 'distributors.name as distributor_name', 'goods.name as good_name', 'units.name as unit_name', 'retur_items.created_at', 'retur_items.good_unit_id as id')
+                    $items = ReturItem::select(DB::raw('COUNT(retur_items.id) as total'), 'distributors.name as distributor_name', 'goods.name as good_name', 'types.name as type_name', 'units.name as unit_name', 'retur_items.created_at', 'retur_items.good_unit_id as id')
                                       ->join('goods', 'goods.id', 'retur_items.good_id')
+                                      ->leftJoin('types', 'types.id', 'goods.type_id')
                                       ->join('distributors', 'distributors.id', 'retur_items.last_distributor_id')
                                       ->join('good_units', 'good_units.id', 'retur_items.good_unit_id')
                                       ->join('units', 'units.id', 'good_units.unit_id')
                                       ->where('returned_type', null)
-                                      ->groupBy('retur_items.good_unit_id', 'distributors.name', 'goods.name', 'retur_items.created_at', 'units.name')->paginate($pagination);
+                                      ->groupBy('retur_items.good_unit_id', 'distributors.name', 'goods.name', 'types.name', 'retur_items.created_at', 'units.name')->paginate($pagination);
                 }
                 else
                     $items = ReturItem::where('returned_type', $status)->paginate($pagination);
@@ -153,7 +155,7 @@ trait ReturControllerBase
         {
             $data_journal['type']               = 'retur';
             $data_journal['journal_date']       = date('Y-m-d');
-            $data_journal['name']               = 'Retur barang ' . $item->good->name . ' dengan uang tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal['name']               = 'Retur barang ' . $item->good->getFullName() . ' dengan uang tanggal ' . displayDate(date('Y-m-d'));
             $data_journal['debit_account_id']   = Account::where('code', '1111')->first()->id;
             $data_journal['debit']              = $item->good_unit->buy_price * $data['qty-' . $request->type . '-' . $item_id];
             $data_journal['credit_account_id']  = Account::where('code', '1141')->first()->id;
@@ -169,7 +171,7 @@ trait ReturControllerBase
             $data_loading['loading_date'] = date('Y-m-d');
             $data_loading['distributor_id']   = $item->good->getLastBuy()->good_loading->distributor->id;
             $data_loading['total_item_price'] = unformatNumber($item->good_unit->buy_price * $data['qty-' . $request->type . '-' . $item_id]);
-            $data_loading['note']             = 'Loading barang retur ' . $item->good->name . ' (berupa barang)';
+            $data_loading['note']             = 'Loading barang retur ' . $item->good->getFullName() . ' (berupa barang)';
             $data_loading['payment']          = 'cash';
 
             $good_loading = GoodLoading::create($data_loading);
@@ -195,7 +197,7 @@ trait ReturControllerBase
             $data_journal_loading_retur['type']               = 'good_loading';
             $data_journal_loading_retur['type_id']            = $good_loading->id;
             $data_journal_loading_retur['journal_date']       = date('Y-m-d');
-            $data_journal_loading_retur['name']               = 'Loading barang retur ' . $item->good->name . ' (dari distributor berupa barang) tanggal ' . displayDate(date('Y-m-d'));
+            $data_journal_loading_retur['name']               = 'Loading barang retur ' . $item->good->getFullName() . ' (dari distributor berupa barang) tanggal ' . displayDate(date('Y-m-d'));
             $data_journal_loading_retur['debit_account_id']   = Account::where('code', '1141')->first()->id;
             $data_journal_loading_retur['debit']              = unformatNumber($data_loading['total_item_price']);
             $data_journal_loading_retur['credit_account_id']  = Account::where('code', '1141')->first()->id;

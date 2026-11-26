@@ -141,7 +141,7 @@
                   @foreach($d['items'] as $item)
                     @php
                       $gu = is_array($item) && is_numeric($item['good_unit_id'] ?? null) ? \App\Models\GoodUnit::withTrashed()->find($item['good_unit_id']) : null;
-                      $nama = $gu && $gu->good ? $gu->good->name . ' (' . optional($gu->unit)->name . ')' : 'ID satuan ' . (is_array($item) && is_scalar($item['good_unit_id'] ?? null) ? $item['good_unit_id'] : '?');
+                      $nama = $gu && $gu->good ? $gu->good->getFullName() . ' (' . optional($gu->unit)->name . ')' : 'ID satuan ' . (is_array($item) && is_scalar($item['good_unit_id'] ?? null) ? $item['good_unit_id'] : '?');
                     @endphp
                     <li>{{ $nama }} × {{ is_array($item) && is_scalar($item['quantity'] ?? null) ? $item['quantity'] : '?' }}
                         @ {{ is_array($item) && is_numeric($item['price'] ?? null) ? showRupiah($item['price']) : '?' }}</li>

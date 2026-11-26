@@ -113,7 +113,7 @@ trait StockOpnameControllerBase
                     $data_journal['type']               = 'good_loading';
                     $data_journal['type_id']            = $good_loading->id;
                     $data_journal['journal_date']       = date('Y-m-d');
-                    $data_journal['name']               = 'Loading barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate($good_loading->loading_date);
+                    $data_journal['name']               = 'Loading barang ' . $good_unit->good->getFullName() . ' stock opname tanggal ' . displayDate($good_loading->loading_date);
                     $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
                     $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
                     $data_journal['credit_account_id']  = Account::where('code', '5215')->first()->id;
@@ -167,7 +167,7 @@ trait StockOpnameControllerBase
                     $data_journal['type']               = 'transaction';
                     $data_journal['type_id']            = $transaction->id;
                     $data_journal['journal_date']       = date('Y-m-d');
-                    $data_journal['name']               = 'Transaksi barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate(date('Y-m-d'));
+                    $data_journal['name']               = 'Transaksi barang ' . $good_unit->good->getFullName() . ' stock opname tanggal ' . displayDate(date('Y-m-d'));
                     $data_journal['debit_account_id']   = Account::where('code', '5215')->first()->id;
                     $data_journal['debit']              = unformatNumber($transaction->total_item_price);
                     $data_journal['credit_account_id']  = Account::where('code', '1141')->first()->id;

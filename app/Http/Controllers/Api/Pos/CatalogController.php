@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Good;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -22,23 +23,31 @@ class CatalogController extends Controller
     {
         [$since, $serverTime] = $this->since($request);
 
-        $goods = DB::table('goods')->select('id', 'code', 'name', 'last_stock', 'is_discontinued', 'deleted_at');
+        // Nama dikirim lengkap dengan jenisnya ("Buku tulis sidu 58"), sama
+        // seperti di aplikasi web; lihat Good::formatName.
+        $goods = DB::table('goods')
+            ->leftJoin('types', 'types.id', '=', 'goods.type_id')
+            ->select('goods.id', 'goods.code', 'goods.name', 'types.name as type_name', 'goods.last_stock', 'goods.is_discontinued', 'goods.deleted_at');
 
         if ($since) {
             $changedUnits = DB::table('good_units')
                 ->where(fn ($q) => $q->where('updated_at', '>', $since)->orWhere('deleted_at', '>', $since))
                 ->pluck('good_id')->unique()->values()->all();
 
+            // Jenis yang diganti namanya ikut mengubah nama tampilan barangnya.
+            $changedTypes = DB::table('types')->where('updated_at', '>', $since)->pluck('id')->all();
+
             // *IntegerInRaw: MariaDB 10.4 mengembalikan 0 baris untuk IN (?, ?, ...) berisi >= 1000
             // parameter (in_predicate_conversion_threshold). ID ditulis langsung sebagai angka.
-            $goods->where(fn ($q) => $q->where('updated_at', '>', $since)
-                                       ->orWhere('deleted_at', '>', $since)
-                                       ->orWhereIntegerInRaw('id', $changedUnits));
+            $goods->where(fn ($q) => $q->where('goods.updated_at', '>', $since)
+                                       ->orWhere('goods.deleted_at', '>', $since)
+                                       ->orWhereIntegerInRaw('goods.id', $changedUnits)
+                                       ->orWhereIntegerInRaw('goods.type_id', $changedTypes));
         } else {
-            $goods->whereNull('deleted_at');
+            $goods->whereNull('goods.deleted_at');
         }
 
-        $goods = $goods->orderBy('id')->get();
+        $goods = $goods->orderBy('goods.id')->get();
 
         $units = DB::table('good_units')
             ->join('units', 'units.id', '=', 'good_units.unit_id')
@@ -54,7 +63,7 @@ class CatalogController extends Controller
             'goods'       => $goods->map(fn ($g) => [
                 'id'              => (int) $g->id,
                 'code'            => $g->code,
-                'name'            => $g->name,
+                'name'            => Good::formatName($g->type_name, $g->name),
                 'is_active'       => $g->deleted_at === null,
                 'is_discontinued' => (bool) $g->is_discontinued,
                 'stock_estimate'  => (float) $g->last_stock,

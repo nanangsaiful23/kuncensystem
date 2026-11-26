@@ -803,7 +803,7 @@
             <div class="product-card">
               <input type="checkbox" class="product-checkbox">
               <div class="product-info">
-                <div class="product-name">[{{ $good->getType() }}] {{ $good->name }}</div>
+                <div class="product-name">{{ $good->getFullName() }}</div>
                 <div class="product-meta">
                   <span class="category-badge" style="background-color: @if($good->category->color == null) #ede8ff @else {{ $good->category->color }} @endif">
                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
@@ -855,7 +855,7 @@
                         <button type="button" class="action-btn danger" data-toggle="modal" data-target="#modal-danger-unit-{{$unit->id}}">Hapus harga</button>
                       </div>
 
-                      @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->name . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
+                      @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->getFullName() . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
 
                       <form id="delete-unit-{{$unit->id}}" action="{{ url($role . '/good/' . $good->id . '/deletePrice/' . $unit->id) }}" method="POST" style="display: none;">
                         {{ csrf_field() }}
@@ -902,7 +902,7 @@
                     <button class="action-btn danger icon-only" data-tip="Hapus" data-toggle="modal" data-target="#modal-danger-{{$good->id}}">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                     </button>
-                    @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
+                    @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->getFullName(), 'formName' => 'delete-form-' . $good->id])
 
                     <form id="delete-form-{{$good->id}}" action="{{ url($role . '/good/' . $good->id . '/delete') }}" method="POST" style="display: none;">
                       {{ csrf_field() }}
@@ -960,7 +960,7 @@
           var htmlResult = '';
           for (var i = 0; i < r.length; i++) 
           {
-            htmlResult += '<div class="product-card"><input type="checkbox" class="product-checkbox"><div class="product-info"><div class="product-name">[ ' + r[i].good_type + '] ' + r[i].short_name + '</div><div class="product-meta"><span class="category-badge" style="background-color: ';
+            htmlResult += '<div class="product-card"><input type="checkbox" class="product-checkbox"><div class="product-info"><div class="product-name">' + r[i].name + '</div><div class="product-meta"><span class="category-badge" style="background-color: ';
 
             if(r[i].category.color == null)
               htmlResult += '#ede8ff';

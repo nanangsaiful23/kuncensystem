@@ -220,7 +220,7 @@ trait TransactionControllerBase
                 if ($good_unit == null || $good_unit->good == null || $good_unit->unit == null) {
                     $errors[] = $label . ' baris ' . ($i + 1) . ': satuan barang tidak ditemukan (ID ' . $good_unit_id . '). Cek data satuan barang ini.';
                 } elseif (! is_numeric($quantity) || $quantity <= 0) {
-                    $errors[] = $label . ' ' . $good_unit->good->name . ': jumlah harus lebih dari 0.';
+                    $errors[] = $label . ' ' . $good_unit->good->getFullName() . ': jumlah harus lebih dari 0.';
                 }
             }
         }

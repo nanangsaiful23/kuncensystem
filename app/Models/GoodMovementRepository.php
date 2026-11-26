@@ -473,26 +473,17 @@ class GoodMovementRepository
     // =========================================================================
 
     /**
-     * Gabungkan tipe + nama barang jadi satu string tampilan, mis.
-     * tipe="Kaleng", nama="Sarden ABC" → "Kaleng sarden abc" → ucfirst
-     * jadi "Kaleng sarden abc". Meniru persis Good::getFullName() supaya
-     * penamaan konsisten di semua laporan, tapi tidak perlu load relasi
-     * Eloquent per baris (join sekali di query, bukan N+1 query).
+     * Nama tampilan "Tipe nama" — aturannya satu tempat di Good::formatName
+     * (dipakai semua halaman); di sini cuma tambah placeholder untuk data
+     * lama yang goods.name-nya kosong/NULL supaya laporan tidak kosong.
      */
     private function formatGoodName(?string $tipe, ?string $nama): string
     {
-        // Data lama kadang punya goods.name kosong/NULL — jangan sampai bikin
-        // laporan error, tampilkan placeholder yang jelas alih-alih crash.
-        $nama = trim((string) $nama);
-        if ($nama === '') {
+        if (trim((string) $nama) === '') {
             $nama = '(tanpa nama)';
         }
 
-        $tipe = trim((string) $tipe);
-        if ($tipe === '' || $tipe === '-') {
-            return ucfirst($nama);
-        }
-        return ucfirst(strtolower($tipe) . ' ' . $nama);
+        return Good::formatName($tipe, $nama);
     }
 
     private function classify(int $totalTrx, int $daysSinceTrx, float $stok, int $totalTrxLT = 0): array

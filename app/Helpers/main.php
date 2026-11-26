@@ -440,6 +440,12 @@
         return $result;
     }
 
+    /** Nama barang tampilan "Jenis nama" dari kolom mentah; aturannya di Good::formatName. */
+    function formatGoodName($type, $name)
+    {
+        return Good::formatName($type, $name);
+    }
+
     function showShortName($string)
     {
         if(strlen($string) > 30){

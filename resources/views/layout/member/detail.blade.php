@@ -25,7 +25,7 @@
                   @foreach($member->getGoodRecords() as $good)
                     <tr>
                       <td>{{ $i++ }}</td>
-                      <td>{{ $good->good_name }}</td>
+                      <td>{{ formatGoodName($good->type_name, $good->good_name) }}</td>
                       <td>{{ $good->unit_name }}</td>
                       <td>{{ $good->total }}</td>
                     </tr>

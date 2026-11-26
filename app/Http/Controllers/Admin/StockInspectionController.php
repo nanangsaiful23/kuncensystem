@@ -309,7 +309,7 @@ class StockInspectionController extends Controller
         $unit = $this->smallestUnit($good);
 
         if ($unit === null) {
-            return response()->json(['message' => 'Barang ' . $good->name . ' belum punya satuan.'], 422);
+            return response()->json(['message' => 'Barang ' . $good->getFullName() . ' belum punya satuan.'], 422);
         }
 
         $checked = StockInspectionDetail::where('stock_inspection_id', $inspection->id)

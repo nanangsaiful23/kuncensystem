@@ -21,7 +21,7 @@
               <tbody id="table-good">
                 @foreach($loadings as $loading)
                   <tr>
-                    <td>{{ $loading->good_unit->good->name }}</td>
+                    <td>{{ $loading->good_unit->good->getFullName() }}</td>
                     <td>{{ displayDate($loading->expiry_date) }}</td>
                   </tr>
                 @endforeach

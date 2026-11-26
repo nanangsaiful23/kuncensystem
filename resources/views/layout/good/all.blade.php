@@ -76,7 +76,7 @@
                   <tr>
                     <td class="col-cat">{{ $good->category->name }}</td>
                     <td class="col-name">
-                      <h4>{{ '[' . $good->getType() . '] ' . $good->name }}</h4>
+                      <h4>{{ $good->getFullName() }}</h4>
                       @if($good->brand != null) <h5>Brand: {{ $good->brand->name }}</h5>@endif
                       @if(isSuperadmin())
                         <i class="fa fa-truck green" aria-hidden="true"></i> {{ $good->getDistributor()->name }} @if($good->getLastBuy() != null) {{ ' (' . $good->getLastBuy()->good_loading->note . ')' }} @endif
@@ -102,7 +102,7 @@
                         @if($role == 'admin')
                           <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{ 'unit-' . $unit->id }}"><i class="fa fa-times red" aria-hidden="true"></i> Hapus harga</button>
 
-                          @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->name . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
+                          @include('layout' . '.delete-modal', ['id' => 'unit-' . $unit->id, 'data' => 'Harga ' . $good->getFullName() . ' ' . $unit->unit->name, 'formName' => 'delete-unit-' . $unit->id])
 
                           <form id="delete-unit-{{$unit->id}}" action="{{ url($role . '/good/' . $good->id . '/deletePrice/' . $unit->id) }}" method="POST" style="display: none;">
                             {{ csrf_field() }}
@@ -125,7 +125,7 @@
                       @if($good->getStock() == 0)
                         <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$good->id}}"><i class="fa fa-times red" aria-hidden="true"></i></button>
 
-                        @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->name, 'formName' => 'delete-form-' . $good->id])
+                        @include('layout' . '.delete-modal', ['id' => $good->id, 'data' => $good->getFullName(), 'formName' => 'delete-form-' . $good->id])
 
                         <form id="delete-form-{{$good->id}}" action="{{ url($role . '/good/' . $good->id . '/delete') }}" method="POST" style="display: none;">
                           {{ csrf_field() }}
@@ -176,7 +176,7 @@
           {
             var r = result.goods;
             for (var i = 0; i < r.length; i++) {
-              htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>[" + r[i].good_type + '] ' + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
+              htmlResult += "<tr><td>" + r[i].category.name + "</td><td><h4>" + r[i].name + "</h4><h5>Brand:" + r[i].brand_name + "</h5>";
 
               var username = "{{ \Auth::user()->email }}";
               var role = "{{ $role }}";

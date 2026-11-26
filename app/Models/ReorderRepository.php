@@ -132,6 +132,7 @@ class ReorderRepository
             ->groupBy('gu_base.good_id');
 
         $goodsQuery = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
+            ->leftJoin('types', 'types.id', '=', 'goods.type_id')
             ->leftJoin('brands', 'brands.id', '=', 'goods.brand_id')
             ->leftJoinSub($baseUnitSub, 'base_u', 'base_u.good_id', '=', 'goods.id')
             ->leftJoin('good_units AS gu', function ($j) {
@@ -145,6 +146,7 @@ class ReorderRepository
                 'goods.id                  AS good_id',
                 'goods.code                AS kode',
                 'goods.name                AS nama',
+                'types.name                AS tipe',
                 'goods.last_stock          AS stok_sekarang',
                 'goods.last_distributor_id AS distributor_id',
                 'categories.id             AS category_id',
@@ -304,7 +306,7 @@ class ReorderRepository
             $items->push((object) [
                 'good_id'             => $gid,
                 'kode'                => $good->kode,
-                'nama'                => $good->nama,
+                'nama'                => Good::formatName($good->tipe, $good->nama),
                 'kategori'            => $good->kategori ?? '-',
                 'merk'                => $good->merk     ?? '-',
                 'satuan'              => $good->satuan   ?? '-',

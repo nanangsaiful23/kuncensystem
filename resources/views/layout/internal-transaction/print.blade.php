@@ -35,7 +35,7 @@
 					<tr>
 						<td style="text-align: left !important;">
 							@if($detail->type == 'retur') Retur: @endif
-							<b>{{ showShortName($detail->good_unit->good->name) }}</b>
+							<b>{{ showShortName($detail->good_unit->good->getFullName()) }}</b>
 						</td>
 					</tr>
 					<tr>

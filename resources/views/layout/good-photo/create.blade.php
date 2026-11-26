@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> Form Tambah Foto Barang <a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $good->name }} ({{ $good->code }})</a></h3>
+            <h3 class="box-title"> Form Tambah Foto Barang <a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $good->getFullName() }} ({{ $good->code }})</a></h3>
           </div>
 
           {!! Form::model(old(),array('url' => route($role . '.good-photo.store', [$good->id]), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal')) !!}

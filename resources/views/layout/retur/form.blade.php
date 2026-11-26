@@ -48,7 +48,7 @@
                     <!-- <div> -->
                         <option value="null">Silahkan pilih barang</option>
                         @foreach($goods as $good)
-                        <option value="{{ $good->id }}">{{ $good->name . ' ' }}</option>
+                        <option value="{{ $good->id }}">{{ $good->getFullName() }}</option>
                         @endforeach
                     <!-- </div> -->
                 </select>

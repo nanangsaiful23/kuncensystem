@@ -142,11 +142,10 @@ class OwnerSummaryRepository
                 $sold = $s ? (float) $s->total_qty_terjual / $baseQty : 0;
                 $perDay = $sold / $days;
                 $stock = (float) $g->last_stock;
-                $tipe = trim((string) $g->tipe);
 
                 return (object) [
                     'id' => $g->id, 'code' => $g->code,
-                    'name' => ($tipe === '' || $tipe === '-') ? ucfirst($g->name) : ucfirst(strtolower($tipe) . ' ' . $g->name),
+                    'name' => Good::formatName($g->tipe, $g->name),
                     'satuan' => $g->satuan ?? '-', 'stock' => $stock,
                     'buy_price' => (float) $g->buy_price, 'value' => $stock * (float) $g->buy_price,
                     'distributor' => $g->distributor ?? '-',

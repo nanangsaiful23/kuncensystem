@@ -259,11 +259,8 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
                 {
                     $good = Good::find($data['names'][$i]);
                     $data_good['code'] = $data['barcodes'][$i];
-                    if($good->getType() != '-')
-                        $data_good['name'] = str_replace(strtolower($good->getType()), "", lcfirst($data['name_temps'][$i]));
-                    else
-                        $data_good['name'] = $data['name_temps'][$i];
-                    $data_good['name'] = ltrim($data_good['name']);
+                    // Nama di tabel loading adalah nama lengkap ("Jenis nama"); simpan tanpa awalan jenisnya.
+                    $data_good['name'] = Good::nameWithoutType($good->getType(), $data['name_temps'][$i]);
                     $data_good['total_loading'] = $good->total_loading;
                     $data_good['total_transaction'] = $good->total_transaction;
 
@@ -314,7 +311,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
                             // {
                                 $data_payment_buy['type']               = 'other_payment';
                                 $data_payment_buy['journal_date']       = date('Y-m-d');
-                                $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                                $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->getFullName() . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
                                 $data_payment_buy['debit_account_id']   = $account_buy->id;
                                 $data_payment_buy['debit']              = $amount;
                                 $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
@@ -344,7 +341,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
                             // {
                                 $data_payment_buy['type']               = 'other_payment';
                                 $data_payment_buy['journal_date']       = date('Y-m-d');
-                                $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                                $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->getFullName() . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
                                 $data_payment_buy['debit_account_id']   = $account_buy->id;
                                 $data_payment_buy['debit']              = $amount;
                                 $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;
@@ -642,11 +639,8 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
                 $good_unit = $good_loading_detail->good_unit;
 
                 $good = Good::find($good_unit->good_id);
-                if($good->getType() != '-')
-                    $data_good['name'] = str_replace(strtolower($good->getType()), "", lcfirst($data['name_temps'][$j]));
-                else
-                    $data_good['name'] = $data['name_temps'][$j];
-                $data_good['name'] = ltrim($data_good['name']);
+                // Nama di tabel loading adalah nama lengkap ("Jenis nama"); simpan tanpa awalan jenisnya.
+                $data_good['name'] = Good::nameWithoutType($good->getType(), $data['name_temps'][$j]);
                 $data_good['total_loading'] = $good->total_loading;
                 $data_good['total_transaction'] = $good->total_transaction;
 
@@ -677,7 +671,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
 
                         $data_payment_buy['type']               = 'other_payment';
                         $data_payment_buy['journal_date']       = date('Y-m-d');
-                        $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                        $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->getFullName() . ' id good unit ' . $good_unit->id . ' (Loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
                         $data_payment_buy['debit_account_id']   = $account_buy->id;
                         $data_payment_buy['debit']              = $amount;
                         $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
@@ -695,7 +689,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
 
                         $data_payment_buy['type']               = 'other_payment';
                         $data_payment_buy['journal_date']       = date('Y-m-d');
-                        $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
+                        $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->getFullName() . ' id good unit ' . $good_unit->id . ' dari loading barang ' . $good_loading->distributor->name . ' tanggal ' . displayDate($good_loading->loading_date) . ')';
                         $data_payment_buy['debit_account_id']   = $account_buy->id;
                         $data_payment_buy['debit']              = $amount;
                         $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;

@@ -107,6 +107,10 @@ class DistributorController extends Controller
         elseif($type == 'rugi')
             $items = $distributor->totalRugi(20);
 
+        // Daftar barang (aset/untung/rugi) cuma membawa goods.name: tampilkan nama lengkap.
+        if(in_array($type, ['aset', 'untung', 'rugi']))
+            \App\Models\Good::applyFullNames($items);
+
         return view('admin.layout.page', compact('default', 'distributor', 'type', 'items'));
     }
 

@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"><a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $default['page_name'] . ' ' . $good->name }}</a></h3>
+            <h3 class="box-title"><a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $default['page_name'] . ' ' . $good->getFullName() }}</a></h3>
             <!-- @include('layout.search-form') -->
           </div>
           <div class="box-body">

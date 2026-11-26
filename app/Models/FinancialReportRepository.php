@@ -276,6 +276,7 @@ class FinancialReportRepository
                 ]);
             }
         }
+        Good::applyFullNames($barangMinus, 'good_id', 'nama');
 
         // Goods in the retur box (damaged, waiting to go back to the
         // distributor) are out of the shelf stock but still owned: the

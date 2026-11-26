@@ -92,7 +92,7 @@
                                             {{ $detail->good->code }}
                                         </td>
                                         <td>
-                                            {{ $detail->good->name . ' ' . $detail->good_unit->unit->name }}
+                                            {{ $detail->good->getFullName() . ' ' . $detail->good_unit->unit->name }}
                                         </td>
                                         <td>
                                             {{ $detail->quantity }}

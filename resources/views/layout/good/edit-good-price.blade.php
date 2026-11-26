@@ -6,7 +6,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $good->name }}</h3>
+            <h3 class="box-title"> {{ $default['page_name'] . ' ' . $good->getFullName() }}</h3>
           </div>
 
 		      {!! Form::model($good, array('url' => route($role . '.good.update-price', $good->id), 'method' => 'POST', 'class' => 'form-horizontal')) !!}

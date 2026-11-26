@@ -49,7 +49,11 @@
                     <tr>
                       <td>{{ $item->created_at }}</td>
                       <td>{{ $item->distributor_name }}</td>
-                      <td>{{ $item->good_name . ' ' . $item->unit_name }}</td>
+                      @if($status == 'null')
+                        <td>{{ formatGoodName($item->type_name, $item->good_name) . ' ' . $item->unit_name }}</td>
+                      @else
+                        <td>{{ optional($item->good)->getFullName() . ' ' . optional(optional($item->good_unit)->unit)->name }}</td>
+                      @endif
                       @if($status == 'null')
                         <td>{{ $item->total }}</td>
                         <td>Belum diretur<br>
@@ -61,10 +65,10 @@
                                 <div class="modal-header">
                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span></button>
-                                    <h4 class="modal-title">Retur Barang {{ $item->good_name . ' ' . $item->unit_name  }}</h4>
+                                    <h4 class="modal-title">Retur Barang {{ formatGoodName($item->type_name, $item->good_name) . ' ' . $item->unit_name  }}</h4>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Anda yakin ingin meretur {{ $item->good_name . ' ' . $item->unit_name  }}?</p>
+                                    <p>Anda yakin ingin meretur {{ formatGoodName($item->type_name, $item->good_name) . ' ' . $item->unit_name  }}?</p>
                                     Masukkan jumlah barang yang ingin diretur: <input id='qty-retur-{{ $item->id }}'>
                                 </div>
                                 <div class="modal-footer">

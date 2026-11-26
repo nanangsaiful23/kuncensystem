@@ -42,13 +42,10 @@ class SalesReportRepository
         return [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()];
     }
 
-    /** Same as Good::getFullName(): type + name. */
+    /** Nama tampilan "Tipe nama"; aturannya satu tempat di Good::formatName. */
     private function formatGoodName(?string $tipe, ?string $nama): string
     {
-        $tipe = trim((string) $tipe);
-        $nama = (string) $nama;
-
-        return ($tipe === '' || $tipe === '-') ? ucfirst($nama) : ucfirst(strtolower($tipe) . ' ' . $nama);
+        return \App\Models\Good::formatName($tipe, $nama);
     }
 
     /** Lowest and highest transaction id created in the period. */

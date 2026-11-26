@@ -57,7 +57,7 @@
                                             {{ $detail->good->code }}</a>
                                         </td>
                                         <td>
-                                            {{ $detail->good->name }}
+                                            {{ $detail->good->getFullName() }}
                                         </td>
                                         <td>
                                             {{ $detail->good_unit->unit->name }}

@@ -64,7 +64,7 @@
                 <tr id="row-data-{{ $i }}" data-i="{{ $i }}" class="{{ $i % 2 ? 'group-odd' : 'group-even' }}">
                   <td class="td-no">{{ $i }}<input type="hidden" name="ids[]" id="id-{{ $i }}" value="{{ $detail->id }}"></td>
                   <td><input type="text" name="barcodes[]" class="fc" id="barcode-{{ $i }}" value="{{ $detail->good_unit->good->code }}" readonly tabindex="-1"></td>
-                  <td><input type="text" name="name_temps[]" class="fc" id="name_temp-{{ $i }}" value="{{ $detail->good_unit->good->name }}" readonly tabindex="-1" title="{{ $detail->good_unit->good->name }}" style="font-weight:600"></td>
+                  <td><input type="text" name="name_temps[]" class="fc" id="name_temp-{{ $i }}" value="{{ $detail->good_unit->good->getFullName() }}" readonly tabindex="-1" title="{{ $detail->good_unit->good->getFullName() }}" style="font-weight:600"></td>
                   <td><input type="text" name="units[]" class="fc" id="unit-{{ $i }}" value="{{ $detail->good_unit->unit->name }}" readonly tabindex="-1"></td>
                   <td class="col-qty"><input type="text" name="quantities[]" class="fc qty" id="quantity-{{ $i }}" value="{{ $detail->quantity }}" autocomplete="off" inputmode="decimal" oninput="editPrice('{{ $i }}')"></td>
                   <td @if(!canMenu('info.harga_beli')) style="display:none" @endif><input type="text" name="buy_prices[]" class="fc num" id="buy-{{ $i }}" value="{{ $detail->buy_price }}" readonly tabindex="-1"></td>

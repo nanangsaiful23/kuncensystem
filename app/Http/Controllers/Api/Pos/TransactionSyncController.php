@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Pos;
 use App\Cashier;
 use App\Http\Controllers\Base\TransactionControllerBase;
 use App\Http\Controllers\Controller;
+use App\Models\Good;
 use App\Models\GoodUnit;
 use App\Models\Member;
 use App\Models\PosDevice;
@@ -121,6 +122,7 @@ class TransactionSyncController extends Controller
         $details = DB::table('transaction_details')
             ->leftJoin('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
             ->leftJoin('goods', 'goods.id', '=', 'good_units.good_id')
+            ->leftJoin('types', 'types.id', '=', 'goods.type_id')
             ->leftJoin('units', 'units.id', '=', 'good_units.unit_id')
             ->whereIntegerInRaw('transaction_details.transaction_id', $ids)
             ->whereNull('transaction_details.deleted_at')
@@ -128,7 +130,7 @@ class TransactionSyncController extends Controller
             ->get([
                 'transaction_details.transaction_id', 'transaction_details.good_unit_id', 'transaction_details.quantity',
                 'transaction_details.selling_price', 'transaction_details.discount_price', 'transaction_details.sum_price',
-                'good_units.good_id', 'goods.code', 'goods.name', 'units.code as unit_code', 'units.name as unit_name',
+                'good_units.good_id', 'goods.code', 'goods.name', 'types.name as type_name', 'units.code as unit_code', 'units.name as unit_name',
             ])
             ->groupBy('transaction_id');
 
@@ -161,7 +163,7 @@ class TransactionSyncController extends Controller
                         'good_id'      => $d->good_id !== null ? (int) $d->good_id : null,
                         'good_unit_id' => (int) $d->good_unit_id,
                         'code'         => $d->code,
-                        'name'         => $d->name,
+                        'name'         => $d->good_id !== null ? Good::formatName($d->type_name, $d->name) : $d->name,
                         'unit'         => $d->unit_code ?: $d->unit_name,
                         'quantity'     => $num($d->quantity),
                         'price'        => $num($d->selling_price),
@@ -343,7 +345,7 @@ class TransactionSyncController extends Controller
                     $fail($row . ': satuan barang tidak ditemukan (ID ' . (is_scalar($unitId) ? $unitId : '?') . ').');
                     continue;
                 }
-                $name = $goodUnit->good->name;
+                $name = $goodUnit->good->getFullName();
                 if (! is_numeric($qty) || $qty <= 0) {
                     $fail($row . ' ' . $name . ': jumlah harus lebih dari 0.');
                     continue;

@@ -7,7 +7,7 @@
       <div class="col-xs-12">
         <div class="box">
           <div class="box-header">
-            <h3 class="box-title">Daftar Gambar <a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $good->name }} ({{ $good->code }})</a></h3>
+            <h3 class="box-title">Daftar Gambar <a href="{{ url($role . '/good/' . $good->id . '/detail') }}">{{ $good->getFullName() }} ({{ $good->code }})</a></h3>
           </div>
           <div class="box-body" style="overflow-x:scroll">
             @foreach($good->good_photos as $photo)
@@ -16,7 +16,7 @@
 
                 <button type="button" class="no-btn" data-toggle="modal" data-target="#modal-danger-{{$photo->id}}"><i class="fa fa-times red" aria-hidden="true"></i> Hapus foto</button>
 
-                @include('layout' . '.delete-modal', ['id' => $photo->id, 'data' => 'foto ' . $good->name, 'formName' => 'delete-form-' . $photo->id])
+                @include('layout' . '.delete-modal', ['id' => $photo->id, 'data' => 'foto ' . $good->getFullName(), 'formName' => 'delete-form-' . $photo->id])
 
                 <form id="delete-form-{{$photo->id}}" action="{{ url($role . '/good/' . $good->id . '/photo/' . $photo->id . '/delete') }}" method="POST" style="display: none;">
                   {{ csrf_field() }}

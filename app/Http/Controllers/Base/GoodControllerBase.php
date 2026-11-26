@@ -642,7 +642,7 @@ trait GoodControllerBase
 
                 $data_payment_buy['type']               = 'other_payment';
                 $data_payment_buy['journal_date']       = date('Y-m-d');
-                $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . ' (dari menu riwayat perubahan harga jual)';
+                $data_payment_buy['name']               = 'Laba kenaikan harga barang ' . $good_unit->good->getFullName() . ' id good unit ' . $good_unit->id . ' (dari menu riwayat perubahan harga jual)';
                 $data_payment_buy['debit_account_id']   = $account_buy->id;
                 $data_payment_buy['debit']              = $amount;
                 $data_payment_buy['credit_account_id']  = Account::where('code', '5215')->first()->id;
@@ -660,7 +660,7 @@ trait GoodControllerBase
 
                 $data_payment_buy['type']               = 'other_payment';
                 $data_payment_buy['journal_date']       = date('Y-m-d');
-                $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->name . ' id good unit ' . $good_unit->id . '(dari menu riwayat perubahan harga jual)';
+                $data_payment_buy['name']               = $account_buy->name . ' (penyusutan harga barang ' . $good_unit->good->getFullName() . ' id good unit ' . $good_unit->id . '(dari menu riwayat perubahan harga jual)';
                 $data_payment_buy['debit_account_id']   = $account_buy->id;
                 $data_payment_buy['debit']              = $amount;
                 $data_payment_buy['credit_account_id']  = Account::where('code', '1141')->first()->id;
@@ -799,7 +799,7 @@ trait GoodControllerBase
                     $data_journal['type']               = 'good_loading';
                     $data_journal['type_id']            = $good_loading->id;
                     $data_journal['journal_date']       = date('Y-m-d');
-                    $data_journal['name']               = 'Loading barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate($good_loading->loading_date);
+                    $data_journal['name']               = 'Loading barang ' . $good_unit->good->getFullName() . ' stock opname tanggal ' . displayDate($good_loading->loading_date);
                     $data_journal['debit_account_id']   = Account::where('code', '1141')->first()->id;
                     $data_journal['debit']              = unformatNumber($good_loading->total_item_price);
                     $data_journal['credit_account_id']  = Account::where('code', '5215')->first()->id;
@@ -852,7 +852,7 @@ trait GoodControllerBase
                     $data_journal['type']               = 'transaction';
                     $data_journal['type_id']            = $transaction->id;
                     $data_journal['journal_date']       = date('Y-m-d');
-                    $data_journal['name']               = 'Transaksi barang ' . $good_unit->good->name . ' stock opname tanggal ' . displayDate(date('Y-m-d'));
+                    $data_journal['name']               = 'Transaksi barang ' . $good_unit->good->getFullName() . ' stock opname tanggal ' . displayDate(date('Y-m-d'));
                     $data_journal['debit_account_id']   = Account::where('code', '5215')->first()->id;
                     $data_journal['debit']              = unformatNumber($transaction->total_item_price);
                     $data_journal['credit_account_id']  = Account::where('code', '1141')->first()->id;
@@ -1027,9 +1027,10 @@ trait GoodControllerBase
         $today = Carbon::now();
         $old_days = $today->subDays($time_limit);
 
-        $goods = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity) AS total, goods.name as good_name, units.name as unit_name, good_photos.location, good_units.id as guid'))
+        $goods = TransactionDetail::select(DB::raw('SUM(transaction_details.quantity) AS total, goods.name as good_name, types.name as type_name, units.name as unit_name, good_photos.location, good_units.id as guid'))
                                   ->join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                   ->join('goods', 'goods.id', 'good_units.good_id')
+                                  ->leftJoin('types', 'types.id', 'goods.type_id')
                                   ->join('units', 'units.id', 'good_units.unit_id')
                                   ->join('good_photos', 'goods.id', 'good_photos.good_id')
                                   ->whereDate('transaction_details.created_at', '>=', $old_days)
@@ -1038,6 +1039,7 @@ trait GoodControllerBase
                                   ->where('transaction_details.type', 'normal')
                                   ->orderBy('total', 'desc')
                                   ->groupBy('goods.name')
+                                  ->groupBy('types.name')
                                   ->groupBy('units.name')
                                   ->groupBy('good_photos.location')
                                   ->groupBy('good_units.id')
@@ -1073,6 +1075,8 @@ trait GoodControllerBase
           $totalCount = DB::select("SELECT COUNT(*) as total " . $query);
 
           $result = DB::select("SELECT goods.id, goods.code, goods.name, base_price.base_price, base_price.quantity as base_qty, good_units.selling_price, units.quantity, goods.last_stock " . $query . " LIMIT " . $perPage . " OFFSET " . ($currentPage - 1) * $perPage);
+
+          Good::applyFullNames($result);
 
           $paginator = new \Illuminate\Pagination\LengthAwarePaginator($result, sizeof($totalCount), $perPage, $currentPage, ['path' => url('/admin/good/wholesalePrice')]);
           

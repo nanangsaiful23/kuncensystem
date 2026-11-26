@@ -22,7 +22,7 @@
                 @foreach($brand->goods as $good)
                   <tr>
                     <td>{{ $good->code }}</td>
-                    <td>{{ $good->name }}</td>
+                    <td>{{ $good->getFullName() }}</td>
                   </tr>
                 @endforeach
               </tbody>

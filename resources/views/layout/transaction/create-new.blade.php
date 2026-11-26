@@ -274,7 +274,7 @@
                       @foreach($goods as $good)
                         <div class="col-sm-2" style="text-align: center; background-color: white; margin: 2px; border: black solid 2px; border-radius: 5px; height: 180px; width: 200px; cursor: pointer;" onclick="searchByKeyword('all_barcode', '{{ $good->guid }}')"> 
                           <img src="{{ URL::to('image/' . $good->location) }}" style="width: 120px; display: block; margin: auto; margin-top: 5px; margin-bottom: 3px; border-radius: 5px;">
-                          {{ $good->good_name . ' ' . $good->unit_name }}
+                          {{ formatGoodName($good->type_name, $good->good_name) . ' ' . $good->unit_name }}
                         </div>
                       @endforeach
                   </div>

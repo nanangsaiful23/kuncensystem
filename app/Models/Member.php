@@ -104,9 +104,10 @@ class Member extends Model
                                   ->join('good_units', 'good_units.id', 'transaction_details.good_unit_id')
                                   ->join('units', 'units.id', 'good_units.unit_id')
                                   ->join('goods', 'goods.id', 'good_units.good_id')
-                                  ->select('goods.name as good_name', 'units.name as unit_name', DB::raw('SUM(transaction_details.quantity) as total'))
+                                  ->leftJoin('types', 'types.id', 'goods.type_id')
+                                  ->select('goods.name as good_name', 'types.name as type_name', 'units.name as unit_name', DB::raw('SUM(transaction_details.quantity) as total'))
                                   ->where('transactions.member_id', $this->id)
-                                  ->groupBy('goods.name', 'units.name')
+                                  ->groupBy('goods.name', 'types.name', 'units.name')
                                   ->orderBy('total', 'desc')
                                   ->get();
 

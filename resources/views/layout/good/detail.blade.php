@@ -23,7 +23,7 @@
                                     <td colspan="3"><i>Informasi barang</i></td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3"><h2>{{ ucwords($good->name) }}</h2></td>
+                                    <td colspan="3"><h2>{{ $good->getFullName() }}</h2></td>
                                 </tr>
                                 <tr>
                                     <td>Barcode</td>

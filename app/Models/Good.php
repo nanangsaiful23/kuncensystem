@@ -35,13 +35,90 @@ class Good extends Model
         });
     }
 
+    /**
+     * Nama barang untuk ditampilkan: "Jenis nama", mis. jenis "Buku" + nama
+     * "tulis sidu 58" → "Buku tulis sidu 58". Jenis tidak diulang kalau nama
+     * sudah diawali jenisnya ("Pasta gigi Ciptadent"). Pakai ini (atau
+     * getFullName / helper formatGoodName) di semua tampilan supaya seragam.
+     */
+    public static function formatName($type, $name): string
+    {
+        $name = trim((string) $name);
+        $type = trim((string) $type);
+
+        if ($type === '' || $type === '-' || self::startsWithType($name, $type))
+            return ucfirst($name);
+
+        return ucfirst(trim(strtolower($type) . ' ' . $name));
+    }
+
+    /**
+     * Kebalikan formatName: buang jenis di AWAL nama lengkap yang diketik di
+     * form (mis. nama di tabel loading) sebelum disimpan ke goods.name.
+     * Hanya awalan yang dibuang; kata jenis di tengah nama tetap utuh.
+     */
+    public static function nameWithoutType($type, $fullName): string
+    {
+        $fullName = (string) $fullName;
+        $type     = trim((string) $type);
+
+        if ($type === '' || $type === '-')
+            return $fullName;
+
+        $name = ltrim(lcfirst($fullName));
+        // Hanya "Jenis<spasi>sisa": "Kemoceng/norgren" tetap utuh, dan nama
+        // yang isinya cuma jenisnya (mis. "Ember") jangan sampai jadi kosong.
+        if (self::startsWithType($name, $type) && ctype_space(substr($name, strlen($type), 1))) {
+            $rest = ltrim(substr($name, strlen($type)));
+            if ($rest !== '')
+                $name = $rest;
+        }
+
+        return $name;
+    }
+
+    /** true bila $name diawali kata $type (tidak peka huruf besar/kecil, harus utuh satu kata). */
+    private static function startsWithType(string $name, string $type): bool
+    {
+        if ($type === '' || strncasecmp($name, $type, strlen($type)) !== 0)
+            return false;
+
+        $next = substr($name, strlen($type), 1);
+
+        return $next === '' || ! ctype_alnum($next);
+    }
+
     public function getFullName()
     {
-        $name = $this->name;
-        if($this->getType() != '-')
-            $name = strtolower($this->getType()) . ' ' . $this->name;
+        return self::formatName($this->type_id ? optional($this->type)->name : null, $this->name);
+    }
 
-        return ucfirst($name);
+    /**
+     * Untuk hasil query mentah (DB::select / join / paginator) yang hanya
+     * membawa goods.id + goods.name: ganti kolom nama tiap baris dengan nama
+     * lengkap. Jenisnya diambil sekali untuk semua baris, bukan per baris.
+     */
+    public static function applyFullNames($rows, string $idKey = 'id', string $nameKey = 'name')
+    {
+        $list = $rows instanceof \Illuminate\Pagination\AbstractPaginator ? $rows->getCollection() : collect($rows);
+
+        $ids = $list->pluck($idKey)->filter(fn ($id) => is_numeric($id))->map(fn ($id) => (int) $id)->unique()->values()->all();
+        if (empty($ids))
+            return $rows;
+
+        $types = \Illuminate\Support\Facades\DB::table('goods')
+            ->join('types', 'types.id', 'goods.type_id')
+            ->whereIntegerInRaw('goods.id', $ids)
+            ->pluck('types.name', 'goods.id');
+
+        foreach ($list as $row) {
+            if (! is_object($row))
+                continue;
+            $id = $row->{$idKey} ?? null;
+            $row->{$nameKey} = self::formatName($types[(int) $id] ?? null, $row->{$nameKey} ?? '');
+        }
+
+        return $rows;
     }
     
     public function category()
