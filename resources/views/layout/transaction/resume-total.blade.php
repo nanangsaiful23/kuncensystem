@@ -79,32 +79,10 @@
               </tr>
             </table>
           </div>
-          <div class="box-body">
-            {!! Form::model(old(),array('url' => route($role . '.transaction.storeMoney'), 'enctype'=>'multipart/form-data', 'method' => 'POST', 'class' => 'form-horizontal', 'id' => 'pu-form')) !!}
-              <div class="form-group">
-                {!! Form::label('money', 'Pengambilan Uang', array('class' => 'col-sm-12')) !!}
-                <div class="col-sm-5">
-                  {!! Form::text('money', null, array('class' => 'form-control', 'onchange' => 'changeBalance()', 'id' => 'money', 'onkeyup' => 'formatNumber("money")', 'required' => 'required')) !!}
-                </div>
-              </div>
-              <div class="col-sm-5">
-                <div onclick="event.preventDefault(); checkPu();" class= 'btn btn-success btn-flat btn-block form-control'>Simpan</div>
-                <!-- {!! Form::submit('Simpan', ['class' => 'btn btn-success btn-flat btn-block form-control col-sm-5'])  !!} -->
-              </div>
-            {!! Form::close() !!}
-            @if(canMenu('kas.tutup'))
-              <div class="col-sm-12" style="margin-top:10px">
-                Akhir hari? Pakai <a href="{{ url($role . '/cash-closing') }}"><b>Tutup Kasir</b></a>:
-                hitung uang di laci, selisihnya dicatat, lalu uang diserahkan ke owner.
-              </div>
-            @endif
-            <div class="form-group">
-              <div class="col-sm-12">
-                <h3 id="balance"></h3>
-              </div>
-            </div>
-          </div>
         </div>
+
+        {{-- Tutup kasir (penarikan uang) untuk tanggal halaman ini. --}}
+        @include('layout.cash-closing.box')
       </div>
     </div>
   </section>
@@ -150,39 +128,7 @@
 
     function changeDate()
     {
-      window.location = window.location.origin + '/admin/transaction/resumeTotal/' + $("#datepicker").val() + '/' + $("#datepicker2").val();
-    }
-
-    function changeBalance()
-    {
-      saldo = unFormatNumber($("#money").val());
-      total_money = '{{ $transactions["cash_account"]->balance + $transactions["cash_in"]->sum('debit') - $transactions["cash_out"]->sum('credit') }}';
-      balance = total_money - saldo;
-      $("#balance").html("Sisa uang kasir: " + balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'));
-    }
-
-    function checkPu()
-    {
-      $.ajax({
-        url: "{!! url($role . '/transaction/storeMoney/') !!}",
-        type: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        data: {
-            money: $("#money").val(),
-        },
-        success: function(result){
-          console.log(result);
-          if(result == true) alert('PU berhasil');
-          else alert("Anda telah melakukan PU dengan nominal yang sama");
-          $("#money").val('');
-        },
-        error: function(){
-          alert("gagal");
-          $("#money").val('');
-        }
-      });
+      window.location = window.location.origin + '/{{ $role }}/transaction/resumeTotal/' + $("#datepicker").val() + '/' + $("#datepicker2").val();
     }
   </script>
 @endsection

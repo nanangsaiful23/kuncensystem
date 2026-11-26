@@ -49,9 +49,6 @@
       @if(canMenu('kas.riwayat'))
         <li><a href="{{ url('/' . $role . '/cashFlow/' . date('Y-m-d') . '/' . date('Y-m-d') . '/15') }}"><i class="fa fa-dollar"></i> Riwayat Kas di Tangan</a></li>
       @endif
-      @if(canMenu('kas.tutup'))
-        <li class="{{ Request::segment(2) == 'cash-closing' ? 'active' : '' }}"><a href="{{ url('/' . $role . '/cash-closing') }}"><i class="fa fa-lock"></i> Tutup Kasir</a></li>
-      @endif
       @if(canInduk('Barang') || isSupervisor())
       <li class="treeview {{ (Request::segment(2) == 'good' ) ? 'active' : ''  }}">
         <a href="#">

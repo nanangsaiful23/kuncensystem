@@ -37,7 +37,9 @@
           <!-- Chat box -->
           <div class="box">
             <div class="box-header">
-              <h2 class="box-title">KEMAREN BELUM PENARIKAN UANG</h2>
+              <h2 class="box-title">KEMAREN BELUM PENARIKAN UANG
+                <small><a href="{{ url('admin/transaction/resumeTotal/' . date('Y-m-d', strtotime('-1 day')) . '/' . date('Y-m-d', strtotime('-1 day'))) }}#tutup-kasir">isi tutup kasir kemarin</a></small>
+              </h2>
             </div>
           </div>
 

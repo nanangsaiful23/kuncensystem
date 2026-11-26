@@ -8,14 +8,10 @@ use App\Models\CashClosing;
 use App\Services\TutupKasir;
 use Illuminate\Http\Request;
 
+/** Simpan & batal Tutup Kasir; formnya ada di Resume Transaksi Total. */
 class CashClosingController extends Controller
 {
     use CashClosingControllerBase;
-
-    public function index()
-    {
-        return $this->indexBase('admin');
-    }
 
     public function store(Request $request)
     {
@@ -27,9 +23,10 @@ class CashClosingController extends Controller
         abort_unless(canMenu('aksi.tutup_kasir.batal'), 403, 'Membatalkan tutup kasir ditutup untuk akun Anda.');
 
         $closing = CashClosing::findOrFail($id);
+        $date = $closing->closing_date->format('Y-m-d');
         TutupKasir::cancel($closing);
 
-        return redirect(url('admin/cash-closing'))->with('tutup_kasir_ok',
-            'Tutup kasir ' . displayDate($closing->closing_date) . ' dibatalkan dan jurnalnya dihapus. Kasir bisa ditutup ulang.');
+        return redirect(self::resumeTotalUrl('admin', $date))->with('tutup_kasir_ok',
+            'Tutup kasir ' . displayDate($date) . ' dibatalkan dan jurnalnya dihapus. Tanggal itu bisa ditutup ulang.');
     }
 }

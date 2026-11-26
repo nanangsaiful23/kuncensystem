@@ -17,7 +17,7 @@ class CashClosing extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'closing_date', 'system_balance', 'physical_cash', 'difference', 'draw_amount',
+        'closing_date', 'system_balance', 'physical_cash', 'drawers', 'difference', 'draw_amount',
         'adjustment_journal_id', 'draw_journal_id', 'note', 'role', 'role_id',
     ];
 
@@ -25,6 +25,8 @@ class CashClosing extends Model
         'closing_date'   => 'date',
         'system_balance' => 'float',
         'physical_cash'  => 'float',
+        // [['nama' => 'Kasir A', 'uang' => 450000.0, 'penjualan_cash' => 1200000.0|null], ...]
+        'drawers'        => 'array',
         'difference'     => 'float',
         'draw_amount'    => 'float',
         'adjustment_journal_id' => 'integer',
@@ -34,7 +36,8 @@ class CashClosing extends Model
 
     public static function tabelAda(): bool
     {
-        return Schema::hasTable('cash_closings');
+        return Schema::hasTable('cash_closings') && Schema::hasColumn('cash_closings', 'drawers')
+            && Journal::punyaKolomPembuat();
     }
 
     /**
@@ -51,6 +54,7 @@ class CashClosing extends Model
         } catch (\Throwable $e) {
             report($e);
         }
+        Journal::lupakanKolomPembuat();
 
         return self::tabelAda();
     }

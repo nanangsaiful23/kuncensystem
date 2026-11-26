@@ -164,20 +164,57 @@ Catatan:
   membatalkan tutup kasir tanggal itu (jurnalnya ikut dihapus), lalu menutup
   ulang.
 
-### Yang sudah dibuat (24 Nov 2026)
+### Yang sudah dibuat (24–26 Nov 2026)
 
-- **Menu Utama › Tutup Kasir** untuk admin dan kasir (`/admin/cash-closing`,
-  `/cashier/cash-closing`). Hak akses: `kas.tutup` (bawaan semua role) di
-  Hak Akses Menu.
+- Tutup kasir ada di halaman **Transaksi Barang › Resume Transaksi Total**,
+  di tempat form Penarikan Uang lama, karena kasir membuat pembukuan di sana.
+  Berlaku untuk admin dan kasir. Tidak ada menu terpisah.
+- **Tanggal halaman = tanggal tutup kasir.** Pilih tanggal awal dan akhir
+  yang sama. Kalau kemarin lupa input, buka Resume Total tanggal kemarin.
+  Saldo sistem dihitung sampai akhir tanggal itu, dan jurnalnya memakai
+  tanggal itu. Kalau periodenya beberapa hari, halaman menampilkan daftar
+  tutup kasir di periode itu.
+- **Dua kasir, dua laci, satu Kas di Tangan.** Uang fisik diisi per laci
+  (satu baris per kasir/admin yang ada uang cash masuk/keluar di tanggal itu,
+  bisa tambah laci). Tidak ada akun kas per kasir. Panduan per laci = penjualan
+  cash + Transaksi Lain cash (plastik, kardus, dll.) - Biaya Lain dari kas
+  (pengamen, dll.) yang diinput akun itu; rinciannya disimpan (kolom
+  `drawers`). Selisih resmi tetap dihitung dari total semua laci, karena modal
+  kembalian dan penarikan tengah hari tidak dicatat per laci.
+- **Sisa kemarin & penarikan per laci.** Kasir tetap di lacinya, jadi laci =
+  akun kasir. Tiap laci tampil sebagai kartu: sisa kemarin (uang fisik -
+  ditarik pada tutup kasir sebelumnya), uang masuk hari ini, perkiraan isi
+  laci, uang fisik, selisih laci (panduan), ditarik ke owner, dan sisa di
+  laci. Laci yang kemarin masih ada sisanya tetap muncul walaupun hari ini
+  tidak ada transaksi. Penarikan per laci dijumlah menjadi **satu jurnal**
+  `cash_draw` Kas di Tangan -> Kas di Nanang. Sisa kemarin baru diketahui
+  setelah ada satu tutup kasir dengan penarikan per laci.
+- Kasir hanya mengisi uang fisik: nama laci diambil dari sistem (tidak bisa
+  diubah), tiap laci wajib diisi (0 kalau kosong), dan kasir tidak bisa
+  menambah/menghapus laci (dicek juga di server). Hanya admin yang bisa
+  menambah laci tambahan. Daftar Kasir HP/PC ada di bawah form dan tertutup
+  (bisa dibuka); kalau ada yang tidak terhubung, peringatan singkat tampil di
+  atas form.
+- Supaya Transaksi Lain & Biaya Lain bisa dibagi per laci, setiap jurnal baru
+  mencatat akun penginputnya (`journals.created_by_role`, `created_by_id`,
+  diisi otomatis oleh model `Journal`). Jurnal lama kosong; jumlahnya
+  ditampilkan terpisah sebagai "tidak tercatat kasirnya".
+- **Berurutan:** satu tutup kasir per tanggal, tidak boleh tanggal besok, dan
+  tanggal lampau hanya bisa diisi kalau sesudahnya belum ada tutup kasir.
+  Kalau tidak, selisih tutup kasir sesudahnya dihitung dari saldo yang sudah
+  berubah.
+- Hanya **tutup kasir terakhir** yang bisa dibatalkan, oleh role yang punya
+  hak `aksi.tutup_kasir.batal` (bawaan: superadmin). Jurnalnya ikut dihapus.
+- Hak akses simpan: `kas.tutup` (bawaan semua role) di Hak Akses Menu.
 - Logika di `app/Services/TutupKasir.php`. Tabel `cash_closings` dibuat
-  otomatis saat halaman dibuka; cadangannya `docs/sql/2026-11-24-tutup-kasir.sql`.
+  otomatis saat Resume Transaksi Total dibuka; cadangannya
+  `docs/sql/2026-11-24-tutup-kasir.sql`.
 - Langkah 1–6 dari alur di atas. Langkah 7 (cek kecocokan dan isi rekap)
   menyusul bersama poin 3 dan poin 2.
 - Simpan ditolak kalau saldo Kas di Tangan berubah sejak halaman dibuka (ada
   transaksi baru), supaya selisih tidak dihitung dari angka yang sudah basi.
-- Hanya tutup kasir **hari ini** yang bisa dibatalkan, dan hanya oleh role
-  yang punya hak `aksi.tutup_kasir.batal` (bawaan: superadmin).
-- Form Penarikan Uang lama di Resume Transaksi Total tetap ada untuk
-  penarikan di tengah hari. Halaman itu sekarang memberi tautan ke Tutup Kasir.
-- Dashboard admin tidak lagi menampilkan "KEMAREN BELUM PENARIKAN UANG" kalau
-  kemarin sudah tutup kasir, walaupun tanpa uang yang diserahkan.
+- Peringatan "KEMAREN BELUM PENARIKAN UANG" di dashboard admin hilang kalau
+  kemarin sudah tutup kasir (walaupun tanpa uang yang diserahkan), dan punya
+  tautan ke Resume Total tanggal kemarin.
+- Perbaikan kecil: ganti tanggal di Resume Total untuk kasir dulu membuka
+  alamat `/admin/...`; sekarang tetap di `/cashier/...`.

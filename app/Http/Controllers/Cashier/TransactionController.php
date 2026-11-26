@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Cashier;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
+use App\Http\Controllers\Base\CashClosingControllerBase;
 use App\Http\Controllers\Base\TransactionControllerBase;
 
 use App\Models\Transaction;
 
 class TransactionController extends Controller
 {
+    use CashClosingControllerBase;
     use TransactionControllerBase;
 
     public function __construct()
@@ -120,7 +122,9 @@ class TransactionController extends Controller
 
         $transactions = $this->resumeTotalTransactionBase($start_date, $end_date);
 
-        return view('cashier.layout.page', compact('default', 'transactions', 'start_date', 'end_date'));
+        $tk = $this->tutupKasirViewData('cashier', $start_date, $end_date);
+
+        return view('cashier.layout.page', compact('default', 'transactions', 'start_date', 'end_date', 'tk'));
     }
 
     public function storeMoney(Request $request)

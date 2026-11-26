@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 use App\Http\Controllers\Base\GoodControllerBase;
+use App\Http\Controllers\Base\CashClosingControllerBase;
 use App\Http\Controllers\Base\TransactionControllerBase;
 
 use App\Models\Transaction;
@@ -13,6 +14,7 @@ use App\Models\Transaction;
 class TransactionController extends Controller
 {
     use GoodControllerBase;
+    use CashClosingControllerBase;
     use TransactionControllerBase;
 
     public function __construct()
@@ -161,7 +163,9 @@ class TransactionController extends Controller
 
         $transactions = $this->resumeTotalTransactionBase($start_date, $end_date);
 
-        return view('admin.layout.page', compact('default', 'transactions', 'start_date', 'end_date'));
+        $tk = $this->tutupKasirViewData('admin', $start_date, $end_date);
+
+        return view('admin.layout.page', compact('default', 'transactions', 'start_date', 'end_date', 'tk'));
     }
 
     public function storeMoney(Request $request)

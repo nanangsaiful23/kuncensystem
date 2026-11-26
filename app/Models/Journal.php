@@ -22,8 +22,35 @@ class Journal extends Model
     ];
 
 
+    private static ?bool $kolomPembuat = null;
+
+    /** Kolom created_by_role/created_by_id sudah ada? (dibuat oleh migrasi Tutup Kasir) */
+    public static function punyaKolomPembuat(): bool
+    {
+        return self::$kolomPembuat ??= \Illuminate\Support\Facades\Schema::hasColumn('journals', 'created_by_role');
+    }
+
+    /** Lupakan hasil cek kolom (setelah kolomnya baru dibuat). */
+    public static function lupakanKolomPembuat(): void
+    {
+        self::$kolomPembuat = null;
+    }
+
     protected static function booted(): void
     {
+        // Catat akun yang menginput (admin/kasir yang login). Dipakai panduan per
+        // laci di Tutup Kasir. API Kasir HP tidak punya login web: dibiarkan kosong.
+        static::creating(function (Journal $journal) {
+            if ($journal->created_by_role !== null || ! \Auth::hasUser() || ! self::punyaKolomPembuat()) {
+                return;
+            }
+            $user = \Auth::user();
+            if ($user instanceof \App\Cashier || $user instanceof \App\Admin) {
+                $journal->created_by_role = $user instanceof \App\Cashier ? 'cashier' : 'admin';
+                $journal->created_by_id   = $user->id;
+            }
+        });
+
         // Closed periods (tutup buku) may not change; see PeriodLock.
         static::saving(function (Journal $journal) {
             \App\Services\PeriodLock::assertOpen([$journal->journal_date, $journal->exists ? $journal->getOriginal('journal_date') : null]);

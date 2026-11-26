@@ -72,9 +72,10 @@ return [
                 'grup' => 'Menu Utama', 'label' => 'Riwayat Kas di Tangan',
                 'bawaan' => $semua, 'paths' => ['cashFlow/*'],
             ],
+            // Tidak ada di sidebar: kotaknya ada di halaman Resume Transaksi Total.
             'kas.tutup' => [
-                'grup' => 'Menu Utama', 'label' => 'Tutup Kasir',
-                'catatan' => 'hitung uang di laci, catat selisih, serahkan uang ke owner',
+                'grup' => 'Menu Utama', 'label' => 'Tutup Kasir (di Resume Transaksi Total)',
+                'catatan' => 'hitung uang di laci, catat selisih, serahkan uang ke owner (penarikan uang)',
                 'bawaan' => $semua, 'kasir' => true, 'paths' => ['cash-closing', 'cash-closing/*'],
             ],
 
@@ -330,7 +331,7 @@ return [
                 'bawaan' => $superadmin, 'paths' => ['member/*/delete'],
             ],
             'aksi.tutup_kasir.batal' => [
-                'grup' => 'Edit & Hapus', 'induk' => 'Tutup Kasir (aksi)', 'label' => 'Batalkan tutup kasir hari ini',
+                'grup' => 'Edit & Hapus', 'induk' => 'Tutup Kasir (aksi)', 'label' => 'Batalkan tutup kasir terakhir',
                 'catatan' => 'jurnal selisih dan penarikannya ikut dihapus, lalu kasir bisa ditutup ulang',
                 'bawaan' => $superadmin, 'paths' => ['cash-closing/*/cancel'],
             ],
