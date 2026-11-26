@@ -303,7 +303,7 @@ html, body, #app, .view { height: 100%; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---- Scan kamera: kamera ada di belakang WebView, jadi semua dibuat transparan ---- */
-body.scanning, body.scanning html { background: transparent !important; }
+html.scanning, body.scanning { background: transparent !important; }
 body.scanning #app, body.scanning .overlay, body.scanning #toast { display: none !important; }
 #scan-overlay {
   position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 100; display: flex; flex-direction: column; justify-content: space-between;

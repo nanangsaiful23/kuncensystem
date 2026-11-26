@@ -167,6 +167,7 @@ export async function scan({ title = 'Arahkan kamera ke barcode', continuous = f
       } catch (e) {
         /* abaikan */
       }
+      document.documentElement.classList.remove('scanning');
       document.body.classList.remove('scanning');
       overlay.hidden = true;
       clearMarks();
@@ -238,6 +239,8 @@ export async function scan({ title = 'Arahkan kamera ke barcode', continuous = f
       }
     });
 
+    // Kamera ada di BELAKANG WebView: <html> dan <body> harus transparan supaya gambarnya terlihat.
+    document.documentElement.classList.add('scanning');
     document.body.classList.add('scanning');
     overlay.hidden = false;
     try {
