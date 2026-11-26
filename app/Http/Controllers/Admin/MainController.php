@@ -127,7 +127,15 @@ class MainController extends Controller
             $last_cash_flow = \App\Models\CashClosing::whereDate('closing_date', $yesterday)->first();
         }
 
-        return view('admin.index', compact('default', 'transactions', 'other_transactions', 'good_prices', 'cash_account', 'cash_in', 'cash_out', 'total', 'last_cash_flow'));
+        // Kotak Cek Kecocokan: hasil cek setiap tutup kasir (App\Services\CekKecocokan).
+        $cek = ['belum' => collect(), 'terakhir' => null];
+        if (\App\Models\ReconciliationCheck::pastikanTabel()) {
+            $cek['belum'] = \App\Models\ReconciliationCheck::belumDitandai()->orderByDesc('check_date')->orderByDesc('id')->get();
+            $cek['terakhir'] = \App\Models\ReconciliationCheck::orderByDesc('check_date')->orderByDesc('id')->first();
+        }
+        $cek['boleh'] = canMenu('kas.cek_kecocokan');
+
+        return view('admin.index', compact('default', 'transactions', 'other_transactions', 'good_prices', 'cash_account', 'cash_in', 'cash_out', 'total', 'last_cash_flow', 'cek'));
     }
 
     public function getPenjualanHpp($code)

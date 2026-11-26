@@ -400,6 +400,10 @@ class TutupKasir
             foreach (array_filter([$closing->adjustment_journal_id, $closing->draw_journal_id]) as $journalId) {
                 Journal::find($journalId)?->delete();
             }
+            // Hasil cek kecocokannya ikut hilang; tutup kasir ulang menjalankan cek baru.
+            if (\App\Models\ReconciliationCheck::tabelAda()) {
+                \App\Models\ReconciliationCheck::where('cash_closing_id', $closing->id)->delete();
+            }
             $closing->delete();
         });
     }

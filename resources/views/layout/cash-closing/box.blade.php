@@ -130,6 +130,25 @@
       </table>
       </div>
     @endif
+    @if(! empty($tk['cek']))
+      @php $ck = $tk['cek']; @endphp
+      <div class="tk-sub" id="cek-kecocokan">Cek kecocokan</div>
+      @if($ck->problem_count === 0)
+        <p class="tk-pas" style="margin:0"><b>Semua cocok</b>
+          <span class="tk-muted">({{ implode(', ', array_column($ck->results, 'label')) }})</span></p>
+      @elseif($tk['role'] === 'admin')
+        @include('layout.cash-closing.cek-hasil', ['c' => $ck])
+        <p class="tk-muted" style="margin:0">
+          @if($ck->resolved_at)
+            Ditandai sudah {{ $ck->resolution }} oleh {{ $ck->resolverName() }}, {{ $ck->resolved_at->format('d/m/Y H:i') }}.
+          @else
+            Tampil di <a href="{{ url('admin') }}#cek-kecocokan">dashboard admin</a> sampai ditandai sudah dibaca / sudah ditangani.
+          @endif
+        </p>
+      @else
+        <p style="margin:0">{{ $ck->problem_count }} tidak cocok ({{ implode(', ', array_column($ck->masalah(), 'label')) }}), sudah dilaporkan ke admin.</p>
+      @endif
+    @endif
     @if($tk['bolehBatal'] && $tk['last'] && $tk['last']->id === $c->id)
       <form method="POST" action="{{ url('admin/cash-closing/' . $c->id . '/cancel') }}" style="margin-top:12px"
             onsubmit="return confirm('Batalkan tutup kasir {{ displayDate($tk['tanggal']) }}? Jurnal selisih dan penarikannya ikut dihapus.')">

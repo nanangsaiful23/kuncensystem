@@ -31,20 +31,8 @@
       </h1>
     </section>
     <div class="row" style="margin-top: 10px">
-      @if($last_cash_flow == null)
-        <section class="col-lg-12" style="height: 60px !important;">
-
-          <!-- Chat box -->
-          <div class="box">
-            <div class="box-header">
-              <h2 class="box-title">KEMAREN BELUM PENARIKAN UANG
-                <small><a href="{{ url('admin/transaction/resumeTotal/' . date('Y-m-d', strtotime('-1 day')) . '/' . date('Y-m-d', strtotime('-1 day'))) }}#tutup-kasir">isi tutup kasir kemarin</a></small>
-              </h2>
-            </div>
-          </div>
-
-        </section>
-      @endif
+      {{-- Kemarin belum tutup kasir + hasil cek kecocokan yang tidak cocok --}}
+      @include('admin.cek-kecocokan')
       <section class="col-lg-7 connectedSortable">
 
         <!-- Chat box -->

@@ -1,7 +1,7 @@
 # Rencana Perbaikan Sistem Kasir NTN
 
-Status (24 Nov 2026): **poin 4 sudah dibuat** (lihat "Yang sudah dibuat" di poin 4),
-belum dipasang di produksi. Poin 1–3 masih rencana.
+Status (26 Nov 2026): **poin 4 dan poin 3 sudah dibuat** (lihat "Yang sudah
+dibuat" di masing-masing poin), belum dipasang di produksi. Poin 1–2 masih rencana.
 
 Ringkasan keputusan:
 
@@ -112,6 +112,53 @@ Notifikasi di **dashboard admin**:
 - Kalau semuanya cocok, dashboard cukup menampilkan satu baris hijau
   "Tutup kasir {tanggal}: semua cocok".
 
+### Yang sudah dibuat (26 Nov 2026)
+
+- Cek berjalan otomatis setelah tutup kasir tersimpan (admin maupun kasir),
+  di request yang sama. Pesan setelah simpan menyebut hasilnya; kasir hanya
+  melihat ringkasan ("sudah dilaporkan ke admin"), admin melihat rinciannya di
+  kotak Tutup Kasir dan di dashboard.
+- Hasil disimpan di tabel `reconciliation_checks` (satu baris per tutup kasir,
+  semua cek beserta rinciannya dalam JSON). Batal tutup kasir ikut menghapus
+  hasil ceknya; tutup ulang menjalankan cek baru.
+- Yang dicek untuk tanggal tutup kasir:
+  - **Kas**: selisih uang fisik vs saldo Kas di Tangan, plus selisih per laci
+    kalau perkiraannya diketahui.
+  - **Penjualan** dan **HPP**: aturan sama dengan `php artisan kuncen:audit`
+    (penjualan tunai per hari, penjualan transfer per transaksi, transaksi tanpa
+    detail, HPP per hari, retur tanpa jurnal HPP, batal transaksi tanpa jurnal
+    HPP balik). Perintah itu sekarang memakai kode yang sama
+    (`CekKecocokan::selisihJurnal()`), dan cek stoknya jauh lebih cepat
+    (42 dtk → 8 dtk di lokal).
+  - **Stok**: hanya barang yang punya transaksi/loading yang dibuat, diubah,
+    atau dihapus hari itu. Tidak cocok kalau stok tercatat beda dengan hitungan
+    dari riwayat loading & transaksi, atau stoknya minus. Stok minus barang
+    yang tidak bergerak hari itu tidak dilaporkan setiap hari (di lokal ada 51
+    barang seperti itu), supaya peringatannya tidak selalu muncul.
+  - **Kasir HP/PC**: transaksi yang ditolak saat sinkron dan belum ditandai
+    selesai (semua tanggal).
+- Dashboard admin: kotak **Cek Kecocokan** menggantikan "KEMAREN BELUM
+  PENARIKAN UANG". Isinya "Kemarin belum tutup kasir" (dengan tautan), lalu
+  setiap hasil yang tidak cocok dan belum ditandai, dengan rincian dan tautan
+  ke jurnal, transaksi, barang, atau Kasir HP. Tombolnya:
+  - **Sudah dibaca** / **Sudah ditangani** (catatan boleh diisi): nama admin,
+    waktu, dan catatannya disimpan, lalu hasil itu hilang dari dashboard.
+  - **Cek ulang**: jalankan lagi ceknya setelah data diperbaiki. Kalau semua
+    sudah cocok, otomatis ditandai sudah ditangani. Selisih kas tidak hilang
+    dengan cek ulang (sudah dijurnal), jadi tetap perlu ditandai.
+  - **Samakan stok N barang**: menyamakan stok tercatat dengan riwayatnya
+    (pengganti `php artisan stock:sync` untuk barang itu saja, karena server
+    produksi tidak punya terminal), lalu cek ulang.
+- Hak akses tombol: `kas.cek_kecocokan` di Hak Akses Menu (bawaan semua role).
+- Lama cek di lokal 1–4 detik per tutup kasir. Tabel transaksi dibaca sekali
+  saja karena tidak punya indeks tanggal.
+- Daftar ID di query dipecah per 500: MariaDB mengubah `IN (...)` berisi 1000
+  nilai atau lebih menjadi subquery, dan di server lokal (10.4) hasilnya malah
+  kosong.
+- Logika di `app/Services/CekKecocokan.php`. Tabel `reconciliation_checks`
+  dibuat otomatis saat dashboard admin atau Resume Transaksi Total dibuka;
+  cadangannya `docs/sql/2026-11-26-cek-kecocokan.sql`.
+
 ## 4. Tutup kasir harian
 
 Fitur **Penarikan Uang** yang sekarang disempurnakan menjadi **Tutup Kasir**.
@@ -209,8 +256,8 @@ Catatan:
 - Logika di `app/Services/TutupKasir.php`. Tabel `cash_closings` dibuat
   otomatis saat Resume Transaksi Total dibuka; cadangannya
   `docs/sql/2026-11-24-tutup-kasir.sql`.
-- Langkah 1–6 dari alur di atas. Langkah 7 (cek kecocokan dan isi rekap)
-  menyusul bersama poin 3 dan poin 2.
+- Langkah 1–6 dari alur di atas, dan cek kecocokan dari langkah 7 (poin 3).
+  Pengisian rekap (langkah 7, poin 2) menyusul.
 - Simpan ditolak kalau saldo Kas di Tangan berubah sejak halaman dibuka (ada
   transaksi baru), supaya selisih tidak dihitung dari angka yang sudah basi.
 - Peringatan "KEMAREN BELUM PENARIKAN UANG" di dashboard admin hilang kalau

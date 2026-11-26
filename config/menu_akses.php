@@ -78,6 +78,12 @@ return [
                 'catatan' => 'hitung uang di laci, catat selisih, serahkan uang ke owner (penarikan uang)',
                 'bawaan' => $semua, 'kasir' => true, 'paths' => ['cash-closing', 'cash-closing/*'],
             ],
+            // Tidak ada di sidebar: kotaknya ada di dashboard admin.
+            'kas.cek_kecocokan' => [
+                'grup' => 'Menu Utama', 'label' => 'Cek Kecocokan (di dashboard admin)',
+                'catatan' => 'hasil cek otomatis setiap tutup kasir: tandai sudah dibaca/ditangani, cek ulang, samakan stok',
+                'bawaan' => $semua, 'paths' => ['reconciliation/*'],
+            ],
 
             // ---------------- Barang ----------------
             'barang.daftar' => [

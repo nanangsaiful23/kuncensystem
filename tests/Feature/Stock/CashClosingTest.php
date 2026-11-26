@@ -10,26 +10,19 @@ use Illuminate\Support\Facades\DB;
  * Tutup Kasir (App\Services\TutupKasir), diisi di Resume Transaksi Total.
  * Memakai database test MySQL seperti tes stok lain; setiap tes di-rollback.
  *
- * Tabel cash_closings dibuat sekali dari docs/sql/2026-11-24-tutup-kasir.sql
- * lewat koneksi PDO terpisah (DDL di koneksi tes akan meng-commit transaksi tes).
+ * Tabel cash_closings & reconciliation_checks dibuat sekali dari file SQL di
+ * docs/sql (lihat TabelTutupKasir).
  */
 class CashClosingTest extends StockTestCase
 {
-    private static bool $tableReady = false;
+    use TabelTutupKasir;
 
     private string $today;
     private string $yesterday;
 
     protected function setUp(): void
     {
-        if (! self::$tableReady) {
-            self::$tableReady = true;
-            try {
-                $this->createTable();
-            } catch (\PDOException $e) {
-                // Database tes tidak ada: parent::setUp() akan melewati tes.
-            }
-        }
+        $this->siapkanTabelTutupKasir();
 
         parent::setUp();
         \App\Models\Journal::lupakanKolomPembuat();
@@ -43,29 +36,6 @@ class CashClosingTest extends StockTestCase
 
         // Kas di Tangan berisi 500.000 (modal pemilik) hari ini.
         $this->kasMasuk($this->today, 500000);
-    }
-
-    private function createTable(): void
-    {
-        $pdo = new \PDO(
-            'mysql:host=' . (getenv('TEST_DB_HOST') ?: '127.0.0.1') . ';port=' . (getenv('TEST_DB_PORT') ?: '3306') . ';dbname=' . (getenv('TEST_DB_DATABASE') ?: 'kuncen_test'),
-            getenv('TEST_DB_USERNAME') ?: 'root', getenv('TEST_DB_PASSWORD') ?: ''
-        );
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        if (! in_array('accounts', $pdo->query('show tables')->fetchAll(\PDO::FETCH_COLUMN))) {
-            $pdo->exec(file_get_contents(dirname(__DIR__, 3) . '/database/schema/kuncen-schema.sql'));
-        }
-
-        // Selalu buat ulang dari file SQL terbaru (database tes saja).
-        $pdo->exec('DROP TABLE IF EXISTS `cash_closings`');
-        $sql = preg_replace('/^--.*$/m', '', file_get_contents(dirname(__DIR__, 3) . '/docs/sql/2026-11-24-tutup-kasir.sql'));
-        $punyaPembuat = $pdo->query("show columns from journals like 'created_by_role'")->fetch() !== false;
-        foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
-            if (str_contains($statement, '`migrations`') || ($punyaPembuat && str_starts_with($statement, 'ALTER TABLE `journals`'))) {
-                continue;
-            }
-            $pdo->exec($statement);
-        }
     }
 
     private function kasMasuk(string $date, float $amount): void

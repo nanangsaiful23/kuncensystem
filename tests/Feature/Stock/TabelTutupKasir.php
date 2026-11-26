@@ -1,0 +1,49 @@
+<?php
+
+namespace Tests\Feature\Stock;
+
+/**
+ * Tabel cash_closings (Tutup Kasir) dan reconciliation_checks (Cek Kecocokan)
+ * dibuat sekali dari file SQL di docs/sql lewat koneksi PDO terpisah, sebelum
+ * transaksi tes dimulai. DDL di koneksi tes akan meng-commit transaksi tes,
+ * sehingga data tes tertinggal di database.
+ */
+trait TabelTutupKasir
+{
+    private static bool $tabelTutupKasirSiap = false;
+
+    protected function siapkanTabelTutupKasir(): void
+    {
+        if (self::$tabelTutupKasirSiap) {
+            return;
+        }
+        self::$tabelTutupKasirSiap = true;
+
+        try {
+            $pdo = new \PDO(
+                'mysql:host=' . (getenv('TEST_DB_HOST') ?: '127.0.0.1') . ';port=' . (getenv('TEST_DB_PORT') ?: '3306') . ';dbname=' . (getenv('TEST_DB_DATABASE') ?: 'kuncen_test'),
+                getenv('TEST_DB_USERNAME') ?: 'root', getenv('TEST_DB_PASSWORD') ?: ''
+            );
+        } catch (\PDOException $e) {
+            return; // Database tes tidak ada: StockTestCase::setUp() akan melewati tes.
+        }
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        if (! in_array('accounts', $pdo->query('show tables')->fetchAll(\PDO::FETCH_COLUMN))) {
+            $pdo->exec(file_get_contents(dirname(__DIR__, 3) . '/database/schema/kuncen-schema.sql'));
+        }
+
+        // Selalu buat ulang dari file SQL terbaru (database tes saja).
+        $pdo->exec('DROP TABLE IF EXISTS `cash_closings`');
+        $pdo->exec('DROP TABLE IF EXISTS `reconciliation_checks`');
+        $punyaPembuat = $pdo->query("show columns from journals like 'created_by_role'")->fetch() !== false;
+        foreach (['2026-11-24-tutup-kasir.sql', '2026-11-26-cek-kecocokan.sql'] as $file) {
+            $sql = preg_replace('/^--.*$/m', '', file_get_contents(dirname(__DIR__, 3) . '/docs/sql/' . $file));
+            foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
+                if (str_contains($statement, '`migrations`') || ($punyaPembuat && str_starts_with($statement, 'ALTER TABLE `journals`'))) {
+                    continue;
+                }
+                $pdo->exec($statement);
+            }
+        }
+    }
+}

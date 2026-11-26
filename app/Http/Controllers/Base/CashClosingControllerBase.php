@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Base;
 
 use App\Models\CashClosing;
+use App\Models\ReconciliationCheck;
+use App\Services\CekKecocokan;
 use App\Services\TutupKasir;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +24,9 @@ trait CashClosingControllerBase
         if (! $tk['tabelAda'] || ! $tk['boleh']) {
             return $tk;
         }
+        // Hasil cek kecocokan yang dijalankan saat tutup kasir disimpan.
+        $tk['cekAda'] = ReconciliationCheck::pastikanTabel();
+        $tk['role'] = $role;
 
         $last = TutupKasir::last();
         $tk['last']       = $last;
@@ -36,6 +41,7 @@ trait CashClosingControllerBase
 
             if ($tk['closing'] !== null) {
                 $tk['status'] = 'closed';
+                $tk['cek'] = $tk['cekAda'] ? ReconciliationCheck::where('cash_closing_id', $tk['closing']->id)->latest('id')->first() : null;
             } elseif ($date > date('Y-m-d')) {
                 $tk['status'] = 'future';
             } elseif ($last !== null && $last->closing_date->format('Y-m-d') > $date) {
@@ -88,6 +94,8 @@ trait CashClosingControllerBase
         $saldoDilihat = is_numeric($request->system_balance_seen) ? (float) $request->system_balance_seen : null;
 
         $closing = TutupKasir::close($fisik, $diserahkan, $request->note, $role, \Auth::user()->id, $saldoDilihat, $date, $laci);
+        // Cek kecocokan harian; yang tidak cocok tampil di dashboard admin.
+        $cek = CekKecocokan::setelahTutupKasir($closing);
 
         if ($closing->difference == 0) {
             $selisih = 'uang pas';
@@ -99,7 +107,21 @@ trait CashClosingControllerBase
 
         return redirect(self::resumeTotalUrl($role, $date))->with('tutup_kasir_ok',
             'Tutup kasir ' . displayDate($date) . ' tersimpan: ' . $selisih . '. Diserahkan ke owner ' . showRupiah($closing->draw_amount)
-            . ', sisa di laci ' . showRupiah($closing->remaining()) . '.');
+            . ', sisa di laci ' . showRupiah($closing->remaining()) . '.' . self::ringkasCek($cek, $role));
+    }
+
+    /** Satu kalimat hasil cek kecocokan untuk pesan setelah simpan. */
+    private static function ringkasCek(?ReconciliationCheck $cek, string $role): string
+    {
+        if ($cek === null) {
+            return '';
+        }
+        if ($cek->problem_count === 0) {
+            return ' Cek kecocokan: semua cocok.';
+        }
+
+        return ' Cek kecocokan: ' . $cek->problem_count . ' tidak cocok (' . implode(', ', array_column($cek->masalah(), 'label')) . '), '
+            . ($role === 'admin' ? 'rinciannya di bawah dan di dashboard admin.' : 'sudah dilaporkan ke admin.');
     }
 
     /**

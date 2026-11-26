@@ -41,7 +41,7 @@ class StockService
             ->join('good_units', 'good_units.id', '=', 'good_loading_details.good_unit_id')
             ->where('good_units.good_id', $goodId)
             ->whereNull('good_loading_details.deleted_at')
-            ->when($deletedLoadings, fn ($q) => $q->whereNotIn('good_loading_details.good_loading_id', $deletedLoadings))
+            ->tap(fn ($q) => self::kecuali($q, 'good_loading_details.good_loading_id', $deletedLoadings))
             ->sum('good_loading_details.real_quantity');
 
         $sold = DB::table('transaction_details')
@@ -49,10 +49,22 @@ class StockService
             ->where('good_units.good_id', $goodId)
             ->whereRaw("coalesce(transaction_details.type, '') <> 'retur'")
             ->whereNull('transaction_details.deleted_at')
-            ->when($deletedTransactions, fn ($q) => $q->whereNotIn('transaction_details.transaction_id', $deletedTransactions))
+            ->tap(fn ($q) => self::kecuali($q, 'transaction_details.transaction_id', $deletedTransactions))
             ->sum('transaction_details.real_quantity');
 
         return [(float) $loaded, (float) $sold];
+    }
+
+    /**
+     * whereNotIn per 500 id. MariaDB mengubah (NOT) IN (...) berisi 1000 nilai
+     * atau lebih menjadi subquery, dan di server lokal (10.4) hasilnya malah
+     * kosong: semua loading/penjualan tidak terhitung dan stok jadi salah.
+     */
+    private static function kecuali($query, string $kolom, array $ids): void
+    {
+        foreach (array_chunk($ids, 500) as $chunk) {
+            $query->whereNotIn($kolom, $chunk);
+        }
     }
 
     /** Quantity (in pieces) of the unit last_stock is counted in. */
@@ -93,6 +105,101 @@ class StockService
             'total_transaction' => $totalTransaction,
             'last_stock'        => round($totalLoading - $totalTransaction, 2),
         ];
+    }
+
+    /**
+     * counters() for many goods at once: a few grouped queries instead of
+     * several per good. Same rules as history() and baseQuantity().
+     * Used by the daily check after Tutup Kasir (App\Services\CekKecocokan).
+     *
+     * @param  int[]  $goodIds
+     * @return array<int, array{total_loading: float, total_transaction: float, last_stock: float}>
+     */
+    public static function countersMany(array $goodIds): array
+    {
+        $goodIds = array_values(array_unique(array_map('intval', $goodIds)));
+        if (! $goodIds) {
+            return [];
+        }
+
+        $deletedLoadings     = DB::table('good_loadings')->whereNotNull('deleted_at')->pluck('id')->all();
+        $deletedTransactions = DB::table('transactions')->whereNotNull('deleted_at')->pluck('id')->all();
+
+        $loaded = $sold = [];
+        foreach (array_chunk($goodIds, 500) as $ids) {
+            $loaded += DB::table('good_loading_details')
+                ->join('good_units', 'good_units.id', '=', 'good_loading_details.good_unit_id')
+                ->whereIn('good_units.good_id', $ids)
+                ->whereNull('good_loading_details.deleted_at')
+                ->tap(fn ($q) => self::kecuali($q, 'good_loading_details.good_loading_id', $deletedLoadings))
+                ->groupBy('good_units.good_id')
+                ->selectRaw('good_units.good_id AS g, SUM(good_loading_details.real_quantity) AS q')
+                ->pluck('q', 'g')->all();
+
+            $sold += DB::table('transaction_details')
+                ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
+                ->whereIn('good_units.good_id', $ids)
+                ->whereRaw("coalesce(transaction_details.type, '') <> 'retur'")
+                ->whereNull('transaction_details.deleted_at')
+                ->tap(fn ($q) => self::kecuali($q, 'transaction_details.transaction_id', $deletedTransactions))
+                ->groupBy('good_units.good_id')
+                ->selectRaw('good_units.good_id AS g, SUM(transaction_details.real_quantity) AS q')
+                ->pluck('q', 'g')->all();
+        }
+
+        $base = self::baseQuantities($goodIds);
+        $hasil = [];
+        foreach ($goodIds as $id) {
+            $totalLoading     = round((float) ($loaded[$id] ?? 0) / $base[$id], 2);
+            $totalTransaction = round((float) ($sold[$id] ?? 0) / $base[$id], 2);
+            $hasil[$id] = [
+                'total_loading'     => $totalLoading,
+                'total_transaction' => $totalTransaction,
+                'last_stock'        => round($totalLoading - $totalTransaction, 2),
+            ];
+        }
+
+        return $hasil;
+    }
+
+    /**
+     * baseQuantity() for many goods: the unit in goods.base_unit_id, else the
+     * unit with quantity "1", else the smallest unit (Good::base_unit() and
+     * Good::getPcsSellingPrice()). Deleted good units do not count; a deleted
+     * unit counts as 1, like a missing relation in baseQuantity().
+     *
+     * @return array<int, float>
+     */
+    private static function baseQuantities(array $goodIds): array
+    {
+        // Per 500 id: MariaDB mengubah IN (...) berisi 1000 nilai atau lebih
+        // menjadi subquery, dan di server lokal hasilnya malah kosong.
+        $units = collect();
+        $baseUnitIds = [];
+        foreach (array_chunk($goodIds, 500) as $ids) {
+            $units = $units->merge(DB::table('good_units')
+                ->leftJoin('units', 'units.id', '=', 'good_units.unit_id')
+                ->whereIn('good_units.good_id', $ids)
+                ->whereNull('good_units.deleted_at')
+                ->orderBy('good_units.id')
+                ->get(['good_units.id', 'good_units.good_id', 'units.id AS unit_id', 'units.quantity', 'units.deleted_at AS unit_deleted_at']));
+            $baseUnitIds += DB::table('goods')->whereIn('id', $ids)->pluck('base_unit_id', 'id')->all();
+        }
+        $byId = $units->keyBy('id');
+        $perGood = $units->groupBy('good_id');
+
+        $hasil = [];
+        foreach ($goodIds as $id) {
+            $list = $perGood[$id] ?? collect();
+            $unit = ! empty($baseUnitIds[$id]) ? ($byId[$baseUnitIds[$id]] ?? null) : null;
+            $unit ??= $list->first(fn ($u) => (string) $u->quantity === '1');
+            $unit ??= $list->sortBy(fn ($u) => (int) $u->quantity)->first();
+
+            $hasil[$id] = $unit && $unit->unit_id !== null && $unit->unit_deleted_at === null
+                ? max((float) $unit->quantity, 0.000001) : 1.0;
+        }
+
+        return $hasil;
     }
 
     /**
