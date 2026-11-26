@@ -16,6 +16,7 @@ use App\Models\GoodUnit;
 use App\Models\Journal;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Models\Unit;
 
 trait GoodLoadingControllerBase
 {
@@ -144,10 +145,39 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         $request->merge($merge);
     }
 
+    /**
+     * Harga beli dan harga jual tiap baris loading harus benar sebelum
+     * disimpan (lihat buySellPriceProblem()). $rows: indeks baris yang
+     * disimpan => [nama barang, id satuan].
+     */
+    private function checkLoadingPrices(array $data, array $rows): void
+    {
+        $unit_names = Unit::whereIn('id', array_filter(array_column($rows, 1)))->pluck('name', 'id');
+
+        $checks = [];
+        foreach ($rows as $i => [$name, $unit_id]) {
+            $checks[] = [
+                'label' => trim($name) . ' (' . ($unit_names[$unit_id] ?? 'satuan ?') . ')',
+                'buy'   => $data['prices'][$i] ?? null,
+                'sell'  => $data['sell_prices'][$i] ?? null,
+            ];
+        }
+
+        abortOnBadPrices($checks);
+    }
+
     public function storeGoodLoadingBase($role, $role_id, $type, Request $request)
     {
         $this->normalizeLoadingNumbers($request);
         $data = $request->input();
+
+        $rows = [];
+        foreach ($data['names'] ?? [] as $i => $good_id) {
+            if ($good_id != null) {
+                $rows[$i] = [$data['name_temps'][$i] ?? ('Barang ID ' . $good_id), $data['units'][$i] ?? null];
+            }
+        }
+        $this->checkLoadingPrices($data, $rows);
 
         // if($type == 'internal')
         //     $data['distributor_name'] = 'Loading internal';
@@ -546,6 +576,20 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
     {
         $this->normalizeLoadingNumbers($request);
         $data = $request->input();
+
+        // hanya baris yang diubah yang disimpan, jadi hanya baris itu yang dicek
+        $rows = [];
+        foreach (explode(';', (string) ($data['change'] ?? '')) as $row_number) {
+            $j = (int) $row_number - 1;
+            if ($row_number === '' || $j < 0 || !isset($data['ids'][$j])) {
+                continue;
+            }
+            $detail = GoodLoadingDetail::find($data['ids'][$j]);
+            if ($detail && $detail->good_unit) {
+                $rows[$j] = [$data['name_temps'][$j] ?? ('Barang ID ' . $detail->good_unit->good_id), $detail->good_unit->unit_id];
+            }
+        }
+        $this->checkLoadingPrices($data, $rows);
 
         $total_item_price = (float) $data['total_item_price'];
         $data_loading['note']      = $data['note'];

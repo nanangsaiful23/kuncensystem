@@ -154,4 +154,8 @@
     .tbl-items td.td-num { text-align:right; }
     .tbl-items .fc.num { text-align:right; }
     .tbl-items .fc.changed { border-color:var(--clr-warning); background:#FFFBEB; }
+    /* ---- cek harga (layout/good/price-check-js): merah = salah, kuning = jual sama dengan beli ---- */
+    .tbl-items .fc.price-bad, .tbl-items .fc.price-bad:focus { border:1.5px solid var(--clr-danger); background:#FEF2F2; color:#991B1B; font-weight:700; }
+    .tbl-items .fc.price-bad:focus { box-shadow:0 0 0 3px rgba(220,38,38,.25); }
+    .tbl-items .fc.price-warn, .tbl-items .fc.price-warn:focus { border:1.5px solid #F59E0B; background:#FFFBEB; color:#92400E; font-weight:700; }
 </style>
