@@ -70,5 +70,22 @@
 .sdk-suggest button:first-child { border-top: 0; }
 .sdk-suggest small { color: var(--ink2); display: block; }
 .sdk-empty { color: var(--ink2); text-align: center; padding: 14px 0; font-size: 15px; }
+/* Daftar tugas cek stok */
+.sdk-head-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.sdk-head-row h2 { margin: 0; }
+.sdk-progress { height: 8px; background: var(--bdr); border-radius: 999px; overflow: hidden; margin: 8px 0 10px; }
+.sdk-progress > div { height: 100%; background: var(--ok); }
+.sdk-titem { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--bdr); }
+.sdk-titem:first-child { border-top: 0; }
+.sdk-tno { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--blue-bg); color: #1e3a8a;
+           font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.sdk-titem.done .sdk-tno { background: var(--ok-bg); color: var(--ok); }
+.sdk-tname { border: 0; background: none; padding: 0; text-align: left; font-weight: 600; color: var(--ink);
+             font-size: 16px; cursor: pointer; word-break: break-word; }
+.sdk-tqty { width: 84px; flex: none; min-height: 44px; padding: 6px; text-align: center; font-weight: 700; font-size: 18px; }
+.sdk-tsave { flex: none; width: 46px; min-height: 44px; padding: 0; }
+.sdk-check { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--bdr); font-size: 15px; }
+.sdk-check:first-child { border-top: 0; }
+.sdk-check input { width: 20px; height: 20px; flex: none; margin-top: 2px; }
 @media (max-width: 360px) { .sdk-stats { grid-template-columns: repeat(2, 1fr); } }
 </style>

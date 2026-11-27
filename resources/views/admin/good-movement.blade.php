@@ -24,6 +24,9 @@
     $adaKolomBaru = $adaKolomBaru ?? false;
     $seasons      = $seasons      ?? collect();
     $obralSelesai = $obralSelesai ?? 0;
+    $bolehSidak    = $bolehSidak    ?? false;
+    $hargaObralAda = $hargaObralAda ?? false;
+    $lihatModal    = $lihatModal    ?? false;
     $s = array_merge([
         'kosongCount'=>0,'baruCount'=>0,'musimanCount'=>0,'obralCount'=>0,'kandidatMusimCount'=>0,
         'nilaiDead'=>0,'nilaiSlow'=>0,'nilaiMusiman'=>0,'nilaiObral'=>0,'modalTertahan'=>0,
@@ -37,8 +40,8 @@
 .gm-wrap { padding: 1rem 1.25rem 2rem; font-family: 'Segoe UI', system-ui, sans-serif; }
 .gm-wrap *, .gm-wrap *::before, .gm-wrap *::after { box-sizing: border-box; }
 
-/* Tokens */
-.gm-wrap {
+/* Tokens (jendela modal ada di luar .gm-wrap, jadi ikut diberi token) */
+.gm-wrap, .gm-modal-overlay {
     --ink:    #0f172a; --ink2: #475569; --ink3: #94a3b8;
     --surf:   #f8fafc; --card: #fff;   --bdr:  #e2e8f0; --bdr2: #f1f5f9;
     --fast:   #16a34a; --fast-bg:#f0fdf4; --fast-b:#bbf7d0;
@@ -229,6 +232,52 @@
 .gm-modal-obral .gm-modal-warn { background:#fdf2f8; border-color:#fbcfe8; color:#9d174d; }
 .gm-modal-obral .gm-btn-ok { background:#be185d; }
 
+/* Tanda sudah dicek fisik */
+.gm-cek-tag { display:inline-block; margin-top:.15rem; padding:.02rem .4rem; border-radius:9999px; font-size:1.2rem;
+              background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; white-space:nowrap; }
+.gm-cek-tag.lama { background:#f8fafc; color:var(--ink3); border-color:var(--bdr); }
+
+/* Bar centang: tombol tambahan. CSS global mewarnai semua span hitam,
+   jadi teks "N barang dipilih" & angka di tombol tidak terbaca di bar gelap. */
+.gm-bulkbar { flex-wrap:wrap; }
+.gm-bulkbar span { color:inherit; }
+.gm-bulkbar .gm-bulk-cek   { background:#2563eb; color:#fff; }
+.gm-bulkbar .gm-bulk-label { background:#fdf2f8; color:#9d174d; }
+
+/* Jendela lebar (harga obral, teks WA) */
+.gm-modal.gm-modal-wide { max-width:880px; max-height:92vh; display:flex; flex-direction:column; }
+.gm-modal-wide .gm-modal-bd { overflow-y:auto; }
+.gm-inp { padding:.4rem .55rem; border:1px solid var(--bdr); border-radius:.4rem; font-size:1.4rem; background:#fff; }
+.gm-inp:focus { outline:none; border-color:#be185d; }
+.gm-ob-ctrl { display:flex; flex-wrap:wrap; gap:.5rem; align-items:flex-end; margin-bottom:.75rem;
+              background:var(--surf); border:1px solid var(--bdr); border-radius:.5rem; padding:.6rem .75rem; }
+.gm-ob-ctrl label { display:flex; flex-direction:column; font-size:1.2rem; font-weight:700; color:var(--ink2); gap:.2rem; }
+.gm-ob-ctrl .gm-inp { width:110px; }
+.gm-ob-ctrl button { padding:.45rem .9rem; border:none; border-radius:.4rem; background:#be185d; color:#fff;
+                     font-size:1.4rem; font-weight:700; cursor:pointer; }
+.gm-ob-tbl { width:100%; border-collapse:collapse; font-size:1.3rem; margin-bottom:.75rem; }
+.gm-ob-tbl th { text-align:left; font-size:1.2rem; color:var(--ink2); border-bottom:2px solid var(--bdr); padding:.35rem .4rem; white-space:nowrap; }
+.gm-ob-tbl td { border-bottom:1px solid var(--bdr); padding:.35rem .4rem; vertical-align:middle; }
+.gm-ob-tbl tr.gm-ob-first td { border-top:2px solid var(--bdr); }
+.gm-ob-tbl .tr { text-align:right; white-space:nowrap; }
+.gm-ob-tbl .gm-inp { width:110px; text-align:right; }
+.gm-ob-tbl .gm-inp.bad { border-color:var(--dead); background:#fef2f2; }
+.gm-ob-name { font-weight:700; color:var(--ink); }
+.gm-ob-msg { font-size:1.2rem; line-height:1.3; }
+.gm-ob-msg.bad { color:var(--dead); font-weight:700; }
+.gm-ob-msg.warn { color:#b45309; }
+.gm-ob-msg.ok { color:#15803d; }
+.gm-ob-alert { border-radius:.45rem; padding:.55rem .8rem; font-size:1.3rem; margin-bottom:.75rem; line-height:1.5; }
+.gm-ob-alert.warn { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
+.gm-ob-alert.bad  { background:#fef2f2; border:1px solid #fecaca; color:#991b1b; }
+.gm-wa-ta { width:100%; min-height:300px; font-family:inherit; font-size:1.4rem; line-height:1.45; padding:.6rem .75rem;
+            border:1px solid var(--bdr); border-radius:.45rem; }
+.gm-tabs { display:flex; gap:.4rem; margin-bottom:.6rem; }
+.gm-tabs button { flex:1; padding:.5rem .6rem; border:1px solid var(--bdr); border-radius:.45rem; background:#fff;
+                  font-size:1.4rem; font-weight:700; color:var(--ink2); cursor:pointer; }
+.gm-tabs button.on { background:#be185d; border-color:#be185d; color:#fff; }
+.gm-modal-inp { width:100%; padding:.5rem .7rem; border:1px solid var(--bdr); border-radius:.45rem; font-size:1.4rem; margin-bottom:.75rem; }
+
 /* Warning stok minus */
 .gm-negstock { background:#fffbeb; border:1px solid #fde68a; border-radius:.6rem;
                padding:.75rem 1rem; margin-bottom:.875rem; }
@@ -370,7 +419,16 @@
     <div class="gm-alert gm-alert-err">❌ {{ session('error') }}</div>
 @endif
 @if($errors->any())
-    <div class="gm-alert gm-alert-err">❌ {{ $errors->first() }}</div>
+    <div class="gm-alert gm-alert-err">❌
+        @if(count($errors->all()) === 1)
+            {{ $errors->first() }}
+        @else
+            Belum disimpan:
+            <ul style="margin:.3rem 0 0 1.2rem;padding:0">
+                @foreach($errors->all() as $msg)<li>{{ $msg }}</li>@endforeach
+            </ul>
+        @endif
+    </div>
 @endif
 @if($obralSelesai > 0)
     <div class="gm-alert gm-alert-info">🏷️ {{ $obralSelesai }} barang obral sudah habis stoknya dan otomatis di-discontinue ("Habis obral"). Lihat di tab Disc.</div>
@@ -713,7 +771,7 @@
         </colgroup>
         <thead>
             <tr>
-                <th class="tc gm-chk-col" data-gm-tip="Pilih Dead/Slow/Kosong lalu obral atau discontinue sekaligus">
+                <th class="tc gm-chk-col" data-gm-tip="Centang barang lalu buat tugas cek stok, obral, discontinue, atau cetak label & teks WA obral sekaligus">
                     <input type="checkbox" id="gmChkAll" onclick="gmToggleAll(this)">
                 </th>
                 <th class="tc">Aksi</th>
@@ -756,19 +814,23 @@
             $isAtRisk = ($g->status === 'at_risk');
             $isObral  = ($g->status === 'obral');
             // Obral: Dead/Slow yang stoknya masih ada. Discontinue: Dead & Kosong.
+            // Cek stok: semua barang yang stok sistemnya masih ada (paling penting Dead & Perlu Dicek).
             $canObral = $adaKolomBaru && in_array($g->status, ['dead', 'slow'], true) && $g->stok_sekarang > 0;
             $canDisc  = in_array($g->status, ['dead', 'kosong'], true);
+            $canCek   = $bolehSidak && $g->stok_sekarang > 0;
+            $dicekHari = $g->dicek_hari ?? null;
             $namaJs   = e(json_encode($g->nama));
             $katJs    = e(json_encode($g->kategori));
             $tipeJs   = e(json_encode($g->tipe ?? ''));
         @endphp
         <tr class="gm-row{{ $isDead ? ' row-dead' : '' }}" data-idx="{{ $i }}">
 
-            {{-- 0. Checklist (Dead/Slow untuk obral, Dead/Kosong untuk discontinue — bukan at_risk) --}}
+            {{-- 0. Checklist (Dead/Slow untuk obral, Dead/Kosong untuk discontinue, stok ada untuk cek stok, obral untuk label & teks WA) --}}
             <td class="tc gm-chk-col">
-                @if($canObral || $canDisc)
+                @if($canObral || $canDisc || $canCek || $isObral)
                 <input type="checkbox" class="gm-chk-item" value="{{ $g->good_id }}"
                     data-can-obral="{{ $canObral ? 1 : 0 }}" data-can-disc="{{ $canDisc ? 1 : 0 }}"
+                    data-can-cek="{{ $canCek ? 1 : 0 }}" data-is-obral="{{ $isObral ? 1 : 0 }}"
                     onchange="gmUpdateBulkBar()">
                 @endif
             </td>
@@ -876,6 +938,10 @@
                 @if($g->stok_sekarang > 0)
                 <div style="font-size:1.4rem;color:var(--ink3)">Rp{{ number_format($g->nilai_stok / 1000, 0) }}rb</div>
                 @endif
+                @if($dicekHari !== null)
+                <span class="gm-cek-tag{{ $dicekHari > \App\Models\GoodMovementRepository::CHECKED_FRESH_DAYS ? ' lama' : '' }}"
+                      data-gm-tip="Stok fisik terakhir dihitung (Sidak / Stock Opname) {{ \Carbon\Carbon::parse($g->dicek_at)->isoFormat('D MMM Y HH:mm') }}">✔ dicek {{ $dicekHari === 0 ? 'hari ini' : $dicekHari . ' hr lalu' }}</span>
+                @endif
             </td>
 
             {{-- 10. Hr Stok / Sjk Jual --}}
@@ -948,8 +1014,14 @@
     {{-- Toolbar aksi massal: muncul saat ada checkbox dicentang --}}
     <div class="gm-bulkbar" id="gmBulkBar">
         <span id="gmBulkCount">0 barang dipilih</span>
+        @if($bolehSidak)
+        <button type="button" class="gm-bulk-cek" id="gmBulkCekBtn" onclick="gmOpenCek()"
+            data-gm-tip="Buat daftar cek stok fisik (Sidak). Bisa dicek langsung di HP atau dikirim ke pegawai lewat WA.">🔎 Tugas Cek Stok (<span id="gmBulkCekN">0</span>)</button>
+        @endif
         @if($adaKolomBaru)
         <button type="button" class="gm-bulk-obral" id="gmBulkObralBtn" onclick="gmOpenBulkObral()">🏷️ Obral (<span id="gmBulkObralN">0</span>)</button>
+        <button type="button" class="gm-bulk-label" id="gmBulkLabelBtn" onclick="gmOpenLabel()">🖨️ Label Obral (<span id="gmBulkLabelN">0</span>)</button>
+        <button type="button" class="gm-bulk-label" id="gmBulkWaBtn" onclick="gmOpenWa()">📋 Teks WA Obral (<span id="gmBulkWaN">0</span>)</button>
         @endif
         <button type="button" class="gm-bulk-go" id="gmBulkDiscBtn" onclick="gmOpenBulkModal()">🗑️ Discontinue (<span id="gmBulkDiscN">0</span>)</button>
         <button type="button" class="gm-bulk-clear" onclick="gmClearAll()">Batal Pilih</button>
@@ -1074,9 +1146,9 @@
 {{-- MODAL OBRAL — satu barang atau banyak sekaligus                    --}}
 {{-- ═══════════════════════════════════════════════════════════════════ --}}
 <div class="gm-modal-overlay gm-modal-obral" id="gmObralModal">
-    <div class="gm-modal">
+    <div class="gm-modal{{ $hargaObralAda ? ' gm-modal-wide' : '' }}">
         <div class="gm-modal-hd">
-            <h3>🏷️ Tandai Obral</h3>
+            <h3>🏷️ {{ $hargaObralAda ? 'Obral & Harga Obral' : 'Tandai Obral' }}</h3>
             <button class="gm-modal-close" type="button" onclick="gmCloseObral()">✕</button>
         </div>
         <div class="gm-modal-bd">
@@ -1084,17 +1156,53 @@
             <div class="gm-modal-warn">
                 Barang obral <strong>tidak dinilai fast/slow/dead</strong> dan <strong>tidak pernah disarankan order</strong>
                 (di sini maupun di Rekomendasi Reorder), walaupun selama obral lakunya ramai.
+                @if($hargaObralAda)
+                Harga jual diganti <strong>harga obral</strong> di bawah ini (tercatat di riwayat harga; Kasir HP/PC ikut berubah saat sinkron).
+                Begitu stoknya habis, barang <strong>otomatis di-discontinue</strong> dan <strong>harganya kembali normal</strong>.
+                Batal obral juga mengembalikan harga normal.
+                @else
                 Begitu stoknya habis, barang <strong>otomatis di-discontinue</strong> dengan alasan "Habis obral".
                 Harga obral tetap diatur seperti biasa (ubah harga jual / diskon di kasir).
+                @endif
             </div>
+            @if($hargaObralAda)
+            <div id="gmObUnchecked" class="gm-ob-alert warn" style="display:none"></div>
+            <div class="gm-ob-ctrl">
+                <label>Diskon (%)
+                    <input type="number" class="gm-inp" id="gmObDisc" min="1" max="90" step="1" value="30"></label>
+                <label>Pembulatan
+                    <select class="gm-inp" id="gmObRound">
+                        <option value="100">ke Rp100</option>
+                        <option value="500" selected>ke Rp500</option>
+                        <option value="1000">ke Rp1.000</option>
+                        <option value="1">tanpa</option>
+                    </select></label>
+                <button type="button" onclick="gmObApply()">Terapkan ke semua</button>
+                <span class="gm-sub" style="flex-basis:100%">
+                    Dibulatkan ke bawah, tapi <strong>tidak pernah di bawah modal</strong> (paling rendah sama dengan modal).
+                    Tiap harga masih bisa diubah sendiri. Kosongkan kalau satuan itu tidak diobral.
+                    @unless($lihatModal) Harga modal tidak ditampilkan untuk akun ini; harga di bawah modal ditolak saat disimpan. @endunless
+                </span>
+            </div>
+            <div id="gmObLoading" class="gm-sub" style="margin-bottom:.75rem">Memuat harga…</div>
+            <table class="gm-ob-tbl" id="gmObTbl" style="display:none">
+                <thead><tr>
+                    <th>Barang</th><th>Satuan</th>
+                    @if($lihatModal)<th class="tr">Modal</th>@endif
+                    <th class="tr">Harga normal</th><th class="tr">Harga obral</th><th>Keterangan</th>
+                </tr></thead>
+                <tbody id="gmObBody"></tbody>
+            </table>
+            <div id="gmObErr" class="gm-ob-alert bad" style="display:none"></div>
+            @endif
             <label class="gm-modal-lbl" for="gmObralReason">Keterangan obral <span style="color:var(--dead)">*</span></label>
             <textarea class="gm-modal-ta" id="gmObralReason"
-                placeholder="Contoh: Dead stock 6 bulan, dijual harga modal sampai habis"></textarea>
+                placeholder="Contoh: Dead stock 6 bulan, dihabiskan dengan harga obral"></textarea>
             <div class="gm-modal-err" id="gmObralErr">Keterangan wajib diisi minimal 5 karakter.</div>
         </div>
         <div class="gm-modal-ft">
             <button type="button" class="gm-btn-cancel" onclick="gmCloseObral()">Batal</button>
-            <button type="button" class="gm-btn-ok" onclick="gmSubmitObral()">🏷️ Ya, Obral</button>
+            <button type="button" class="gm-btn-ok" id="gmObralOk" onclick="gmSubmitObral()">🏷️ Ya, Obral</button>
         </div>
     </div>
 </div>
@@ -1102,7 +1210,110 @@
     @csrf
     <input type="hidden" name="reason" id="gmObralFormReason">
     <div id="gmObralFormIds"></div>
+    <div id="gmObralFormPrices"></div>
 </form>
+
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- MODAL LABEL OBRAL — cetak label rak harga coret                     --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div class="gm-modal-overlay gm-modal-obral" id="gmLabelModal">
+    <div class="gm-modal">
+        <div class="gm-modal-hd">
+            <h3>🖨️ Cetak Label Obral</h3>
+            <button class="gm-modal-close" type="button" onclick="gmCloseLabel()">✕</button>
+        </div>
+        <div class="gm-modal-bd">
+            <div class="gm-modal-name" id="gmLabelName">—</div>
+            <div class="gm-modal-info">
+                Label rak dengan <strong>harga normal dicoret</strong>, harga obral besar, hemat Rp &amp; persen,
+                dan tulisan "selama stok ada". Kertas A4 mendatar, sama seperti Print Harga Display.
+            </div>
+            <label class="gm-modal-lbl" for="gmLabelLayout">Jumlah label per halaman</label>
+            <select class="gm-modal-sel" id="gmLabelLayout">
+                <option value="2">2 (besar)</option>
+                <option value="4">4</option>
+                <option value="9" selected>9</option>
+                <option value="16">16 (kecil)</option>
+            </select>
+            <label class="gm-modal-lbl" for="gmLabelQty">Jumlah cetak per barang</label>
+            <input type="number" class="gm-modal-inp" id="gmLabelQty" min="1" max="10" value="1">
+        </div>
+        <div class="gm-modal-ft">
+            <button type="button" class="gm-btn-cancel" onclick="gmCloseLabel()">Batal</button>
+            <button type="button" class="gm-btn-ok" onclick="gmSubmitLabel()">🖨️ Cetak</button>
+        </div>
+    </div>
+</div>
+<form method="POST" id="gmLabelForm" action="{{ route('admin.reports.movement.clearance-label') }}" target="_blank" style="display:none">
+    @csrf
+    <input type="hidden" name="layout" id="gmLabelFormLayout">
+    <div id="gmLabelFormIds"></div>
+</form>
+
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- MODAL TEKS WA OBRAL — untuk pelanggan / untuk pegawai               --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div class="gm-modal-overlay gm-modal-obral" id="gmWaModal">
+    <div class="gm-modal gm-modal-wide" style="max-width:600px">
+        <div class="gm-modal-hd">
+            <h3>📋 Teks WA Obral</h3>
+            <button class="gm-modal-close" type="button" onclick="gmCloseWa()">✕</button>
+        </div>
+        <div class="gm-modal-bd">
+            <div class="gm-tabs">
+                <button type="button" id="gmWaTabCust" class="on" onclick="gmWaTab('pelanggan')">Untuk pelanggan</button>
+                <button type="button" id="gmWaTabStaff" onclick="gmWaTab('pegawai')">Untuk pegawai</button>
+            </div>
+            <div class="gm-sub" id="gmWaHint" style="margin-bottom:.5rem"></div>
+            <textarea class="gm-wa-ta" id="gmWaText">Memuat…</textarea>
+        </div>
+        <div class="gm-modal-ft">
+            <button type="button" class="gm-btn-cancel" onclick="gmCloseWa()">Tutup</button>
+            <button type="button" class="gm-btn-ok" id="gmWaCopyBtn" onclick="gmCopyWa()">📋 Copy Teks</button>
+        </div>
+    </div>
+</div>
+@endif
+
+@if($bolehSidak)
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- MODAL TUGAS CEK STOK — buat sesi Sidak berisi daftar barang         --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div class="gm-modal-overlay" id="gmCekModal">
+    <div class="gm-modal">
+        <div class="gm-modal-hd">
+            <h3>🔎 Tugas Cek Stok</h3>
+            <button class="gm-modal-close" type="button" onclick="gmCloseCek()">✕</button>
+        </div>
+        <div class="gm-modal-bd">
+            <div class="gm-modal-name" id="gmCekName">—</div>
+            <div class="gm-modal-info" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a">
+                Dibuat <strong>satu sesi Sidak</strong> berisi daftar ini (urut seperti tabel). Di halaman sidak:
+                cek langsung di HP, atau <strong>Copy teks WA</strong> untuk pegawai lalu ketik angka balasannya di daftar yang sama.
+                Setelah selesai, <strong>Jadikan Stock Opname</strong> mengoreksi stok, dan barang yang fisiknya 0 bisa langsung di-discontinue.
+            </div>
+            <label class="gm-modal-lbl" for="gmCekNote">Catatan</label>
+            <input class="gm-modal-inp" id="gmCekNote" maxlength="255"
+                value="{{ $status === 'dead' ? 'Cek fisik dead stock' : ($status === 'at_risk' ? 'Cek fisik barang Perlu Dicek' : 'Cek fisik barang') }}">
+            <label class="gm-modal-lbl" for="gmCekBy">Dihitung oleh (nama pegawai, boleh kosong)</label>
+            <input class="gm-modal-inp" id="gmCekBy" maxlength="100" placeholder="contoh: Rina">
+            <div class="gm-modal-err" id="gmCekErr"></div>
+        </div>
+        <div class="gm-modal-ft">
+            <button type="button" class="gm-btn-cancel" onclick="gmCloseCek()">Batal</button>
+            <button type="button" class="gm-btn-ok" style="background:#2563eb" onclick="gmSubmitCek()">🔎 Buat Tugas</button>
+        </div>
+    </div>
+</div>
+<form method="POST" id="gmCekForm" action="{{ route('admin.sidak.store') }}" style="display:none">
+    @csrf
+    <input type="hidden" name="note" id="gmCekFormNote">
+    <input type="hidden" name="counted_by" id="gmCekFormBy">
+    <div id="gmCekFormIds"></div>
+</form>
+@endif
+
+@if($adaKolomBaru)
 
 {{-- ═══════════════════════════════════════════════════════════════════ --}}
 {{-- MODAL MUSIM — tandai barang / jenisnya sebagai musiman              --}}
@@ -1361,14 +1572,18 @@
         } else {
             bar.classList.remove('show');
         }
-        var nObral = gmCheckedIds('data-can-obral').length;
-        var nDisc  = gmCheckedIds('data-can-disc').length;
-        var oN = document.getElementById('gmBulkObralN'), oB = document.getElementById('gmBulkObralBtn');
-        var dN = document.getElementById('gmBulkDiscN'),  dB = document.getElementById('gmBulkDiscBtn');
-        if (oN) oN.textContent = nObral;
-        if (oB) oB.disabled = nObral === 0;
-        if (dN) dN.textContent = nDisc;
-        if (dB) dB.disabled = nDisc === 0;
+        var counts = {
+            Obral: gmCheckedIds('data-can-obral').length,
+            Disc:  gmCheckedIds('data-can-disc').length,
+            Cek:   gmCheckedIds('data-can-cek').length,
+            Label: gmCheckedIds('data-is-obral').length,
+            Wa:    gmCheckedIds('data-is-obral').length
+        };
+        Object.keys(counts).forEach(function (k) {
+            var n = document.getElementById('gmBulk' + k + 'N'), b = document.getElementById('gmBulk' + k + 'Btn');
+            if (n) n.textContent = counts[k];
+            if (b) b.style.display = counts[k] === 0 ? 'none' : '';
+        });
         // Sinkronkan checkbox "pilih semua" di header
         var master = document.getElementById('gmChkAll');
         if (master) master.checked = visible.length > 0 && checked.length === visible.length;
@@ -1411,20 +1626,63 @@
         document.getElementById('gmBulkForm').submit();
     };
 
-    function gmFillIds(wrapId, ids) {
+    function gmFillIds(wrapId, ids, name) {
         var idsWrap = document.getElementById(wrapId);
         idsWrap.innerHTML = '';
         ids.forEach(function (id) {
             var inp = document.createElement('input');
             inp.type = 'hidden';
-            inp.name = 'ids[]';
+            inp.name = name || 'ids[]';
             inp.value = id;
             idsWrap.appendChild(inp);
         });
     }
 
-    /* ── Obral ──────────────────────────────────────────────────── */
+    /* ── Bantuan umum ───────────────────────────────────────────── */
+    var _hargaObral = @json($hargaObralAda);
+    var _lihatModal = @json($lihatModal);
+    var _freshDays  = {{ \App\Models\GoodMovementRepository::CHECKED_FRESH_DAYS }};
+
+    function gmEsc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+    function gmNum(n) { return Number(n).toLocaleString('id-ID', { maximumFractionDigits: 2 }); }
+    function gmRp(n)  { return 'Rp' + Math.round(Number(n)).toLocaleString('id-ID'); }
+
+    /** Data barang + satuan + harga dari server (urut sesuai ids). */
+    function gmFetchGoods(ids) {
+        var qs = ids.map(function (id) { return 'ids[]=' + encodeURIComponent(id); }).join('&');
+        return fetch(_baseUrl + '/obral/barang?' + qs, {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (res) {
+            if (!res.ok) throw new Error('Gagal memuat data barang (' + res.status + ').');
+            return res.json();
+        }).then(function (data) { return data.goods || []; });
+    }
+
+    function gmCopyText(text, btn) {
+        function done() {
+            if (!btn) return;
+            var old = btn.textContent;
+            btn.textContent = '✅ Tersalin';
+            setTimeout(function () { btn.textContent = old; }, 1800);
+        }
+        function fallback() {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { alert('Gagal menyalin. Salin manual dari kotak teks.'); }
+            document.body.removeChild(ta);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+        } else {
+            fallback();
+        }
+    }
+
+    /* ── Obral + harga obral ────────────────────────────────────── */
     var _obralIds = [];
+    var _obGoods  = [];
     window.gmOpenObral = function (ids, name) {
         if (!document.getElementById('gmObralModal') || !ids.length) return;
         _obralIds = ids;
@@ -1432,7 +1690,24 @@
         document.getElementById('gmObralReason').value = '';
         document.getElementById('gmObralErr').style.display = 'none';
         document.getElementById('gmObralModal').classList.add('open');
-        setTimeout(function () { document.getElementById('gmObralReason').focus(); }, 120);
+        if (!_hargaObral) {
+            setTimeout(function () { document.getElementById('gmObralReason').focus(); }, 120);
+            return;
+        }
+        _obGoods = [];
+        document.getElementById('gmObErr').style.display = 'none';
+        document.getElementById('gmObUnchecked').style.display = 'none';
+        document.getElementById('gmObTbl').style.display = 'none';
+        document.getElementById('gmObBody').innerHTML = '';
+        var loading = document.getElementById('gmObLoading');
+        loading.style.display = '';
+        loading.textContent = 'Memuat harga…';
+        gmFetchGoods(ids).then(function (goods) {
+            _obGoods = goods;
+            loading.style.display = 'none';
+            gmObRender();
+            setTimeout(function () { document.getElementById('gmObDisc').focus(); }, 60);
+        }).catch(function (e) { loading.textContent = e.message; });
     };
     window.gmOpenBulkObral = function () {
         var ids = gmCheckedIds('data-can-obral');
@@ -1442,6 +1717,128 @@
         var m = document.getElementById('gmObralModal');
         if (m) m.classList.remove('open');
     };
+
+    function gmObRender() {
+        var body = document.getElementById('gmObBody');
+        var html = '';
+        _obGoods.forEach(function (g) {
+            g.units.forEach(function (u, k) {
+                var normal = u.normal_price !== null ? u.normal_price : u.selling_price;
+                html += '<tr class="' + (k === 0 ? 'gm-ob-first' : '') + '">';
+                if (k === 0) {
+                    html += '<td rowspan="' + g.units.length + '"><div class="gm-ob-name">' + gmEsc(g.nama) + '</div>' +
+                        '<div class="gm-sub">sisa ' + gmNum(g.stok) + ' ' + gmEsc(g.satuan) + ' · ' + gmEsc(g.kategori) + '</div></td>';
+                }
+                html += '<td>' + gmEsc(String(u.unit).toUpperCase()) + (u.isi > 1 ? '<div class="gm-sub">isi ' + gmNum(u.isi) + '</div>' : '') + '</td>';
+                if (_lihatModal) html += '<td class="tr">' + (u.buy_price > 0 ? gmRp(u.buy_price) : '<span style="color:var(--dead)">kosong</span>') + '</td>';
+                html += '<td class="tr">' + gmRp(normal) + '</td>' +
+                    '<td class="tr"><input type="number" class="gm-inp gm-ob-inp" min="0" step="any" inputmode="decimal"' +
+                        ' data-gu="' + u.good_unit_id + '" data-good="' + g.good_id + '" data-normal="' + normal + '"' +
+                        ' data-buy="' + (u.buy_price === null ? '' : u.buy_price) + '" data-isi="' + u.isi + '" data-unit="' + gmEsc(u.unit) + '"' +
+                        ' placeholder="tidak diubah"></td>' +
+                    '<td><div class="gm-ob-msg" id="gmObMsg' + u.good_unit_id + '"></div></td>';
+                html += '</tr>';
+            });
+        });
+        body.innerHTML = html || '<tr><td colspan="6" class="gm-sub">Barang tidak ditemukan.</td></tr>';
+        document.getElementById('gmObTbl').style.display = '';
+        body.querySelectorAll('.gm-ob-inp').forEach(function (inp) { inp.addEventListener('input', gmObCheck); });
+
+        // Barang yang belum dicek fisik: sebaiknya dicek dulu supaya yang diobral memang ada di rak.
+        var belum = _obGoods.filter(function (g) { return g.dicek_hari === null || g.dicek_hari > _freshDays; });
+        var box = document.getElementById('gmObUnchecked');
+        if (belum.length) {
+            var names = belum.slice(0, 5).map(function (g) { return gmEsc(g.nama); }).join(', ') + (belum.length > 5 ? ', …' : '');
+            box.innerHTML = '⚠️ <strong>' + belum.length + ' barang belum dicek fisik ' + _freshDays + ' hari terakhir</strong>: ' + names +
+                '. Sebaiknya buat <strong>Tugas Cek Stok</strong> dulu supaya barang yang diobral memang ada di rak.';
+            box.style.display = '';
+        }
+        gmObCheck();
+    }
+
+    /** Harga obral dari diskon %: dibulatkan ke bawah, tidak di bawah modal, tidak di atas harga normal. */
+    function gmObSuggest(normal, buy, disc, step) {
+        var target = normal * (1 - disc / 100);
+        var val = Math.floor(target / step) * step;
+        if (buy > 0 && val < buy) {
+            val = Math.ceil(buy / step) * step;
+            if (val > normal) val = buy;
+        }
+        if (val >= normal || val <= 0) return '';
+        return Math.round(val * 100) / 100;
+    }
+
+    window.gmObApply = function () {
+        var disc = parseFloat(document.getElementById('gmObDisc').value);
+        var step = parseFloat(document.getElementById('gmObRound').value) || 1;
+        if (!(disc > 0 && disc < 100)) { document.getElementById('gmObDisc').focus(); return; }
+        document.querySelectorAll('#gmObBody .gm-ob-inp').forEach(function (inp) {
+            var buy = inp.getAttribute('data-buy') === '' ? 0 : parseFloat(inp.getAttribute('data-buy'));
+            inp.value = gmObSuggest(parseFloat(inp.getAttribute('data-normal')), buy, disc, step);
+        });
+        gmObCheck();
+    };
+
+    /** Periksa semua harga obral; kembalikan jumlah kesalahan. */
+    function gmObCheck() {
+        var inputs = Array.prototype.slice.call(document.querySelectorAll('#gmObBody .gm-ob-inp'));
+        var errors = 0;
+        var perGood = {};
+        inputs.forEach(function (inp) {
+            var raw = inp.value.trim();
+            var normal = parseFloat(inp.getAttribute('data-normal'));
+            var buy = inp.getAttribute('data-buy') === '' ? null : parseFloat(inp.getAttribute('data-buy'));
+            var msg = document.getElementById('gmObMsg' + inp.getAttribute('data-gu'));
+            var v = raw === '' ? null : parseFloat(raw);
+            var cls = '', text = '';
+            if (v === null || Math.abs(v - normal) < 0.005) {
+                text = 'harga tetap'; cls = '';
+            } else if (!(v > 0)) {
+                text = 'harga harus lebih dari 0'; cls = 'bad';
+            } else if (buy !== null && buy <= 0) {
+                text = 'harga beli masih kosong'; cls = 'bad';
+            } else if (buy !== null && v < buy - 0.005) {
+                text = 'di bawah modal ' + gmRp(buy) + ' — paling rendah sama dengan modal'; cls = 'bad';
+            } else if (v > normal) {
+                text = 'lebih tinggi dari harga normal'; cls = 'bad';
+            } else {
+                text = 'hemat ' + gmRp(normal - v) + ' (-' + Math.round((normal - v) / normal * 100) + '%)' +
+                       (buy !== null && Math.abs(v - buy) < 0.005 ? ' · = modal' : '');
+                cls = 'ok';
+            }
+            if (cls === 'bad') errors++;
+            inp.classList.toggle('bad', cls === 'bad');
+            msg.className = 'gm-ob-msg ' + cls;
+            msg.textContent = text;
+            var gid = inp.getAttribute('data-good');
+            (perGood[gid] = perGood[gid] || []).push({ inp: inp, msg: msg, isi: parseFloat(inp.getAttribute('data-isi')) || 1,
+                price: v === null ? normal : v, changed: v !== null && Math.abs(v - normal) >= 0.005, bad: cls === 'bad' });
+        });
+
+        // Satuan besar per isinya lebih mahal dari satuan kecil yang diobral:
+        // pembeli yang ambil satuan besar malah bayar lebih mahal.
+        Object.keys(perGood).forEach(function (gid) {
+            var list = perGood[gid].slice().sort(function (a, b) { return a.isi - b.isi; });
+            if (list.length < 2 || !list.some(function (x) { return x.changed; })) return;
+            var small = list[0], perSmall = small.price / small.isi;
+            list.slice(1).forEach(function (big) {
+                var per = big.price / big.isi;
+                if (!big.bad && per > perSmall + 0.5) {
+                    big.msg.className = 'gm-ob-msg warn';
+                    big.msg.textContent = '⚠ per ' + small.inp.getAttribute('data-unit') + ' jadi ' + gmRp(per) +
+                        ', lebih mahal dari ' + small.inp.getAttribute('data-unit') + ' (' + gmRp(perSmall) + '). Samakan diskonnya.';
+                }
+            });
+        });
+
+        var errBox = document.getElementById('gmObErr');
+        if (errBox) {
+            errBox.style.display = errors ? '' : 'none';
+            errBox.textContent = errors ? errors + ' harga obral belum benar (lihat tanda merah). Perbaiki atau kosongkan dulu.' : '';
+        }
+        return errors;
+    }
+
     window.gmSubmitObral = function () {
         var reason = document.getElementById('gmObralReason').value.trim();
         if (reason.length < 5) {
@@ -1449,9 +1846,143 @@
             document.getElementById('gmObralReason').focus();
             return;
         }
+        var wrap = document.getElementById('gmObralFormPrices');
+        if (wrap) {
+            if (_hargaObral && !_obGoods.length) return; // harga belum termuat
+            if (_hargaObral && gmObCheck() > 0) return;
+            wrap.innerHTML = '';
+            document.querySelectorAll('#gmObBody .gm-ob-inp').forEach(function (inp) {
+                var raw = inp.value.trim();
+                if (raw === '' || Math.abs(parseFloat(raw) - parseFloat(inp.getAttribute('data-normal'))) < 0.005) return;
+                var h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'prices[' + inp.getAttribute('data-gu') + ']';
+                h.value = raw;
+                wrap.appendChild(h);
+            });
+        }
+        document.getElementById('gmObralOk').disabled = true;
         document.getElementById('gmObralFormReason').value = reason;
         gmFillIds('gmObralFormIds', _obralIds);
         document.getElementById('gmObralForm').submit();
+    };
+
+    /* ── Label obral ────────────────────────────────────────────── */
+    window.gmOpenLabel = function () {
+        var ids = gmCheckedIds('data-is-obral');
+        if (!ids.length) return;
+        document.getElementById('gmLabelName').textContent = ids.length + ' barang obral';
+        document.getElementById('gmLabelModal').classList.add('open');
+    };
+    window.gmCloseLabel = function () {
+        var m = document.getElementById('gmLabelModal');
+        if (m) m.classList.remove('open');
+    };
+    window.gmSubmitLabel = function () {
+        var ids = gmCheckedIds('data-is-obral');
+        var qty = Math.max(1, Math.min(10, parseInt(document.getElementById('gmLabelQty').value, 10) || 1));
+        document.getElementById('gmLabelFormLayout').value = document.getElementById('gmLabelLayout').value;
+        var wrap = document.getElementById('gmLabelFormIds');
+        gmFillIds('gmLabelFormIds', ids);
+        ids.forEach(function (id) {
+            var h = document.createElement('input');
+            h.type = 'hidden'; h.name = 'quantities[' + id + ']'; h.value = qty;
+            wrap.appendChild(h);
+        });
+        document.getElementById('gmLabelForm').submit();
+        gmCloseLabel();
+    };
+
+    /* ── Teks WA obral ──────────────────────────────────────────── */
+    var _waGoods = [];
+    var _waMode  = 'pelanggan';
+
+    /** Satuan yang diobral (punya harga normal lebih tinggi); kalau tidak ada, harga satuan terkecil. */
+    function gmWaPrices(g) {
+        var diskon = g.units.filter(function (u) { return u.normal_price !== null && u.normal_price > u.selling_price; });
+        return diskon.length ? diskon : g.units.slice(0, 1);
+    }
+    function gmWaLine(u) {
+        var unit = '/' + String(u.unit).toLowerCase();
+        if (u.normal_price !== null && u.normal_price > u.selling_price) {
+            return '~' + gmRp(u.normal_price) + '~ → *' + gmRp(u.selling_price) + '* ' + unit +
+                   ' (hemat ' + Math.round((u.normal_price - u.selling_price) / u.normal_price * 100) + '%)';
+        }
+        return '*' + gmRp(u.selling_price) + '* ' + unit;
+    }
+    function gmWaBuild() {
+        var today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        var lines = [];
+        if (_waMode === 'pelanggan') {
+            lines.push('🏷️ *OBRAL – SELAMA STOK ADA* 🏷️', '');
+            _waGoods.forEach(function (g) {
+                lines.push('• *' + g.nama + '*');
+                gmWaPrices(g).forEach(function (u) { lines.push('   ' + gmWaLine(u)); });
+            });
+            lines.push('', 'Stok terbatas, siapa cepat dia dapat! 🛒');
+        } else {
+            lines.push('🏷️ *TUGAS OBRAL*', '📅 ' + today, '',
+                'Pindahkan ke rak/keranjang obral dan pasang label obral (harga lama dicoret):', '');
+            _waGoods.forEach(function (g, i) {
+                lines.push((i + 1) + '. ' + g.nama + ' (' + g.kategori + ')');
+                lines.push('   sisa ' + gmNum(g.stok) + ' ' + g.satuan + ' · ' + gmWaPrices(g).map(gmWaLine).join(' · '));
+            });
+            lines.push('', '_Total: ' + _waGoods.length + ' barang_');
+        }
+        return lines.join('\n');
+    }
+    window.gmWaTab = function (mode) {
+        _waMode = mode;
+        document.getElementById('gmWaTabCust').classList.toggle('on', mode === 'pelanggan');
+        document.getElementById('gmWaTabStaff').classList.toggle('on', mode === 'pegawai');
+        document.getElementById('gmWaHint').textContent = mode === 'pelanggan'
+            ? 'Untuk status / grup WA pelanggan: harga normal dicoret dan harga obral, tanpa stok dan tanpa modal. Teks bisa diedit dulu.'
+            : 'Untuk pegawai: daftar barang yang dipindah ke rak obral, sisa stok, dan harga baru. Teks bisa diedit dulu.';
+        if (_waGoods.length) document.getElementById('gmWaText').value = gmWaBuild();
+    };
+    window.gmOpenWa = function () {
+        var ids = gmCheckedIds('data-is-obral');
+        if (!ids.length) return;
+        _waGoods = [];
+        document.getElementById('gmWaText').value = 'Memuat…';
+        document.getElementById('gmWaModal').classList.add('open');
+        gmWaTab(_waMode);
+        gmFetchGoods(ids).then(function (goods) {
+            _waGoods = goods;
+            document.getElementById('gmWaText').value = gmWaBuild();
+        }).catch(function (e) { document.getElementById('gmWaText').value = e.message; });
+    };
+    window.gmCloseWa = function () {
+        var m = document.getElementById('gmWaModal');
+        if (m) m.classList.remove('open');
+    };
+    window.gmCopyWa = function () {
+        if (!_waGoods.length) return;
+        gmCopyText(document.getElementById('gmWaText').value, document.getElementById('gmWaCopyBtn'));
+    };
+
+    /* ── Tugas cek stok ─────────────────────────────────────────── */
+    var _maxCek = {{ \App\Http\Controllers\Admin\StockInspectionController::MAX_TARGETS }};
+    window.gmOpenCek = function () {
+        var ids = gmCheckedIds('data-can-cek');
+        if (!ids.length) return;
+        document.getElementById('gmCekName').textContent = ids.length + ' barang akan dicek stok fisiknya';
+        var err = document.getElementById('gmCekErr');
+        err.style.display = ids.length > _maxCek ? 'block' : 'none';
+        err.textContent = 'Paling banyak ' + _maxCek + ' barang dalam satu tugas. Kurangi centangnya.';
+        document.getElementById('gmCekModal').classList.add('open');
+    };
+    window.gmCloseCek = function () {
+        var m = document.getElementById('gmCekModal');
+        if (m) m.classList.remove('open');
+    };
+    window.gmSubmitCek = function () {
+        var ids = gmCheckedIds('data-can-cek');
+        if (!ids.length || ids.length > _maxCek) return;
+        document.getElementById('gmCekFormNote').value = document.getElementById('gmCekNote').value.trim();
+        document.getElementById('gmCekFormBy').value = document.getElementById('gmCekBy').value.trim();
+        gmFillIds('gmCekFormIds', ids, 'good_ids[]');
+        document.getElementById('gmCekForm').submit();
     };
 
     /* ── Musim ──────────────────────────────────────────────────── */
@@ -1503,14 +2034,14 @@
     document.getElementById('gmDiscModal').addEventListener('click', function (e) {
         if (e.target === this) gmCloseModal();
     });
-    ['gmBulkModal', 'gmObralModal', 'gmSeasonModal'].forEach(function (id) {
+    ['gmBulkModal', 'gmObralModal', 'gmSeasonModal', 'gmLabelModal', 'gmWaModal', 'gmCekModal'].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('click', function (e) {
             if (e.target === this) this.classList.remove('open');
         });
     });
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { gmCloseModal(); gmCloseBulkModal(); gmCloseObral(); gmCloseSeason(); }
+        if (e.key === 'Escape') { gmCloseModal(); gmCloseBulkModal(); gmCloseObral(); gmCloseSeason(); gmCloseLabel(); gmCloseWa(); gmCloseCek(); }
     });
 
     /* ── Boot ───────────────────────────────────────────────────── */

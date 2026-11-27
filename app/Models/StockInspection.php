@@ -18,7 +18,7 @@ class StockInspection extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'role', 'role_id', 'note', 'finished_at', 'stock_opname_id',
+        'role', 'role_id', 'note', 'counted_by', 'finished_at', 'stock_opname_id',
     ];
 
     protected $casts = [
@@ -28,6 +28,12 @@ class StockInspection extends Model
     public function details()
     {
         return $this->hasMany(StockInspectionDetail::class)->orderBy('updated_at', 'desc');
+    }
+
+    /** Daftar barang yang harus dicek (tugas cek stok), urut nomor. Kosong = sidak bebas. */
+    public function targets()
+    {
+        return $this->hasMany(StockInspectionTarget::class)->orderBy('position');
     }
 
     public function actor()

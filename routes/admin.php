@@ -33,6 +33,8 @@ Route::post('reports/movement/bulk-discontinue','GoodMovementController@bulkDisc
 Route::post('reports/movement/{id}/restore','GoodMovementController@restore')->name('reports.movement.restore');
 // Obral & musim (hak aksesnya ikut menu Perputaran Barang: reports/movement/*)
 Route::post('reports/movement/obral', 'GoodMovementController@clearance')->name('reports.movement.clearance');
+Route::get('reports/movement/obral/barang', 'GoodMovementController@clearanceGoods')->name('reports.movement.clearance-goods');
+Route::post('reports/movement/obral/label', 'GoodMovementController@clearanceLabel')->name('reports.movement.clearance-label');
 Route::post('reports/movement/{id}/batal-obral', 'GoodMovementController@cancelClearance')->name('reports.movement.cancel-clearance')->whereNumber('id');
 Route::post('reports/movement/{id}/musim', 'GoodMovementController@setSeason')->name('reports.movement.season')->whereNumber('id');
 Route::get('reports/movement/musim', 'SeasonController@index')->name('seasons.index');
@@ -276,6 +278,7 @@ Route::post('kasir-hp/ditolak/{reject}', 'KasirHpController@resolve')->name('kas
 Route::group(['prefix' => 'sidak-stok'], function () {
 	Route::get('/', 'StockInspectionController@index')->name('sidak.index');
 	Route::post('/', 'StockInspectionController@store')->name('sidak.store');
+	Route::post('/dead-stock', 'StockInspectionController@storeDeadStock')->name('sidak.dead-stock');
 	Route::get('/{id}', 'StockInspectionController@show')->name('sidak.show')->whereNumber('id');
 	Route::get('/{id}/barcode', 'StockInspectionController@findByCode')->whereNumber('id');
 	Route::get('/{id}/acak', 'StockInspectionController@random')->whereNumber('id');

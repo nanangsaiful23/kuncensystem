@@ -10,9 +10,12 @@ use App\Http\Controllers\Base\StockOpnameControllerBase;
 
 use App\Models\Category;
 use App\Models\Good;
+use App\Models\GoodMovementRepository;
 use App\Models\GoodUnit;
 use App\Models\StockInspection;
 use App\Models\StockInspectionDetail;
+use App\Models\StockInspectionTarget;
+use App\Services\SkemaCekObral;
 use App\Services\StockService;
 
 /**
@@ -22,11 +25,21 @@ use App\Services\StockService;
  * minta barang acak / cari nama -> lihat stok sistem (jumlah seharusnya) ->
  * hitung fisik di rak -> simpan.
  *
+ * Sidak bisa membawa daftar barang (tugas cek stok): dari centang di
+ * Perputaran Barang, atau "Sidak dead stock" yang memilih sendiri barang Dead
+ * Stock / Perlu Dicek yang stoknya masih ada. Daftarnya bisa dicek langsung
+ * di HP, atau disalin jadi teks WA untuk pegawai lalu balasannya diketik di
+ * daftar yang sama (nomor urutnya sama). "Dihitung oleh" mencatat nama
+ * pegawai yang menghitung kalau bukan yang menginput.
+ *
  * Sidak hanya mencatat selisih. Stok tidak diubah; koreksi lewat Stock Opname.
  */
 class StockInspectionController extends Controller
 {
     use StockOpnameControllerBase;
+
+    /** Paling banyak barang dalam satu daftar tugas cek stok. */
+    public const MAX_TARGETS = 300;
 
     public function __construct()
     {
@@ -40,6 +53,10 @@ class StockInspectionController extends Controller
     /** Daftar sesi sidak + tombol mulai. */
     public function index(Request $request)
     {
+        // Tabel daftar tugas & kolom "dihitung oleh" dibuat otomatis (produksi tanpa terminal).
+        SkemaCekObral::pastikan();
+        $adaDaftar = SkemaCekObral::sidakAda();
+
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->get('end_date', Carbon::now()->toDateString());
 
@@ -50,32 +67,129 @@ class StockInspectionController extends Controller
             ->get();
 
         // Sesi yang belum diselesaikan selalu ditampilkan, kapan pun dibuatnya.
-        $open = StockInspection::with('details')->whereNull('finished_at')->orderBy('id', 'desc')->get();
+        $open = StockInspection::with($adaDaftar ? ['details', 'targets'] : ['details'])
+            ->whereNull('finished_at')->orderBy('id', 'desc')->get();
 
-        return view('admin.sidak.index', compact('inspections', 'open', 'startDate', 'endDate'));
+        $categories = $adaDaftar ? Category::orderBy('name')->get(['id', 'name']) : collect();
+
+        return view('admin.sidak.index', compact('inspections', 'open', 'startDate', 'endDate', 'adaDaftar', 'categories'));
     }
 
+    /**
+     * Mulai sidak. Dengan good_ids[] (centang di Perputaran Barang) sidaknya
+     * membawa daftar barang yang harus dicek, urut sesuai centang.
+     */
     public function store(Request $request)
     {
-        $inspection = StockInspection::create([
-            'role'    => 'admin',
-            'role_id' => \Auth::user()->id,
-            'note'    => mb_substr(trim((string) $request->note), 0, 255) ?: null,
+        $data = $request->validate([
+            'note'       => 'nullable|string|max:255',
+            'counted_by' => 'nullable|string|max:100',
+            'good_ids'   => 'nullable|array|max:' . self::MAX_TARGETS,
+            'good_ids.*' => 'integer',
+        ], [
+            'good_ids.max' => 'Paling banyak ' . self::MAX_TARGETS . ' barang dalam satu tugas cek stok.',
         ]);
 
+        $goodIds = array_values(array_unique(array_map('intval', $data['good_ids'] ?? [])));
+        if ($goodIds && ! SkemaCekObral::sidakAda()) {
+            return redirect()->back()->with('error', 'Tabel daftar cek stok belum dibuat. Buka menu Sidak Stok sekali, lalu coba lagi.');
+        }
+
+        $inspection = $this->createInspection($data['note'] ?? null, $data['counted_by'] ?? null, $goodIds);
+
         return redirect()->route('admin.sidak.show', $inspection->id);
+    }
+
+    /**
+     * Sidak dead stock: daftar barang Dead Stock & Perlu Dicek yang stoknya
+     * masih ada, dari nilai stok (modal tertahan) terbesar. Barang yang sudah
+     * dicek dalam 30 hari terakhir dilewati.
+     */
+    public function storeDeadStock(Request $request, GoodMovementRepository $repo)
+    {
+        $data = $request->validate([
+            'category'   => 'nullable|integer',
+            'limit'      => 'required|integer|min:5|max:100',
+            'counted_by' => 'nullable|string|max:100',
+        ]);
+
+        if (! SkemaCekObral::sidakAda()) {
+            return redirect()->back()->with('error', 'Tabel daftar cek stok belum dibuat. Buka ulang menu Sidak Stok, lalu coba lagi.');
+        }
+
+        $now      = Carbon::now();
+        $sudahCek = $repo->lastCheckedPerGood($now->copy()->subDays(GoodMovementRepository::CHECKED_FRESH_DAYS));
+        $category = ! empty($data['category']) ? (string) (int) $data['category'] : null;
+        $movement = $repo->getMovementData($now->copy()->subDays(90)->toDateString(), $now->toDateString(), $category, 'all', 'nilai_stok', 'desc');
+
+        $goodIds = $movement['goods']
+            ->filter(fn ($g) => in_array($g->status, ['dead', 'at_risk'], true) && $g->stok_sekarang > 0 && ! isset($sudahCek[$g->good_id]))
+            ->take((int) $data['limit'])
+            ->pluck('good_id')->all();
+
+        if (! $goodIds) {
+            return redirect()->back()->with('error', 'Tidak ada barang Dead Stock / Perlu Dicek yang stoknya masih ada dan belum dicek 30 hari terakhir'
+                . ($category ? ' di kategori ini.' : '.'));
+        }
+
+        $nama = $category ? optional(Category::find($category))->name : null;
+        $inspection = $this->createInspection('Cek dead stock' . ($nama ? ' ' . $nama : ''), $data['counted_by'] ?? null, $goodIds);
+
+        return redirect()->route('admin.sidak.show', $inspection->id);
+    }
+
+    private function createInspection(?string $note, ?string $countedBy, array $goodIds): StockInspection
+    {
+        $fields = [
+            'role'    => 'admin',
+            'role_id' => \Auth::user()->id,
+            'note'    => mb_substr(trim((string) $note), 0, 255) ?: null,
+        ];
+        if (SkemaCekObral::sidakAda()) {
+            $fields['counted_by'] = mb_substr(trim((string) $countedBy), 0, 100) ?: null;
+        }
+        $inspection = StockInspection::create($fields);
+
+        if ($goodIds) {
+            // urutan centang dipertahankan; barang yang sudah dihapus dilewati
+            $ada = [];
+            foreach (array_chunk($goodIds, 500) as $chunk) {
+                $ada += array_flip(Good::whereIn('id', $chunk)->pluck('id')->all());
+            }
+            $now  = Carbon::now();
+            $rows = [];
+            foreach ($goodIds as $goodId) {
+                if (isset($ada[$goodId])) {
+                    $rows[] = ['stock_inspection_id' => $inspection->id, 'good_id' => $goodId, 'position' => count($rows) + 1,
+                               'created_at' => $now, 'updated_at' => $now];
+                }
+            }
+            foreach (array_chunk($rows, 500) as $chunk) {
+                StockInspectionTarget::insert($chunk);
+            }
+        }
+
+        return $inspection;
     }
 
     /** Halaman kerja (sesi berjalan) atau hasil (sesi selesai). */
     public function show($id)
     {
+        SkemaCekObral::pastikan();
+        $adaDaftar = SkemaCekObral::sidakAda();
+
         $inspection = StockInspection::with('details.good')->findOrFail($id);
         $summary    = $inspection->summary();
         $categories = $inspection->isFinished() ? collect() : Category::orderBy('name')->get(['id', 'name']);
 
         $details    = $inspection->details->map(fn ($d) => $this->detailArray($d, $d->good))->values();
+        $targets    = $adaDaftar ? $this->targetArray($inspection) : [];
 
-        return view('admin.sidak.show', compact('inspection', 'summary', 'categories', 'details'));
+        // Setelah Stock Opname: barang yang fisiknya 0 dan stoknya sekarang
+        // habis bisa langsung di-discontinue (bawaan tercentang: yang dari daftar).
+        $kosong = $inspection->stock_opname_id ? $this->emptyAfterOpname($inspection, $targets) : [];
+
+        return view('admin.sidak.show', compact('inspection', 'summary', 'categories', 'details', 'targets', 'adaDaftar', 'kosong'));
     }
 
     /** Cari satu barang dari barcode hasil scan. */
@@ -160,7 +274,7 @@ class StockInspectionController extends Controller
         $data = $request->validate([
             'good_id'    => 'required|integer',
             'real_stock' => 'required|numeric|min:0|max:9999999',
-            'source'     => 'nullable|in:scan,acak,cari',
+            'source'     => 'nullable|in:scan,acak,cari,daftar',
             'note'       => 'nullable|string|max:255',
         ]);
 
@@ -204,9 +318,10 @@ class StockInspectionController extends Controller
         return response()->json(['summary' => $inspection->summary()]);
     }
 
-    public function finish($id)
+    public function finish(Request $request, $id)
     {
         $inspection = $this->openInspection($id);
+        $request->validate(['counted_by' => 'nullable|string|max:100']);
 
         if ($inspection->details()->count() === 0) {
             // sesi kosong tidak ada gunanya disimpan
@@ -215,7 +330,11 @@ class StockInspectionController extends Controller
             return redirect()->route('admin.sidak.index');
         }
 
-        $inspection->update(['finished_at' => Carbon::now()]);
+        $fields = ['finished_at' => Carbon::now()];
+        if ($request->has('counted_by') && SkemaCekObral::sidakAda()) {
+            $fields['counted_by'] = mb_substr(trim((string) $request->counted_by), 0, 100) ?: null;
+        }
+        $inspection->update($fields);
 
         return redirect()->route('admin.sidak.show', $inspection->id);
     }
@@ -260,9 +379,14 @@ class StockInspectionController extends Controller
 
             abort_if(count($names) === 0, 422, 'Tidak ada barang selisih yang bisa dikoreksi.');
 
+            // Yang menghitung fisik (pegawai) dicatat sebagai pemeriksa, yang menginput di belakangnya.
+            $checker = $inspection->counted_by
+                ? $inspection->counted_by . ' (input: ' . \Auth::user()->name . ')'
+                : \Auth::user()->name;
+
             $request = new Request([
                 'note'       => 'Sidak stok #' . $inspection->id,
-                'checker'    => \Auth::user()->name,
+                'checker'    => mb_substr($checker, 0, 255),
                 'names'      => $names,
                 'units'      => $units,
                 'old_stocks' => $oldStocks,
@@ -325,6 +449,75 @@ class StockInspectionController extends Controller
             'system_stock' => StockService::stock($good),
             'checked'  => $checked ? (float) $checked->real_stock : null,
         ]);
+    }
+
+    /**
+     * Daftar tugas cek stok: nomor, barang, satuan hitung (satuan terkecil),
+     * dan hasilnya kalau sudah dicek. Stok sistem tidak dihitung di sini
+     * (mahal untuk ratusan barang); muncul saat barang dibuka / disimpan.
+     */
+    private function targetArray(StockInspection $inspection): array
+    {
+        $targets = $inspection->targets()->get();
+        if ($targets->isEmpty()) {
+            return [];
+        }
+
+        $goods = collect();
+        $units = collect();
+        foreach (array_chunk($targets->pluck('good_id')->all(), 500) as $chunk) {
+            $goods = $goods->merge(DB::table('goods')
+                ->leftJoin('types', 'types.id', '=', 'goods.type_id')
+                ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
+                ->whereIn('goods.id', $chunk)
+                ->get(['goods.id', 'goods.code', 'goods.name', 'types.name AS tipe', 'categories.name AS kategori']));
+            $units = $units->merge(DB::table('good_units')
+                ->join('units', 'units.id', '=', 'good_units.unit_id')
+                ->whereIn('good_units.good_id', $chunk)
+                ->whereNull('good_units.deleted_at')
+                ->get(['good_units.good_id', 'units.name', 'units.quantity']));
+        }
+        $goods = $goods->keyBy('id');
+        // satuan hitung = satuan terkecil, sama dengan getPcsSellingPrice()
+        $smallest = $units->groupBy('good_id')->map(function ($list) {
+            $pcs = $list->first(fn ($u) => (string) $u->quantity === '1');
+
+            return ($pcs ?? $list->sortBy(fn ($u) => (float) $u->quantity)->first())->name;
+        });
+
+        $checked = $inspection->details->keyBy('good_id');
+
+        return $targets->map(function ($t) use ($goods, $smallest, $checked) {
+            $g = $goods->get($t->good_id);
+            $d = $checked->get($t->good_id);
+
+            return [
+                'no'       => (int) $t->position,
+                'good_id'  => (int) $t->good_id,
+                'code'     => $g->code ?? '-',
+                'name'     => $g ? Good::formatName($g->tipe, $g->name) : '(barang dihapus)',
+                'category' => $g->kategori ?? null,
+                'unit'     => $smallest->get($t->good_id) ?? '-',
+                'detail'   => $d ? $this->detailArray($d, $d->good) : null,
+            ];
+        })->values()->all();
+    }
+
+    /** Barang yang fisiknya 0 dan stok sistemnya sekarang habis, belum di-discontinue. */
+    private function emptyAfterOpname(StockInspection $inspection, array $targets): array
+    {
+        $dariDaftar = array_flip(array_column($targets, 'good_id'));
+        $ids = $inspection->details->filter(fn ($d) => (float) $d->real_stock <= 0)->pluck('good_id')->all();
+        if (! $ids) {
+            return [];
+        }
+
+        return Good::whereIn('id', $ids)
+            ->where('is_discontinued', 0)
+            ->where('last_stock', '<=', 0)
+            ->get()
+            ->map(fn ($g) => ['good_id' => $g->id, 'name' => $g->getFullName(), 'from_list' => isset($dariDaftar[$g->id])])
+            ->sortByDesc('from_list')->values()->all();
     }
 
     private function detailArray(StockInspectionDetail $detail, ?Good $good): array

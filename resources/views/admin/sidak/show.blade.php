@@ -10,8 +10,16 @@
     <p class="sdk-sub">
         {{ $inspection->created_at->format('d/m/Y H:i') }} &middot; {{ optional($inspection->actor())->name ?? '-' }}
         @if($inspection->note) &middot; {{ $inspection->note }} @endif
+        @if($inspection->counted_by) &middot; dihitung {{ $inspection->counted_by }} @endif
         @if($finished) &middot; selesai {{ $inspection->finished_at->format('H:i') }} @endif
     </p>
+
+    @if(session('error'))
+        <div class="sdk-msg bad">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="sdk-msg bad">{{ $errors->first() }}</div>
+    @endif
 
     <div class="sdk-stats">
         <div class="sdk-stat"><b id="st-total">0</b><small>Dicek</small></div>
@@ -35,6 +43,23 @@
         </div>
     @else
         <div id="sdk-msg" class="sdk-msg" role="alert"></div>
+
+        @if(count($targets))
+        {{-- 0. daftar tugas cek stok --}}
+        <div class="sdk-card" id="task-card">
+            <div class="sdk-head-row">
+                <h2>Daftar cek stok</h2>
+                <button type="button" class="sdk-btn sdk-btn-sm" id="btn-wa"><i class="fa fa-whatsapp"></i> Copy teks WA</button>
+            </div>
+            <div class="sdk-item-sub" id="task-progress-text"></div>
+            <div class="sdk-progress"><div id="task-progress" style="width:0"></div></div>
+            <div class="sdk-item-sub" style="margin-bottom:6px">
+                Ketik jumlah fisik (dalam satuan yang tertulis) lalu tekan ✓ atau Enter. Ketuk nama barang untuk melihat stok sistem dan menulis catatan.
+                Nomor sama dengan nomor di teks WA.
+            </div>
+            <div id="task-list"></div>
+        </div>
+        @endif
 
         {{-- 1. pilih barang --}}
         <div class="sdk-card" id="pick-card">
@@ -106,12 +131,43 @@
     </div>
 
     @if($finished)
-        @php $selisih = $summary['minus'] + $summary['plus']; @endphp
+        @php
+            $selisih = $summary['minus'] + $summary['plus'];
+            $tidakDicek = array_values(array_filter($targets, fn ($t) => $t['detail'] === null));
+        @endphp
+        @if(count($tidakDicek))
+            <div class="sdk-msg info" style="display:block">
+                {{ count($tidakDicek) }} barang di daftar tidak dicek:
+                {{ implode(', ', array_map(fn ($t) => $t['no'] . '. ' . $t['name'], array_slice($tidakDicek, 0, 10))) }}{{ count($tidakDicek) > 10 ? ', …' : '' }}
+            </div>
+        @endif
         @if($inspection->stock_opname_id)
             <div class="sdk-msg info" style="display:block">
                 Selisih sidak ini sudah dikoreksi lewat
                 <a href="{{ url('/admin/stock-opname/' . $inspection->stock_opname_id . '/detail') }}" style="color:#1e3a8a;font-weight:700;text-decoration:underline">Stock Opname #{{ $inspection->stock_opname_id }}</a>.
             </div>
+            @if(count($kosong) && canMenu('laporan.perputaran'))
+                <div class="sdk-card">
+                    <h2>Barang yang tidak ada di toko</h2>
+                    <p class="sdk-sub" style="margin-bottom:6px">
+                        Fisiknya 0 dan stok sistemnya sekarang sudah habis. Centang yang memang tidak dijual lagi untuk di-discontinue
+                        (tidak muncul lagi di Perputaran Barang &amp; Reorder; bisa diaktifkan kembali dari tab Disc.).
+                    </p>
+                    <form method="POST" action="{{ route('admin.reports.movement.bulk-discontinue') }}" id="disc-form">
+                        {{ csrf_field() }}
+                        <input type="hidden" name="reason" value="Sidak stok #{{ $inspection->id }}: barang tidak ada di toko (stok fisik 0)">
+                        @foreach($kosong as $k)
+                            <label class="sdk-check">
+                                <input type="checkbox" name="ids[]" value="{{ $k['good_id'] }}" {{ $k['from_list'] ? 'checked' : '' }}>
+                                <span>{{ $k['name'] }} @unless($k['from_list'])<span class="sdk-item-sub">(bukan dari daftar)</span>@endunless</span>
+                            </label>
+                        @endforeach
+                        <div style="margin-top:10px">
+                            <button type="submit" class="sdk-btn sdk-btn-bad"><i class="fa fa-ban"></i> Discontinue yang dicentang</button>
+                        </div>
+                    </form>
+                </div>
+            @endif
         @elseif($selisih > 0)
             <form method="POST" action="{{ route('admin.sidak.opname', $inspection->id) }}" id="opname-form" data-count="{{ $selisih }}" style="margin-bottom:10px">
                 {{ csrf_field() }}
@@ -125,6 +181,11 @@
     @else
         <form method="POST" action="{{ route('admin.sidak.finish', $inspection->id) }}" id="finish-form">
             {{ csrf_field() }}
+            @if($adaDaftar)
+                <label class="sdk-label" for="counted-by">Dihitung oleh (nama pegawai, boleh kosong)</label>
+                <input class="sdk-input" id="counted-by" name="counted_by" maxlength="100" value="{{ $inspection->counted_by }}"
+                       placeholder="kosongkan kalau Anda sendiri yang mengecek" style="margin-bottom:10px">
+            @endif
             <button type="submit" class="sdk-btn sdk-btn-bad"><i class="fa fa-flag-checkered"></i> Selesai Sidak</button>
         </form>
     @endif
@@ -143,6 +204,8 @@
     var TOKEN    = @json(csrf_token());
     var details  = @json($details);
     var summary  = @json($summary);
+    var targets  = @json($targets);
+    var NOTE     = @json($inspection->note);
 
     function $id(id) { return document.getElementById(id); }
     function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -178,8 +241,85 @@
         }).join('');
     }
 
+    // ------------------------------------------------- daftar tugas cek stok
+    function targetDone(t) { return t.detail !== null; }
+
+    function renderTargets() {
+        var box = $id('task-list');
+        if (!box) { return; }
+        var done = targets.filter(targetDone).length;
+        $id('task-progress-text').textContent = done + ' dari ' + targets.length + ' barang sudah dicek' +
+            (done === targets.length ? ' — semua selesai, tekan "Selesai Sidak" di bawah.' : '');
+        $id('task-progress').style.width = (targets.length ? Math.round(done / targets.length * 100) : 0) + '%';
+        box.innerHTML = targets.map(function (t) {
+            var d = t.detail;
+            var right = d
+                ? '<span class="sdk-pill ' + tone(d.difference) + '">' + (d.difference === 0 ? 'Cocok' : signed(d.difference)) + '</span>'
+                : '<input class="sdk-input sdk-tqty" type="number" inputmode="decimal" min="0" step="any" placeholder="fisik" data-qty="' + t.good_id + '" aria-label="Jumlah fisik ' + esc(t.name) + '">' +
+                  '<button type="button" class="sdk-btn sdk-btn-ok sdk-tsave" data-save="' + t.good_id + '" aria-label="Simpan"><i class="fa fa-check"></i></button>';
+            return '<div class="sdk-titem' + (d ? ' done' : '') + '">' +
+                '<div class="sdk-tno">' + t.no + '</div>' +
+                '<div class="sdk-item-main">' +
+                    '<button type="button" class="sdk-tname" data-open="' + t.good_id + '">' + esc(t.name) + '</button>' +
+                    '<div class="sdk-item-sub">' + (t.category ? esc(t.category) + ' &middot; ' : '') + 'hitung dalam ' + esc(t.unit) +
+                        (d ? ' &middot; fisik ' + num(d.real_stock) + ', sistem ' + num(d.system_stock) : '') + '</div>' +
+                '</div>' + right +
+            '</div>';
+        }).join('');
+    }
+
+    /** Teks WA untuk pegawai: barang yang belum dicek, nomor sama dengan daftar. Stok sistem sengaja tidak ditulis. */
+    function waText() {
+        var sisa = targets.filter(function (t) { return !targetDone(t); });
+        var list = sisa.length ? sisa : targets;
+        var today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        var lines = ['🔎 *CEK STOK BARANG*', '📅 ' + today];
+        if (NOTE) { lines.push('📝 ' + NOTE); }
+        lines.push('', 'Tolong cari dan hitung stok fisik barang ini (rak + gudang), lalu balas angkanya sesuai nomor:', '');
+        list.forEach(function (t) {
+            lines.push(t.no + '. ' + t.name);
+            lines.push('    _' + (t.category ? t.category + ' · ' : '') + 'hitung dalam ' + t.unit + '_');
+        });
+        lines.push('', 'Kalau barangnya tidak ketemu, tulis 0.', 'Contoh balasan:');
+        list.slice(0, 2).forEach(function (t, i) { lines.push(t.no + ' = ' + (i === 0 ? '5' : '0')); });
+        return lines.join('\n');
+    }
+
+    function copyText(text, btn) {
+        function done() {
+            var old = btn.innerHTML;
+            btn.innerHTML = '<i class="fa fa-check"></i> Tersalin';
+            setTimeout(function () { btn.innerHTML = old; }, 1800);
+        }
+        function fallback() {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { alert(text); }
+            document.body.removeChild(ta);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+        } else {
+            fallback();
+        }
+    }
+
+    /** Simpan hasil satu barang lalu perbarui ringkasan, daftar tugas, dan daftar hasil. */
+    function applySaved(data) {
+        var d = data.detail;
+        details = details.filter(function (x) { return x.good_id !== d.good_id; });
+        details.unshift(d);
+        targets.forEach(function (t) { if (t.good_id === d.good_id) { t.detail = d; } });
+        summary = data.summary;
+        renderSummary();
+        renderList();
+        renderTargets();
+    }
+
     renderSummary();
     renderList();
+    renderTargets();
     if (FINISHED) {
         var opname = $id('opname-form');
         if (opname) {
@@ -189,6 +329,18 @@
                     return;
                 }
                 opname.querySelector('button').disabled = true;
+            });
+        }
+        var disc = $id('disc-form');
+        if (disc) {
+            disc.addEventListener('submit', function (e) {
+                var n = disc.querySelectorAll('input[name="ids[]"]:checked').length;
+                if (!n) { e.preventDefault(); alert('Centang dulu barang yang mau di-discontinue.'); return; }
+                if (!confirm('Discontinue ' + n + ' barang yang tidak ada di toko? Barangnya tidak muncul lagi di Perputaran Barang & Reorder (bisa diaktifkan kembali).')) {
+                    e.preventDefault();
+                    return;
+                }
+                disc.querySelector('button').disabled = true;
             });
         }
         return;
@@ -276,11 +428,7 @@
         api('POST', '/cek', { good_id: current.good_id, real_stock: Number(raw), source: source, note: $id('it-note').value.trim() || null })
             .then(function (data) {
                 var d = data.detail;
-                details = details.filter(function (x) { return x.good_id !== d.good_id; });
-                details.unshift(d);
-                summary = data.summary;
-                renderSummary();
-                renderList();
+                applySaved(data);
                 closeItem();
                 showMsg('');
                 $id('result').className = 'sdk-result ' + tone(d.difference);
@@ -375,11 +523,68 @@
     });
 
     $id('finish-form').addEventListener('submit', function (e) {
+        var belum = targets.filter(function (t) { return !targetDone(t); }).length;
         var text = details.length
-            ? 'Selesaikan sidak ini? ' + details.length + ' barang sudah dicek. Setelah selesai, hasil tidak bisa diubah.'
+            ? 'Selesaikan sidak ini? ' + details.length + ' barang sudah dicek' +
+              (belum ? ', ' + belum + ' barang di daftar BELUM dicek' : '') + '. Setelah selesai, hasil tidak bisa diubah.'
             : 'Belum ada barang yang dicek. Sidak kosong ini akan dibuang. Lanjutkan?';
         if (!confirm(text)) { e.preventDefault(); }
     });
+
+    // ------------------------------------------------ daftar tugas: aksi
+    var taskList = $id('task-list');
+    if (taskList) {
+        function saveRow(goodId) {
+            var inp = taskList.querySelector('input[data-qty="' + goodId + '"]');
+            var btn = taskList.querySelector('button[data-save="' + goodId + '"]');
+            if (!inp) { return; }
+            var raw = inp.value.trim();
+            if (raw === '' || isNaN(Number(raw)) || Number(raw) < 0) {
+                showMsg('Isi jumlah fisik dulu (0 kalau barangnya tidak ada).');
+                inp.focus();
+                return;
+            }
+            if (btn) { btn.disabled = true; }
+            inp.disabled = true;
+            var pos = targets.map(function (t) { return t.good_id; }).indexOf(goodId);
+            api('POST', '/cek', { good_id: goodId, real_stock: Number(raw), source: 'daftar' })
+                .then(function (data) {
+                    showMsg('');
+                    applySaved(data);
+                    // lanjut ke barang berikutnya yang belum dicek
+                    var next = targets.slice(pos + 1).concat(targets.slice(0, pos)).filter(function (t) { return !targetDone(t); })[0];
+                    var nextInp = next ? taskList.querySelector('input[data-qty="' + next.good_id + '"]') : null;
+                    if (nextInp) { nextInp.focus(); }
+                })
+                .catch(function (e) {
+                    showMsg(e.message);
+                    inp.disabled = false;
+                    if (btn) { btn.disabled = false; }
+                    inp.focus();
+                });
+        }
+
+        taskList.addEventListener('click', function (e) {
+            var save = e.target.closest('button[data-save]');
+            if (save) { saveRow(Number(save.getAttribute('data-save'))); return; }
+            var open = e.target.closest('button[data-open]');
+            if (open) {
+                stopScan();
+                showMsg('Memuat barang…', 'info');
+                api('GET', '/barang/' + open.getAttribute('data-open'))
+                    .then(function (item) { openItem(item, 'daftar'); window.scrollTo(0, $id('count-card').offsetTop - 10); })
+                    .catch(function (e) { showMsg(e.message); });
+            }
+        });
+        taskList.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.target.matches('input[data-qty]')) {
+                e.preventDefault();
+                saveRow(Number(e.target.getAttribute('data-qty')));
+            }
+        });
+
+        $id('btn-wa').addEventListener('click', function () { copyText(waText(), this); });
+    }
 
     // -------------------------------------------------------- scan barcode
     var scanner  = null;

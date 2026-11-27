@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 use App\Models\Good;
+use App\Models\GoodPrice;
+use App\Models\GoodUnit;
 use App\Models\Season;
 use App\Models\TransactionDetail;
+use App\Services\SkemaCekObral;
 
 class GoodMovementRepository
 {
@@ -60,6 +64,15 @@ class GoodMovementRepository
     const SEASON_MIN_TRX       = 8;
     const SEASON_PEAK_SHARE    = 0.7;
     const SEASON_PEAK_MONTHS   = 2;
+
+    /**
+     * Tanda "✔ dicek" di baris barang: stok fisiknya dihitung (Sidak Stok /
+     * Stock Opname) dalam CHECKED_SHOW_DAYS hari terakhir. Barang yang belum
+     * dicek CHECKED_FRESH_DAYS hari diberi peringatan saat mau diobral, dan
+     * tidak dimasukkan lagi ke "Sidak dead stock" kalau sudah dicek.
+     */
+    const CHECKED_SHOW_DAYS    = 90;
+    const CHECKED_FRESH_DAYS   = 30;
 
     /** Status yang bisa difilter lewat pill (selain 'all', 'discontinued', 'kandidat_musim'). */
     const STATUSES = ['fast', 'slow', 'dead', 'at_risk', 'kosong', 'baru', 'musiman', 'obral'];
@@ -117,6 +130,9 @@ class GoodMovementRepository
 
         // ── TAHAP 2a: obral — terjual sejak obral dimulai ─────────────────────
         $obralSold = $adaKolomBaru ? $this->clearanceSales($goodsRaw, $now) : collect();
+
+        // ── TAHAP 2a': kapan stok fisiknya terakhir dihitung ─────────────────
+        $dicek = $this->lastCheckedPerGood($now->copy()->subDays(self::CHECKED_SHOW_DAYS));
 
         // ── TAHAP 2b: musim — status tiap musim hari ini, dan penjualan musim
         //    lalu untuk musim yang sebentar lagi mulai (acuan siapkan stok) ──
@@ -253,6 +269,9 @@ class GoodMovementRepository
                 'obral_stok_awal'  => $isObral ? (float) $good->clearance_stock : null,
                 'obral_terjual'    => $isObral ? ($obral ? round((float) $obral->total_qty_terjual / $baseQty, 2) : 0) : null,
                 'obral_hari'       => $isObral && $good->clearance_at ? (int) Carbon::parse($good->clearance_at)->diffInDays($now) : null,
+                // Stok fisik terakhir dihitung (Sidak / Stock Opname)
+                'dicek_at'         => $dicek[$gid] ?? null,
+                'dicek_hari'       => isset($dicek[$gid]) ? (int) Carbon::parse($dicek[$gid])->startOfDay()->diffInDays($now->copy()->startOfDay()) : null,
                 'is_discontinued'  => false,
             ];
         }
@@ -569,6 +588,8 @@ class GoodMovementRepository
      */
     public function markDiscontinued(int $goodId, string $reason, int $userId): bool
     {
+        $this->restoreClearancePrices([$goodId], 'Obral selesai (di-discontinue): harga kembali normal', $userId);
+
         return (bool) Good::where('id', $goodId)
             ->whereNull('deleted_at')
             ->update($this->discontinuedFields($reason, $userId));
@@ -605,6 +626,8 @@ class GoodMovementRepository
      */
     public function markDiscontinuedBulk(array $goodIds, string $reason, int $userId): int
     {
+        $this->restoreClearancePrices($goodIds, 'Obral selesai (di-discontinue): harga kembali normal', $userId);
+
         $count = 0;
         foreach (array_chunk($this->ids($goodIds), 500) as $chunk) {
             $count += (int) Good::whereIn('id', $chunk)
@@ -670,12 +693,17 @@ class GoodMovementRepository
         return $count;
     }
 
-    /** Batalkan obral: barang dinilai seperti biasa lagi. */
-    public function cancelClearance(int $goodId): bool
+    /** Batalkan obral: harga jual kembali normal, barang dinilai seperti biasa lagi. */
+    public function cancelClearance(int $goodId, ?int $userId = null): bool
     {
         if (! Season::tabelAda()) {
             return false;
         }
+        if (! Good::where('id', $goodId)->where('is_clearance', 1)->exists()) {
+            return false;
+        }
+
+        $this->restoreClearancePrices([$goodId], 'Batal obral: harga kembali normal', $userId);
 
         return (bool) Good::where('id', $goodId)
             ->where('is_clearance', 1)
@@ -700,11 +728,21 @@ class GoodMovementRepository
             return 0;
         }
 
-        return (int) DB::table('goods')
+        $habis = fn () => DB::table('goods')
             ->whereNull('deleted_at')
             ->where('is_discontinued', 0)
             ->where('is_clearance', 1)
-            ->where('last_stock', '<=', 0)
+            ->where('last_stock', '<=', 0);
+
+        // Harga kembali normal, supaya kalau barangnya diaktifkan lagi tidak
+        // terjual dengan harga obral.
+        $ids = $habis()->pluck('id')->all();
+        if (! $ids) {
+            return 0;
+        }
+        $this->restoreClearancePrices($ids, 'Obral selesai (stok habis): harga kembali normal', null);
+
+        return (int) $habis()
             ->update([
                 'is_discontinued'     => 1,
                 'is_clearance'        => 0,
@@ -720,6 +758,279 @@ class GoodMovementRepository
         return Season::tabelAda()
             ? Good::whereNull('deleted_at')->where('is_discontinued', 0)->where('is_clearance', 1)->count()
             : 0;
+    }
+
+    // =========================================================================
+    // HARGA OBRAL
+    // =========================================================================
+    // Harga obral = harga jual satuan diubah langsung (tercatat di riwayat
+    // harga), jadi Kasir HP/PC menerima harga baru saat sinkron. Harga
+    // sebelumnya disimpan di good_units.clearance_normal_price untuk harga
+    // coret di label/teks WA dan untuk dikembalikan saat obral dibatalkan,
+    // stoknya habis, atau barangnya di-discontinue. Harga obral paling rendah
+    // sama dengan harga beli (modal), tidak boleh di bawahnya.
+
+    /**
+     * Data barang untuk jendela obral, label obral, dan teks WA, urut sesuai
+     * $goodIds. Satuan diurutkan dari isi terkecil.
+     *
+     * @return array<int, array> tiap barang: good_id, nama, kategori, stok, satuan,
+     *   is_obral, dicek_hari, units[good_unit_id, unit, isi, buy_price, selling_price, normal_price]
+     */
+    public function clearanceGoods(array $goodIds): array
+    {
+        $ids = $this->ids($goodIds);
+        if (! $ids) {
+            return [];
+        }
+        $adaObral = Season::tabelAda();
+        $adaHarga = SkemaCekObral::hargaObralAda();
+        $dicek    = $this->lastCheckedPerGood(Carbon::now()->subDays(self::CHECKED_SHOW_DAYS));
+        $now      = Carbon::now()->startOfDay();
+
+        $goods = collect();
+        $units = collect();
+        foreach (array_chunk($ids, 500) as $chunk) {
+            $goods = $goods->merge(DB::table('goods')
+                ->leftJoin('types', 'types.id', '=', 'goods.type_id')
+                ->leftJoin('categories', 'categories.id', '=', 'goods.category_id')
+                ->leftJoin('good_units AS bu', 'bu.id', '=', 'goods.base_unit_id')
+                ->leftJoin('units AS bun', 'bun.id', '=', 'bu.unit_id')
+                ->whereIn('goods.id', $chunk)
+                ->whereNull('goods.deleted_at')
+                ->get(array_merge(
+                    ['goods.id', 'goods.name', 'types.name AS tipe', 'categories.name AS kategori', 'goods.last_stock', 'bun.name AS satuan'],
+                    $adaObral ? ['goods.is_clearance'] : []
+                )));
+            $units = $units->merge(DB::table('good_units')
+                ->join('units', 'units.id', '=', 'good_units.unit_id')
+                ->whereIn('good_units.good_id', $chunk)
+                ->whereNull('good_units.deleted_at')
+                ->get(array_merge(
+                    ['good_units.id', 'good_units.good_id', 'good_units.buy_price', 'good_units.selling_price', 'units.name AS unit', 'units.quantity AS isi'],
+                    $adaHarga ? ['good_units.clearance_normal_price'] : []
+                )));
+        }
+        $goods = $goods->keyBy('id');
+        $units = $units->groupBy('good_id');
+
+        $hasil = [];
+        foreach ($ids as $id) {
+            $g = $goods->get($id);
+            if (! $g) {
+                continue;
+            }
+            $hasil[] = [
+                'good_id'    => (int) $g->id,
+                'nama'       => $this->formatGoodName($g->tipe, $g->name),
+                'kategori'   => $g->kategori ?? '-',
+                'stok'       => (float) $g->last_stock,
+                'satuan'     => $g->satuan ?? '-',
+                'is_obral'   => $adaObral && (int) $g->is_clearance === 1,
+                'dicek_hari' => isset($dicek[$id]) ? (int) Carbon::parse($dicek[$id])->startOfDay()->diffInDays($now) : null,
+                'units'      => ($units->get($id) ?? collect())
+                    ->sortBy(fn ($u) => (float) $u->isi)
+                    ->map(fn ($u) => [
+                        'good_unit_id'  => (int) $u->id,
+                        'unit'          => $u->unit,
+                        'isi'           => (float) $u->isi,
+                        'buy_price'     => (float) $u->buy_price,
+                        'selling_price' => (float) $u->selling_price,
+                        'normal_price'  => $adaHarga && $u->clearance_normal_price !== null ? (float) $u->clearance_normal_price : null,
+                    ])->values()->all(),
+            ];
+        }
+
+        return $hasil;
+    }
+
+    /**
+     * Periksa harga obral sebelum disimpan. $prices = [good_unit_id => harga];
+     * harga kosong atau sama dengan harga sekarang = satuan itu tidak diubah.
+     *
+     * @return string[] pesan kesalahan, kosong = boleh disimpan
+     */
+    public function clearancePriceErrors(array $goodIds, array $prices, bool $tampilkanModal): array
+    {
+        $errors = [];
+        foreach ($this->clearancePriceRows($goodIds, $prices) as [$u, $harga, $label]) {
+            $jual  = round((float) ($u->clearance_normal_price ?? $u->selling_price), 2);
+            $modal = round((float) $u->buy_price, 2);
+
+            if ($harga <= 0) {
+                $errors[] = $label . ': harga obral harus lebih dari 0.';
+            } elseif ($modal <= 0) {
+                $errors[] = $label . ': harga beli masih kosong, isi dulu lewat Ubah Harga.';
+            } elseif ($harga < $modal) {
+                $errors[] = $label . ': harga obral ' . $this->rupiah($harga) . ' di bawah modal'
+                          . ($tampilkanModal ? ' ' . $this->rupiah($modal) : '') . '. Paling rendah sama dengan modal.';
+            } elseif ($harga > $jual) {
+                $errors[] = $label . ': harga obral ' . $this->rupiah($harga) . ' lebih tinggi dari harga jual ' . $this->rupiah($jual) . '.';
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Pasang harga obral pada barang yang sedang obral. Periksa dulu dengan
+     * clearancePriceErrors().
+     *
+     * @return int jumlah satuan yang harganya diubah
+     */
+    public function applyClearancePrices(array $goodIds, array $prices, string $reason, int $userId): int
+    {
+        if (! SkemaCekObral::hargaObralAda() || ! Season::tabelAda()) {
+            return 0;
+        }
+        $obral = Good::whereIn('id', $this->ids($goodIds) ?: [0])->where('is_clearance', 1)->pluck('id')->all();
+
+        $n = 0;
+        foreach ($this->clearancePriceRows($obral, $prices) as [$u, $harga]) {
+            $unit = GoodUnit::find($u->id);
+            GoodPrice::create([
+                'role' => 'admin', 'role_id' => $userId, 'good_unit_id' => $unit->id,
+                'old_buy_price' => $unit->buy_price, 'recent_buy_price' => $unit->buy_price,
+                'old_price' => $unit->selling_price, 'recent_price' => $harga,
+                'reason' => mb_substr('Obral: ' . trim($reason), 0, 255),
+            ]);
+            $unit->forceFill([
+                'selling_price'          => $harga,
+                'clearance_normal_price' => $unit->clearance_normal_price ?? $unit->selling_price,
+            ])->save();
+            $n++;
+        }
+
+        return $n;
+    }
+
+    /**
+     * Kembalikan harga jual normal (sebelum obral) semua satuan barang ini,
+     * dicatat di riwayat harga. $userId null = dicatat atas nama yang
+     * memulai obral.
+     *
+     * @return int jumlah satuan yang harganya dikembalikan
+     */
+    public function restoreClearancePrices(array $goodIds, string $reason, ?int $userId): int
+    {
+        if (! SkemaCekObral::hargaObralAda() || ! Season::tabelAda()) {
+            return 0;
+        }
+
+        $n = 0;
+        foreach (array_chunk($this->ids($goodIds), 500) as $chunk) {
+            $units = GoodUnit::whereIn('good_id', $chunk)->whereNotNull('clearance_normal_price')->get();
+            if ($units->isEmpty()) {
+                continue;
+            }
+            $oleh = Good::whereIn('id', $units->pluck('good_id')->unique()->all())->pluck('clearance_by', 'id');
+
+            foreach ($units as $unit) {
+                $normal = (float) $unit->clearance_normal_price;
+                GoodPrice::create([
+                    'role' => 'admin',
+                    'role_id' => $userId ?? $oleh[$unit->good_id] ?? auth('admin')->id() ?? DB::table('admins')->min('id'),
+                    'good_unit_id' => $unit->id,
+                    'old_buy_price' => $unit->buy_price, 'recent_buy_price' => $unit->buy_price,
+                    'old_price' => $unit->selling_price, 'recent_price' => $normal,
+                    'reason' => $reason,
+                ]);
+                $unit->forceFill(['selling_price' => $normal, 'clearance_normal_price' => null])->save();
+                $n++;
+            }
+        }
+
+        return $n;
+    }
+
+    /**
+     * Satuan yang harganya benar-benar berubah, milik barang $goodIds:
+     * [baris good_unit, harga obral, "Nama (SATUAN)"].
+     */
+    private function clearancePriceRows(array $goodIds, array $prices): array
+    {
+        $ids = $this->ids($goodIds);
+        $guIds = $this->ids(array_keys(array_filter($prices, fn ($v) => $v !== null && $v !== '')));
+        if (! $ids || ! $guIds) {
+            return [];
+        }
+        $adaHarga = SkemaCekObral::hargaObralAda();
+
+        $rows = [];
+        foreach (array_chunk($guIds, 500) as $chunk) {
+            $units = DB::table('good_units')
+                ->join('goods', 'goods.id', '=', 'good_units.good_id')
+                ->leftJoin('types', 'types.id', '=', 'goods.type_id')
+                ->join('units', 'units.id', '=', 'good_units.unit_id')
+                ->whereIn('good_units.id', $chunk)
+                ->whereNull('good_units.deleted_at')
+                ->get(array_merge(
+                    ['good_units.id', 'good_units.good_id', 'good_units.buy_price', 'good_units.selling_price',
+                     'goods.name', 'types.name AS tipe', 'units.name AS unit'],
+                    $adaHarga ? ['good_units.clearance_normal_price'] : []
+                ));
+
+            foreach ($units as $u) {
+                if (! in_array((int) $u->good_id, $ids, true)) {
+                    continue;
+                }
+                $u->clearance_normal_price = $u->clearance_normal_price ?? null;
+                $harga = round((float) $prices[$u->id], 2);
+                if (abs($harga - round((float) $u->selling_price, 2)) < 0.005) {
+                    continue; // tidak diubah
+                }
+                $rows[] = [$u, $harga, $this->formatGoodName($u->tipe, $u->name) . ' (' . mb_strtoupper((string) $u->unit) . ')'];
+            }
+        }
+
+        return $rows;
+    }
+
+    private function rupiah(float $v): string
+    {
+        return 'Rp' . number_format($v, 0, ',', '.');
+    }
+
+    // =========================================================================
+    // CEK FISIK TERAKHIR
+    // =========================================================================
+
+    /**
+     * Kapan stok fisik barang terakhir dihitung (Sidak Stok atau Stock Opname)
+     * sejak $since.
+     *
+     * @return array<int, string> good_id => tanggal-waktu
+     */
+    public function lastCheckedPerGood(Carbon $since): array
+    {
+        $hasil = [];
+        $catat = function ($rows) use (&$hasil) {
+            foreach ($rows as $r) {
+                $hasil[(int) $r->good_id] = $this->latest($hasil[(int) $r->good_id] ?? null, $r->at);
+            }
+        };
+
+        if (Schema::hasTable('stock_inspection_details')) {
+            $catat(DB::table('stock_inspection_details AS d')
+                ->join('stock_inspections AS s', 's.id', '=', 'd.stock_inspection_id')
+                ->whereNull('s.deleted_at')
+                ->where('d.updated_at', '>=', $since)
+                ->groupBy('d.good_id')
+                ->selectRaw('d.good_id, MAX(d.updated_at) AS at')
+                ->get());
+        }
+
+        $catat(DB::table('stock_opname_details AS d')
+            ->join('stock_opnames AS so', 'so.id', '=', 'd.stock_opname_id')
+            ->join('good_units AS gu', 'gu.id', '=', 'd.good_unit_id')
+            ->whereNull('so.deleted_at')
+            ->whereNull('d.deleted_at')
+            ->where('d.created_at', '>=', $since)
+            ->groupBy('gu.good_id')
+            ->selectRaw('gu.good_id, MAX(d.created_at) AS at')
+            ->get());
+
+        return $hasil;
     }
 
     // =========================================================================

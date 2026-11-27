@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\GoodMovementRepository;
 use App\Models\Season;
+use App\Services\SkemaCekObral;
+use Illuminate\Validation\ValidationException;
 
 class GoodMovementController extends Controller
 {
@@ -23,8 +25,9 @@ class GoodMovementController extends Controller
      */
     public function index(Request $request)
     {
-        // Kolom obral/musim dibuat otomatis (produksi tidak punya terminal).
+        // Kolom obral/musim, harga obral & daftar cek stok dibuat otomatis (produksi tidak punya terminal).
         $adaKolomBaru = Season::pastikanTabel();
+        SkemaCekObral::pastikan();
 
         // Barang obral yang stoknya sudah habis → discontinued.
         $obralSelesai = $this->repo->finishSoldOutClearance();
@@ -74,6 +77,10 @@ class GoodMovementController extends Controller
             'adaKolomBaru'       => $adaKolomBaru,
             'seasons'            => $seasons,
             'obralSelesai'       => $obralSelesai,
+            // Tugas cek stok (Sidak berisi daftar) & harga obral
+            'bolehSidak'         => canMenu('sidak') && SkemaCekObral::sidakAda(),
+            'hargaObralAda'      => $adaKolomBaru && SkemaCekObral::hargaObralAda(),
+            'lihatModal'         => canMenu('info.harga_beli'),
         ]);
     }
 
@@ -157,48 +164,122 @@ class GoodMovementController extends Controller
     }
 
     /**
-     * Tandai satu atau banyak barang sebagai obral (checklist).
-     * POST /admin/reports/movement/obral   (ids[], reason)
+     * Tandai satu atau banyak barang sebagai obral (checklist), sekaligus
+     * pasang harga obralnya.
+     * POST /admin/reports/movement/obral   (ids[], reason, prices[good_unit_id] = harga obral)
+     *
+     * Harga obral paling rendah sama dengan harga beli (modal). Satuan yang
+     * harganya dikosongkan / tidak diubah tetap memakai harga sekarang.
      */
     public function clearance(Request $request)
     {
         $request->validate([
-            'ids'    => 'required|array|min:1',
-            'ids.*'  => 'integer',
-            'reason' => 'required|string|min:5|max:500',
+            'ids'      => 'required|array|min:1',
+            'ids.*'    => 'integer',
+            'reason'   => 'required|string|min:5|max:500',
+            'prices'   => 'nullable|array',
+            'prices.*' => 'nullable|numeric|min:0|max:999999999',
         ], [
             'ids.required'    => 'Pilih minimal satu barang terlebih dahulu.',
             'reason.required' => 'Keterangan obral wajib diisi.',
             'reason.min'      => 'Keterangan minimal 5 karakter.',
+            'prices.*.numeric' => 'Harga obral harus berupa angka.',
         ]);
 
         if (!Season::tabelAda()) {
             return redirect()->back()->with('error', 'Kolom obral belum dibuat. Buka ulang menu Perputaran Barang lalu coba lagi.');
         }
 
-        $count = $this->repo->markClearance($request->input('ids'), $request->input('reason'), auth()->id() ?? 1);
+        $ids    = $request->input('ids');
+        $prices = SkemaCekObral::hargaObralAda() ? (array) $request->input('prices', []) : [];
+
+        $errors = $this->repo->clearancePriceErrors($ids, $prices, canMenu('info.harga_beli'));
+        if ($errors) {
+            throw ValidationException::withMessages(['harga' => $errors]);
+        }
+
+        $userId = auth()->id() ?? 1;
+        $count  = $this->repo->markClearance($ids, $request->input('reason'), $userId);
 
         if ($count === 0) {
             return redirect()->back()
                 ->with('error', 'Tidak ada barang yang ditandai obral. Hanya barang aktif yang stoknya masih ada yang bisa diobral.');
         }
 
+        $diubah = $this->repo->applyClearancePrices($ids, $prices, $request->input('reason'), $userId);
+
         return redirect()
-            ->route('admin.reports.movement', ['status' => 'obral'])
-            ->with('success', $count . ' barang ditandai OBRAL: tidak akan disarankan order lagi, dan otomatis di-discontinue saat stoknya habis.');
+            ->route('admin.reports.movement', ['status' => 'obral', 'sort_by' => 'nilai_stok'])
+            ->with('success', $count . ' barang ditandai OBRAL' . ($diubah ? ' dan ' . $diubah . ' harga satuan diganti harga obral' : '')
+                . ': tidak akan disarankan order lagi, dan otomatis di-discontinue saat stoknya habis (harga kembali normal). '
+                . 'Centang barangnya di bawah untuk cetak label obral & copy teks WA.');
     }
 
     /**
-     * Batalkan obral.
+     * Data barang (satuan, harga, harga normal) untuk jendela obral dan teks WA.
+     * GET /admin/reports/movement/obral/barang?ids[]=
+     * Harga beli hanya dikirim ke akun yang boleh melihat harga beli.
+     */
+    public function clearanceGoods(Request $request)
+    {
+        $request->validate(['ids' => 'required|array|min:1|max:500', 'ids.*' => 'integer']);
+
+        $lihatModal = canMenu('info.harga_beli');
+        $goods = array_map(function ($g) use ($lihatModal) {
+            if (! $lihatModal) {
+                $g['units'] = array_map(fn ($u) => array_merge($u, ['buy_price' => null]), $g['units']);
+            }
+
+            return $g;
+        }, $this->repo->clearanceGoods($request->input('ids')));
+
+        return response()->json(['goods' => $goods, 'lihat_modal' => $lihatModal]);
+    }
+
+    /**
+     * Cetak label rak obral (harga normal dicoret → harga obral).
+     * POST /admin/reports/movement/obral/label   (ids[], layout, quantities[good_id])
+     */
+    public function clearanceLabel(Request $request)
+    {
+        $request->validate([
+            'ids'          => 'required|array|min:1|max:500',
+            'ids.*'        => 'integer',
+            'quantities'   => 'nullable|array',
+            'quantities.*' => 'nullable|integer|min:0|max:50',
+        ], ['ids.required' => 'Pilih minimal satu barang obral.']);
+
+        $qty   = (array) $request->input('quantities', []);
+        $goods = [];
+        foreach ($this->repo->clearanceGoods($request->input('ids')) as $g) {
+            $prices = array_map(fn ($u) => [
+                'unit'   => $u['unit'],
+                'price'  => $u['selling_price'],
+                'normal' => $u['normal_price'] !== null && $u['normal_price'] > $u['selling_price'] ? $u['normal_price'] : null,
+            ], $g['units']);
+            // satuan yang benar-benar diobral ditaruh dulu; paling banyak 3 harga per label
+            usort($prices, fn ($a, $b) => ($b['normal'] !== null) <=> ($a['normal'] !== null));
+            $prices = array_slice($prices, 0, 3);
+
+            for ($i = 0, $n = (int) ($qty[$g['good_id']] ?? 1); $i < $n; $i++) {
+                $goods[] = ['name' => $g['nama'], 'price' => $prices];
+            }
+        }
+
+        return view('layout.good.print-display-obral', ['role' => 'admin', 'goods' => $goods]);
+    }
+
+    /**
+     * Batalkan obral: harga jual kembali normal.
      * POST /admin/reports/movement/{id}/batal-obral
      */
     public function cancelClearance(int $id)
     {
-        if (!$this->repo->cancelClearance($id)) {
+        if (!$this->repo->cancelClearance($id, auth()->id())) {
             return redirect()->back()->with('error', 'Barang tidak ditemukan atau tidak sedang diobral.');
         }
 
-        return redirect()->back()->with('success', 'Obral dibatalkan, barang dinilai seperti biasa lagi.');
+        return redirect()->back()->with('success', 'Obral dibatalkan: harga jual kembali normal, barang dinilai seperti biasa lagi.');
     }
 
     /**

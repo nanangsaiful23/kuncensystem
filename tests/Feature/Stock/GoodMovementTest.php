@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\DB;
 class GoodMovementTest extends StockTestCase
 {
     use TabelObralMusim;
+    use TabelSidakObral;
 
     protected function setUp(): void
     {
         $this->siapkanTabelObralMusim();
+        $this->siapkanTabelSidakObral();
 
         parent::setUp();
     }
