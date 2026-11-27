@@ -85,27 +85,28 @@ class ReorderRepository
     ): array {
         $start = Carbon::parse($startDate)->startOfDay();
         $end   = Carbon::parse($endDate)->endOfDay();
-        $days  = $start->diffInDays($end) ?: 1;
+        // Jumlah hari inklusif. Carbon 3 mengembalikan pecahan (90.99999...).
+        $days  = max(1, (int) round($start->diffInDays($end)));
+        $now   = Carbon::now();
 
-        // ── Agregasi penjualan per good dalam periode (sama prinsipnya dengan
-        //    GoodMovementRepository, supaya angka "rata-rata jual/hari" konsisten
-        //    di seluruh sistem) ──────────────────────────────────────────────
-        $salesAgg = TransactionDetail::join(
-                'transactions', 'transactions.id', '=', 'transaction_details.transaction_id'
-            )
-            ->join('good_units', 'good_units.id', '=', 'transaction_details.good_unit_id')
-            ->where('transactions.type', 'normal')
-            ->whereNull('transactions.deleted_at')
-            ->whereNull('transaction_details.deleted_at')
-            ->whereBetween('transactions.created_at', [$start, $end])
-            ->select(
-                'good_units.good_id',
-                DB::raw('COALESCE(SUM(transaction_details.real_quantity), 0) AS total_qty_terjual'),
-                DB::raw('COUNT(DISTINCT transactions.id)                     AS total_transaksi')
-            )
-            ->groupBy('good_units.good_id')
-            ->get()
-            ->keyBy('good_id');
+        $movement     = app(GoodMovementRepository::class);
+        $adaKolomBaru = Season::tabelAda();
+        $minFast      = $movement->minFastTrx($days);
+
+        // ── Agregasi penjualan per good dalam periode — query yang SAMA dengan
+        //    menu Perputaran Barang (transaksi normal + retur, baris retur tidak
+        //    dihitung), supaya angka "rata-rata jual/hari" konsisten. Dulu di sini
+        //    hanya transaksi 'normal' dan baris retur ikut terhitung.
+        $salesAgg = $movement->salesPerGood($start, $end)->toBase()->get()->keyBy('good_id');
+
+        // ── Musim: status hari ini & penjualan musim lalu (acuan stok musim) ──
+        $musim         = $adaKolomBaru ? Season::statusSemua($now) : collect();
+        $musimLaluSold = [];
+        foreach ($musim as $sid => $m) {
+            if ($m['status'] === Season::PERSIAPAN && $m['lalu']) {
+                $musimLaluSold[$sid] = $movement->salesPerGood($m['lalu'][0], $m['lalu'][1])->toBase()->get()->keyBy('good_id');
+            }
+        }
 
         // ── Stok keluar per penyebab dalam periode (terjual / retur ke
         //    distributor / expired / rusak / hilang / lainnya) ────────────────
@@ -139,9 +140,14 @@ class ReorderRepository
                 $j->on('gu.good_id', '=', 'goods.id')->whereNull('gu.deleted_at');
             })
             ->leftJoin('units AS u', 'u.id', '=', 'gu.unit_id')
+            // Satuan dasar barang (satuan goods.last_stock), untuk konversi stok.
+            ->leftJoin('good_units AS gub', 'gub.id', '=', 'goods.base_unit_id')
+            ->leftJoin('units AS ub', 'ub.id', '=', 'gub.unit_id')
             ->whereNull('goods.deleted_at')
             ->where('goods.is_discontinued', 0)
-            ->whereRaw('CAST(u.quantity AS UNSIGNED) = base_u.min_qty OR base_u.min_qty IS NULL')
+            // Dalam kurung: tanpa kurung, "OR" ini meloloskan barang terhapus /
+            // discontinued yang tidak punya satuan.
+            ->whereRaw('(CAST(u.quantity AS UNSIGNED) = base_u.min_qty OR base_u.min_qty IS NULL)')
             ->select(
                 'goods.id                  AS good_id',
                 'goods.code                AS kode',
@@ -156,8 +162,15 @@ class ReorderRepository
                 'u.quantity                AS satuan_qty',
                 'gu.id                     AS good_unit_id',
                 'gu.buy_price              AS harga_beli',
-                'gu.selling_price          AS harga_jual'
+                'gu.selling_price          AS harga_jual',
+                'ub.quantity               AS base_qty'
             );
+
+        if ($adaKolomBaru) {
+            // Barang obral tidak pernah disarankan order.
+            $goodsQuery->where('goods.is_clearance', 0)
+                ->addSelect('goods.season_id AS season_good', 'types.season_id AS season_type');
+        }
 
         if ($kategoriId) {
             $goodsQuery->where('categories.id', $kategoriId);
@@ -231,18 +244,26 @@ class ReorderRepository
 
         // ── Hitung rekomendasi per barang ─────────────────────────────────────
         $items = collect();
-        $reviewCount = 0; // barang yang habis bukan karena laku
+        $reviewCount     = 0; // barang yang habis bukan karena laku
+        $seasonOffCount  = 0; // barang musiman di luar musim (tidak disarankan order)
+        $seasonPrepCount = 0; // barang musiman yang musimnya segera tiba
 
         foreach ($goodsRaw as $good) {
             $gid       = $good->good_id;
             $agg       = $salesAgg->get($gid);
+            // Semua jumlah dihitung dalam SATUAN TERKECIL barang (kolom "satuan").
+            // real_quantity (penjualan & stok keluar) dalam pcs, goods.last_stock
+            // dalam satuan dasar — dulu keduanya dibandingkan langsung, salah untuk
+            // barang yang satuan dasarnya pak/dus.
+            $smallQty  = (float) $good->satuan_qty > 0 ? (float) $good->satuan_qty : 1;
+            $baseQty   = (float) $good->base_qty > 0 ? (float) $good->base_qty : $smallQty;
             $totalTrx  = $agg ? (int)   $agg->total_transaksi   : 0;
-            $totalQty  = $agg ? (float) $agg->total_qty_terjual : 0;
-            $stok      = (float) $good->stok_sekarang;
+            $totalQty  = $agg ? (float) $agg->total_qty_terjual / $smallQty : 0;
+            $stok      = round((float) $good->stok_sekarang * $baseQty / $smallQty, 2);
             $hargaBeli = (float) ($good->harga_beli ?? 0);
 
             // ── Stok keluar bukan karena laku dalam periode ───────────────────
-            $outflow    = $outflowAgg[$gid] ?? StockOutflow::emptyRow();
+            $outflow    = array_map(fn ($q) => $q / $smallQty, $outflowAgg[$gid] ?? StockOutflow::emptyRow());
             $qtyNonSale = StockOutflow::nonSale($outflow);
             $qtyKeluar  = $totalQty + $qtyNonSale;
             $nonSaleShare = $qtyKeluar > 0 ? $qtyNonSale / $qtyKeluar : 0;
@@ -259,7 +280,7 @@ class ReorderRepository
 
             // Kebutuhan order dihitung dari penjualan saja (rata-rata jual/hari)
             // dan stok aktual.
-            $calc = $this->calculate($avgQtyPerDay, $totalTrx, $stok);
+            $calc = $this->calculate($avgQtyPerDay, $totalTrx, $stok, $minFast);
 
             // Barang yang stoknya menipis/habis TERUTAMA karena expired, rusak,
             // hilang atau diretur — bukan karena laku — tidak direkomendasikan
@@ -276,13 +297,47 @@ class ReorderRepository
                 $calc['urgensi_label'] = 'Tinjau Dulu';
             }
 
+            // ── Barang musiman ────────────────────────────────────────────────
+            // Di luar musim: tidak disarankan order (kecuali tetap laris/fast).
+            // Menjelang musim: order sebanyak penjualan musim lalu dikurangi stok,
+            // karena rata-rata jual/hari periode ini belum mencerminkan musimnya.
+            $seasonId   = $adaKolomBaru ? Season::efektif($good->season_good, $good->season_type) : null;
+            $ms         = $seasonId ? $musim->get($seasonId) : null;
+            $musimLabel = null;
+            if ($ms && ! $habisBukanLaku) {
+                if ($ms['status'] === Season::LUAR && $calc['tipe'] !== 'fast') {
+                    if ($calc['perlu_order']) {
+                        $seasonOffCount++; // yang tanpa musim akan disarankan order
+                    }
+                    $calc['perlu_order']   = false;
+                    $calc['reorder_qty']   = 0;
+                    $calc['urgensi']       = 4;
+                    $calc['urgensi_label'] = 'Di Luar Musim';
+                    $musimLabel = $ms['season']->name . ' · ' . $ms['label'];
+                } elseif ($ms['status'] === Season::PERSIAPAN) {
+                    $lalu    = ($musimLaluSold[$seasonId] ?? collect())->get($gid);
+                    $qtyLalu = $lalu ? (float) $lalu->total_qty_terjual / $smallQty : 0;
+                    $musimLabel = $ms['season']->name . ' · ' . $ms['label']
+                        . ' · musim lalu terjual ' . number_format($qtyLalu, 0, ',', '.');
+                    $butuh = (int) ceil($qtyLalu - max(0, $stok));
+                    if ($butuh > max(0, $calc['reorder_qty'])) {
+                        $seasonPrepCount++;
+                        $calc['perlu_order']   = true;
+                        $calc['reorder_qty']   = $butuh;
+                        $calc['target_stock']  = (int) ceil($qtyLalu);
+                        $calc['urgensi']       = 2;
+                        $calc['urgensi_label'] = 'Siapkan Stok Musim';
+                    }
+                }
+            }
+
             // Lewati barang yang tidak perlu di-order, kecuali diminta tampilkan semua
             if ($onlyNeeded && !$calc['perlu_order']) {
                 continue;
             }
 
             $unitOptions = $allUnitsByGood->get($gid, collect());
-            $converted   = $this->convertToBiggestUnit($calc['reorder_qty'], $unitOptions);
+            $converted   = $this->convertToBiggestUnit($calc['reorder_qty'], $unitOptions, $smallQty);
 
             $distId   = $good->distributor_id;
             $distName = $distId && $distributors->has($distId)
@@ -336,6 +391,7 @@ class ReorderRepository
                 'urgensi'             => $calc['urgensi'],         // 1=segera 2=mendekati 3=tinjau dulu 0=aman
                 'urgensi_label'       => $calc['urgensi_label'],
                 'tipe'                => $calc['tipe'],            // fast/slow/baru
+                'musim_label'         => $musimLabel,              // null jika bukan barang musiman yang sedang di luar/menjelang musim
                 'last_loading_date'   => $llDate,                  // null jika belum pernah loading
                 'last_loading_qty'    => $llQty,
                 'last_loading_unit'   => $llUnit,
@@ -352,7 +408,7 @@ class ReorderRepository
                 $sorted = $groupItems
                     ->sortBy(function ($item) {
                         // urgensi 1 harus tampil paling atas, jadi dibalik urutannya
-                        $urgensiRank = [1 => 0, 2 => 1, 3 => 2][$item->urgensi] ?? 3;
+                        $urgensiRank = [1 => 0, 2 => 1, 3 => 2, 4 => 4][$item->urgensi] ?? 3;
                         return sprintf('%d_%s', $urgensiRank, $item->nama);
                     })
                     ->values();
@@ -377,6 +433,8 @@ class ReorderRepository
             'soon_count'        => $items->where('urgensi', 2)->count(),
             // dihitung dari SEMUA barang, termasuk yang disembunyikan filter "hanya yang perlu order"
             'review_count'      => $reviewCount,
+            'season_off_count'  => $seasonOffCount,
+            'season_prep_count' => $seasonPrepCount,
             'days'              => $days,
         ];
 
@@ -403,17 +461,18 @@ class ReorderRepository
      *                     -> stok ideal yang ingin dicapai setelah order tiba
      *   reorder_qty    = target_stock - stok_sekarang   (jika stok_sekarang < min_stock)
      */
-    private function calculate(float $avgQtyPerDay, int $totalTrx, float $stok): array
+    private function calculate(float $avgQtyPerDay, int $totalTrx, float $stok, int $minFast = 10): array
     {
         $leadTime = self::DEFAULT_LEAD_TIME_DAYS;
 
         // Barang tanpa penjualan sama sekali dalam periode dianggap "baru/jarang"
         // -> dipakai faktor buffer paling kecil supaya tidak ikut direkomendasikan
         // order besar-besaran (mencegah over-order untuk barang yang memang sepi).
+        // Batas "fast" sama dengan menu Perputaran Barang (menyesuaikan panjang periode).
         if ($totalTrx === 0 || $avgQtyPerDay <= 0) {
             $tipe         = 'baru_atau_tidak_aktif';
             $safetyFactor = self::SAFETY_FACTOR_NEW;
-        } elseif ($totalTrx >= 10) {
+        } elseif ($totalTrx >= $minFast) {
             $tipe         = 'fast';
             $safetyFactor = self::SAFETY_FACTOR_FAST;
         } else {
@@ -492,7 +551,7 @@ class ReorderRepository
      * $units sudah diurutkan dari kemasan terbesar -> terkecil oleh query
      * pemanggil (orderBy unit_qty desc), jadi cukup ambil yang pertama.
      */
-    private function convertToBiggestUnit(float $qtyNeeded, $units): array
+    private function convertToBiggestUnit(float $qtyNeeded, $units, float $smallQty = 1): array
     {
         if ($units->isEmpty()) {
             return [
@@ -502,8 +561,10 @@ class ReorderRepository
             ];
         }
 
+        // $qtyNeeded dalam satuan terkecil; unit_qty kemasan dalam pcs, jadi
+        // isinya dihitung ulang dalam satuan terkecil (biasanya satuan terkecil = 1 pcs).
         $biggest = $units->first(); // kemasan terbesar (sudah di-sort desc oleh query)
-        $unitQty = max(1, (int) $biggest->unit_qty);
+        $unitQty = max(1, (int) round((float) $biggest->unit_qty / max($smallQty, 0.000001)));
 
         // Dibulatkan ke atas ke bilangan bulat penuh supaya jumlah yang dipesan
         // selalu kelipatan utuh kemasan dan tidak pernah kurang dari kebutuhan

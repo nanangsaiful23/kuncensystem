@@ -21,6 +21,15 @@
         'reorderCount'=>0,'discontinueCount'=>0,'reviewCount'=>0,
     ], $summary);
     $isDiscTab = ($status === 'discontinued');
+    $adaKolomBaru = $adaKolomBaru ?? false;
+    $seasons      = $seasons      ?? collect();
+    $obralSelesai = $obralSelesai ?? 0;
+    $s = array_merge([
+        'kosongCount'=>0,'baruCount'=>0,'musimanCount'=>0,'obralCount'=>0,'kandidatMusimCount'=>0,
+        'nilaiDead'=>0,'nilaiSlow'=>0,'nilaiMusiman'=>0,'nilaiObral'=>0,'modalTertahan'=>0,
+        'seasonPrepCount'=>0,'minFast'=>0,
+    ], $s);
+    $rp = fn ($v) => 'Rp ' . number_format($v / 1000000, 1, ',', '.') . 'jt';
 @endphp
 
 <style>
@@ -170,6 +179,55 @@
 
 /* Pill "at_risk" (ungu) */
 .gm-pill-risk { background:#faf5ff; color:#7e22ce; border-color:#e9d5ff; }
+.gm-pill-kosong { background:#f1f5f9; color:#475569; border-color:#cbd5e1; }
+.gm-pill-baru   { background:var(--blue-bg); color:var(--blue); border-color:var(--blue-b); }
+.gm-pill-musim  { background:#f0fdfa; color:#0f766e; border-color:#99f6e4; }
+.gm-pill-obral  { background:#fdf2f8; color:#be185d; border-color:#fbcfe8; }
+.gm-pill-kand   { background:#fff; color:#0f766e; border:2px dashed #5eead4; }
+
+/* Badge status baru */
+.b-gray2 { background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; }
+.b-teal  { background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; }
+.b-pink  { background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; }
+.b-new   { background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue-b); }
+.rec-wait          { background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue-b); }
+.rec-season_hold   { background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; }
+.rec-season_prep   { background:#ccfbf1; color:#115e59; border:1px solid #5eead4; font-weight:800; }
+.rec-clearance_run { background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; }
+
+/* Tanda musim & kandidat musiman di kolom barang */
+.gm-season-tag { display:inline-block; margin-top:.2rem; padding:.05rem .45rem; border-radius:9999px;
+                 background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; font-size:1.2rem;
+                 cursor:pointer; white-space:nowrap; }
+.gm-cand-tag   { display:inline-block; margin-top:.2rem; padding:.05rem .45rem; border-radius:9999px;
+                 background:#fff; color:#0f766e; border:1px dashed #14b8a6; font-size:1.2rem;
+                 cursor:pointer; white-space:nowrap; }
+.gm-season-set { font-size:1.2rem; color:var(--ink3); cursor:pointer; text-decoration:underline dotted; }
+.gm-season-set:hover, .gm-season-tag:hover, .gm-cand-tag:hover { filter:brightness(.95); color:#0f766e; }
+.gm-sub { font-size:1.2rem; color:var(--ink3); margin-top:.15rem; white-space:normal; line-height:1.35; }
+
+/* Tombol obral */
+.btn-obral { padding:.22rem .6rem; background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8;
+             border-radius:.35rem; font-size:1.4rem; font-weight:700; cursor:pointer; white-space:nowrap;
+             display:inline-block; margin-bottom:.2rem; }
+.btn-obral:hover { background:#be185d; color:#fff; }
+.btn-unobral { padding:.22rem .6rem; background:#fff; color:#be185d; border:1px solid #fbcfe8;
+               border-radius:.35rem; font-size:1.3rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+.gm-head-actions { display:flex; gap:.5rem; align-items:flex-start; flex-wrap:wrap; }
+.gm-link-btn { background:#f0fdfa; border:1px solid #99f6e4; color:#0f766e; font-size:1.4rem; font-weight:700;
+               padding:.3rem .75rem; border-radius:9999px; text-decoration:none; white-space:nowrap; }
+.gm-link-btn:hover { background:#0f766e; color:#fff; text-decoration:none; }
+.gm-alert-info { background:#f0fdfa; border:1px solid #99f6e4; color:#115e59; }
+.gm-bulkbar .gm-bulk-obral { background:#be185d; color:#fff; }
+.gm-bulkbar button:disabled { opacity:.45; cursor:not-allowed; }
+.gm-modal-sel { width:100%; padding:.45rem .6rem; border:1px solid var(--bdr); border-radius:.45rem;
+                font-size:1.4rem; margin-bottom:.75rem; background:#fff; }
+.gm-modal-radio { display:flex; flex-direction:column; gap:.35rem; margin-bottom:.75rem; font-size:1.4rem; }
+.gm-modal-radio label { font-weight:500; display:flex; gap:.4rem; align-items:flex-start; }
+.gm-modal-info { background:#f0fdfa; border:1px solid #99f6e4; color:#115e59; border-radius:.45rem;
+                 padding:.6rem .875rem; font-size:1.3rem; margin-bottom:.875rem; line-height:1.55; }
+.gm-modal-obral .gm-modal-warn { background:#fdf2f8; border-color:#fbcfe8; color:#9d174d; }
+.gm-modal-obral .gm-btn-ok { background:#be185d; }
 
 /* Warning stok minus */
 .gm-negstock { background:#fffbeb; border:1px solid #fde68a; border-radius:.6rem;
@@ -311,6 +369,15 @@
 @if(session('error'))
     <div class="gm-alert gm-alert-err">❌ {{ session('error') }}</div>
 @endif
+@if($errors->any())
+    <div class="gm-alert gm-alert-err">❌ {{ $errors->first() }}</div>
+@endif
+@if($obralSelesai > 0)
+    <div class="gm-alert gm-alert-info">🏷️ {{ $obralSelesai }} barang obral sudah habis stoknya dan otomatis di-discontinue ("Habis obral"). Lihat di tab Disc.</div>
+@endif
+@if(!$adaKolomBaru)
+    <div class="gm-alert gm-alert-err">⚠️ Kolom obral & musim belum bisa dibuat otomatis. Jalankan file <code>docs/sql/2026-11-27-obral-dan-musim.sql</code> di phpMyAdmin, lalu buka ulang halaman ini.</div>
+@endif
 
 {{-- Peringatan stok minus — ini masalah kerapian DATA, bukan masalah
      pergerakan barang. Stok minus membuat perhitungan nilai stok, hari
@@ -350,15 +417,20 @@
 <div class="gm-head">
     <div>
         <h1>📊 Analisis Pergerakan Barang</h1>
-        <p>Fast moving · Slow moving · Dead stock · Discontinue</p>
+        <p>Fast moving · Slow moving · Dead stock · Musiman · Obral · Discontinue</p>
     </div>
-    @if(!$isDiscTab)
-    <span class="gm-badge">
-        {{ \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y') }} →
-        {{ \Carbon\Carbon::parse($endDate)->isoFormat('D MMM Y') }}
-        · {{ $days }} hari
-    </span>
-    @endif
+    <div class="gm-head-actions">
+        @if($adaKolomBaru)
+        <a href="{{ route('admin.seasons.index') }}" class="gm-link-btn">🗓️ Atur Musim</a>
+        @endif
+        @if(!$isDiscTab)
+        <span class="gm-badge" data-gm-tip="Fast Moving = minimal {{ $s['minFast'] }} transaksi dalam periode ini & terakhir laku ≤30 hari">
+            {{ \Carbon\Carbon::parse($startDate)->isoFormat('D MMM Y') }} →
+            {{ \Carbon\Carbon::parse($endDate)->isoFormat('D MMM Y') }}
+            · {{ $days }} hari
+        </span>
+        @endif
+    </div>
 </div>
 
 {{-- Filter --}}
@@ -386,8 +458,10 @@
         @if(!$isDiscTab)
         <div class="gm-fg">
             <label>Urutkan</label>
-            <select name="sort_by">
+            <select name="sort_by" id="gmSortBy">
                 <option value="total_omzet"     {{ $sortBy==='total_omzet'?'selected':'' }}>Omzet</option>
+                <option value="nilai_stok"      {{ $sortBy==='nilai_stok'?'selected':'' }}>Nilai Stok (stok × harga beli)</option>
+                <option value="total_laba"      {{ $sortBy==='total_laba'?'selected':'' }}>Laba</option>
                 <option value="total_transaksi" {{ $sortBy==='total_transaksi'?'selected':'' }}>Transaksi</option>
                 <option value="total_qty"       {{ $sortBy==='total_qty'?'selected':'' }}>Qty</option>
                 <option value="days_of_stock"   {{ $sortBy==='days_of_stock'?'selected':'' }}>Hari Stok</option>
@@ -398,7 +472,7 @@
         </div>
         <div class="gm-fg">
             <label>Arah</label>
-            <select name="sort_dir">
+            <select name="sort_dir" id="gmSortDir">
                 <option value="desc" {{ $sortDir==='desc'?'selected':'' }}>↓ Terbesar</option>
                 <option value="asc"  {{ $sortDir==='asc'?'selected':'' }}>↑ Terkecil</option>
             </select>
@@ -418,6 +492,11 @@
         'slow'         => ['l'=>'🐢 Slow ('.$s['slowCount'].')',        'c'=>'gm-pill-slow'],
         'dead'         => ['l'=>'💀 Dead ('.$s['deadCount'].')',        'c'=>'gm-pill-dead'],
         'at_risk'      => ['l'=>'❓ Perlu Dicek ('.$s['atRiskCount'].')','c'=>'gm-pill-risk'],
+        'kosong'       => ['l'=>'⚪ Kosong ('.$s['kosongCount'].')',    'c'=>'gm-pill-kosong'],
+        'baru'         => ['l'=>'🆕 Baru Masuk ('.$s['baruCount'].')',  'c'=>'gm-pill-baru'],
+        'musiman'      => ['l'=>'🗓️ Musiman ('.$s['musimanCount'].')',  'c'=>'gm-pill-musim'],
+        'obral'        => ['l'=>'🏷️ Obral ('.$s['obralCount'].')',      'c'=>'gm-pill-obral'],
+        'kandidat_musim' => ['l'=>'📅 Kandidat Musiman ('.$s['kandidatMusimCount'].')', 'c'=>'gm-pill-kand'],
         'discontinued' => ['l'=>'🗑️ Disc. ('.$discontinuedCount.')',    'c'=>'gm-pill-disc'],
     ]; @endphp
     @foreach($pills as $k => $p)
@@ -440,15 +519,40 @@
         <div class="kv">{{ number_format($s['slowCount']) }}</div>
         <div class="ks">{{ $s['total']>0?number_format($s['slowCount']/$s['total']*100,0).'%':'-' }}</div>
     </div>
-    <div class="gm-kpi k-dead">
+    <div class="gm-kpi k-dead" data-gm-tip="Stok masih ada, tidak laku ≥90 hari, dan riwayat 12 bulan juga sepi">
         <div class="kl">Dead Stock</div>
         <div class="kv">{{ number_format($s['deadCount']) }}</div>
-        <div class="ks">Riwayat 12bln juga sepi</div>
+        <div class="ks">{{ $rp($s['nilaiDead']) }} tertahan</div>
     </div>
-    <div class="gm-kpi" style="border-left:4px solid #7e22ce" data-gm-tip="Tidak ada transaksi di periode filter, TAPI riwayat 12 bulan terakhir menunjukkan barang ini historisnya laku — jangan langsung di-discontinue, cek dulu stoknya.">
+    <div class="gm-kpi" style="border-left:4px solid #7e22ce" data-gm-tip="Tidak laku di periode filter, TAPI 12 bulan terakhir rata-rata laku ≥1x/bulan — cek dulu stoknya, jangan langsung di-discontinue.">
         <div class="kl">❓ Perlu Dicek</div>
         <div class="kv" style="color:#7e22ce">{{ number_format($s['atRiskCount']) }}</div>
         <div class="ks">Riwayat bagus, jangan dihapus dulu</div>
+    </div>
+    <div class="gm-kpi" style="border-left:4px solid #dc2626" data-gm-tip="Nilai stok (stok × harga beli) barang Dead Stock + Slow Moving">
+        <div class="kl">💰 Modal Tertahan</div>
+        <div class="kv" style="color:#dc2626">{{ $rp($s['modalTertahan']) }}</div>
+        <div class="ks">Dead {{ $rp($s['nilaiDead']) }} · Slow {{ $rp($s['nilaiSlow']) }}</div>
+    </div>
+    <div class="gm-kpi" style="border-left:4px solid #0f766e" data-gm-tip="Barang musiman yang sedang di luar musim atau musimnya segera tiba — tidak dinilai Slow/Dead">
+        <div class="kl">🗓️ Musiman</div>
+        <div class="kv" style="color:#0f766e">{{ number_format($s['musimanCount']) }}</div>
+        <div class="ks">{{ $rp($s['nilaiMusiman']) }} disimpan</div>
+    </div>
+    <div class="gm-kpi" style="border-left:4px solid #be185d" data-gm-tip="Sedang dihabiskan: tidak disarankan order, otomatis di-discontinue saat stok habis">
+        <div class="kl">🏷️ Obral</div>
+        <div class="kv" style="color:#be185d">{{ number_format($s['obralCount']) }}</div>
+        <div class="ks">sisa {{ $rp($s['nilaiObral']) }}</div>
+    </div>
+    <div class="gm-kpi" style="border-left:4px solid #94a3b8" data-gm-tip="Stok habis dan tidak laku — tidak menahan modal, jadi bukan dead stock">
+        <div class="kl">⚪ Kosong</div>
+        <div class="kv" style="color:#475569">{{ number_format($s['kosongCount']) }}</div>
+        <div class="ks">stok habis & tidak laku</div>
+    </div>
+    <div class="gm-kpi k-blue" data-gm-tip="Baru di-loading kurang dari 30 hari dan belum laku sesudahnya">
+        <div class="kl">🆕 Baru Masuk</div>
+        <div class="kv">{{ number_format($s['baruCount']) }}</div>
+        <div class="ks">belum bisa dinilai</div>
     </div>
     <div class="gm-kpi k-disc">
         <div class="kl">Discontinued</div>
@@ -457,20 +561,21 @@
     </div>
     <div class="gm-kpi k-blue">
         <div class="kl">Total Omzet</div>
-        <div class="kv" style="font-size:1.4rem">Rp {{ number_format($s['totalOmzet']/1000000,1) }}jt</div>
-        <div class="ks">Laba Rp {{ number_format($s['totalLaba']/1000000,1) }}jt</div>
+        <div class="kv" style="font-size:1.4rem">{{ $rp($s['totalOmzet']) }}</div>
+        <div class="ks">Laba {{ $rp($s['totalLaba']) }}</div>
     </div>
     <div class="gm-kpi">
         <div class="kl">Nilai Stok</div>
-        <div class="kv" style="font-size:1.4rem">Rp {{ number_format($s['totalNilaiStok']/1000000,1) }}jt</div>
-        <div class="ks">HPP tersimpan</div>
+        <div class="kv" style="font-size:1.4rem">{{ $rp($s['totalNilaiStok']) }}</div>
+        <div class="ks">stok × harga beli (stok minus = 0)</div>
     </div>
 </div>
 <div class="gm-ac-grid">
     <div class="gm-ac gm-ac-r"><div class="gm-ac-ico">📦</div><div><div class="al">Perlu Reorder</div><div class="av">{{ $s['reorderCount'] }}</div></div></div>
+    <div class="gm-ac gm-ac-s"><div class="gm-ac-ico">🗓️</div><div><div class="al">Siapkan Stok Musim</div><div class="av">{{ $s['seasonPrepCount'] }}</div></div></div>
     <div class="gm-ac gm-ac-d"><div class="gm-ac-ico">🗑️</div><div><div class="al">Kandidat Disc.</div><div class="av">{{ $s['discontinueCount'] }}</div></div></div>
     <div class="gm-ac gm-ac-v"><div class="gm-ac-ico">⚠️</div><div><div class="al">Perlu Review</div><div class="av">{{ $s['reviewCount'] }}</div></div></div>
-    <div class="gm-ac gm-ac-s"><div class="gm-ac-ico">📊</div><div><div class="al">Periode</div><div class="av">{{ $days }} hr</div></div></div>
+    <div class="gm-ac gm-ac-s"><div class="gm-ac-ico">📊</div><div><div class="al">Periode</div><div class="av">{{ $days }} hr · fast ≥{{ $s['minFast'] }} trx</div></div></div>
 </div>
 @else
 <div class="gm-kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
@@ -608,7 +713,7 @@
         </colgroup>
         <thead>
             <tr>
-                <th class="tc gm-chk-col" data-gm-tip="Pilih beberapa Dead Stock lalu discontinue sekaligus">
+                <th class="tc gm-chk-col" data-gm-tip="Pilih Dead/Slow/Kosong lalu obral atau discontinue sekaligus">
                     <input type="checkbox" id="gmChkAll" onclick="gmToggleAll(this)">
                 </th>
                 <th class="tc">Aksi</th>
@@ -639,34 +744,55 @@
             elseif  ($g->stok_sekarang <= 20) $sc = 's-warn';
             else                              $sc = 's-ok';
 
-            $sb     = $g->status_color === 'orange' ? 'b-slow'
-                    : ($g->status_color === 'red'    ? 'b-dead'
-                    : ($g->status_color === 'purple' ? 'b-risk' : 'b-fast'));
+            $sb = [
+                'orange' => 'b-slow', 'red' => 'b-dead', 'purple' => 'b-risk', 'gray' => 'b-gray2',
+                'blue' => 'b-new', 'teal' => 'b-teal', 'pink' => 'b-pink',
+            ][$g->status_color] ?? 'b-fast';
+            $statusIcon = [
+                'fast' => '🚀', 'slow' => '🐢', 'at_risk' => '❓', 'dead' => '💀', 'kosong' => '⚪',
+                'baru' => '🆕', 'musiman' => '🗓️', 'obral' => '🏷️',
+            ][$g->status] ?? '';
             $isDead   = ($g->status === 'dead');
             $isAtRisk = ($g->status === 'at_risk');
+            $isObral  = ($g->status === 'obral');
+            // Obral: Dead/Slow yang stoknya masih ada. Discontinue: Dead & Kosong.
+            $canObral = $adaKolomBaru && in_array($g->status, ['dead', 'slow'], true) && $g->stok_sekarang > 0;
+            $canDisc  = in_array($g->status, ['dead', 'kosong'], true);
+            $namaJs   = e(json_encode($g->nama));
+            $katJs    = e(json_encode($g->kategori));
+            $tipeJs   = e(json_encode($g->tipe ?? ''));
         @endphp
         <tr class="gm-row{{ $isDead ? ' row-dead' : '' }}" data-idx="{{ $i }}">
 
-            {{-- 0. Checklist (hanya untuk Dead Stock murni — bukan at_risk) --}}
+            {{-- 0. Checklist (Dead/Slow untuk obral, Dead/Kosong untuk discontinue — bukan at_risk) --}}
             <td class="tc gm-chk-col">
-                @if($isDead)
-                <input type="checkbox" class="gm-chk-item" value="{{ $g->good_id }}" onchange="gmUpdateBulkBar()">
+                @if($canObral || $canDisc)
+                <input type="checkbox" class="gm-chk-item" value="{{ $g->good_id }}"
+                    data-can-obral="{{ $canObral ? 1 : 0 }}" data-can-disc="{{ $canDisc ? 1 : 0 }}"
+                    onchange="gmUpdateBulkBar()">
                 @endif
             </td>
 
             {{-- 1. Aksi --}}
             <td class="tc">
-                @if($isDead)
+                @if($canObral)
+                <button type="button" class="btn-obral"
+                    onclick="gmOpenObral([{{ $g->good_id }}], {!! $namaJs !!})">🏷️ Obral</button>
+                @endif
+                @if($canDisc)
                 <button type="button" class="btn-disc"
-                    onclick="gmOpenModal(
-                        {{ $g->good_id }},
-                        '{{ addslashes($g->nama) }}',
-                        '{{ addslashes($g->kategori) }}')">
+                    onclick="gmOpenModal({{ $g->good_id }}, {!! $namaJs !!}, {!! $katJs !!})">
                     🗑️ Disc.
                 </button>
+                @elseif($isObral)
+                <form method="POST" action="{{ route('admin.reports.movement.cancel-clearance', $g->good_id) }}"
+                      onsubmit="return confirm('Batalkan obral barang ini? Barang akan dinilai seperti biasa lagi dan bisa disarankan order.')">
+                    @csrf
+                    <button type="submit" class="btn-unobral">↩️ Batal Obral</button>
+                </form>
                 @elseif($isAtRisk)
                 <span class="gm-badge-tag b-risk" style="font-size:1.4rem" data-gm-tip="Riwayat 12 bulan: {{ $g->total_transaksi_lt }} transaksi. Jangan discontinue sebelum dicek manual.">Jgn Hapus</span>
-                @else
+                @elseif(!$canObral)
                 <span style="color:var(--ink3)">—</span>
                 @endif
             </td>
@@ -680,6 +806,18 @@
                 <div style="font-size:1.4rem;color:var(--ink3);overflow:hidden;text-overflow:ellipsis">
                     @if($g->kode){{ $g->kode }} · @endif{{ $g->satuan }}@if($g->merk && $g->merk !== '-') · {{ $g->merk }}@endif
                 </div>
+                @if($adaKolomBaru)
+                    @php $gmSeasonArgs = $g->good_id . ', ' . $namaJs . ', ' . $tipeJs . ', ' . ($g->type_id ? 1 : 0) . ', ' . e(json_encode($g->season_good)) . ', ' . e(json_encode($g->musim_sumber === 'jenis' ? $g->season_id : null)); @endphp
+                    @if($g->musim_nama)
+                    <span class="gm-season-tag" onclick="gmOpenSeason({!! $gmSeasonArgs !!})"
+                          data-gm-tip="{{ $g->musim_info }} · diatur lewat {{ $g->musim_sumber === 'barang' ? 'barang ini' : 'jenis ' . ($g->tipe ?? '') }}">🗓️ {{ $g->musim_nama }}</span>
+                    @elseif($g->kandidat_musim)
+                    <span class="gm-cand-tag" onclick="gmOpenSeason({!! $gmSeasonArgs !!})"
+                          data-gm-tip="{{ $g->kandidat_musim['persen'] }}% penjualan 12 bulan terakhir terjadi di {{ $g->kandidat_musim['label'] }}. Klik untuk tandai musiman.">📅 Pola musiman? {{ $g->kandidat_musim['persen'] }}% {{ $g->kandidat_musim['label'] }}</span>
+                    @else
+                    <span class="gm-season-set" onclick="gmOpenSeason({!! $gmSeasonArgs !!})">🗓️ atur musim</span>
+                    @endif
+                @endif
             </td>
 
             {{-- 4. Kategori --}}
@@ -688,9 +826,21 @@
             {{-- 5. Status --}}
             <td>
                 <span class="gm-badge-tag {{ $sb }}">
-                    {{ $g->status === 'fast' ? '🚀' : ($g->status === 'slow' ? '🐢' : ($g->status === 'at_risk' ? '❓' : '💀')) }}
+                    {{ $statusIcon }}
                     {{ $g->status_label }}
                 </span>
+                @if($isObral)
+                <div class="gm-sub">
+                    Sejak {{ $g->obral_mulai ? \Carbon\Carbon::parse($g->obral_mulai)->isoFormat('D MMM Y') : '-' }}
+                    ({{ $g->obral_hari }} hr) · {{ $g->obral_oleh }}<br>
+                    Terjual {{ number_format($g->obral_terjual, 0, ',', '.') }} dari {{ number_format($g->obral_stok_awal, 0, ',', '.') }}
+                    @if($g->obral_alasan)<br><em>{{ \Illuminate\Support\Str::limit($g->obral_alasan, 60) }}</em>@endif
+                </div>
+                @elseif($g->status === 'musiman')
+                <div class="gm-sub">{{ $g->musim_nama }} · {{ $g->musim_info }}</div>
+                @elseif($g->status === 'baru')
+                <div class="gm-sub">Loading {{ $g->days_since_loading }} hari lalu</div>
+                @endif
             </td>
 
             {{-- 6. Trx / Qty per hari --}}
@@ -756,6 +906,11 @@
                 <span class="gm-badge-tag rec-{{ $g->recommendation }}">
                     {{ $g->rec_icon }} {{ $g->rec_label }}
                 </span>
+                @if($g->recommendation === 'season_prep')
+                <div class="gm-sub">Musim lalu terjual {{ number_format($g->musim_lalu_qty, 0, ',', '.') }} {{ $g->satuan }}
+                    @if($g->musim_lalu_qty > $g->stok_sekarang) — kurang ±{{ number_format($g->musim_lalu_qty - max(0, $g->stok_sekarang), 0, ',', '.') }}@endif
+                </div>
+                @endif
             </td>
 
         </tr>
@@ -784,12 +939,19 @@
         <span class="gm-badge-tag rec-discontinue">🗑️ Disc.</span>
         <span class="gm-badge-tag rec-restock_check">🔎 Cek Stok (Riwayat Bagus)</span>
         <span class="gm-badge-tag rec-review_stuck">❓ Cek Manual (Riwayat Bagus)</span>
+        <span class="gm-badge-tag rec-wait">⏳ Baru Masuk</span>
+        <span class="gm-badge-tag rec-season_hold">🧊 Musiman, jangan order</span>
+        <span class="gm-badge-tag rec-season_prep">🗓️ Siapkan Stok Musim</span>
+        <span class="gm-badge-tag rec-clearance_run">🏷️ Sedang Obral</span>
     </div>
 
-    {{-- Toolbar bulk-discontinue: muncul saat ada checkbox Dead Stock dicentang --}}
+    {{-- Toolbar aksi massal: muncul saat ada checkbox dicentang --}}
     <div class="gm-bulkbar" id="gmBulkBar">
         <span id="gmBulkCount">0 barang dipilih</span>
-        <button type="button" class="gm-bulk-go" onclick="gmOpenBulkModal()">🗑️ Discontinue Terpilih</button>
+        @if($adaKolomBaru)
+        <button type="button" class="gm-bulk-obral" id="gmBulkObralBtn" onclick="gmOpenBulkObral()">🏷️ Obral (<span id="gmBulkObralN">0</span>)</button>
+        @endif
+        <button type="button" class="gm-bulk-go" id="gmBulkDiscBtn" onclick="gmOpenBulkModal()">🗑️ Discontinue (<span id="gmBulkDiscN">0</span>)</button>
         <button type="button" class="gm-bulk-clear" onclick="gmClearAll()">Batal Pilih</button>
     </div>
     @endif
@@ -806,7 +968,16 @@
 @if(!$isDiscTab && $s['total']>0)
 <div class="gm-dist">
     <h2>📊 Distribusi Status</h2>
-    @php $distRows=[['l'=>'🚀 Fast Moving','n'=>$s['fastCount'],'c'=>'#16a34a'],['l'=>'🐢 Slow Moving','n'=>$s['slowCount'],'c'=>'#d97706'],['l'=>'💀 Dead Stock','n'=>$s['deadCount'],'c'=>'#dc2626']]; @endphp
+    @php $distRows=[
+        ['l'=>'🚀 Fast Moving','n'=>$s['fastCount'],'c'=>'#16a34a'],
+        ['l'=>'🐢 Slow Moving','n'=>$s['slowCount'],'c'=>'#d97706'],
+        ['l'=>'💀 Dead Stock','n'=>$s['deadCount'],'c'=>'#dc2626'],
+        ['l'=>'❓ Perlu Dicek','n'=>$s['atRiskCount'],'c'=>'#7e22ce'],
+        ['l'=>'⚪ Kosong','n'=>$s['kosongCount'],'c'=>'#94a3b8'],
+        ['l'=>'🆕 Baru Masuk','n'=>$s['baruCount'],'c'=>'#2563eb'],
+        ['l'=>'🗓️ Musiman','n'=>$s['musimanCount'],'c'=>'#0f766e'],
+        ['l'=>'🏷️ Obral','n'=>$s['obralCount'],'c'=>'#be185d'],
+    ]; @endphp
     @foreach($distRows as $dr)
     @php $pct=$s['total']>0?round($dr['n']/$s['total']*100,1):0; @endphp
     <div class="dist-row">
@@ -872,9 +1043,9 @@
         <div class="gm-modal-bd">
             <div class="gm-modal-name" id="gmBulkCountModal">0 barang dipilih</div>
             <div class="gm-modal-warn">
-                ⚠️ Barang yang dipilih tidak lagi memiliki riwayat penjualan yang bagus
-                dalam 12 bulan terakhir maupun periode filter saat ini. Semuanya akan
-                di-discontinue dengan <strong>satu alasan yang sama</strong> di bawah ini.
+                ⚠️ Hanya barang berstatus Dead Stock / Kosong yang ikut. Barang itu tidak
+                punya riwayat penjualan yang bagus dalam 12 bulan terakhir maupun periode
+                filter saat ini. Semuanya akan di-discontinue dengan <strong>satu alasan yang sama</strong> di bawah ini.
                 Bisa diaktifkan kembali kapan saja dari tab <em>Disc.</em>
             </div>
             <label class="gm-modal-lbl" for="gmBulkReason">
@@ -897,6 +1068,94 @@
     <input type="hidden" name="reason" id="gmBulkFormReason">
     <div id="gmBulkFormIds"></div>
 </form>
+
+@if($adaKolomBaru)
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- MODAL OBRAL — satu barang atau banyak sekaligus                    --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div class="gm-modal-overlay gm-modal-obral" id="gmObralModal">
+    <div class="gm-modal">
+        <div class="gm-modal-hd">
+            <h3>🏷️ Tandai Obral</h3>
+            <button class="gm-modal-close" type="button" onclick="gmCloseObral()">✕</button>
+        </div>
+        <div class="gm-modal-bd">
+            <div class="gm-modal-name" id="gmObralName">—</div>
+            <div class="gm-modal-warn">
+                Barang obral <strong>tidak dinilai fast/slow/dead</strong> dan <strong>tidak pernah disarankan order</strong>
+                (di sini maupun di Rekomendasi Reorder), walaupun selama obral lakunya ramai.
+                Begitu stoknya habis, barang <strong>otomatis di-discontinue</strong> dengan alasan "Habis obral".
+                Harga obral tetap diatur seperti biasa (ubah harga jual / diskon di kasir).
+            </div>
+            <label class="gm-modal-lbl" for="gmObralReason">Keterangan obral <span style="color:var(--dead)">*</span></label>
+            <textarea class="gm-modal-ta" id="gmObralReason"
+                placeholder="Contoh: Dead stock 6 bulan, dijual harga modal sampai habis"></textarea>
+            <div class="gm-modal-err" id="gmObralErr">Keterangan wajib diisi minimal 5 karakter.</div>
+        </div>
+        <div class="gm-modal-ft">
+            <button type="button" class="gm-btn-cancel" onclick="gmCloseObral()">Batal</button>
+            <button type="button" class="gm-btn-ok" onclick="gmSubmitObral()">🏷️ Ya, Obral</button>
+        </div>
+    </div>
+</div>
+<form method="POST" id="gmObralForm" action="{{ route('admin.reports.movement.clearance') }}" style="display:none">
+    @csrf
+    <input type="hidden" name="reason" id="gmObralFormReason">
+    <div id="gmObralFormIds"></div>
+</form>
+
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+{{-- MODAL MUSIM — tandai barang / jenisnya sebagai musiman              --}}
+{{-- ═══════════════════════════════════════════════════════════════════ --}}
+<div class="gm-modal-overlay" id="gmSeasonModal">
+    <div class="gm-modal">
+        <div class="gm-modal-hd">
+            <h3>🗓️ Atur Musim</h3>
+            <button class="gm-modal-close" type="button" onclick="gmCloseSeason()">✕</button>
+        </div>
+        <form method="POST" id="gmSeasonForm">
+            @csrf
+            <div class="gm-modal-bd">
+                <div class="gm-modal-name" id="gmSeasonName">—</div>
+                <div class="gm-modal-meta" id="gmSeasonMeta">—</div>
+                @if($seasons->isEmpty())
+                <div class="gm-modal-info">
+                    Belum ada musim. Buat dulu (mis. "Ramadan & Lebaran", "Tahun Ajaran Baru") di
+                    <a href="{{ route('admin.seasons.index') }}">halaman Atur Musim</a>.
+                </div>
+                @else
+                <div class="gm-modal-info">
+                    Barang musiman di luar musimnya tidak dicap Slow/Dead dan tidak disarankan order.
+                    Menjelang musim, muncul saran <em>Siapkan Stok Musim</em> sebanyak penjualan musim lalu.
+                </div>
+                <label class="gm-modal-lbl">Berlaku untuk</label>
+                <div class="gm-modal-radio">
+                    <label id="gmSeasonScopeJenisWrap"><input type="radio" name="scope" value="jenis" id="gmSeasonScopeJenis" onchange="gmSeasonScopeChanged()">
+                        <span>Seluruh jenis <strong id="gmSeasonTipe">—</strong> (barang lain di jenis ini ikut)</span></label>
+                    <label><input type="radio" name="scope" value="barang" id="gmSeasonScopeBarang" onchange="gmSeasonScopeChanged()">
+                        <span>Barang ini saja</span></label>
+                </div>
+                <label class="gm-modal-lbl" for="gmSeasonSelect">Musim</label>
+                <select name="season_id" id="gmSeasonSelect" class="gm-modal-sel">
+                    <option value="" id="gmSeasonOptIkut">— Ikut jenisnya —</option>
+                    <option value="0">Bukan musiman</option>
+                    @foreach($seasons as $sea)
+                    <option value="{{ $sea->id }}">{{ $sea->name }}</option>
+                    @endforeach
+                </select>
+                <div style="font-size:1.3rem"><a href="{{ route('admin.seasons.index') }}">Kelola daftar & tanggal musim →</a></div>
+                @endif
+            </div>
+            <div class="gm-modal-ft">
+                <button type="button" class="gm-btn-cancel" onclick="gmCloseSeason()">Batal</button>
+                @if($seasons->isNotEmpty())
+                <button type="submit" class="gm-btn-ok" style="background:#0f766e">🗓️ Simpan</button>
+                @endif
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 <script>
 (function () {
@@ -1082,6 +1341,14 @@
         gmUpdateBulkBar();
     };
 
+    function gmCheckedIds(attr) {
+        var out = [];
+        document.querySelectorAll('.gm-chk-item:checked').forEach(function (b) {
+            if (b.getAttribute(attr) === '1') out.push(b.value);
+        });
+        return out;
+    }
+
     window.gmUpdateBulkBar = function () {
         var visible = gmVisibleCheckItems();
         var checked = visible.filter(function (b) { return b.checked; });
@@ -1094,6 +1361,14 @@
         } else {
             bar.classList.remove('show');
         }
+        var nObral = gmCheckedIds('data-can-obral').length;
+        var nDisc  = gmCheckedIds('data-can-disc').length;
+        var oN = document.getElementById('gmBulkObralN'), oB = document.getElementById('gmBulkObralBtn');
+        var dN = document.getElementById('gmBulkDiscN'),  dB = document.getElementById('gmBulkDiscBtn');
+        if (oN) oN.textContent = nObral;
+        if (oB) oB.disabled = nObral === 0;
+        if (dN) dN.textContent = nDisc;
+        if (dB) dB.disabled = nDisc === 0;
         // Sinkronkan checkbox "pilih semua" di header
         var master = document.getElementById('gmChkAll');
         if (master) master.checked = visible.length > 0 && checked.length === visible.length;
@@ -1106,7 +1381,7 @@
     };
 
     window.gmOpenBulkModal = function () {
-        var checked = document.querySelectorAll('.gm-chk-item:checked');
+        var checked = gmCheckedIds('data-can-disc');
         if (checked.length === 0) return;
         document.getElementById('gmBulkCountModal').textContent = checked.length + ' barang akan di-discontinue';
         document.getElementById('gmBulkReason').value = '';
@@ -1126,28 +1401,101 @@
             document.getElementById('gmBulkReason').focus();
             return;
         }
-        var checked = document.querySelectorAll('.gm-chk-item:checked');
+        var checked = gmCheckedIds('data-can-disc');
         if (checked.length === 0) { gmCloseBulkModal(); return; }
 
         document.getElementById('gmBulkErr').style.display = 'none';
         document.getElementById('gmBulkFormReason').value = reason;
-
-        var idsWrap = document.getElementById('gmBulkFormIds');
-        idsWrap.innerHTML = '';
-        checked.forEach(function (box) {
-            var inp = document.createElement('input');
-            inp.type = 'hidden';
-            inp.name = 'ids[]';
-            inp.value = box.value;
-            idsWrap.appendChild(inp);
-        });
+        gmFillIds('gmBulkFormIds', checked);
 
         document.getElementById('gmBulkForm').submit();
     };
 
+    function gmFillIds(wrapId, ids) {
+        var idsWrap = document.getElementById(wrapId);
+        idsWrap.innerHTML = '';
+        ids.forEach(function (id) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'ids[]';
+            inp.value = id;
+            idsWrap.appendChild(inp);
+        });
+    }
+
+    /* ── Obral ──────────────────────────────────────────────────── */
+    var _obralIds = [];
+    window.gmOpenObral = function (ids, name) {
+        if (!document.getElementById('gmObralModal') || !ids.length) return;
+        _obralIds = ids;
+        document.getElementById('gmObralName').textContent = name;
+        document.getElementById('gmObralReason').value = '';
+        document.getElementById('gmObralErr').style.display = 'none';
+        document.getElementById('gmObralModal').classList.add('open');
+        setTimeout(function () { document.getElementById('gmObralReason').focus(); }, 120);
+    };
+    window.gmOpenBulkObral = function () {
+        var ids = gmCheckedIds('data-can-obral');
+        gmOpenObral(ids, ids.length + ' barang akan diobral');
+    };
+    window.gmCloseObral = function () {
+        var m = document.getElementById('gmObralModal');
+        if (m) m.classList.remove('open');
+    };
+    window.gmSubmitObral = function () {
+        var reason = document.getElementById('gmObralReason').value.trim();
+        if (reason.length < 5) {
+            document.getElementById('gmObralErr').style.display = 'block';
+            document.getElementById('gmObralReason').focus();
+            return;
+        }
+        document.getElementById('gmObralFormReason').value = reason;
+        gmFillIds('gmObralFormIds', _obralIds);
+        document.getElementById('gmObralForm').submit();
+    };
+
+    /* ── Musim ──────────────────────────────────────────────────── */
+    window.gmOpenSeason = function (goodId, name, tipe, punyaJenis, musimBarang, musimJenis) {
+        var m = document.getElementById('gmSeasonModal');
+        if (!m) return;
+        document.getElementById('gmSeasonForm').action = _baseUrl + '/' + goodId + '/musim';
+        document.getElementById('gmSeasonName').textContent = name;
+        document.getElementById('gmSeasonMeta').textContent = punyaJenis ? ('Jenis: ' + tipe) : 'Barang ini belum punya jenis';
+        var tipeEl = document.getElementById('gmSeasonTipe');
+        if (tipeEl) {
+            tipeEl.textContent = tipe || '-';
+            document.getElementById('gmSeasonScopeJenisWrap').style.display = punyaJenis ? '' : 'none';
+            // Bawaan: per jenis, kecuali barang ini sudah punya pengaturan sendiri.
+            var perBarang = !punyaJenis || (musimBarang !== null && musimBarang !== '');
+            document.getElementById(perBarang ? 'gmSeasonScopeBarang' : 'gmSeasonScopeJenis').checked = true;
+            gmSeasonScopeChanged();
+            document.getElementById('gmSeasonSelect').value = perBarang
+                ? (musimBarang !== null ? String(musimBarang) : '')
+                : (musimJenis ? String(musimJenis) : '');
+        }
+        m.classList.add('open');
+    };
+    window.gmSeasonScopeChanged = function () {
+        var opt = document.getElementById('gmSeasonOptIkut');
+        var jenis = document.getElementById('gmSeasonScopeJenis');
+        if (!opt || !jenis) return;
+        // "Ikut jenisnya" hanya masuk akal untuk pengaturan per barang.
+        opt.textContent = jenis.checked ? '— Pilih musim —' : '— Ikut jenisnya —';
+    };
+    window.gmCloseSeason = function () {
+        var m = document.getElementById('gmSeasonModal');
+        if (m) m.classList.remove('open');
+    };
+
     /* ── Pill status ────────────────────────────────────────────── */
+    // Tab yang isinya modal tertahan diurutkan dari nilai stok terbesar.
+    var _sortPerTab = { dead: 'nilai_stok', slow: 'nilai_stok', at_risk: 'nilai_stok', musiman: 'nilai_stok',
+                        obral: 'nilai_stok', baru: 'nilai_stok', kosong: 'days_since_trx',
+                        all: 'total_omzet', fast: 'total_omzet', kandidat_musim: 'total_qty' };
     window.gmSetStatus = function (val) {
         document.getElementById('gmStatusInput').value = val;
+        var sb = document.getElementById('gmSortBy'), sd = document.getElementById('gmSortDir');
+        if (sb && _sortPerTab[val]) { sb.value = _sortPerTab[val]; if (sd) sd.value = 'desc'; }
         document.getElementById('gmFilterForm').submit();
     };
 
@@ -1155,14 +1503,14 @@
     document.getElementById('gmDiscModal').addEventListener('click', function (e) {
         if (e.target === this) gmCloseModal();
     });
-    var bulkModalEl = document.getElementById('gmBulkModal');
-    if (bulkModalEl) {
-        bulkModalEl.addEventListener('click', function (e) {
-            if (e.target === this) gmCloseBulkModal();
+    ['gmBulkModal', 'gmObralModal', 'gmSeasonModal'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('click', function (e) {
+            if (e.target === this) this.classList.remove('open');
         });
-    }
+    });
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { gmCloseModal(); gmCloseBulkModal(); }
+        if (e.key === 'Escape') { gmCloseModal(); gmCloseBulkModal(); gmCloseObral(); gmCloseSeason(); }
     });
 
     /* ── Boot ───────────────────────────────────────────────────── */

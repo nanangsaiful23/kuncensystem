@@ -6,42 +6,63 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 use App\Models\Good;
-use App\Models\GoodUnit;
+use App\Models\Season;
 use App\Models\TransactionDetail;
-use App\Models\Transaction;
-use App\Models\GoodLoading;
-use App\Models\GoodLoadingDetail;
 
 class GoodMovementRepository
 {
     // =========================================================================
     // KONFIGURASI THRESHOLD
     // =========================================================================
+
+    /**
+     * Fast moving = minimal FAST_MOVING_MIN_TRX transaksi per FAST_BASE_DAYS
+     * hari, disesuaikan dengan panjang periode filter (periode 30 hari butuh
+     * 3 transaksi, 1 tahun butuh 41). Dulu angkanya mutlak 10 transaksi, jadi
+     * arti "fast" berubah-ubah mengikuti panjang periode yang dipilih.
+     */
     const FAST_MOVING_MIN_TRX  = 10;
-    const SLOW_MOVING_MAX_TRX  = 3;
+    const FAST_BASE_DAYS       = 90;
+    const FAST_MIN_TRX_FLOOR   = 2;
     const ACTIVE_LAST_TRX_DAYS = 30;
     const DEAD_STOCK_DAYS      = 90;
     const REORDER_STOCK_MIN    = 10;
 
+    /** Barang yang di-loading kurang dari sekian hari lalu dan belum laku sesudahnya: "Baru Masuk", belum bisa dinilai. */
+    const NEW_GOOD_DAYS        = 30;
+
     /**
      * ── ANTI SALAH-DISCONTINUE ──────────────────────────────────────────
-     * Klasifikasi "dead" TIDAK BOLEH hanya berdasarkan "belum ada transaksi
-     * di periode filter yang sedang dilihat admin" — itu gampang salah,
-     * karena barang musiman/jarang keluar bisa kelihatan "mati" padahal
-     * larisnya bagus di luar jendela itu (atau memang lagi stockout jadi
-     * tidak bisa jual, bukan karena tidak laku).
+     * Klasifikasi "dead" tidak boleh hanya berdasarkan "belum ada transaksi
+     * di periode filter": barang yang historisnya laku tapi sedang kehabisan
+     * stok bisa kelihatan "mati". Karena itu dihitung juga riwayat
+     * LONG_TERM_MONTHS bulan terakhir (independen dari filter). Barang yang
+     * rata-rata laku minimal sekali sebulan (SAFE_LIFETIME_TRX transaksi dalam
+     * jendela itu) masuk "Perlu Dicek", bukan Dead Stock.
      *
-     * Solusinya: hitung juga RIWAYAT PENJUALAN JANGKA PANJANG
-     * (LONG_TERM_MONTHS bulan terakhir, independen dari filter tanggal
-     * yang dipilih admin). Kalau barang itu ternyata historisnya laku
-     * (>= SAFE_LIFETIME_TRX transaksi dalam jendela itu), dia TIDAK boleh
-     * otomatis masuk "Dead Stock" / kandidat discontinue — melainkan
-     * masuk kategori "at_risk" (Perlu Dicek) supaya pemilik toko mengecek
-     * dulu (biasanya karena stok habis / lupa di-restock), bukan langsung
-     * dihapus dari sistem.
+     * Dulu batasnya 5 transaksi setahun: barang yang laku 5 kali setahun lalu
+     * lalu mati tetap terlindungi. Barang musiman sekarang ditangani lewat
+     * menu Musim (dan saran "Kandidat Musiman"), bukan lewat batas ini.
      */
-    const LONG_TERM_MONTHS     = 12;   // jendela riwayat jangka panjang
-    const SAFE_LIFETIME_TRX    = 5;    // minimal transaksi dlm jendela itu supaya dianggap "historisnya laku"
+    const LONG_TERM_MONTHS     = 12;
+    const SAFE_LIFETIME_TRX    = 12;
+
+    /**
+     * Saran "Kandidat Musiman": barang dengan minimal SEASON_MIN_TRX transaksi
+     * dalam 12 bulan yang SEASON_PEAK_SHARE atau lebih penjualannya (qty)
+     * terkumpul dalam SEASON_PEAK_MONTHS bulan berurutan. Tidak dihitung:
+     * - puncak yang memuat bulan ini atau bulan lalu (musimnya belum selesai,
+     *   atau barangnya baru mulai dijual);
+     * - barang yang sesudah puncaknya tidak laku sama sekali DAN stoknya habis:
+     *   itu tanda kehabisan stok, bukan musim (di data toko, ±40% kandidat
+     *   dengan aturan longgar adalah barang harian yang stoknya habis).
+     */
+    const SEASON_MIN_TRX       = 8;
+    const SEASON_PEAK_SHARE    = 0.7;
+    const SEASON_PEAK_MONTHS   = 2;
+
+    /** Status yang bisa difilter lewat pill (selain 'all', 'discontinued', 'kandidat_musim'). */
+    const STATUSES = ['fast', 'slow', 'dead', 'at_risk', 'kosong', 'baru', 'musiman', 'obral'];
 
     // =========================================================================
     // QUERY UTAMA
@@ -50,10 +71,12 @@ class GoodMovementRepository
     /**
      * Ambil data pergerakan barang dalam periode.
      *
-     * Status filter yang tersedia: fast | slow | dead | discontinued | all
+     * Status filter: all | fast | slow | dead | at_risk | kosong | baru |
+     * musiman | obral | kandidat_musim | discontinued
      *
      * Barang dengan is_discontinued=1 HANYA muncul saat status='discontinued'.
-     * Di semua status lain mereka dikecualikan sepenuhnya.
+     * Ringkasan (jumlah per status) selalu dihitung dari SEMUA barang, bukan
+     * hanya status yang sedang dibuka.
      */
     public function getMovementData(
         string  $startDate,
@@ -65,116 +88,127 @@ class GoodMovementRepository
     ): array {
         $start = Carbon::parse($startDate)->startOfDay();
         $end   = Carbon::parse($endDate)->endOfDay();
-        $days  = $start->diffInDays($end) ?: 1;
+        // Jumlah hari inklusif. Carbon 3 mengembalikan pecahan (90.99999...).
+        $days  = max(1, (int) round($start->diffInDays($end)));
+        $now   = Carbon::now();
 
-        // ── Jika filter = discontinued, tampilkan khusus barang discontinued ──
         if ($status === 'discontinued') {
             return $this->getDiscontinuedData($kategori, $sortBy, $sortDir);
         }
+
+        $adaKolomBaru = Season::tabelAda();
+        $minFast      = $this->minFastTrx($days);
 
         // ── TAHAP 1: penjualan per good_id dalam periode ──────────────────────
         // Penjualan = transaksi 'normal' dan 'retur' (penjualan yang juga ada
         // barang returnya) yang tidak dibatalkan; baris retur tidak dihitung.
         // Qty dijumlah dalam satuan terkecil (real_quantity) lalu dibagi isi
         // satuan dasar barang, supaya sama satuannya dengan goods.last_stock.
-        // Sebelumnya qty (pcs) dibandingkan langsung dengan stok (satuan dasar),
-        // salah untuk barang yang satuan dasarnya pak/dus.
         $salesAgg = $this->salesPerGood($start, $end)
             ->selectRaw('MAX(transactions.created_at) AS last_transaction_at')
             ->get()->keyBy('good_id');
 
-        // ── TAHAP 1a-LT: penjualan JANGKA PANJANG (LONG_TERM_MONTHS terakhir,
-        //    independen dari filter tanggal) supaya barang yang biasanya laku
-        //    tidak dicap "Dead Stock" karena kebetulan sepi di periode filter.
-        $longTermAgg = $this->salesPerGood(Carbon::now()->subMonths(self::LONG_TERM_MONTHS), Carbon::now())
-            ->selectRaw('MAX(transactions.created_at) AS last_normal_at')
-            ->get()->keyBy('good_id');
+        // ── TAHAP 1a: riwayat 12 bulan per bulan (independen dari filter) ─────
+        //    untuk "riwayat bagus", tanggal laku terakhir, dan pola musiman.
+        $longTerm = $this->longTermPerGood($now);
 
         // ── TAHAP 2: barang aktif (belum discontinued) dengan satuan dasarnya ─
-        $goodsQuery = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
-            ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
-            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
-            ->leftJoin('good_units AS gu', 'gu.id', '=', 'goods.base_unit_id')
-            ->leftJoin('units AS u', 'u.id', '=', 'gu.unit_id')
-            ->whereNull('goods.deleted_at')
-            ->where('goods.is_discontinued', 0)
-            ->select(
-                'goods.id                AS good_id',
-                'goods.code              AS kode',
-                'goods.name              AS nama',
-                'types.name              AS tipe',
-                'goods.last_stock        AS stok_sekarang',
-                'goods.last_transaction  AS last_transaction_goods',
-                'goods.last_loading      AS last_loading_goods',
-                'goods.total_transaction AS total_transaction_all',
-                'categories.id           AS category_id',
-                'categories.name         AS kategori',
-                'brands.name             AS merk',
-                'u.name                  AS satuan',
-                'u.quantity              AS base_qty',
-                'gu.buy_price            AS harga_beli',
-                'gu.selling_price        AS harga_jual'
-            );
+        $goodsRaw = $this->activeGoods($kategori, $adaKolomBaru);
 
-        if ($kategori) {
-            $goodsQuery->where('categories.id', $kategori);
+        // ── TAHAP 2a: obral — terjual sejak obral dimulai ─────────────────────
+        $obralSold = $adaKolomBaru ? $this->clearanceSales($goodsRaw, $now) : collect();
+
+        // ── TAHAP 2b: musim — status tiap musim hari ini, dan penjualan musim
+        //    lalu untuk musim yang sebentar lagi mulai (acuan siapkan stok) ──
+        $musim         = $adaKolomBaru ? Season::statusSemua($now) : collect();
+        $musimLaluSold = [];
+        foreach ($musim as $sid => $m) {
+            if ($m['status'] === Season::PERSIAPAN && $m['lalu']) {
+                $musimLaluSold[$sid] = $this->salesPerGood($m['lalu'][0], $m['lalu'][1])->get()->keyBy('good_id');
+            }
         }
 
-        $goodsRaw = $goodsQuery->orderBy('goods.id')->get()->keyBy('good_id');
-
         // ── TAHAP 3: Gabungkan & klasifikasi ──────────────────────────────────
-        $result = [];
+        $all = [];
 
         foreach ($goodsRaw as $good) {
             $gid        = $good->good_id;
             $agg        = $salesAgg->get($gid);
+            $lt         = $longTerm[$gid] ?? null;
             $baseQty    = (float) $good->base_qty > 0 ? (float) $good->base_qty : 1;
             $totalTrx   = $agg ? (int)   $agg->total_transaksi   : 0;
             $totalQty   = $agg ? round((float) $agg->total_qty_terjual / $baseQty, 2) : 0;
             $totalOmzet = $agg ? (float) $agg->total_omzet        : 0;
             $totalLaba  = $agg ? (float) $agg->total_laba         : 0;
+            $totalTrxLT = $lt ? $lt['trx'] : 0;
+            $totalQtyLT = $lt ? round($lt['qty'] / $baseQty, 2) : 0;
 
-            // Fallback: last sale in the last 12 months, then goods.last_transaction
-            $lastNormal = $longTermAgg->get($gid);
-            $lastTrxAt  = $agg
-                ? $agg->last_transaction_at
-                : ($lastNormal ? $lastNormal->last_normal_at : $good->last_transaction_goods);
-            $stok       = (float) $good->stok_sekarang;
-            $hargaBeli  = (float) ($good->harga_beli  ?? 0);
-            $hargaJual  = (float) ($good->harga_jual  ?? 0);
+            // Laku terakhir yang sebenarnya (bukan hanya di dalam periode filter),
+            // lalu goods.last_transaction sebagai cadangan (kolom itu ikut berubah
+            // karena transaksi internal/retur, jadi hanya dipakai kalau tidak ada data).
+            $lastTrxAt = $this->latest($agg->last_transaction_at ?? null, $lt['last'] ?? null)
+                      ?? $good->last_transaction_goods;
+            $stok      = (float) $good->stok_sekarang;
+            $hargaBeli = (float) ($good->harga_beli  ?? 0);
+            $hargaJual = (float) ($good->harga_jual  ?? 0);
 
             $daysSinceTrx = $lastTrxAt
-                ? (int) Carbon::parse($lastTrxAt)->diffInDays(Carbon::now())
+                ? (int) Carbon::parse($lastTrxAt)->diffInDays($now)
                 : 999;
+            $daysSinceLoading = $good->last_loading_goods
+                ? (int) Carbon::parse($good->last_loading_goods)->startOfDay()->diffInDays($now->copy()->startOfDay())
+                : null;
 
             $avgQtyPerDay = $days > 0 ? round($totalQty / $days, 2) : 0;
             $daysOfStock  = ($avgQtyPerDay > 0 && $stok > 0)
                 ? (int) round($stok / $avgQtyPerDay)
                 : ($stok > 0 ? 9999 : 0);
 
-            $nilaiStok = $stok * $hargaBeli;
+            // Stok minus tidak menahan modal: dihitung 0 (dulu ikut mengurangi total).
+            $nilaiStok = max(0, $stok) * $hargaBeli;
             $margin    = $hargaJual > 0
                 ? round(($hargaJual - $hargaBeli) / $hargaJual * 100, 1)
                 : 0;
 
-            $lt             = $longTermAgg->get($gid);
-            $totalTrxLT     = $lt ? (int) $lt->total_transaksi : 0;
-            $totalQtyLT     = $lt ? round((float) $lt->total_qty_terjual / $baseQty, 2) : 0;
+            $isObral  = $adaKolomBaru && (int) $good->is_clearance === 1;
+            $seasonId = $adaKolomBaru ? Season::efektif($good->season_good, $good->season_type) : null;
+            $ms       = $seasonId ? $musim->get($seasonId) : null;
 
-            $classification = $this->classify($totalTrx, $daysSinceTrx, $stok, $totalTrxLT);
+            $classification = $this->classify($totalTrx, $daysSinceTrx, $stok, $totalTrxLT, $minFast, $daysSinceLoading);
             $recommendation = $this->recommend($classification, $stok, $daysOfStock, $totalTrx, $margin);
+            $musimLaluQty   = null;
 
-            if ($status && $status !== 'all' && $classification['status'] !== $status) {
-                continue;
+            if ($isObral) {
+                $classification = ['status' => 'obral', 'label' => 'Sedang Obral', 'color' => 'pink'];
+                $recommendation = ['action' => 'clearance_run', 'label' => 'Habiskan, jangan order', 'color' => 'pink', 'icon' => '🏷️', 'urgency' => 0];
+            } elseif ($ms && in_array($ms['status'], [Season::LUAR, Season::PERSIAPAN], true)
+                      && $classification['status'] !== 'fast') {
+                // Barang musiman di luar musimnya tidak dinilai slow/dead. Yang
+                // tetap laris (fast) walau di luar musim dinilai seperti biasa.
+                if ($ms['status'] === Season::PERSIAPAN) {
+                    $lalu         = ($musimLaluSold[$seasonId] ?? collect())->get($gid);
+                    $musimLaluQty = $lalu ? round((float) $lalu->total_qty_terjual / $baseQty, 2) : 0;
+                    $classification = ['status' => 'musiman', 'label' => 'Musim Segera Tiba', 'color' => 'teal'];
+                    $recommendation = ['action' => 'season_prep', 'label' => 'Siapkan Stok Musim', 'color' => 'teal', 'icon' => '🗓️', 'urgency' => 2];
+                } else {
+                    $classification = ['status' => 'musiman', 'label' => 'Musiman – Di Luar Musim', 'color' => 'teal'];
+                    $recommendation = ['action' => 'season_hold', 'label' => 'Simpan, jangan order', 'color' => 'teal', 'icon' => '🧊', 'urgency' => 0];
+                }
             }
 
-            $result[] = (object) [
+            $kandidat = (! $seasonId && ! $isObral && $lt && ! ($adaKolomBaru && $good->season_good !== null && (int) $good->season_good === 0))
+                ? $this->seasonalPattern($lt['bulan'], $lt['trx'], $now, $stok)
+                : null;
+
+            $obral = $isObral ? $obralSold->get($gid) : null;
+
+            $all[] = (object) [
                 'good_id'          => $gid,
                 'kode'             => $good->kode,
-                // Ditampilkan sebagai "Tipe Nama" (mis. "Kaleng Sarden ABC"),
-                // bukan cuma nama produknya saja — biar konsisten dengan
-                // Good::getFullName() yang dipakai di halaman lain.
+                // "Tipe Nama" (mis. "Kaleng Sarden ABC"), sama dengan Good::getFullName().
                 'nama'             => $this->formatGoodName($good->tipe ?? null, $good->nama),
+                'tipe'             => $good->tipe ?? null,
+                'type_id'          => $good->type_id,
                 'kategori'         => $good->kategori        ?? '-',
                 'category_id'      => $good->category_id,
                 'merk'             => $good->merk            ?? '-',
@@ -188,13 +222,13 @@ class GoodMovementRepository
                 'total_qty'        => $totalQty,
                 'total_omzet'      => $totalOmzet,
                 'total_laba'       => $totalLaba,
-                // Riwayat jangka panjang (12 bulan terakhir, independen dari filter)
-                // — alasan kenapa barang ini dianggap "at_risk" alih-alih "dead".
+                // Riwayat 12 bulan terakhir (independen dari filter)
                 'total_transaksi_lt' => $totalTrxLT,
                 'total_qty_lt'       => $totalQtyLT,
                 'avg_qty_per_day'  => $avgQtyPerDay,
                 'days_of_stock'    => $daysOfStock,
                 'days_since_trx'   => $daysSinceTrx,
+                'days_since_loading' => $daysSinceLoading,
                 'last_trx_at'      => $lastTrxAt,
                 'status'           => $classification['status'],
                 'status_label'     => $classification['label'],
@@ -204,9 +238,33 @@ class GoodMovementRepository
                 'rec_color'        => $recommendation['color'],
                 'rec_icon'         => $recommendation['icon'],
                 'urgency'          => $recommendation['urgency'],
-                // Flag discontinued selalu false di sini (sudah difilter)
+                // Musim
+                'season_id'        => $seasonId,
+                'season_good'      => $adaKolomBaru ? $good->season_good : null,
+                'musim_nama'       => $ms ? $ms['season']->name : null,
+                'musim_info'       => $ms ? $ms['label'] : null,
+                'musim_sumber'     => $seasonId ? ($good->season_good !== null ? 'barang' : 'jenis') : null,
+                'musim_lalu_qty'   => $musimLaluQty,
+                'kandidat_musim'   => $kandidat,
+                // Obral
+                'obral_mulai'      => $isObral ? $good->clearance_at : null,
+                'obral_oleh'       => $isObral ? ($good->clearance_by_name ?? '-') : null,
+                'obral_alasan'     => $isObral ? $good->clearance_reason : null,
+                'obral_stok_awal'  => $isObral ? (float) $good->clearance_stock : null,
+                'obral_terjual'    => $isObral ? ($obral ? round((float) $obral->total_qty_terjual / $baseQty, 2) : 0) : null,
+                'obral_hari'       => $isObral && $good->clearance_at ? (int) Carbon::parse($good->clearance_at)->diffInDays($now) : null,
                 'is_discontinued'  => false,
             ];
+        }
+
+        $summary = $this->buildSummary($all, $days, $minFast);
+
+        if ($status === 'kandidat_musim') {
+            $result = array_values(array_filter($all, fn ($g) => $g->kandidat_musim !== null));
+        } elseif ($status && $status !== 'all') {
+            $result = array_values(array_filter($all, fn ($g) => $g->status === $status));
+        } else {
+            $result = $all;
         }
 
         usort($result, function ($a, $b) use ($sortBy, $sortDir) {
@@ -215,13 +273,18 @@ class GoodMovementRepository
             return $sortDir === 'asc' ? ($va <=> $vb) : ($vb <=> $va);
         });
 
-        $summary = $this->buildSummary($result, $days);
-
         return [
             'goods'   => collect($result),
             'summary' => $summary,
             'days'    => $days,
         ];
+    }
+
+    /** Batas transaksi Fast Moving untuk periode $days hari. */
+    public function minFastTrx(int $days): int
+    {
+        // round, bukan ceil: periode bawaan (90 hari lalu s/d hari ini = 91 hari) tetap 10 transaksi.
+        return max(self::FAST_MIN_TRX_FLOOR, (int) round(self::FAST_MOVING_MIN_TRX * $days / self::FAST_BASE_DAYS));
     }
 
     /**
@@ -251,15 +314,177 @@ class GoodMovementRepository
     }
 
     /**
+     * Riwayat penjualan LONG_TERM_MONTHS bulan terakhir per barang, dipecah per
+     * bulan kalender: ['trx' => int, 'qty' => float (satuan terkecil),
+     * 'last' => datetime, 'bulan' => ['2026-03' => qty, ...]].
+     */
+    private function longTermPerGood(Carbon $now): array
+    {
+        $bulanExpr = "DATE_FORMAT(transactions.created_at, '%Y-%m')";
+        $rows = $this->salesPerGood($now->copy()->subMonths(self::LONG_TERM_MONTHS), $now->copy())
+            ->groupByRaw($bulanExpr)
+            ->selectRaw("$bulanExpr AS bulan")
+            ->selectRaw('MAX(transactions.created_at) AS last_at')
+            ->toBase()
+            ->get();
+
+        $hasil = [];
+        foreach ($rows as $r) {
+            $h = $hasil[$r->good_id] ?? ['trx' => 0, 'qty' => 0.0, 'last' => null, 'bulan' => []];
+            // Satu transaksi hanya ada di satu bulan, jadi jumlah per bulan = total.
+            $h['trx']  += (int) $r->total_transaksi;
+            $h['qty']  += (float) $r->total_qty_terjual;
+            $h['last']  = $this->latest($h['last'], $r->last_at);
+            $h['bulan'][$r->bulan] = (float) $r->total_qty_terjual;
+            $hasil[$r->good_id] = $h;
+        }
+
+        return $hasil;
+    }
+
+    /** Barang aktif (belum discontinued) dengan satuan dasar, harga, jenis, dan data obral/musim. */
+    private function activeGoods(?string $kategori, bool $adaKolomBaru)
+    {
+        $q = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
+            ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
+            ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
+            ->leftJoin('good_units AS gu', 'gu.id', '=', 'goods.base_unit_id')
+            ->leftJoin('units AS u', 'u.id', '=', 'gu.unit_id')
+            ->whereNull('goods.deleted_at')
+            ->where('goods.is_discontinued', 0)
+            ->select(
+                'goods.id                AS good_id',
+                'goods.code              AS kode',
+                'goods.name              AS nama',
+                'goods.type_id           AS type_id',
+                'types.name              AS tipe',
+                'goods.last_stock        AS stok_sekarang',
+                'goods.last_transaction  AS last_transaction_goods',
+                'goods.last_loading      AS last_loading_goods',
+                'categories.id           AS category_id',
+                'categories.name         AS kategori',
+                'brands.name             AS merk',
+                'u.name                  AS satuan',
+                'u.quantity              AS base_qty',
+                'gu.buy_price            AS harga_beli',
+                'gu.selling_price        AS harga_jual'
+            );
+
+        if ($adaKolomBaru) {
+            $q->leftJoin('admins AS clr', 'clr.id', '=', 'goods.clearance_by')
+              ->addSelect(
+                  'goods.is_clearance',
+                  'goods.clearance_at',
+                  'goods.clearance_reason',
+                  'goods.clearance_stock',
+                  'clr.name          AS clearance_by_name',
+                  'goods.season_id   AS season_good',
+                  'types.season_id   AS season_type'
+              );
+        }
+
+        if ($kategori) {
+            $q->where('categories.id', $kategori);
+        }
+
+        return $q->orderBy('goods.id')->toBase()->get()->keyBy('good_id');
+    }
+
+    /** Terjual sejak obral dimulai, per barang obral (satuan terkecil). */
+    private function clearanceSales($goodsRaw, Carbon $now)
+    {
+        $mulai = $goodsRaw->where('is_clearance', 1)->pluck('clearance_at')->filter()->min();
+        if (! $mulai) {
+            return collect();
+        }
+
+        return $this->salesPerGood(Carbon::parse($mulai), $now->copy())
+            ->join('goods AS gc', 'gc.id', '=', 'good_units.good_id')
+            ->where('gc.is_clearance', 1)
+            ->whereColumn('transactions.created_at', '>=', 'gc.clearance_at')
+            ->toBase()
+            ->get()->keyBy('good_id');
+    }
+
+    /**
+     * Pola musiman dari penjualan per bulan, atau null.
+     *
+     * @return array{label: string, persen: int}|null  mis. ['label' => 'Mar–Apr 2026', 'persen' => 78]
+     */
+    private function seasonalPattern(array $perBulan, int $trxLT, Carbon $now, float $stok): ?array
+    {
+        $total = array_sum($perBulan);
+        if ($trxLT < self::SEASON_MIN_TRX || $total <= 0) {
+            return null;
+        }
+
+        $bulan = [];
+        for ($c = $now->copy()->subMonths(self::LONG_TERM_MONTHS)->startOfMonth(); $c->lte($now); $c->addMonthNoOverflow()) {
+            $bulan[] = $c->format('Y-m');
+        }
+        $abaikan = [$now->format('Y-m'), $now->copy()->startOfMonth()->subMonthNoOverflow()->format('Y-m')];
+
+        $best = null;
+        for ($i = 0; $i + self::SEASON_PEAK_MONTHS <= count($bulan); $i++) {
+            $win = array_slice($bulan, $i, self::SEASON_PEAK_MONTHS);
+            if (array_intersect($win, $abaikan)) {
+                continue;
+            }
+            $sum = 0;
+            foreach ($win as $k) {
+                $sum += $perBulan[$k] ?? 0;
+            }
+            if ($best === null || $sum > $best['sum']) {
+                $best = ['sum' => $sum, 'win' => $win];
+            }
+        }
+
+        if ($best === null || $best['sum'] / $total < self::SEASON_PEAK_SHARE) {
+            return null;
+        }
+
+        // Sesudah puncak tidak laku sama sekali dan stok habis → kehabisan stok, bukan musim.
+        $sesudah = 0;
+        foreach (array_slice($bulan, array_search(end($best['win']), $bulan) + 1) as $k) {
+            $sesudah += $perBulan[$k] ?? 0;
+        }
+        if ($sesudah <= 0 && $stok <= 0) {
+            return null;
+        }
+
+        $awal  = Carbon::createFromFormat('Y-m-d', $best['win'][0] . '-01');
+        $akhir = Carbon::createFromFormat('Y-m-d', end($best['win']) . '-01');
+
+        return [
+            'label'  => $awal->isoFormat('MMM') . '–' . $akhir->isoFormat('MMM Y'),
+            'persen' => (int) round($best['sum'] / $total * 100),
+        ];
+    }
+
+    /** Tanggal yang paling akhir dari dua tanggal (null diabaikan). */
+    private function latest($a, $b)
+    {
+        if (! $a) {
+            return $b ?: null;
+        }
+        if (! $b) {
+            return $a;
+        }
+
+        return Carbon::parse($a)->gte(Carbon::parse($b)) ? $a : $b;
+    }
+
+    /**
      * Ambil daftar barang yang sudah di-discontinue.
      * Ditampilkan terpisah dengan info kapan & oleh siapa.
      */
     public function getDiscontinuedData(?string $kategori = null, string $sortBy = 'discontinued_at', string $sortDir = 'desc'): array
     {
+        // discontinued_by berisi id admin (auth:admin), bukan id tabel users.
         $query = Good::leftJoin('categories', 'categories.id', '=', 'goods.category_id')
             ->leftJoin('brands',     'brands.id',     '=', 'goods.brand_id')
             ->leftJoin('types',      'types.id',      '=', 'goods.type_id')
-            ->leftJoin('users',      'users.id',      '=', 'goods.discontinued_by')
+            ->leftJoin('admins',     'admins.id',     '=', 'goods.discontinued_by')
             ->whereNull('goods.deleted_at')
             ->where('goods.is_discontinued', 1)
             ->select(
@@ -273,7 +498,7 @@ class GoodMovementRepository
                 'categories.id            AS category_id',
                 'categories.name          AS kategori',
                 'brands.name              AS merk',
-                'users.name               AS discontinued_by_name'
+                'admins.name              AS discontinued_by_name'
             );
 
         if ($kategori) {
@@ -322,21 +547,10 @@ class GoodMovementRepository
                 ];
             });
 
-        $summary = [
-            'total'            => $goods->count(),
-            'fastCount'        => 0,
-            'slowCount'        => 0,
-            'deadCount'        => 0,
-            'atRiskCount'      => 0,
-            'discontinuedCount'=> $goods->count(),
-            'totalOmzet'       => 0,
-            'totalLaba'        => 0,
-            'totalNilaiStok'   => 0,
-            'reorderCount'     => 0,
-            'discontinueCount' => $goods->count(),
-            'reviewCount'      => 0,
-            'days'             => 0,
-        ];
+        $summary = $this->emptySummary();
+        $summary['total']             = $goods->count();
+        $summary['discontinuedCount'] = $goods->count();
+        $summary['discontinueCount']  = $goods->count();
 
         return [
             'goods'   => $goods,
@@ -352,29 +566,16 @@ class GoodMovementRepository
     /**
      * Tandai barang sebagai discontinued.
      * Barang ini tidak akan muncul lagi di laporan movement.
-     *
-     * @param  int    $goodId
-     * @param  string $reason   Alasan discontinue dari user
-     * @param  int    $userId   ID user yang melakukan aksi
-     * @return bool
      */
     public function markDiscontinued(int $goodId, string $reason, int $userId): bool
     {
         return (bool) Good::where('id', $goodId)
             ->whereNull('deleted_at')
-            ->update([
-                'is_discontinued'     => 1,
-                'discontinued_at'     => Carbon::now(),
-                'discontinued_reason' => trim($reason),
-                'discontinued_by'     => $userId,
-            ]);
+            ->update($this->discontinuedFields($reason, $userId));
     }
 
     /**
      * Batalkan status discontinued — barang aktif kembali.
-     *
-     * @param  int $goodId
-     * @return bool
      */
     public function restoreDiscontinued(int $goodId): bool
     {
@@ -398,48 +599,173 @@ class GoodMovementRepository
 
     /**
      * Discontinue BANYAK barang sekaligus (checklist), dengan SATU alasan
-     * yang sama untuk semua barang terpilih. Dipakai supaya beres-beres
-     * data lama (banyak barang salah/menumpuk) tidak perlu satu-satu.
+     * yang sama untuk semua barang terpilih.
      *
-     * Sengaja tidak menerima $ids dari status 'at_risk' — itu keputusan
-     * di sisi UI (checkbox hanya muncul untuk baris berstatus 'dead'),
-     * tapi query di sini tetap dibatasi ke barang yang belum discontinued
-     * supaya tidak menimpa data yang sudah benar.
-     *
-     * @param  int[]  $goodIds
-     * @param  string $reason
-     * @param  int    $userId
-     * @return int    jumlah barang yang berhasil di-discontinue
+     * @return int jumlah barang yang berhasil di-discontinue
      */
     public function markDiscontinuedBulk(array $goodIds, string $reason, int $userId): int
     {
-        $goodIds = array_values(array_unique(array_map('intval', $goodIds)));
+        $count = 0;
+        foreach (array_chunk($this->ids($goodIds), 500) as $chunk) {
+            $count += (int) Good::whereIn('id', $chunk)
+                ->whereNull('deleted_at')
+                ->where('is_discontinued', 0)
+                ->update($this->discontinuedFields($reason, $userId));
+        }
 
-        if (empty($goodIds)) {
+        return $count;
+    }
+
+    private function discontinuedFields(string $reason, int $userId): array
+    {
+        $fields = [
+            'is_discontinued'     => 1,
+            'discontinued_at'     => Carbon::now(),
+            'discontinued_reason' => trim($reason),
+            'discontinued_by'     => $userId,
+        ];
+        // Barang obral yang di-discontinue manual: obralnya ikut selesai.
+        if (Season::tabelAda()) {
+            $fields['is_clearance'] = 0;
+        }
+
+        return $fields;
+    }
+
+    // =========================================================================
+    // AKSI OBRAL
+    // =========================================================================
+    // Barang obral = sisa stok dihabiskan, tidak diorder lagi. Tidak dinilai
+    // fast/slow/dead (penjualan obral yang ramai tidak boleh membuatnya jadi
+    // "Fast Moving" lalu disarankan reorder), tidak muncul di Rekomendasi
+    // Reorder, dan otomatis jadi discontinued saat stoknya habis.
+
+    /**
+     * Tandai barang sebagai obral. Hanya barang aktif yang stoknya masih ada.
+     *
+     * @return int jumlah barang yang berhasil ditandai
+     */
+    public function markClearance(array $goodIds, string $reason, int $userId): int
+    {
+        if (! Season::tabelAda()) {
             return 0;
         }
 
-        return (int) Good::whereIn('id', $goodIds)
+        $count = 0;
+        foreach (array_chunk($this->ids($goodIds), 500) as $chunk) {
+            $count += (int) Good::whereIn('id', $chunk)
+                ->whereNull('deleted_at')
+                ->where('is_discontinued', 0)
+                ->where('is_clearance', 0)
+                ->where('last_stock', '>', 0)
+                ->update([
+                    'is_clearance'     => 1,
+                    'clearance_at'     => Carbon::now(),
+                    'clearance_reason' => trim($reason),
+                    'clearance_by'     => $userId,
+                    'clearance_stock'  => DB::raw('last_stock'),
+                ]);
+        }
+
+        return $count;
+    }
+
+    /** Batalkan obral: barang dinilai seperti biasa lagi. */
+    public function cancelClearance(int $goodId): bool
+    {
+        if (! Season::tabelAda()) {
+            return false;
+        }
+
+        return (bool) Good::where('id', $goodId)
+            ->where('is_clearance', 1)
+            ->update([
+                'is_clearance'     => 0,
+                'clearance_at'     => null,
+                'clearance_reason' => null,
+                'clearance_by'     => null,
+                'clearance_stock'  => null,
+            ]);
+    }
+
+    /**
+     * Barang obral yang stoknya sudah habis → discontinued ("Habis obral").
+     * Dipanggil saat menu Perputaran / Reorder dibuka.
+     *
+     * @return int jumlah barang yang diselesaikan
+     */
+    public function finishSoldOutClearance(): int
+    {
+        if (! Season::tabelAda()) {
+            return 0;
+        }
+
+        return (int) DB::table('goods')
             ->whereNull('deleted_at')
             ->where('is_discontinued', 0)
+            ->where('is_clearance', 1)
+            ->where('last_stock', '<=', 0)
             ->update([
                 'is_discontinued'     => 1,
+                'is_clearance'        => 0,
                 'discontinued_at'     => Carbon::now(),
-                'discontinued_reason' => trim($reason),
-                'discontinued_by'     => $userId,
+                'discontinued_by'     => DB::raw('clearance_by'),
+                'discontinued_reason' => DB::raw("CONCAT('Habis obral (mulai ', DATE_FORMAT(clearance_at, '%d/%m/%Y'), ')', IF(COALESCE(clearance_reason, '') = '', '', CONCAT(': ', clearance_reason)))"),
+                'updated_at'          => Carbon::now(),
             ]);
+    }
+
+    public function countClearance(): int
+    {
+        return Season::tabelAda()
+            ? Good::whereNull('deleted_at')->where('is_discontinued', 0)->where('is_clearance', 1)->count()
+            : 0;
+    }
+
+    // =========================================================================
+    // AKSI MUSIM
+    // =========================================================================
+
+    /**
+     * Atur musim sebuah barang.
+     *
+     * $scope 'jenis'  : musim untuk seluruh jenis barang ini (types.season_id);
+     *                   pengecualian di barangnya dihapus supaya ikut jenis.
+     * $scope 'barang' : hanya barang ini. $seasonId null = ikut jenis,
+     *                   0 = bukan musiman, > 0 = musim itu.
+     */
+    public function setSeason(int $goodId, string $scope, ?int $seasonId): bool
+    {
+        if (! Season::tabelAda()) {
+            return false;
+        }
+        $good = Good::whereNull('deleted_at')->find($goodId);
+        if (! $good) {
+            return false;
+        }
+
+        if ($scope === 'jenis') {
+            if (! $good->type_id) {
+                return false;
+            }
+            DB::table('types')->where('id', $good->type_id)->update(['season_id' => $seasonId ?: null, 'updated_at' => Carbon::now()]);
+            DB::table('goods')->where('id', $goodId)->update(['season_id' => null]);
+
+            return true;
+        }
+
+        DB::table('goods')->where('id', $goodId)->update(['season_id' => $seasonId]);
+
+        return true;
     }
 
     // =========================================================================
     // BERES-BERES DATA: STOK MINUS
     // =========================================================================
     // Stok minus biasanya muncul karena kesalahan input transaksi/loading di
-    // masa lalu (transaksi tercatat sebelum barang di-loading, retur yang
-    // salah catat, dsb). Ini murni masalah KERAPIAN DATA, bukan masalah
-    // pergerakan barang — jadi dipisah dari klasifikasi fast/slow/dead di
-    // atas supaya tidak ikut mengotori keputusan reorder/discontinue.
-    // Perbaikan datanya sebaiknya lewat fitur Stock Opname yang sudah ada
-    // (StockOpname/StockOpnameDetail), bukan diedit manual di DB.
+    // masa lalu. Ini murni masalah KERAPIAN DATA, bukan masalah pergerakan
+    // barang — dipisah dari klasifikasi supaya tidak mengotori keputusan
+    // reorder/discontinue. Perbaikannya lewat Stock Opname.
 
     /**
      * Daftar barang dengan stok minus (data tidak konsisten, perlu stock opname).
@@ -483,9 +809,8 @@ class GoodMovementRepository
     // =========================================================================
 
     /**
-     * Nama tampilan "Tipe nama" — aturannya satu tempat di Good::formatName
-     * (dipakai semua halaman); di sini cuma tambah placeholder untuk data
-     * lama yang goods.name-nya kosong/NULL supaya laporan tidak kosong.
+     * Nama tampilan "Tipe nama" — aturannya satu tempat di Good::formatName;
+     * di sini cuma tambah placeholder untuk data lama yang namanya kosong.
      */
     private function formatGoodName(?string $tipe, ?string $nama): string
     {
@@ -496,37 +821,47 @@ class GoodMovementRepository
         return Good::formatName($tipe, $nama);
     }
 
-    private function classify(int $totalTrx, int $daysSinceTrx, float $stok, int $totalTrxLT = 0): array
+    private function ids(array $goodIds): array
     {
-        if ($totalTrx >= self::FAST_MOVING_MIN_TRX && $daysSinceTrx <= self::ACTIVE_LAST_TRX_DAYS) {
+        return array_values(array_unique(array_filter(array_map('intval', $goodIds))));
+    }
+
+    private function classify(int $totalTrx, int $daysSinceTrx, float $stok, int $totalTrxLT, int $minFast, ?int $daysSinceLoading): array
+    {
+        if ($totalTrx >= $minFast && $daysSinceTrx <= self::ACTIVE_LAST_TRX_DAYS) {
             return ['status' => 'fast', 'label' => 'Fast Moving', 'color' => 'green'];
         }
 
-        $looksInactive = ($daysSinceTrx >= self::DEAD_STOCK_DAYS || ($totalTrx === 0 && $stok > 0))
-                       || ($totalTrx === 0 && $stok <= 0);
+        $looksInactive = $daysSinceTrx >= self::DEAD_STOCK_DAYS || $totalTrx === 0;
 
-        if ($looksInactive) {
-            // ⚠️ KUNCI PERBAIKAN: sebelum mencap "Dead Stock", cek dulu apakah
-            // barang ini historisnya (12 bulan terakhir, di luar filter admin)
-            // sebenarnya laku. Kalau ya → jangan otomatis mati, tandai "at_risk"
-            // supaya pemilik toko cek manual (biasanya stok habis / lupa order),
-            // bukan langsung jadi kandidat discontinue.
-            if ($totalTrxLT >= self::SAFE_LIFETIME_TRX) {
-                return ['status' => 'at_risk', 'label' => 'Perlu Dicek (Riwayat Bagus)', 'color' => 'purple'];
-            }
-            $label = ($totalTrx === 0 && $stok <= 0) ? 'Tidak Aktif' : 'Dead Stock';
-            return ['status' => 'dead', 'label' => $label, 'color' => 'red'];
+        if (! $looksInactive) {
+            return ['status' => 'slow', 'label' => 'Slow Moving', 'color' => 'orange'];
         }
 
-        return ['status' => 'slow', 'label' => 'Slow Moving', 'color' => 'orange'];
+        // Baru di-loading dan belum laku sesudahnya: belum bisa dinilai.
+        if ($stok > 0 && $daysSinceLoading !== null
+            && $daysSinceLoading < self::NEW_GOOD_DAYS && $daysSinceLoading < $daysSinceTrx) {
+            return ['status' => 'baru', 'label' => 'Baru Masuk', 'color' => 'blue'];
+        }
+
+        // Historisnya (12 bulan) laku → jangan dicap mati, cek dulu
+        // (biasanya stok habis / lupa order).
+        if ($totalTrxLT >= self::SAFE_LIFETIME_TRX) {
+            return ['status' => 'at_risk', 'label' => 'Perlu Dicek (Riwayat Bagus)', 'color' => 'purple'];
+        }
+
+        // Stok sudah habis: tidak ada modal yang tertahan, jadi bukan dead stock.
+        if ($stok <= 0) {
+            return ['status' => 'kosong', 'label' => 'Kosong / Tidak Aktif', 'color' => 'gray'];
+        }
+
+        return ['status' => 'dead', 'label' => 'Dead Stock', 'color' => 'red'];
     }
 
     private function recommend(array $classification, float $stok, int $daysOfStock, int $totalTrx, float $margin): array
     {
         $status = $classification['status'];
 
-        // Barang yang historisnya laku tapi belakangan tidak ada transaksi.
-        // JANGAN direkomendasikan discontinue — arahkan untuk dicek dulu.
         if ($status === 'at_risk') {
             if ($stok <= 0) {
                 return ['action' => 'restock_check', 'label' => 'Cek Stok & Restock', 'color' => 'purple', 'icon' => '🔎', 'urgency' => 2];
@@ -534,14 +869,19 @@ class GoodMovementRepository
             return ['action' => 'review_stuck', 'label' => 'Stok Ada, Cek Kenapa Tidak Laku', 'color' => 'purple', 'icon' => '❓', 'urgency' => 1];
         }
 
+        if ($status === 'kosong') {
+            return ['action' => 'discontinue', 'label' => 'Discontinue (bersihkan data)', 'color' => 'gray', 'icon' => '🗑️', 'urgency' => 1];
+        }
+
+        if ($status === 'baru') {
+            return ['action' => 'wait', 'label' => 'Tunggu, belum bisa dinilai', 'color' => 'blue', 'icon' => '⏳', 'urgency' => 0];
+        }
+
         if ($status === 'dead') {
-            if ($stok <= 0) {
-                return ['action' => 'discontinue',   'label' => 'Discontinue',      'color' => 'red',    'icon' => '🗑️', 'urgency' => 3];
-            }
             if ($margin < 5) {
-                return ['action' => 'clearance',     'label' => 'Obral / Clearance', 'color' => 'red',    'icon' => '🏷️', 'urgency' => 3];
+                return ['action' => 'clearance', 'label' => 'Obral / Clearance', 'color' => 'red',    'icon' => '🏷️', 'urgency' => 3];
             }
-            return     ['action' => 'review',        'label' => 'Perlu Review',      'color' => 'orange', 'icon' => '⚠️', 'urgency' => 2];
+            return     ['action' => 'review',    'label' => 'Perlu Review',      'color' => 'orange', 'icon' => '⚠️', 'urgency' => 2];
         }
 
         if ($status === 'slow') {
@@ -560,33 +900,53 @@ class GoodMovementRepository
         return                         ['action' => 'maintain',       'label' => 'Pertahankan',     'color' => 'green',  'icon' => '✅', 'urgency' => 0];
     }
 
-    private function buildSummary(array $goods, int $days): array
+    private function emptySummary(): array
     {
-        $total = count($goods);
-        $fastCount = $slowCount = $deadCount = $atRiskCount = 0;
-        $totalOmzet = $totalLaba = $totalNilaiStok = 0;
-        $reorderCount = $discontinueCount = $reviewCount = 0;
+        return [
+            'total' => 0, 'fastCount' => 0, 'slowCount' => 0, 'deadCount' => 0, 'atRiskCount' => 0,
+            'kosongCount' => 0, 'baruCount' => 0, 'musimanCount' => 0, 'obralCount' => 0,
+            'kandidatMusimCount' => 0, 'discontinuedCount' => 0,
+            'totalOmzet' => 0, 'totalLaba' => 0, 'totalNilaiStok' => 0,
+            'nilaiDead' => 0, 'nilaiSlow' => 0, 'nilaiMusiman' => 0, 'nilaiObral' => 0, 'modalTertahan' => 0,
+            'reorderCount' => 0, 'discontinueCount' => 0, 'reviewCount' => 0, 'seasonPrepCount' => 0,
+            'days' => 0, 'minFast' => 0,
+        ];
+    }
+
+    private function buildSummary(array $goods, int $days, int $minFast): array
+    {
+        $s = $this->emptySummary();
+        $s['total']   = count($goods);
+        $s['days']    = $days;
+        $s['minFast'] = $minFast;
+
+        $countKey = [
+            'fast' => 'fastCount', 'slow' => 'slowCount', 'dead' => 'deadCount', 'at_risk' => 'atRiskCount',
+            'kosong' => 'kosongCount', 'baru' => 'baruCount', 'musiman' => 'musimanCount', 'obral' => 'obralCount',
+        ];
 
         foreach ($goods as $g) {
-            if ($g->status === 'fast')        $fastCount++;
-            elseif ($g->status === 'slow')    $slowCount++;
-            elseif ($g->status === 'at_risk') $atRiskCount++;
-            else                              $deadCount++;
+            $s[$countKey[$g->status]]++;
+            if ($g->kandidat_musim !== null) $s['kandidatMusimCount']++;
 
-            $totalOmzet     += $g->total_omzet;
-            $totalLaba      += $g->total_laba;
-            $totalNilaiStok += $g->nilai_stok;
+            $s['totalOmzet']     += $g->total_omzet;
+            $s['totalLaba']      += $g->total_laba;
+            $s['totalNilaiStok'] += $g->nilai_stok;
 
-            if (in_array($g->recommendation, ['reorder', 'reorder_urgent'])) $reorderCount++;
-            if ($g->recommendation === 'discontinue')                         $discontinueCount++;
-            if (in_array($g->recommendation, ['review', 'clearance']))        $reviewCount++;
+            if ($g->status === 'dead')    $s['nilaiDead']    += $g->nilai_stok;
+            if ($g->status === 'slow')    $s['nilaiSlow']    += $g->nilai_stok;
+            if ($g->status === 'musiman') $s['nilaiMusiman'] += $g->nilai_stok;
+            if ($g->status === 'obral')   $s['nilaiObral']   += $g->nilai_stok;
+
+            if (in_array($g->recommendation, ['reorder', 'reorder_urgent'])) $s['reorderCount']++;
+            if ($g->recommendation === 'discontinue')                         $s['discontinueCount']++;
+            if (in_array($g->recommendation, ['review', 'clearance']))        $s['reviewCount']++;
+            if ($g->recommendation === 'season_prep')                         $s['seasonPrepCount']++;
         }
 
-        return compact(
-            'total', 'fastCount', 'slowCount', 'deadCount', 'atRiskCount',
-            'totalOmzet', 'totalLaba', 'totalNilaiStok',
-            'reorderCount', 'discontinueCount', 'reviewCount', 'days'
-        );
+        $s['modalTertahan'] = $s['nilaiDead'] + $s['nilaiSlow'];
+
+        return $s;
     }
 
     public function getCategories(): \Illuminate\Support\Collection

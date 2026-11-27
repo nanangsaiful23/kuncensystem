@@ -31,6 +31,18 @@ Route::post('reports/movement/bulk-discontinue','GoodMovementController@bulkDisc
 // Tambahkan baris ini di bagian rute admin
 
 Route::post('reports/movement/{id}/restore','GoodMovementController@restore')->name('reports.movement.restore');
+// Obral & musim (hak aksesnya ikut menu Perputaran Barang: reports/movement/*)
+Route::post('reports/movement/obral', 'GoodMovementController@clearance')->name('reports.movement.clearance');
+Route::post('reports/movement/{id}/batal-obral', 'GoodMovementController@cancelClearance')->name('reports.movement.cancel-clearance')->whereNumber('id');
+Route::post('reports/movement/{id}/musim', 'GoodMovementController@setSeason')->name('reports.movement.season')->whereNumber('id');
+Route::get('reports/movement/musim', 'SeasonController@index')->name('seasons.index');
+Route::post('reports/movement/musim', 'SeasonController@store')->name('seasons.store');
+Route::get('reports/movement/musim/{id}', 'SeasonController@edit')->name('seasons.edit')->whereNumber('id');
+Route::post('reports/movement/musim/{id}', 'SeasonController@update')->name('seasons.update')->whereNumber('id');
+Route::post('reports/movement/musim/{id}/hapus', 'SeasonController@destroy')->name('seasons.destroy')->whereNumber('id');
+Route::post('reports/movement/musim/{id}/periode', 'SeasonController@addPeriod')->name('seasons.period.add')->whereNumber('id');
+Route::post('reports/movement/musim/periode/{pid}/hapus', 'SeasonController@deletePeriod')->name('seasons.period.delete')->whereNumber('pid');
+Route::post('reports/movement/musim/barang/{goodId}/ikut-jenis', 'SeasonController@resetGood')->name('seasons.good.reset')->whereNumber('goodId');
 Route::group(['prefix' => 'account'], function () {
 	Route::get('/create', 'AccountController@create');
 	Route::post('/store', 'AccountController@store')->name('account.store');

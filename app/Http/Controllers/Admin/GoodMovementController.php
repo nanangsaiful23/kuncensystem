@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\GoodMovementRepository;
+use App\Models\Season;
 
 class GoodMovementController extends Controller
 {
@@ -22,12 +23,23 @@ class GoodMovementController extends Controller
      */
     public function index(Request $request)
     {
+        // Kolom obral/musim dibuat otomatis (produksi tidak punya terminal).
+        $adaKolomBaru = Season::pastikanTabel();
+
+        // Barang obral yang stoknya sudah habis → discontinued.
+        $obralSelesai = $this->repo->finishSoldOutClearance();
+
         $startDate = $request->get('start_date', Carbon::now()->subDays(90)->toDateString());
         $endDate   = $request->get('end_date',   Carbon::now()->toDateString());
         $kategori  = $request->get('kategori',   null);
         $status    = $request->get('status',     'all');
         $sortBy    = $request->get('sort_by',    'total_omzet');
-        $sortDir   = $request->get('sort_dir',   'desc');
+        $sortDir   = $request->get('sort_dir',   'desc') === 'asc' ? 'asc' : 'desc';
+
+        $allowedStatus = array_merge(['all', 'discontinued', 'kandidat_musim'], GoodMovementRepository::STATUSES);
+        if (!in_array($status, $allowedStatus, true)) {
+            $status = 'all';
+        }
 
         $allowedSort = [
             'total_omzet', 'total_transaksi', 'total_qty',
@@ -43,6 +55,7 @@ class GoodMovementController extends Controller
         $discontinuedCount = $this->repo->countDiscontinued();
         $negativeStockCount = $this->repo->countNegativeStock();
         $negativeStockGoods = $negativeStockCount > 0 ? $this->repo->getNegativeStockGoods(20) : collect();
+        $seasons           = $adaKolomBaru ? Season::orderBy('name')->get(['id', 'name']) : collect();
 
         return view('admin.good-movement', [
             'goods'              => $data['goods'],
@@ -58,6 +71,9 @@ class GoodMovementController extends Controller
             'status'             => $status,
             'sortBy'             => $sortBy,
             'sortDir'            => $sortDir,
+            'adaKolomBaru'       => $adaKolomBaru,
+            'seasons'            => $seasons,
+            'obralSelesai'       => $obralSelesai,
         ]);
     }
 
@@ -90,7 +106,6 @@ class GoodMovementController extends Controller
 
     /**
      * Tandai BANYAK barang sekaligus sebagai discontinued (checklist).
-     * Dipakai untuk beres-beres data lama tanpa harus satu-per-satu.
      * POST /admin/reports/movement/bulk-discontinue
      */
     public function bulkDiscontinue(Request $request)
@@ -139,5 +154,81 @@ class GoodMovementController extends Controller
         return redirect()
             ->route('admin.reports.movement', ['status' => 'discontinued'])
             ->with('success', 'Barang berhasil diaktifkan kembali.');
+    }
+
+    /**
+     * Tandai satu atau banyak barang sebagai obral (checklist).
+     * POST /admin/reports/movement/obral   (ids[], reason)
+     */
+    public function clearance(Request $request)
+    {
+        $request->validate([
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'integer',
+            'reason' => 'required|string|min:5|max:500',
+        ], [
+            'ids.required'    => 'Pilih minimal satu barang terlebih dahulu.',
+            'reason.required' => 'Keterangan obral wajib diisi.',
+            'reason.min'      => 'Keterangan minimal 5 karakter.',
+        ]);
+
+        if (!Season::tabelAda()) {
+            return redirect()->back()->with('error', 'Kolom obral belum dibuat. Buka ulang menu Perputaran Barang lalu coba lagi.');
+        }
+
+        $count = $this->repo->markClearance($request->input('ids'), $request->input('reason'), auth()->id() ?? 1);
+
+        if ($count === 0) {
+            return redirect()->back()
+                ->with('error', 'Tidak ada barang yang ditandai obral. Hanya barang aktif yang stoknya masih ada yang bisa diobral.');
+        }
+
+        return redirect()
+            ->route('admin.reports.movement', ['status' => 'obral'])
+            ->with('success', $count . ' barang ditandai OBRAL: tidak akan disarankan order lagi, dan otomatis di-discontinue saat stoknya habis.');
+    }
+
+    /**
+     * Batalkan obral.
+     * POST /admin/reports/movement/{id}/batal-obral
+     */
+    public function cancelClearance(int $id)
+    {
+        if (!$this->repo->cancelClearance($id)) {
+            return redirect()->back()->with('error', 'Barang tidak ditemukan atau tidak sedang diobral.');
+        }
+
+        return redirect()->back()->with('success', 'Obral dibatalkan, barang dinilai seperti biasa lagi.');
+    }
+
+    /**
+     * Atur musim barang atau jenisnya.
+     * POST /admin/reports/movement/{id}/musim   (scope=jenis|barang, season_id='' ikut jenis | 0 bukan musiman | id)
+     */
+    public function setSeason(Request $request, int $id)
+    {
+        $request->validate([
+            'scope'     => 'required|in:jenis,barang',
+            'season_id' => 'nullable|integer|min:0',
+        ]);
+
+        if (!Season::tabelAda()) {
+            return redirect()->back()->with('error', 'Tabel musim belum dibuat. Buka ulang menu Perputaran Barang lalu coba lagi.');
+        }
+
+        $raw      = $request->input('season_id');
+        $seasonId = ($raw === null || $raw === '') ? null : (int) $raw;
+        if ($seasonId && !Season::whereKey($seasonId)->exists()) {
+            return redirect()->back()->with('error', 'Musim tidak ditemukan.');
+        }
+        if ($request->input('scope') === 'jenis' && $seasonId === null) {
+            $seasonId = 0; // untuk jenis, "ikut jenis" tidak berlaku: artinya jenisnya bukan musiman
+        }
+
+        if (!$this->repo->setSeason($id, $request->input('scope'), $seasonId)) {
+            return redirect()->back()->with('error', 'Barang tidak ditemukan, atau barang ini belum punya jenis.');
+        }
+
+        return redirect()->back()->with('success', 'Musim barang disimpan.');
     }
 }

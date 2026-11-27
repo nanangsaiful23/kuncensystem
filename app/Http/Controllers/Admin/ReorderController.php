@@ -8,6 +8,8 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Carbon\Carbon;
 use App\Models\ReorderRepository;
+use App\Models\GoodMovementRepository;
+use App\Models\Season;
 
 class ReorderController extends Controller
 {
@@ -24,6 +26,11 @@ class ReorderController extends Controller
      */
     public function index(Request $request)
     {
+        // Kolom obral/musim dibuat otomatis; barang obral yang sudah habis → discontinued.
+        if (Season::pastikanTabel()) {
+            app(GoodMovementRepository::class)->finishSoldOutClearance();
+        }
+
         $startDate     = $request->get('start_date', Carbon::now()->subDays(90)->toDateString());
         $endDate       = $request->get('end_date',   Carbon::now()->toDateString());
         $distributorId = $request->get('distributor', null);

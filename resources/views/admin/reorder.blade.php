@@ -123,6 +123,8 @@
 .ro-item-name { font-weight:600; font-size:1.05rem; }
 /* Badge retur ke distributor */
 .b-retur { background:#faf5ff; color:#7c3aed; border:1px solid #ddd6fe; }
+.b-season { background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; }
+.ro-season-note { font-size:.78rem; color:#0f766e; margin-top:.25rem; }
 .ro-retur-note { font-size:.78rem; color:#7c3aed; margin-top:.25rem;
     display:inline-flex; align-items:center; gap:.25rem; }
 .ro-last-loading-date { color:#64748b; }
@@ -307,6 +309,9 @@
     <strong>tidak direkomendasikan untuk di-order</strong> (Qty Order 0) dan hanya tampil bila
     "hanya yang perlu order" tidak dicentang. Penyebab expired/rusak/hilang diisi lewat
     <em>Transaksi Internal → 5215 Biaya Penyusutan Barang → Penyebab barang keluar</em>.
+    <br>🏷️ Barang yang sedang <strong>diobral</strong> tidak pernah muncul di sini.
+    🗓️ Barang <strong>musiman di luar musimnya</strong> tidak disarankan order; menjelang musim
+    (lihat <a href="{{ route('admin.seasons.index') }}">Atur Musim</a>) disarankan order sebanyak penjualan musim lalu.
 </div>
 
 {{-- Filter --}}
@@ -379,6 +384,20 @@
         <div class="kl">Tinjau Dulu</div>
         <div class="kv" style="color:#7c3aed">{{ number_format($s['review_count']) }}</div>
         <div class="ks">habis karena expired / rusak / hilang / retur — tidak direkomendasikan</div>
+    </div>
+    @endif
+    @if(($s['season_prep_count'] ?? 0) > 0)
+    <div class="ro-kpi" style="border-left:5px solid #0f766e">
+        <div class="kl">Siapkan Stok Musim</div>
+        <div class="kv" style="color:#0f766e">{{ number_format($s['season_prep_count']) }}</div>
+        <div class="ks">musim segera tiba — acuan: penjualan musim lalu</div>
+    </div>
+    @endif
+    @if(($s['season_off_count'] ?? 0) > 0)
+    <div class="ro-kpi" style="border-left:5px solid #99f6e4">
+        <div class="kl">Ditahan: Di Luar Musim</div>
+        <div class="kv" style="color:#0f766e">{{ number_format($s['season_off_count']) }}</div>
+        <div class="ks">barang musiman, tidak direkomendasikan order sekarang</div>
     </div>
     @endif
 </div>
@@ -470,7 +489,7 @@
         <tbody>
         @foreach($group->items as $it)
         @php
-            $badgeClass = $it->urgensi === 1 ? 'b-urgent' : ($it->urgensi === 2 ? 'b-soon' : ($it->urgensi === 3 ? 'b-retur' : 'b-safe'));
+            $badgeClass = $it->urgensi === 1 ? 'b-urgent' : ($it->urgensi === 2 ? 'b-soon' : ($it->urgensi === 3 ? 'b-retur' : ($it->urgensi === 4 ? 'b-season' : 'b-safe')));
             $rowClass   = $it->urgensi === 1 ? 'row-urgent' : '';
         @endphp
         <tr class="{{ $rowClass }}">
@@ -527,9 +546,12 @@
             </td>
             <td>
                 <span class="ro-badge-tag {{ $badgeClass }}">
-                    {{ $it->urgensi === 1 ? '🚨' : ($it->urgensi === 2 ? '⏳' : ($it->urgensi === 3 ? '🔎' : '✅')) }}
+                    {{ $it->urgensi === 1 ? '🚨' : ($it->urgensi === 2 ? ($it->musim_label ? '🗓️' : '⏳') : ($it->urgensi === 3 ? '🔎' : ($it->urgensi === 4 ? '🧊' : '✅'))) }}
                     {{ $it->urgensi_label }}
                 </span>
+                @if($it->musim_label)
+                <div class="ro-season-note">🗓️ {{ $it->musim_label }}</div>
+                @endif
                 @if($it->habis_bukan_laku)
                 <div class="ro-retur-note" data-ro-tip="Stok keluar periode ini: {{ $it->keluar_teks }}. {{ $it->non_sale_persen }}% keluar bukan karena laku.">
                     Habis terutama karena {{ strtolower(\App\Services\StockOutflow::LABELS[$it->penyebab_utama]) }} ({{ $it->non_sale_persen }}% bukan karena laku)
