@@ -195,7 +195,8 @@ class TugasCekStokObralTest extends StockTestCase
         DB::table('stock_inspection_details')->insert(['stock_inspection_id' => $sid, 'good_id' => $good, 'system_stock' => 4, 'real_stock' => 4,
             'created_at' => $at, 'updated_at' => $at]);
 
+        // Tabel dibuat di browser dari data barang: "dicek" = hari sejak dicek fisik, "cc" = boleh masuk tugas cek stok.
         $this->actingAs($admin, 'admin')->get('/admin/reports/movement?status=dead')
-            ->assertOk()->assertSee('dicek 3 hr lalu')->assertSee('Tugas Cek Stok')->assertSee('data-can-cek="1"', false);
+            ->assertOk()->assertSee('"dicek":3,', false)->assertSee('"cc":1', false)->assertSee('Tugas Cek Stok');
     }
 }

@@ -32,8 +32,9 @@ class GoodMovementController extends Controller
         // Barang obral yang stoknya sudah habis → discontinued.
         $obralSelesai = $this->repo->finishSoldOutClearance();
 
+        $today     = Carbon::now()->toDateString();
         $startDate = $request->get('start_date', Carbon::now()->subDays(90)->toDateString());
-        $endDate   = $request->get('end_date',   Carbon::now()->toDateString());
+        $endDate   = $request->get('end_date',   $today);
         $kategori  = $request->get('kategori',   null);
         $status    = $request->get('status',     'all');
         $sortBy    = $request->get('sort_by',    'total_omzet');
@@ -47,41 +48,129 @@ class GoodMovementController extends Controller
         $allowedSort = [
             'total_omzet', 'total_transaksi', 'total_qty',
             'days_of_stock', 'days_since_trx', 'stok_sekarang',
-            'nilai_stok', 'total_laba', 'urgency',
+            'nilai_stok', 'total_laba', 'urgency', 'nama',
         ];
         if (!in_array($sortBy, $allowedSort)) {
             $sortBy = 'total_omzet';
         }
 
-        $data              = $this->repo->getMovementData($startDate, $endDate, $kategori, $status, $sortBy, $sortDir);
-        $categories        = $this->repo->getCategories();
-        $discontinuedCount = $this->repo->countDiscontinued();
+        // Semua barang aktif + discontinued dikirim sekaligus: saring status, kategori,
+        // saran, cari, dan urutkan dikerjakan di browser tanpa memuat ulang halaman.
+        // Hanya periode yang perlu memuat ulang (penjualannya dihitung ulang).
+        $data       = $this->repo->getMovementData($startDate, $endDate, null, 'all', 'total_omzet', 'desc');
+        $disc       = $this->repo->getDiscontinuedData();
+        $categories = $this->repo->getCategories();
         $negativeStockCount = $this->repo->countNegativeStock();
         $negativeStockGoods = $negativeStockCount > 0 ? $this->repo->getNegativeStockGoods(20) : collect();
-        $seasons           = $adaKolomBaru ? Season::orderBy('name')->get(['id', 'name']) : collect();
+        $seasons    = $adaKolomBaru ? Season::orderBy('name')->get(['id', 'name']) : collect();
+        $bolehSidak = canMenu('sidak') && SkemaCekObral::sidakAda();
 
         return view('admin.good-movement', [
-            'goods'              => $data['goods'],
-            'summary'            => $data['summary'],
-            'days'               => $data['days'],
+            'gmData' => [
+                'goods'     => $this->clientRows($data['goods'], $adaKolomBaru, $bolehSidak),
+                'disc'      => $disc['goods']->map(fn ($g) => [
+                    'id'     => $g->good_id,
+                    'kode'   => $g->kode,
+                    'nama'   => $g->nama,
+                    'kat'    => $g->kategori,
+                    'kid'    => $g->category_id,
+                    'merk'   => $g->merk !== '-' ? $g->merk : null,
+                    'stok'   => $g->stok_sekarang,
+                    'alasan' => $g->discontinued_reason !== '-' ? $g->discontinued_reason : null,
+                    'tgl'    => $g->discontinued_at,
+                    'oleh'   => $g->discontinued_by,
+                ])->values(),
+                'recLabels' => $data['goods']->pluck('rec_label', 'recommendation')->all(),
+                'days'      => $data['days'],
+                'minFast'   => $data['summary']['minFast'] ?? 0,
+                'start'     => $startDate,
+                'end'       => $endDate,
+                'today'     => $today,
+                'init'      => [
+                    'status' => $status,
+                    'kat'    => (string) $kategori,
+                    'saran'  => (string) $request->get('saran', ''),
+                    'q'      => (string) $request->get('q', ''),
+                    'sort'   => $sortBy,
+                    'dir'    => $sortDir,
+                ],
+            ],
             'categories'         => $categories,
-            'discontinuedCount'  => $discontinuedCount,
             'negativeStockCount' => $negativeStockCount,
             'negativeStockGoods' => $negativeStockGoods,
             'startDate'          => $startDate,
             'endDate'            => $endDate,
-            'kategori'           => $kategori,
             'status'             => $status,
-            'sortBy'             => $sortBy,
-            'sortDir'            => $sortDir,
             'adaKolomBaru'       => $adaKolomBaru,
             'seasons'            => $seasons,
             'obralSelesai'       => $obralSelesai,
             // Tugas cek stok (Sidak berisi daftar) & harga obral
-            'bolehSidak'         => canMenu('sidak') && SkemaCekObral::sidakAda(),
+            'bolehSidak'         => $bolehSidak,
             'hargaObralAda'      => $adaKolomBaru && SkemaCekObral::hargaObralAda(),
             'lihatModal'         => canMenu('info.harga_beli'),
         ]);
+    }
+
+    /**
+     * Data barang untuk tabel di browser. Kunci dibuat pendek (ribuan baris) dan
+     * nilai kosong (null) tidak dikirim.
+     *   nv = nilai stok, mg = margin %, om = omzet, lb = laba, qpd = qty per hari,
+     *   dos = stok cukup untuk (hari), dst = hari sejak terakhir laku, dsl = hari sejak loading,
+     *   co/cd/cc/io = boleh obral / boleh discontinue / boleh tugas cek stok / sedang obral.
+     */
+    private function clientRows($goods, bool $adaKolomBaru, bool $bolehSidak): array
+    {
+        return $goods->map(function ($g) use ($adaKolomBaru, $bolehSidak) {
+            $isObral = $g->status === 'obral';
+
+            return array_filter([
+                'id'       => $g->good_id,
+                'kode'     => $g->kode,
+                'nama'     => $g->nama,
+                'kat'      => $g->kategori,
+                'kid'      => $g->category_id,
+                'merk'     => $g->merk !== '-' ? $g->merk : null,
+                'sat'      => $g->satuan,
+                'tipe'     => $g->tipe,
+                'jenis'    => $g->type_id ? 1 : 0,
+                'stok'     => round((float) $g->stok_sekarang, 2),
+                'nv'       => round($g->nilai_stok),
+                'mg'       => $g->margin_pct,
+                'trx'      => $g->total_transaksi,
+                'qty'      => round((float) $g->total_qty, 2),
+                'om'       => round($g->total_omzet),
+                'lb'       => round($g->total_laba),
+                'trx_lt'   => $g->total_transaksi_lt,
+                'qpd'      => round((float) $g->avg_qty_per_day, 2),
+                'dos'      => $g->days_of_stock,
+                'dst'      => $g->days_since_trx,
+                'dsl'      => $g->days_since_loading,
+                'status'   => $g->status,
+                'sl'       => $g->status === 'musiman' ? $g->status_label : null,
+                'rec'      => $g->recommendation,
+                'urg'      => $g->urgency,
+                'mus'      => $g->musim_nama,
+                'mus_info' => $g->musim_info,
+                'mus_src'  => $g->musim_sumber,
+                'mus_lalu' => $g->musim_lalu_qty,
+                'sg'       => $g->season_good,
+                'sid'      => $g->musim_sumber === 'jenis' ? $g->season_id : null,
+                'kand'     => $g->kandidat_musim,
+                'ob_mulai' => $g->obral_mulai,
+                'ob_oleh'  => $g->obral_oleh,
+                'ob_alasan'=> $g->obral_alasan,
+                'ob_awal'  => $g->obral_stok_awal,
+                'ob_jual'  => $g->obral_terjual,
+                'ob_hari'  => $g->obral_hari,
+                'dicek'    => $g->dicek_hari,
+                'dicek_at' => $g->dicek_at,
+                // Aksi yang boleh (sama dengan aturan tampilan lama)
+                'co'       => $adaKolomBaru && in_array($g->status, ['dead', 'slow'], true) && $g->stok_sekarang > 0 ? 1 : null,
+                'cd'       => in_array($g->status, ['dead', 'kosong'], true) ? 1 : null,
+                'cc'       => $bolehSidak && $g->stok_sekarang > 0 ? 1 : null,
+                'io'       => $isObral ? 1 : null,
+            ], fn ($v) => $v !== null);
+        })->values()->all();
     }
 
     /**

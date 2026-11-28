@@ -537,6 +537,7 @@ class GoodMovementRepository
                     'kode'               => $g->kode,
                     'nama'               => $this->formatGoodName($g->tipe ?? null, $g->nama),
                     'kategori'           => $g->kategori           ?? '-',
+                    'category_id'        => $g->category_id,
                     'merk'               => $g->merk               ?? '-',
                     'stok_sekarang'      => (float) $g->stok_sekarang,
                     'discontinued_at'    => $g->discontinued_at,

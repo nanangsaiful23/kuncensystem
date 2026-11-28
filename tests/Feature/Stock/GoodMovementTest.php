@@ -262,14 +262,16 @@ class GoodMovementTest extends StockTestCase
         [$good] = $this->good('Sabun', ['last_stock' => 8]);
 
         $this->actingAs($admin, 'admin')->get('/admin/reports/movement')
-            ->assertOk()->assertSee('Modal Tertahan')->assertSee('Kandidat Musiman');
+            ->assertOk()->assertSee('Modal tertahan')->assertSee('Kandidat Musiman');
 
         $this->actingAs($admin, 'admin')
             ->post('/admin/reports/movement/obral', ['ids' => [$good], 'reason' => 'Habiskan stok lama'])
             ->assertRedirect();
         $this->assertSame(1, (int) DB::table('goods')->where('id', $good)->value('is_clearance'));
 
-        $this->actingAs($admin, 'admin')->get('/admin/reports/movement?status=obral')->assertOk()->assertSee('Batal Obral');
+        // Tabel dibuat di browser dari data barang: barangnya terkirim berstatus obral + tombol batal obral.
+        $this->actingAs($admin, 'admin')->get('/admin/reports/movement?status=obral')->assertOk()
+            ->assertSee('"id":' . $good . ',', false)->assertSee('"status":"obral"', false)->assertSee('Batal Obral');
 
         $this->actingAs($admin, 'admin')->get('/admin/reports/movement/musim')->assertOk()->assertSee('Tambah Musim');
         $this->actingAs($admin, 'admin')->post('/admin/reports/movement/musim', [
