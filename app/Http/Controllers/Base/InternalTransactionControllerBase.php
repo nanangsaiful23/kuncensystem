@@ -264,6 +264,8 @@ trait InternalTransactionControllerBase
 
     public function updateTransactionBase($role, $role_id, $transaction_id, Request $request)
     {
+        \App\Services\StockOpnameService::tolakTransaksi($transaction_id);
+
         $transaction = Transaction::find($transaction_id);
 
         #tabel transaction
@@ -307,8 +309,9 @@ trait InternalTransactionControllerBase
             }
         }
 
+        // jurnal stock opname memakai type_id = id stock opname, bukan id transaksi
         $journal = Journal::where('type_id', $transaction->id)
-                          ->where('type', '!=', 'good_loading')
+                          ->whereNotIn('type', ['good_loading', \App\Services\StockOpnameService::JURNAL])
                           ->first();
                           // dd($journal);die;
 
@@ -432,6 +435,8 @@ trait InternalTransactionControllerBase
      */
     public function reverseTransactionBase($role, $role_id, $status, $transaction_id)
     {
+        \App\Services\StockOpnameService::tolakTransaksi($transaction_id);
+
         $transaction = Transaction::lockForUpdate()->find($transaction_id);
 
         if ($transaction == null || in_array($transaction->type, ['not valid', 'deleted'])) {
@@ -472,7 +477,7 @@ trait InternalTransactionControllerBase
         // Mirror the journals that took the goods out of inventory.
         $journals = Journal::where('type_id', $transaction->id)
                            ->where('credit_account_id', $persediaan_id)
-                           ->whereNotIn('type', ['transaction', 'hpp', 'good_loading'])
+                           ->whereNotIn('type', ['transaction', 'hpp', 'good_loading', \App\Services\StockOpnameService::JURNAL])
                            ->get();
 
         foreach ($journals as $journal) {

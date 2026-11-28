@@ -667,7 +667,9 @@ trait TransactionControllerBase
      */
     public function reverseTransactionBase($role, $role_id, $status, $transaction_id)
     {
-        $aksi = $status == 'deleted' ? 'hapus_transaksi' : 'batal_transaksi';
+        \App\Services\StockOpnameService::tolakTransaksi($transaction_id);
+
+        $aksi =$status == 'deleted' ? 'hapus_transaksi' : 'batal_transaksi';
 
         $transaction = StockService::denganSebab(
             ['aksi' => $aksi, 'transaction_id' => (int) $transaction_id, 'role' => $role, 'role_id' => $role_id],
@@ -984,6 +986,8 @@ trait TransactionControllerBase
 
     public function updateTransactionBase($role, $role_id, $transaction_id, Request $request)
     {
+        \App\Services\StockOpnameService::tolakTransaksi($transaction_id);
+
         $data = $request->input();
         $hpp = 0;
         $last_hpp = 0;
@@ -1064,7 +1068,10 @@ trait TransactionControllerBase
         }
         // dd($transaction);die;
 
-        $journal = Journal::where('type_id', $transaction->id)->first();
+        // jurnal stock opname memakai type_id = id stock opname, bukan id transaksi
+        $journal = Journal::where('type_id', $transaction->id)
+                          ->where(fn ($q) => $q->whereNull('type')->orWhere('type', '<>', \App\Services\StockOpnameService::JURNAL))
+                          ->first();
 
         if($journal == null)
         {

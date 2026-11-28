@@ -21,6 +21,7 @@ Route::get('/reports/owner', 'OwnerSummaryController@index')->name('reports.owne
 Route::get('/reports/movement', 'GoodMovementController@index')->name('reports.movement');
 Route::get('/reports/reorder', 'ReorderController@index')->name('reports.reorder');
 Route::get('/reports/reorder/export', 'ReorderController@export')->name('reports.reorder.export');
+Route::get('/reports/lost-goods', 'LostGoodsController@index')->name('reports.lost-goods');
 
  
 // Route::get('/reports/movement','GoodMovementController@index')->name('admin.reports.movement');

@@ -29,7 +29,11 @@
             </div>
           </div>
           <div class="box-body" style="overflow-x:scroll">
-            <h4>Total stock opname: {{ showRupiah($stock_opnames->sum('total')) }}</h4><br>
+            <h4>Total stock opname: {{ showRupiah($stock_opnames->sum('total')) }}</h4>
+            @if(canMenu('laporan.sering_hilang'))
+              <a href="{{ route('admin.reports.lost-goods') }}"><i class="fa fa-line-chart"></i> Barang Sering Hilang</a>
+            @endif
+            <br>
           </div>
           <div class="box-body" style="overflow-x:scroll">
             <table id="example1" class="table table-bordered table-striped">

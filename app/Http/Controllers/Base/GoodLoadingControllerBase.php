@@ -606,6 +606,8 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
 
     public function updateGoodLoadingBase($role, $role_id, $good_loading_id, Request $request)
     {
+        \App\Services\StockOpnameService::tolakLoading($good_loading_id);
+
         $this->normalizeLoadingNumbers($request);
         $data = $request->input();
 
@@ -791,6 +793,8 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
 
     public function deleteGoodLoadingBase($good_loading_id)
     {
+        \App\Services\StockOpnameService::tolakLoading($good_loading_id);
+
         $good_loading = GoodLoading::find($good_loading_id);
 
         // Journals of this loading go with it. Deleting the loading also takes

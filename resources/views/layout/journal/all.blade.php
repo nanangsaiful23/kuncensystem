@@ -629,7 +629,7 @@
                 $typeClass = 'loading';
             } elseif ($journal->type == 'transaction') {
                 $typeClass = 'transaction';
-            } elseif ($journal->type == 'penyusutan') {
+            } elseif (in_array($journal->type, ['penyusutan', 'stock_opname'])) {
                 $typeClass = 'penyusutan';
             } elseif ($journal->type == 'operasional') {
                 $typeClass = 'operasional';
@@ -644,7 +644,9 @@
             <td class="text-type-id">{{ $journal->type_id }}</td>
             <td class="text-date">{{ displayDate($journal->journal_date) }}</td>
             <td style="max-width:200px;">
-              @if($journal->type == 'good_loading')
+              @if($journal->type == 'stock_opname')
+                <a href="{{ url('admin/stock-opname/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
+              @elseif($journal->type == 'good_loading')
                 <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
               @elseif($journal->type == 'transaction' || $journal->type == 'penyusutan' || $journal->type == 'operasional' || strpos($journal->type, "hutang dagang") !== false)
                 <a href="{{ url($role . '/transaction/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
@@ -678,7 +680,7 @@
             $typeClass = 'loading';
         } elseif ($journal->type == 'transaction') {
             $typeClass = 'transaction';
-        } elseif ($journal->type == 'penyusutan') {
+        } elseif (in_array($journal->type, ['penyusutan', 'stock_opname'])) {
             $typeClass = 'penyusutan';
         } elseif ($journal->type == 'operasional') {
             $typeClass = 'operasional';
@@ -700,7 +702,9 @@
         </div>
         <div class="jcard-body">
           <div class="jcard-name">
-            @if($journal->type == 'good_loading')
+            @if($journal->type == 'stock_opname')
+              <a href="{{ url('admin/stock-opname/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
+            @elseif($journal->type == 'good_loading')
               <a href="{{ url($role . '/good-loading/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>
             @elseif($journal->type == 'transaction' || $journal->type == 'penyusutan' || $journal->type == 'operasional' || strpos($journal->type, "hutang dagang") !== false)
               <a href="{{ url($role . '/transaction/' . $journal->type_id . '/detail') }}" class="journal-link" target="_blank">{{ $journal->name }}</a>

@@ -9,6 +9,8 @@ use App\Http\Controllers\Base\StockOpnameControllerBase;
 
 use App\Models\StockOpname;
 use App\Models\Good;
+use App\Models\Journal;
+use App\Services\StockOpnameService;
 
 class StockOpnameController extends Controller
 {
@@ -119,8 +121,26 @@ class StockOpnameController extends Controller
         $default['page'] = 'stock-opname';
         $default['section'] = 'detail';
 
-        $stock_opname = StockOpname::find($stock_opname_id);
+        $stock_opname = StockOpname::findOrFail($stock_opname_id);
 
-        return view('admin.layout.page', compact('default', 'stock_opname'));
+        // Rugi terbesar di atas, lalu kelebihan terbesar, lalu yang cocok.
+        $details = $stock_opname->detailsWithDeleted()->map(function ($detail) {
+            $detail->selisih = round((float) $detail->new_stock - (float) $detail->old_stock, 3);
+            // total selalu positif; tandanya dari selisih (stok sama = 0, juga untuk data lama)
+            $detail->nilai = $detail->selisih == 0 ? 0.0 : ($detail->selisih > 0 ? 1 : -1) * (float) $detail->total;
+
+            return $detail;
+        })->sort(function ($a, $b) {
+            $grup = fn ($d) => $d->nilai < 0 ? 0 : ($d->nilai > 0 ? 1 : 2);
+
+            return [$grup($a), -abs($a->nilai)] <=> [$grup($b), -abs($b->nilai)];
+        })->values();
+
+        $journals = Journal::where('type', StockOpnameService::JURNAL)
+                           ->where('type_id', $stock_opname->id)
+                           ->orderBy('id')
+                           ->get();
+
+        return view('admin.layout.page', compact('default', 'stock_opname', 'details', 'journals'));
     }
 }

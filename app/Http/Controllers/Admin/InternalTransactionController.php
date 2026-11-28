@@ -82,6 +82,8 @@ class InternalTransactionController extends Controller
         $default['page'] = 'internal-transaction';
         $default['section'] = 'edit';
 
+        \App\Services\StockOpnameService::tolakTransaksi($transaction_id);
+
         $transaction = Transaction::find($transaction_id);
 
         return view('admin.layout.page', compact('default', 'transaction'));

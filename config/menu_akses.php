@@ -276,6 +276,11 @@ return [
                 'grup' => 'Laporan', 'label' => 'Rekomendasi Reorder',
                 'bawaan' => $superadmin, 'paths' => ['reports/reorder', 'reports/reorder/*'],
             ],
+            'laporan.sering_hilang' => [
+                'grup' => 'Laporan', 'label' => 'Barang Sering Hilang',
+                'catatan' => 'barang yang kurang di stock opname: berapa kali, berapa rupiah',
+                'bawaan' => $superadmin, 'paths' => ['reports/lost-goods', 'reports/lost-goods/*'],
+            ],
 
             // ---------------- Informasi di dalam halaman ----------------
             // Bukan menu: menentukan isi halaman yang tampil (menu tetap bisa dibuka).

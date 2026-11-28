@@ -185,6 +185,8 @@ class TransactionController extends Controller
         $default['page'] = 'transaction';
         $default['section'] = 'edit';
 
+        \App\Services\StockOpnameService::tolakTransaksi($transaction_id);
+
         $transaction = Transaction::find($transaction_id);
 
         return view('admin.layout.page', compact('default', 'transaction'));

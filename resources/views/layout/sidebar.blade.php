@@ -368,7 +368,7 @@
       @endif
       @php
         $adaLaporan = collect(['Laporan Financial', 'Akun', 'Grafik Penjualan'])->contains(fn ($i) => canInduk($i))
-            || collect(['laporan.pemilik', 'laporan.penjualan', 'laporan.perputaran', 'laporan.reorder'])->contains(fn ($k) => canMenu($k));
+            || collect(['laporan.pemilik', 'laporan.penjualan', 'laporan.perputaran', 'laporan.reorder', 'laporan.sering_hilang'])->contains(fn ($k) => canMenu($k));
       @endphp
       @if($adaLaporan)
         <li class="header">LAPORAN </li>
@@ -444,6 +444,9 @@
       @endif
       @if(canMenu('laporan.reorder'))
         <li class="{{ Request::is('admin/reports/reorder*') ? 'active' : '' }}"><a href="{{ route('admin.reports.reorder') }}"><i class="fa fa-truck"></i> Rekomendasi Reorder</a></li>
+      @endif
+      @if(canMenu('laporan.sering_hilang'))
+        <li class="{{ Request::is('admin/reports/lost-goods*') ? 'active' : '' }}"><a href="{{ route('admin.reports.lost-goods') }}"><i class="fa fa-line-chart"></i> Barang Sering Hilang</a></li>
       @endif
       @if(isSuperadmin())
         <li class="header">PENGATURAN</li>

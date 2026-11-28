@@ -266,6 +266,8 @@ public function createnew($type)
         $default['section'] = 'edit';
         GoodLoading::pastikanKolomLaci(); // field "Diambil dari laci/kasir"
 
+        \App\Services\StockOpnameService::tolakLoading($good_loading_id);
+
         $good_loading = GoodLoading::find($good_loading_id);
 
         return view('admin.layout.page', compact('default', 'good_loading'));

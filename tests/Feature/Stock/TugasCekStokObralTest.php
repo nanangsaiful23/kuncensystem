@@ -74,6 +74,10 @@ class TugasCekStokObralTest extends StockTestCase
         $this->assertSame('Rina (input: Admin Test)', $opname->checker);
         $this->assertEquals(0, $this->stock($hilang));
         $this->assertEquals(4, $this->stock($ada));
+        // satu jurnal rugi untuk seluruh stock opname
+        $jurnal = DB::table('journals')->where('type', 'stock_opname')->where('type_id', $opname->id)->get();
+        $this->assertCount(1, $jurnal);
+        $this->assertEquals(6000, $jurnal[0]->debit);
 
         // barang yang fisiknya 0 ditawarkan untuk di-discontinue
         $this->actingAs($admin, 'admin')->get('/admin/sidak-stok/' . $id)
