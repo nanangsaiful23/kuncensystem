@@ -18,6 +18,8 @@ use App\Models\Journal;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\Unit;
+use App\Services\TutupKasir;
+use Illuminate\Validation\ValidationException;
 
 trait GoodLoadingControllerBase
 {
@@ -167,6 +169,34 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         abortOnBadPrices($checks);
     }
 
+    /**
+     * Laci Tutup Kasir asal uang loading (good_loadings.cash_drawer), hanya untuk
+     * pembayaran 1111 Kas di Tangan: perkiraan isi laci itu ikut berkurang.
+     * Wajib saat tambah loading; saat ubah boleh kosong (loading lama).
+     * Pilihannya dari TutupKasir::pilihanLaci(). null = tidak dicatat.
+     */
+    private function laciLoadingDariForm(Request $request, bool $wajib, ?string $tersimpan = null): ?string
+    {
+        if (! GoodLoading::punyaKolomLaci() || (string) $request->input('payment') !== TutupKasir::KAS_DI_TANGAN) {
+            return null;
+        }
+
+        $laci = trim((string) $request->input('cash_drawer', ''));
+        if ($laci === '') {
+            if ($wajib) {
+                throw ValidationException::withMessages(['cash_drawer' =>
+                    'Pilih "Diambil dari laci/kasir": loading dengan pembayaran 1111 Kas di Tangan mengurangi uang di laci kasir itu.']);
+            }
+
+            return null;
+        }
+        if (! array_key_exists($laci, TutupKasir::pilihanLaci($tersimpan))) {
+            throw ValidationException::withMessages(['cash_drawer' => 'Laci/kasir yang dipilih tidak dikenal. Pilih ulang dari daftar.']);
+        }
+
+        return $laci;
+    }
+
     public function storeGoodLoadingBase($role, $role_id, $type, Request $request)
     {
         $this->normalizeLoadingNumbers($request);
@@ -179,6 +209,7 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
             }
         }
         $this->checkLoadingPrices($data, $rows);
+        $cash_drawer = $this->laciLoadingDariForm($request, true);
 
         // if($type == 'internal')
         //     $data['distributor_name'] = 'Loading internal';
@@ -221,6 +252,9 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         // $data_loading['total_item_price'] = unformatNumber($total_item_price);
         $data_loading['payment']      = $data['payment'];
         $data_loading['type']         = $type;
+        if (GoodLoading::punyaKolomLaci()) {
+            $data_loading['cash_drawer'] = $cash_drawer;
+        }
 
         $last_loading = GoodLoading::orderBy('id', 'desc')->first();
 
@@ -612,6 +646,10 @@ public function indexGoodLoadingBase($start_date, $end_date, $distributor_id, $p
         $data_loading['payment']      = $data['payment'];
 
         $good_loading = GoodLoading::find($good_loading_id);
+        if (GoodLoading::punyaKolomLaci()) {
+            // Loading lama boleh tanpa laci (tampil "belum dialokasikan ke laci" di Tutup Kasir).
+            $data_loading['cash_drawer'] = $this->laciLoadingDariForm($request, false, $good_loading->cash_drawer);
+        }
         // untuk catatan siapa yang mengedit dan apa yang berubah (action_logs)
         $jumlah_sebelum = ActionLog::jumlahBaris(GoodLoadingDetail::class, 'good_loading_id', $good_loading->id);
         $total_sebelum  = $good_loading->total_item_price;

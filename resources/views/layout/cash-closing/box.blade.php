@@ -42,6 +42,10 @@
   .tk-laci-selisih, .tk-laci-sisa { margin: 4px 0; min-height: 20px; }
   .tk-totals { max-width: 560px; margin: 14px 0; font-size: 15px; }
   .tk-totals td { padding: 6px 10px; }
+  .tk-table tr.tk-luar td { background: #fcf8e3; }
+  .tk-table tr.tk-jumlah td { border-top: 2px solid #ddd; }
+  .tk-laci-luar { flex: 1 1 280px; max-width: 440px; border: 1px dashed #d9b36c; border-radius: 6px; padding: 12px; background: #fcf8e3; margin-top: 12px; }
+  .tk-laci-luar ul { margin: 6px 0 0 16px; padding: 0; font-size: 13px; }
 </style>
 
 @php
@@ -94,6 +98,11 @@
       <tr><td>Ditutup oleh</td><td>{{ $c->closerName() }}, {{ $c->created_at->format('d/m/Y H:i') }}</td></tr>
     </table>
     @if($c->drawers)
+      @php
+        // Uang masuk & perkiraan dihitung ulang dari data sekarang (TutupKasir::laciTutupKasir()).
+        $cl = $tk['cekLaci'];
+        $tkLuar = $cl ? [['Pengeluaran kas belum dialokasikan ke laci', $cl['keluar']], ['Pemasukan kas belum dialokasikan ke laci', $cl['masuk']]] : [];
+      @endphp
       <div class="tk-sub">Rincian per laci</div>
       <div class="tk-scroll">
       <table class="tk-table">
@@ -104,31 +113,61 @@
           </tr>
         </thead>
         <tbody>
-          @foreach($c->drawers as $l)
+          @foreach($tk['laciTampil'] as $l)
             @php
-              $masuk = array_key_exists('panduan', $l) ? $l['panduan'] : ($l['penjualan_cash'] ?? null);
-              $perk = $l['perkiraan'] ?? null;
+              $perk = $l['perkiraan'];
               [$teksLaci, $kelasLaci] = $perk !== null ? $tkSelisih(round($l['uang'] - $perk, 2)) : ['–', ''];
             @endphp
             <tr>
               <td style="white-space:nowrap">{{ $l['nama'] }}</td>
-              <td class="num">{{ isset($l['sisa_kemarin']) ? showRupiah($l['sisa_kemarin']) : '–' }}</td>
+              <td class="num">{{ $l['sisa_kemarin'] !== null ? showRupiah($l['sisa_kemarin']) : '–' }}</td>
               <td class="num">
-                {{ $masuk !== null ? showRupiah($masuk) : '–' }}
-                @if(! empty($l['lain_cash']) || ! empty($l['biaya_cash']))
-                  <div class="tk-muted" style="white-space:normal; max-width:200px; margin-left:auto">penjualan {{ showRupiah($l['penjualan_cash']) }}, lain +{{ showRupiah($l['lain_cash']) }}, biaya &minus;{{ showRupiah($l['biaya_cash']) }}</div>
+                {{ $l['masuk'] !== null ? showRupiah($l['masuk']) : '–' }}
+                @if(! empty($l['lain']) || ! empty($l['biaya']) || ! empty($l['loading']))
+                  <div class="tk-muted" style="white-space:normal; max-width:220px; margin-left:auto">{{ collect([
+                      'penjualan ' . showRupiah($l['penjualan']),
+                      ! empty($l['lain']) ? 'lain +' . showRupiah($l['lain']) : null,
+                      ! empty($l['biaya']) ? 'biaya −' . showRupiah($l['biaya']) : null,
+                      ! empty($l['loading']) ? 'loading barang −' . showRupiah($l['loading']) : null,
+                  ])->filter()->implode(', ') }}</div>
                 @endif
               </td>
               <td class="num">{{ $perk !== null ? showRupiah($perk) : '–' }}</td>
               <td class="num">{{ showRupiah($l['uang']) }}</td>
               <td class="num {{ $kelasLaci }}">{{ $teksLaci }}</td>
-              <td class="num">{{ array_key_exists('tarik', $l) ? showRupiah($l['tarik']) : '–' }}</td>
-              <td class="num">{{ array_key_exists('tarik', $l) ? showRupiah($l['uang'] - $l['tarik']) : '–' }}</td>
+              <td class="num">{{ $l['tarik'] !== null ? showRupiah($l['tarik']) : '–' }}</td>
+              <td class="num">{{ $l['tarik'] !== null ? showRupiah($l['uang'] - $l['tarik']) : '–' }}</td>
             </tr>
           @endforeach
+          @foreach($tkLuar as [$label, $nilai])
+            @if(abs($nilai) >= 0.01)
+              <tr class="tk-luar">
+                <td><i>{{ $label }}</i></td>
+                <td class="num">–</td>
+                <td class="num">{{ $nilai < 0 ? '−' : '+' }}{{ showRupiah(abs($nilai)) }}</td>
+                <td class="num">{{ $nilai < 0 ? '−' : '+' }}{{ showRupiah(abs($nilai)) }}</td>
+                <td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td>
+              </tr>
+            @endif
+          @endforeach
+          @if($cl && $cl['bisaDicek'])
+            @php $tkJumlah = round($cl['jumlah'] + $cl['keluar'] + $cl['masuk'], 2); @endphp
+            <tr class="tk-jumlah">
+              <td><b>Jumlah</b> <span class="tk-muted">(saldo sistem {{ showRupiah($cl['saldo']) }})</span></td>
+              <td></td><td></td>
+              <td class="num"><b>{{ showRupiah($tkJumlah) }}</b></td>
+              <td class="num"><b>{{ showRupiah($c->physical_cash) }}</b></td>
+              <td></td><td></td><td></td>
+            </tr>
+          @endif
         </tbody>
       </table>
       </div>
+      @if($tk['saldoSekarang'] !== null)
+        <p class="tk-muted" style="margin:6px 0 0">Saldo Kas di Tangan tanggal ini sekarang {{ showRupiah($tk['saldoSekarang']) }}, saat tutup kasir {{ showRupiah($c->system_balance) }}:
+           ada jurnal yang dibuat/diubah setelah tutup kasir. Selisih resmi di atas tetap dari saat tutup kasir.</p>
+      @endif
+      @include('layout.cash-closing.cek-laci', ['cl' => $cl, 'tkAdmin' => $tk['role'] === 'admin'])
     @endif
     @if(! empty($tk['cek']))
       @php $ck = $tk['cek']; @endphp
@@ -245,6 +284,7 @@
                     <div class="tk-muted">penjualan {{ showRupiah($r['p']['penjualan']) }} ({{ $r['p']['jumlah'] }} transaksi)</div>
                     @if($r['p']['lain'])<div class="tk-muted">+ transaksi lain {{ showRupiah($r['p']['lain']) }}</div>@endif
                     @if($r['p']['biaya'])<div class="tk-muted">&minus; biaya lain {{ showRupiah($r['p']['biaya']) }}</div>@endif
+                    @if(! empty($r['p']['loading']))<div class="tk-muted">&minus; loading barang cash {{ showRupiah($r['p']['loading']) }}</div>@endif
                   @endif
                 </td>
                 <td class="num">{{ $r['p'] ? showRupiah($r['p']['total']) : ($r['tetap'] ? showRupiah(0) : '–') }}</td>
@@ -268,24 +308,38 @@
         <button type="button" class="btn btn-default btn-flat" id="tk-tambah" style="margin-top:8px">+ Tambah laci</button>
       @endif
 
+      @php $cl = $tk['cekLaci']; @endphp
+      @foreach([['Pengeluaran kas belum dialokasikan ke laci', 'keluar', fn ($n) => $n < 0], ['Pemasukan kas belum dialokasikan ke laci', 'masuk', fn ($n) => $n > 0]] as [$label, $kolom, $pilih])
+        @if(abs($cl[$kolom]) >= 0.01)
+          <div class="tk-laci-luar">
+            <div class="tk-laci-head"><b>{{ $label }}</b></div>
+            <div><b>{{ $cl[$kolom] < 0 ? '−' : '+' }}{{ showRupiah(abs($cl[$kolom])) }}</b>
+              <span class="tk-muted">tidak masuk perkiraan laci mana pun, tetap ikut di saldo sistem</span></div>
+            <ul>
+              @foreach(array_filter($cl['luar'], fn ($i) => $pilih($i['nominal'])) as $i)
+                <li>{{ $i['nominal'] < 0 ? '−' : '+' }}{{ showRupiah(abs($i['nominal'])) }}:
+                  @if($tkAdmin && ! empty($i['url']))<a href="{{ url($i['url']) }}">{{ $i['teks'] }}</a>@else{{ $i['teks'] }}@endif</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
+      @endforeach
+
       <table class="tk-table tk-totals">
+        @if($cl['bisaDicek'])
+          <tr><td>Jumlah perkiraan semua laci</td><td class="num">{{ showRupiah($cl['jumlah']) }}</td></tr>
+          @if(abs($cl['keluar'] + $cl['masuk']) >= 0.01)
+            <tr><td>Kas belum dialokasikan ke laci</td><td class="num">{{ $cl['keluar'] + $cl['masuk'] < 0 ? '−' : '+' }}{{ showRupiah(abs($cl['keluar'] + $cl['masuk'])) }}</td></tr>
+          @endif
+          <tr><td>Saldo sistem</td><td class="num">{{ showRupiah($tk['saldo']) }}</td></tr>
+        @endif
         <tr><td>Total uang fisik semua laci</td><td class="num"><b id="tk-total">Rp0.00</b></td></tr>
         <tr><td>Selisih dengan saldo sistem <span class="tk-muted">(resmi, dijurnal)</span></td><td class="num" id="tk-selisih">&ndash;</td></tr>
         <tr><td>Total ditarik ke owner <span class="tk-muted">(satu jurnal ke Kas di Nanang)</span></td><td class="num"><b id="tk-total-tarik">Rp0.00</b></td></tr>
         <tr><td>Sisa di semua laci</td><td class="num" id="tk-sisa">&ndash;</td></tr>
       </table>
 
-      @if($tk['tanpaKasir']['lain'] || $tk['tanpaKasir']['biaya'])
-        <div class="alert alert-warning" style="padding:8px 12px">
-          Di tanggal ini ada
-          {{ collect([
-              $tk['tanpaKasir']['lain'] ? 'transaksi lain cash ' . showRupiah($tk['tanpaKasir']['lain']) : null,
-              $tk['tanpaKasir']['biaya'] ? 'biaya lain cash ' . showRupiah($tk['tanpaKasir']['biaya']) : null,
-          ])->filter()->implode(' dan ') }}
-          yang tidak tercatat kasirnya (diinput sebelum fitur ini ada), jadi tidak masuk perkiraan per laci.
-          Totalnya tetap ikut di saldo Kas di Tangan.
-        </div>
-      @endif
+      @include('layout.cash-closing.cek-laci', ['cl' => $cl, 'tkAdmin' => $tkAdmin, 'daftarLuar' => false])
 
       <div class="tk-field" style="max-width:600px">
         <label for="note">Keterangan <span class="tk-muted">(isi alasannya kalau ada selisih)</span></label>
@@ -295,7 +349,8 @@
       <button type="submit" class="btn btn-success btn-flat" style="min-width:220px; font-size:16px">Simpan Tutup Kasir</button>
 
       <p class="tk-muted" style="margin-top:12px">Perkiraan isi laci = sisa kemarin + uang masuk hari ini (penjualan cash + transaksi lain
-         cash &minus; biaya lain dari kas yang diinput kasir itu). Selisih per laci hanya panduan untuk mencari laci yang kurang;
+         cash &minus; biaya lain dari kas yang diinput kasir itu &minus; loading barang yang dibayar dari laci itu). Jumlah perkiraan
+         semua laci dicek sama dengan saldo sistem. Selisih per laci hanya panduan untuk mencari laci yang kurang;
          selisih resmi yang dijurnal dihitung dari <b>total semua laci</b> dibanding saldo Kas di Tangan.</p>
     </form>
 

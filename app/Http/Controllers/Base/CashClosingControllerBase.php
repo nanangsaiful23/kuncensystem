@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Base;
 
 use App\Models\CashClosing;
+use App\Models\GoodLoading;
 use App\Models\ReconciliationCheck;
 use App\Services\CekKecocokan;
 use App\Services\TutupKasir;
@@ -26,6 +27,8 @@ trait CashClosingControllerBase
         }
         // Hasil cek kecocokan yang dijalankan saat tutup kasir disimpan.
         $tk['cekAda'] = ReconciliationCheck::pastikanTabel();
+        // Laci asal uang loading barang yang dibayar dari Kas di Tangan.
+        GoodLoading::pastikanKolomLaci();
         $tk['role'] = $role;
 
         $last = TutupKasir::last();
@@ -42,6 +45,16 @@ trait CashClosingControllerBase
             if ($tk['closing'] !== null) {
                 $tk['status'] = 'closed';
                 $tk['cek'] = $tk['cekAda'] ? ReconciliationCheck::where('cash_closing_id', $tk['closing']->id)->latest('id')->first() : null;
+                // Uang masuk/keluar per laci dihitung ulang dari data sekarang (mis. laci loading baru dipilih).
+                $panduan = TutupKasir::panduanPerKasir($date); // sekali saja: tabel transaksi tidak berindeks tanggal
+                $tk['laciTampil'] = TutupKasir::laciTutupKasir($tk['closing'], $panduan);
+                $tk['cekLaci'] = null;
+                $tk['saldoSekarang'] = null;
+                if ($tk['laciTampil'] && ! in_array(null, array_column($tk['laciTampil'], 'key'), true)) {
+                    $saldo = TutupKasir::saldoSebelumTutup($tk['closing']);
+                    $tk['cekLaci'] = TutupKasir::cekJumlahLaci($date, $tk['laciTampil'], $saldo, $tk['closing'], $panduan);
+                    $tk['saldoSekarang'] = abs($saldo - $tk['closing']->system_balance) >= 0.01 ? $saldo : null;
+                }
             } elseif ($date > date('Y-m-d')) {
                 $tk['status'] = 'future';
             } elseif ($last !== null && $last->closing_date->format('Y-m-d') > $date) {
@@ -51,8 +64,10 @@ trait CashClosingControllerBase
                 $tk['saldo']   = TutupKasir::saldoKasDiTangan($date);
                 $tk['lampau']  = $date < date('Y-m-d');
                 $tk['devices'] = TutupKasir::devices();
-                $tk['laci']    = TutupKasir::daftarLaci($date);
-                $tk['tanpaKasir'] = TutupKasir::tanpaKasir($date);
+                $panduan = TutupKasir::panduanPerKasir($date); // sekali saja: tabel transaksi tidak berindeks tanggal
+                $tk['laci']    = TutupKasir::daftarLaci($date, $panduan);
+                // Jumlah perkiraan semua laci harus = saldo sistem; yang tidak masuk laci didaftar.
+                $tk['cekLaci'] = TutupKasir::cekJumlahLaci($date, $tk['laci'], $tk['saldo'], null, $panduan);
             }
         }
 
@@ -180,6 +195,8 @@ trait CashClosingControllerBase
                 'penjualan_cash' => $p['penjualan'] ?? null,
                 'lain_cash'      => $p['lain'] ?? null,
                 'biaya_cash'     => $p['biaya'] ?? null,
+                // Loading barang yang dibayar dari laci ini (sudah dikurangkan dari panduan & perkiraan).
+                'loading_cash'   => $p['loading'] ?? null,
             ];
         }
 

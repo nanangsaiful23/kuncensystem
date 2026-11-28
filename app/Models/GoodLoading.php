@@ -16,12 +16,47 @@ class GoodLoading extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'role', 'role_id', 'type', 'checker', 'loading_date', 'distributor_id', 'total_item_price', 'note', 'payment'
+        'role', 'role_id', 'type', 'checker', 'loading_date', 'distributor_id', 'total_item_price', 'note', 'payment',
+        // Laci Tutup Kasir asal uangnya kalau dibayar dari 1111 Kas di Tangan ("cashier:15"), lihat TutupKasir.
+        'cash_drawer',
     ];
 
     protected $hidden = [
         'created_at', 'updated_at', 'deleted_at',
     ];
+
+    private static ?bool $kolomLaci = null;
+
+    /** Kolom cash_drawer sudah ada? (migrasi 2026_11_28_000002) */
+    public static function punyaKolomLaci(): bool
+    {
+        return self::$kolomLaci ??= \Illuminate\Support\Facades\Schema::hasColumn('good_loadings', 'cash_drawer');
+    }
+
+    /**
+     * Buat kolom cash_drawer kalau belum ada. Hanya dari request GET: ALTER
+     * TABLE di MySQL menutup transaksi yang dibuka AtomicRequest untuk POST.
+     */
+    public static function pastikanKolomLaci(): bool
+    {
+        if (self::punyaKolomLaci()) {
+            return true;
+        }
+        try {
+            (require database_path('migrations/2026_11_28_000002_add_cash_drawer_to_good_loadings.php'))->up();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        self::$kolomLaci = null;
+
+        return self::punyaKolomLaci();
+    }
+
+    /** Lupakan hasil cek kolom (tes yang membuat kolomnya sendiri). */
+    public static function lupakanKolomLaci(): void
+    {
+        self::$kolomLaci = null;
+    }
 
 
     public function distributor()

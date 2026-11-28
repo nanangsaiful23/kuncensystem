@@ -134,9 +134,12 @@ class CekKecocokan
                 'Uang fisik ' . showRupiah($closing->physical_cash) . ' sama dengan saldo Kas di Tangan.', $url);
         }
 
+        // Perkiraan laci dihitung ulang dari data sekarang (loading cash per laci dll.).
+        $panduan = TutupKasir::panduanPerKasir($date);
+        $laci = TutupKasir::laciTutupKasir($closing, $panduan);
         $rincian = [];
-        foreach ($closing->drawers ?? [] as $l) {
-            if (! isset($l['perkiraan'], $l['uang'])) {
+        foreach ($laci as $l) {
+            if ($l['perkiraan'] === null) {
                 continue;
             }
             $s = round($l['uang'] - $l['perkiraan'], 2);
@@ -145,16 +148,47 @@ class CekKecocokan
                     . showRupiah($l['perkiraan']) . ' (' . ($s < 0 ? 'kurang ' : 'lebih ') . showRupiah(abs($s)) . ')', 'url' => null];
             }
         }
+        if ($laci && ! in_array(null, array_column($laci, 'key'), true)) {
+            $cl = TutupKasir::cekJumlahLaci($date, $laci, TutupKasir::saldoSebelumTutup($closing), $closing, $panduan);
+            if ($cl['bisaDicek'] && ! $cl['cocok']) {
+                $rincian[] = ['teks' => 'Jumlah perkiraan semua laci ' . showRupiah($cl['jumlah']) . ' tidak sama dengan saldo sistem '
+                    . showRupiah($cl['saldo']) . ', jadi selisih per laci di atas tidak tepat. Sumbernya:', 'url' => $url];
+                foreach ($cl['luar'] as $i) {
+                    $rincian[] = ['teks' => '- ' . ($i['nominal'] < 0 ? '−' : '+') . showRupiah(abs($i['nominal'])) . ' ' . $i['teks'], 'url' => $i['url']];
+                }
+            }
+        }
         if ($closing->note) {
             $rincian[] = ['teks' => 'Keterangan tutup kasir: ' . $closing->note, 'url' => null];
         }
 
         return self::hasil('kas', 'Kas', false,
             'Uang fisik ' . showRupiah($closing->physical_cash) . ', saldo Kas di Tangan ' . showRupiah($closing->system_balance) . ': '
-            . ($selisih < 0
-                ? 'kurang ' . showRupiah(abs($selisih)) . ' (sudah dijurnal ke Biaya Uang Hilang).'
-                : 'lebih ' . showRupiah($selisih) . ' (sudah dijurnal ke Pendapatan Lain-lain).'),
+            . ($selisih < 0 ? 'kurang ' : 'lebih ') . showRupiah(abs($selisih)) . ' (' . self::teksJurnalSelisih($closing) . ').',
             $url, $rincian);
+    }
+
+    /** Cek Kas tutup kasir ini dihitung dari data sekarang (untuk tampilan, lihat ReconciliationCheck::hasilTerkini()). */
+    public static function cekKasTerkini(CashClosing $closing): array
+    {
+        return self::cekKas($closing);
+    }
+
+    /**
+     * "sudah dijurnal ke <akun>" dari jurnal selisih tutup kasir yang sekarang
+     * (akunnya bisa diganti owner, mis. Biaya Uang Hilang -> Biaya Charity).
+     */
+    public static function teksJurnalSelisih(CashClosing $closing): string
+    {
+        $bawaan = $closing->difference < 0 ? 'Biaya Uang Hilang' : 'Pendapatan Lain-lain';
+        $jurnal = $closing->adjustment_journal_id ? \App\Models\Journal::find($closing->adjustment_journal_id) : null;
+        if ($jurnal === null) {
+            return $closing->adjustment_journal_id ? 'jurnal selisihnya sudah dihapus' : 'sudah dijurnal ke ' . $bawaan;
+        }
+        // Uang kurang: akun lawan di sisi debit; uang lebih: di sisi kredit.
+        $akun = $closing->difference < 0 ? $jurnal->debit_account() : $jurnal->credit_account();
+
+        return 'sudah dijurnal ke ' . ($akun ? $akun->name : $bawaan);
     }
 
     // ------------------------------------------------------- penjualan & HPP

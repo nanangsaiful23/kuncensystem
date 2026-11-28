@@ -18,7 +18,9 @@ class GoodLoadingNumberTest extends StockTestCase
     private function loadingForm(array $rows, string $total): array
     {
         $f = ['distributor_name' => null, 'distributor_id' => 1, 'loading_date' => date('Y-m-d'), 'payment' => '1111',
-              'checker' => 'test', 'note' => 'uji angka', 'total_item_price' => $total];
+              'checker' => 'test', 'note' => 'uji angka', 'total_item_price' => $total,
+              // dibayar dari Kas di Tangan: laci asal uangnya wajib dipilih (kalau kolomnya sudah ada)
+              'cash_drawer' => 'cashier:' . $this->cashier()->id];
         foreach ($rows as [$good, $unit, $qty, $buy, $sell]) {
             $f['names'][] = $good;
             $f['name_temps'][] = DB::table('goods')->where('id', $good)->value('name');

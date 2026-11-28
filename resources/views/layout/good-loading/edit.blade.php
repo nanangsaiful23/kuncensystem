@@ -109,6 +109,19 @@
                         {!! Form::select('payment', getLoadingPaymentType(), $good_loading->payment, ['class' => 'form-control select2', 'style' => 'width:100%', 'id' => 'payment']) !!}
                     @endif
                 </div>
+                @if(\App\Models\GoodLoading::punyaKolomLaci())
+                {{-- Hanya untuk 1111 Kas di Tangan; loading lama boleh kosong (belum dialokasikan ke laci di Tutup Kasir). --}}
+                <div class="field-row" id="cash_drawer_row" style="{{ $good_loading->payment == '1111' ? '' : 'display:none;' }}">
+                    <label>Diambil dari laci/kasir</label>
+                    <select name="cash_drawer" id="cash_drawer" class="form-control select2" style="width:100%;">
+                        <option value="">Belum dipilih</option>
+                        @foreach(\App\Services\TutupKasir::pilihanLaci($good_loading->cash_drawer) as $laciKey => $laciNama)
+                            <option value="{{ $laciKey }}" @selected(old('cash_drawer', $good_loading->cash_drawer) === $laciKey)>{{ $laciNama }}</option>
+                        @endforeach
+                    </select>
+                    <small style="color:var(--clr-muted);">Uang loading keluar dari laci ini; perkiraan lacinya di Tutup Kasir ikut berkurang.</small>
+                </div>
+                @endif
                 <div class="field-row">
                     <label>PIC Check Barang</label>
                     {!! Form::text('checker', null, ['class' => 'form-control', 'id' => 'checker']) !!}
@@ -143,6 +156,8 @@ var changed = {};   /* row number -> true; sent as "1;4;7" */
 
 $(document).ready(function () {
     $('.select2').select2();
+    /* "Diambil dari laci/kasir" hanya untuk 1111 Kas di Tangan */
+    $('#payment').on('change', function () { $('#cash_drawer_row').toggle($(this).val() === '1111'); });
     $('#loading_date').datepicker({ autoclose: true, format: 'yyyy-mm-dd', todayHighlight: true });
     changeTotal();
     $(document).on('keydown', function (e) {

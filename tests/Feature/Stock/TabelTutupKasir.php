@@ -47,6 +47,11 @@ trait TabelTutupKasir
                 $pdo->exec($statement);
             }
         }
+        // Laci asal uang loading cash (docs/sql/2026-11-28-laci-loading-kas.sql); kolomnya tetap ada di database tes.
+        if ($pdo->query("show columns from good_loadings like 'cash_drawer'")->fetch() === false) {
+            $pdo->exec('ALTER TABLE `good_loadings` ADD COLUMN `cash_drawer` varchar(40) DEFAULT NULL AFTER `payment`');
+        }
         \App\Models\StockMinusLog::lupakanTabel(); // tes sebelumnya mungkin sudah mengingat "tabel tidak ada"
+        \App\Models\GoodLoading::lupakanKolomLaci();
     }
 }

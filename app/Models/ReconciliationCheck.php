@@ -68,7 +68,36 @@ class ReconciliationCheck extends Model
     /** @return list<array> cek yang tidak cocok */
     public function masalah(): array
     {
-        return array_values(array_filter($this->results ?? [], fn ($r) => empty($r['ok'])));
+        return array_values(array_filter($this->hasilTerkini(), fn ($r) => empty($r['ok'])));
+    }
+
+    /**
+     * results, dengan cek Kas dibaca dari data yang sekarang, bukan dari saat
+     * tutup kasir: akun jurnal selisihnya ("sudah dijurnal ke ...") bisa diganti
+     * owner (mis. Biaya Uang Hilang -> Biaya Charity), dan perkiraan per laci
+     * berubah kalau laci loading cash baru dipilih. Selisih resminya tetap.
+     */
+    public function hasilTerkini(): array
+    {
+        $hasil = $this->results ?? [];
+        foreach ($hasil as $i => $r) {
+            if (($r['key'] ?? null) !== 'kas' || ! empty($r['ok']) || ! $this->cash_closing_id) {
+                continue;
+            }
+            $closing = CashClosing::find($this->cash_closing_id);
+            if ($closing === null) {
+                continue;
+            }
+            try {
+                $hasil[$i] = \App\Services\CekKecocokan::cekKasTerkini($closing);
+            } catch (\Throwable $e) {
+                report($e);
+                $hasil[$i]['pesan'] = preg_replace('/\((sudah dijurnal ke [^)]*|jurnal selisihnya sudah dihapus)\)/u',
+                    '(' . \App\Services\CekKecocokan::teksJurnalSelisih($closing) . ')', (string) $r['pesan']);
+            }
+        }
+
+        return $hasil;
     }
 
     /** Nama admin/kasir yang menandai. */

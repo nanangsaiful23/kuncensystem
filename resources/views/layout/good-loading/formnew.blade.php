@@ -156,6 +156,19 @@
                     <label>Jenis Pembayaran</label>
                     {!! Form::select('payment', getLoadingPaymentType(), null, ['class'=>'form-control select2','style'=>'width:100%','id'=>'payment']) !!}
                 </div>
+                @if(\App\Models\GoodLoading::punyaKolomLaci())
+                {{-- Wajib kalau dibayar dari 1111 Kas di Tangan: perkiraan laci itu di Tutup Kasir ikut berkurang. --}}
+                <div class="field-row" id="cash_drawer_row" style="display:none;">
+                    <label>Diambil dari laci/kasir</label>
+                    <select name="cash_drawer" id="cash_drawer" class="form-control select2" style="width:100%;">
+                        <option value="">Pilih laci/kasir...</option>
+                        @foreach(\App\Services\TutupKasir::pilihanLaci() as $laciKey => $laciNama)
+                            <option value="{{ $laciKey }}" @selected(old('cash_drawer') === $laciKey)>{{ $laciNama }}</option>
+                        @endforeach
+                    </select>
+                    <small style="color:var(--clr-muted);">Uang loading keluar dari laci ini; perkiraan lacinya di Tutup Kasir ikut berkurang.</small>
+                </div>
+                @endif
                 <div class="field-row">
                     <label>PIC Check Barang</label>
                     <input type="text" name="checker" class="form-control" id="checker" placeholder="Nama checker...">
@@ -236,6 +249,10 @@ $(document).ready(function () {
     $('#all_search').focus();
     $('#loading_date').datepicker({ autoclose:true, format:'yyyy-mm-dd', todayHighlight:true });
     $('#exp-1').datepicker({ autoclose:true, format:'yyyy-mm-dd', todayHighlight:true });
+    /* "Diambil dari laci/kasir" hanya untuk 1111 Kas di Tangan */
+    function toggleCashDrawer(){ $('#cash_drawer_row').toggle($('#payment').val()==='1111'); }
+    $('#payment').on('change', toggleCashDrawer);
+    toggleCashDrawer();
 });
 
 /* ═══════ BADGE ══════════════════════════════════════════════════════════ */
@@ -1152,6 +1169,7 @@ function submitForm(){
     if($('#loading_date').val()===''){ok=false;alert('Isi tanggal pembelian');}
     if(total_real_item===0){ok=false;alert('Pilih minimal satu barang');}
     if($('#payment').val()==='0000'){alert('Cek jenis pembayaran');}
+    if(ok && $('#payment').val()==='1111' && $('#cash_drawer').length && !$('#cash_drawer').val()){ok=false;alert('Pilih "Diambil dari laci/kasir" untuk pembayaran 1111 Kas di Tangan');}
     if(ok && !window._submitting && !confirmPrices(loadingPriceChecks())) ok=false;
     if(ok){
         if(window._submitting) return;

@@ -181,6 +181,7 @@ class GoodLoadingController extends Controller
             $default['page_name'] = 'Tambah Loading';
         $default['page'] = 'good-loading';
         $default['section'] = 'create';
+        GoodLoading::pastikanKolomLaci(); // field "Diambil dari laci/kasir"
 
         return view('admin.layout.page', compact('default', 'type'));
     }
@@ -196,6 +197,7 @@ public function createnew($type)
             $default['page_name'] = 'Tambah Loading';
         $default['page'] = 'good-loading';
         $default['section'] = 'createnew';
+        GoodLoading::pastikanKolomLaci(); // field "Diambil dari laci/kasir"
 
         return view('admin.layout.page', compact('default', 'type'));
     }
@@ -262,6 +264,7 @@ public function createnew($type)
         $default['page_name'] = 'Ubah Loading';
         $default['page'] = 'good-loading';
         $default['section'] = 'edit';
+        GoodLoading::pastikanKolomLaci(); // field "Diambil dari laci/kasir"
 
         $good_loading = GoodLoading::find($good_loading_id);
 

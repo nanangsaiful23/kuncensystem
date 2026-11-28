@@ -11,40 +11,10 @@ trait OtherPaymentControllerBase
 {
     public function indexOtherPaymentBase($start_date, $end_date, $pagination)
     {
-        if(isSuperadmin())
-        {
-            if($pagination == 'all')
-               $other_payments = Journal::where('type', 'like', '%_payment%')
-                                            ->whereDate('journals.journal_date', '>=', $start_date)
-                                            ->whereDate('journals.journal_date', '<=', $end_date) 
-                                            ->get();
-            else
-               $other_payments = Journal::where('type', 'like', '%_payment%')
-                                            ->whereDate('journals.journal_date', '>=', $start_date)
-                                            ->whereDate('journals.journal_date', '<=', $end_date) 
-                                            ->paginate($pagination);
+        // Sama dengan "Total biaya lain" di Resume Transaksi Total (Journal::queryBiayaLain()).
+        $query = Journal::queryBiayaLain($start_date, $end_date);
 
-        }
-        else
-        {
-            if($pagination == 'all')
-               $other_payments = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
-                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "5225") AND journals.credit_account_id = 1')
-                                        ->where('journals.type', 'like', '%_payment%')
-                                        ->whereDate('journals.journal_date', '>=', $start_date)
-                                        ->whereDate('journals.journal_date', '<=', $end_date) 
-                                        ->get();
-            else
-               $other_payments = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
-                                        ->whereRaw('(accounts.code = "5220" OR accounts.code = "5225") AND journals.credit_account_id = 1')
-                                        ->where('journals.type', 'like', '%_payment%')
-                                        ->whereDate('journals.journal_date', '>=', $start_date)
-                                        ->whereDate('journals.journal_date', '<=', $end_date) 
-                                        ->paginate($pagination);
-
-        }
-
-        return $other_payments;
+        return $pagination == 'all' ? $query->get() : $query->paginate($pagination);
     }
 
     public function storeOtherPaymentBase(Request $request)
@@ -53,6 +23,10 @@ trait OtherPaymentControllerBase
         $this->validate($request, [
             'money' => array('required', 'regex:/^[\d\s,]*$/'),
         ]);
+        // Biaya Rp0 tidak berarti apa-apa (contoh lama: "Santri" Rp0) dan hanya mengotori daftar.
+        if (! ($request->money > 0)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['money' => 'Jumlah uang biaya lain harus lebih dari Rp0.']);
+        }
         
         if($request->payment == 'cash')
         {

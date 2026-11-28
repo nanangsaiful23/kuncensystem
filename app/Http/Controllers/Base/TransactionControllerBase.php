@@ -942,12 +942,11 @@ trait TransactionControllerBase
                                             ->where('type', '!=', '3001')
                                             ->get();
 
-        $transactions['other_payment'] = Journal::join('accounts', 'accounts.id', 'journals.debit_account_id')
-                                                ->whereRaw('(accounts.code = "5220" OR accounts.code = "5225")')
-                                                ->where('journals.type', 'like', '%_payment%')
-                                                ->whereDate('journals.journal_date', '>=', $start_date)
-                                                ->whereDate('journals.journal_date', '<=', $end_date) 
-                                                ->get();
+        // Sama dengan daftar di menu Biaya Lain (dulu hanya 5220/5225, jadi mis. 5221 Biaya Charity tidak ikut).
+        $transactions['other_payment'] = Journal::queryBiayaLain($start_date, $end_date)->get();
+        // Bagian yang dibayar dari 1111 Kas di Tangan: yang dipotong dari laci di Tutup Kasir.
+        $kas = Account::where('code', '1111')->first();
+        $transactions['other_payment_cash'] = $kas ? $transactions['other_payment']->where('credit_account_id', $kas->id) : collect();
 
         $transactions['other_transaction'] = Journal::where('type', 'like', '%_transaction')
                                                     ->whereDate('journals.journal_date', '>=', $start_date)

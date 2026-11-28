@@ -52,6 +52,14 @@
                                 @endif
                             </div>
                         </div>
+                        @if($good_loading->payment == '1111' && \App\Models\GoodLoading::punyaKolomLaci())
+                        <div class="form-group">
+                            {!! Form::label('cash_drawer', 'Diambil dari laci/kasir', array('class' => 'col-sm-2 left control-label')) !!}
+                            <div class="col-sm-4">
+                                {!! Form::text('cash_drawer', $good_loading->cash_drawer ? \App\Services\TutupKasir::namaLaci($good_loading->cash_drawer) : 'Belum dipilih (ubah loading untuk memilih)', array('class' => 'form-control', 'readonly' => 'readonly')) !!}
+                            </div>
+                        </div>
+                        @endif
                         <div class="form-group">
                             {!! Form::label('note', 'Catatan', array('class' => 'col-sm-2 left control-label')) !!}
                             <div class="col-sm-4">

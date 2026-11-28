@@ -59,6 +59,28 @@ class Journal extends Model
         static::restoring(fn (Journal $journal) => \App\Services\PeriodLock::assertOpen([$journal->journal_date]));
     }
 
+    /**
+     * Biaya Lain (jurnal %_payment%) pada rentang tanggal, sama persis dengan
+     * daftar di menu Biaya Lain dan "Total biaya lain" di Resume Transaksi
+     * Total: owner (superadmin) melihat semua biaya lain (termasuk akun lain
+     * seperti 5221 Biaya Charity); admin/kasir lain hanya 5220 Biaya Operasional
+     * Toko & 5225 Biaya dapur & pasar yang dibayar dari Kas di Tangan.
+     */
+    public static function queryBiayaLain(string $start_date, string $end_date)
+    {
+        if (isSuperadmin()) {
+            return self::where('type', 'like', '%_payment%')
+                       ->whereDate('journals.journal_date', '>=', $start_date)
+                       ->whereDate('journals.journal_date', '<=', $end_date);
+        }
+
+        return self::join('accounts', 'accounts.id', 'journals.debit_account_id')
+                   ->whereRaw('(accounts.code = "5220" OR accounts.code = "5225") AND journals.credit_account_id = 1')
+                   ->where('journals.type', 'like', '%_payment%')
+                   ->whereDate('journals.journal_date', '>=', $start_date)
+                   ->whereDate('journals.journal_date', '<=', $end_date);
+    }
+
     public function debit_account()
     {
         return Account::find($this->debit_account_id);

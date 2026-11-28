@@ -73,10 +73,17 @@
                 <td style="text-align: right;">{{ showRupiah($transactions['other_transaction']->sum('debit')) }}</td>
               </tr>
               <tr>
-                <td>Total biaya lain</td>
+                <td>Total biaya lain <span style="color:#888; font-size:12px">(sama dengan daftar Biaya Lain)</span></td>
                 <td>:</td>
                 <td style="text-align: right;">{{ showRupiah($transactions['other_payment']->sum('debit')) }}</td>
               </tr>
+              @if(abs($transactions['other_payment']->sum('debit') - $transactions['other_payment_cash']->sum('debit')) >= 0.01)
+                <tr>
+                  <td style="padding-left: 16px; color:#666">dibayar dari Kas di Tangan (dipotong dari laci di Tutup Kasir)</td>
+                  <td>:</td>
+                  <td style="text-align: right; color:#666">{{ showRupiah($transactions['other_payment_cash']->sum('debit')) }}</td>
+                </tr>
+              @endif
             </table>
           </div>
         </div>
